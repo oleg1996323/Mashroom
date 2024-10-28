@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "compare": "c",
+        "cstddef": "c",
+        "type_traits": "c",
+        "cmath": "c",
+        "limits": "c",
+        "utility": "c",
+        "chrono": "c"
+    }
+}
