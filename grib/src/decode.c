@@ -766,7 +766,7 @@ fail:
 				}
 				else if (output_type == TEXT) {
 				/* number of points in grid */
-					struct DATE date_;
+					Date date_;
 					date_.year = PDS_Year4(pds);
 					date_.month = PDS_Month(pds);
 					date_.day  = PDS_Day(pds);
@@ -1020,7 +1020,7 @@ fail:
 					fclose(dump_file);
 				char cur_path[strlen(root_cap_dir_name)+PATH_MAX];
 				strcpy(cur_path,root_cap_dir_name);
-				struct DATE date_;
+				Date date_;
 				double start_lat = 0.001*GDS_LatLon_La1(gds);
 				double end_lat = 0.001*GDS_LatLon_La2(gds);
 				double dy = 0.001*GDS_LatLon_dy(gds);

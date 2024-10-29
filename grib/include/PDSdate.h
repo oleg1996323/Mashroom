@@ -26,14 +26,14 @@ extern int minute;
 
 int PDS_date(unsigned char *pds, int option, int v_time);
 
-extern struct DATE{
-        int year;
-        int month;
-        int day;
-        int hour;
-}Date_s;
+typedef struct DATE_S{
+int year;
+int month;
+int day;
+int hour;
+}Date;
 
-#define DATE(...) ((Date_s) { (.year = -1), (.month = -1), (.day = -1), (.hour = -1), ##__VA_ARGS__ })
+#define DATE(...) ((Date) { (.year = -1), (.month = -1), (.day = -1), (.hour = -1), ##__VA_ARGS__ })
 
 #define  FEB29   (31+29)
 static int monthjday[13] = {

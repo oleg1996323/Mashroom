@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "func.h"
+#include "PDSdate.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
@@ -19,21 +20,35 @@ enum DATA_FORMAT{
     GRIB
 };
 
-struct GRID_DATA
+#define UNDEF_GRID_VALUE -99999999
+typedef struct GRID_DATA_S
 {
-	struct RECT bound;
+	Rect bound;
 	double dy;
 	double dx;
 	int nx;
 	int ny;
 	long int nxny;
-};
+}GridData;
 
-struct VALUE_BY_COORD{
+#define GridData(...) ((GridData){.bound = Rect(), \
+                            .dy = UNDEF_GRID_VALUE, \
+                            .dx = UNDEF_GRID_VALUE, \
+                            .nx = UNDEF_GRID_VALUE, \
+                            .ny = UNDEF_GRID_VALUE, \
+                            .nxny = UNDEF_GRID_VALUE, \
+                            ## __VA_ARGS__})
+
+typedef struct VALUE_BY_COORD{
     double value;
     double lat;
     double lon;
-};
+}ValueByCoord;
+
+typedef struct VALUES{
+    Date date;
+    ValueByCoord* values_by_coord;
+}Values;
 
 /* version 1.2 of grib headers  w. ebisuzaki */
 

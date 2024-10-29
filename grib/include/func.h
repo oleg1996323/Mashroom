@@ -1,14 +1,15 @@
 #pragma once
 #include <stdbool.h>
 
-extern struct RECT{
+typedef struct{
     double x1;
     double x2;
     double y1;
     double y2;
-}Rect_s;
+}Rect;
 
-#define RECT(...) ((Rect_s) { (.x1 = -1), (.x2 = -1), (.y1 = -1), (.y2 = -1), ##__VA_ARGS__ })
+#define UNDEF_RECT_VALUE -99999999
+#define Rect(...) ((Rect) { .x1 = UNDEF_RECT_VALUE, .x2 = -UNDEF_RECT_VALUE, .y1 = UNDEF_RECT_VALUE, .y2 = -UNDEF_RECT_VALUE, ##__VA_ARGS__ })
 
 /*
  * w. ebisuzaki
@@ -43,4 +44,5 @@ double ibm2flt(unsigned char *ibm);
 
 int flt2ieee(float x, unsigned char *ieee);
 
-extern bool intersect_rect(struct RECT rect1, struct RECT rect2);
+extern bool intersect_rect(const Rect* rect1, const Rect* rect2);
+extern Rect intersection_rect(const Rect* rect1, const Rect* rect2);

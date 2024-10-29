@@ -2,6 +2,7 @@
 #include "func.h"
 #include "BDS.h"
 #include "def.h"
+#include <memory.h>
 
 void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
 	int n_bits, int n, double ref, double scale) {
@@ -16,16 +17,14 @@ void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
     if (BDS_ComplexPacking(bds)) {
 	fprintf(stderr,"*** Cannot decode complex packed fields n=%d***\n", n);
 	exit(8);
-	for (i = 0; i < n; i++) {
-	    *flt++ = UNDEFINED;
-	}
+	memset(flt,UNDEFINED,n);
 	return;
     }
 
     if (BDS_Harmonic(bds)) {
         bits = bds + 15;
         /* fill in global mean */
-        *flt++ = BDS_Harmonic_RefValue(bds);
+		memset(flt,BDS_Harmonic_RefValue(bds),n);
         n -= 1; 
     }
     else {

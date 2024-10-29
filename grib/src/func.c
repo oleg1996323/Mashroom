@@ -1,13 +1,33 @@
 #include "func.h"
 #include "math.h"
 #include "float.h"
+#include <stdio.h>
 #include <stdbool.h>
+#include <error.h>
+#include "def.h"
 
-bool intersect_rect(struct RECT rect1, struct RECT rect2){
-	return !(rect2.x1 > rect1.x2 ||
-			rect2.x2 < rect1.x1 || 
-			rect2.y1 < rect1.y2||
-			rect2.y2 > rect1.y1);
+bool intersect_rect(const Rect* rect1, const Rect* rect2) {
+	if(rect1 && rect2)
+		return !(rect2->x1 > rect1->x2 ||
+			rect2->x2 < rect1->x1 || 
+			rect2->y1 < rect1->y2||
+			rect2->y2 > rect1->y1);
+	else {
+		fprintf(stderr,"Not defined arguments");
+		exit(1);
+	}
+}
+
+Rect intersection_rect(const Rect* source, const Rect* searched){
+	if(source && searched)
+		return Rect(.x1 = max(source->x1,searched->x1), 
+					.x2 = min(source->x2,searched->x2),
+					.y1 = max(source->y1,searched->y1),
+					.y2 = min(source->y2,searched->y2));
+	else {
+		fprintf(stderr,"Not defined arguments");
+		exit(1);
+	}
 }
 
 double int_power(double x, int y) {

@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <decode_aux.h>
 
-int extract(struct EXTRACT_DATA* data, const char* from){
+int extract(struct EXTRACT_DATA* data, const char* from, Values* values){
     unsigned char *buffer;
     float *array;
     double temp;
@@ -38,6 +38,8 @@ int extract(struct EXTRACT_DATA* data, const char* from){
     long unsigned pos = 0;
     unsigned char *msg, *pds, *gds, *bms, *bds, *pointer, *end_msg;
     FILE *input, *dump_file = NULL;
+    GridData grid_ = GridData();
+    Date date_;
     char line[2000];
     enum {none, dwd, simple} header = simple;
 
@@ -216,8 +218,6 @@ fail:
             temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
 
         if(data){
-
-            struct GRID_DATA grid_;
             grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
             grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
             grid_.dy = 0.001*GDS_LatLon_dy(gds);
@@ -228,28 +228,57 @@ fail:
             grid_.ny = ny;
             grid_.nxny = nxny;
             
-            if(intersect_rect(grid_.bound,data->bound)){
-                struct DATE date_;
+            if(intersect_rect(&grid_.bound,&data->bound)){
+                Rect zone_load = intersection_rect(&grid_.bound,&data->bound);
+
                 date_.year = PDS_Year4(pds);
                 date_.month = PDS_Month(pds);
                 date_.day  = PDS_Day(pds);
                 date_.hour = PDS_Hour(pds);
                 
-                if(!(data->date.year==-1 || 
-                    data->date.month==-1 ||
-                    data->date.day==-1 ||
-                    data->date.hour==-1)){
+                //if everyone is defined
+                if(data->date.year!=-1 && date_.year!=data->date.year)
+                    continue;
+                if(data->date.month!=-1 && date_.month!=data->date.month)
+                    continue;
+                if(data->date.day!=-1 && date_.day!=data->date.day)
+                    continue;
+                if(data->date.hour!=-1 && date_.hour!=data->date.hour)
+                    continue;
 
+                int begin_id_x = ceil((fabs(grid_.bound.x1 - zone_load.x1))/grid_.dx);
+                int begin_id_y = ceil((fabs(grid_.bound.y1 - zone_load.y1))/grid_.dy);
+                int end_id_x = ceil((fabs(grid_.bound.x2 - zone_load.x2))/grid_.dx);
+                int end_id_y = ceil((fabs(grid_.bound.y2 - zone_load.y2))/grid_.dy);
+
+                if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
+                    fprintf(stderr,"memory problems\n");
+                    exit(8);
+                }
+                temp = int_power(10.0, - PDS_DecimalScale(pds));
+                BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
+                    temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
+
+                if(values)
+                    free(values);
+                if(!(values->values_by_coord = (ValueByCoord*)malloc(sizeof(ValueByCoord)*
+                                                (end_id_x - begin_id_x)*
+                                                (end_id_y - begin_id_y)))){
+                    fprintf(stderr,"memory problems\n");
+                    exit(1);
+                }
+                else{
+                    unsigned long x_length = end_id_x - begin_id_x;
+                    for(int y_iter = begin_id_y;y_iter<end_id_y;++y_iter){
+                        for(int x_iter = begin_id_x;x_iter<end_id_x;++x_iter){
+                            values->values_by_coord->lat = zone_load.y1-y_iter*grid_.dy;
+                            values->values_by_coord->lon = zone_load.x1+x_iter*grid_.dx;
+                            values->values_by_coord->value = array[x_length*y_iter+x_iter];
+                        }
                     }
-                else if(!(data->date.year!=-1?data->date.year!=date_.year:false || 
-                    data->date.month!=-1?data->date.month!=date_.month:false ||
-                    data->date.day!=-1?data->date.day!=date_.day:false ||
-                    data->date.hour!=-1?data->date.hour!=date_.hour:false)){
-                    //extract from array (previous malloc to array)
                 }
             }
         }
-        struct VALUE_BY_COORD return_data;
         n_dump++;
         fflush(stdout);
         

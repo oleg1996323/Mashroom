@@ -6,6 +6,14 @@
         "cmath": "c",
         "limits": "c",
         "utility": "c",
-        "chrono": "c"
-    }
+        "chrono": "c",
+        "stdnoreturn.h": "c",
+        "ctime": "cpp",
+        "ratio": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

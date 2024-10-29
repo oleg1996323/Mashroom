@@ -6,7 +6,7 @@
 
 int PDS_date(unsigned char *pds, int option, int v_time) {
 
-    struct DATE date_;
+    Date date_;
     int min;
 
     if (v_time == 0) {

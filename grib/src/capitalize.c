@@ -36,9 +36,9 @@
 
 
 
-int __capitalize_write__(struct GRID_DATA* grid,
+int __capitalize_write__(GridData* grid,
 						const char* root_cap_dir_name,
-						struct DATE* date,
+						Date* date,
 						unsigned char *pds,
 						const char* fmt, 
 						enum DATA_FORMAT d_fmt,
@@ -389,7 +389,7 @@ fail:
 			if (output_type != GRIB) {
 				if(dump_file)
 					fclose(dump_file);				
-				struct GRID_DATA grid_;
+				GridData grid_;
 				grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
 				grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
 				grid_.dy = 0.001*GDS_LatLon_dy(gds);
@@ -400,7 +400,7 @@ fail:
 				grid_.ny = ny;
 				grid_.nxny = nxny;
 
-				struct DATE date_;
+				Date date_;
 				date_.year = PDS_Year4(pds);
 				date_.month = PDS_Month(pds);
 				date_.day  = PDS_Day(pds);
