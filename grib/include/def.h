@@ -40,7 +40,7 @@ typedef struct GRID_DATA_S
                             ## __VA_ARGS__})
 
 typedef struct VALUE_BY_COORD{
-    double value;
+    float value;
     double lat;
     double lon;
 }ValueByCoord;

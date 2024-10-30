@@ -10,8 +10,8 @@ bool intersect_rect(const Rect* rect1, const Rect* rect2) {
 	if(rect1 && rect2)
 		return !(rect2->x1 > rect1->x2 ||
 			rect2->x2 < rect1->x1 || 
-			rect2->y1 < rect1->y2||
-			rect2->y2 > rect1->y1);
+			rect2->y1 > rect1->y2||
+			rect2->y2 < rect1->y1);
 	else {
 		fprintf(stderr,"Not defined arguments");
 		exit(1);

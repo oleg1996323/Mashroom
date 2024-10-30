@@ -15,13 +15,19 @@ add_library(grib_c STATIC ${GRIB_SOURCES})
 
 add_executable(ECMWF_GD main.cpp functions.cpp)
 
+find_package(PNG REQUIRED)
+find_package(ZLIB REQUIRED)
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/grib/include)
 
-target_link_libraries(ECMWF_GD PRIVATE grib_c)
-target_link_directories(ECMWF_GD PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include
+target_link_libraries(ECMWF_GD PRIVATE grib_c ${PNG_LIBRARIES})
+target_include_directories(ECMWF_GD PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include
                                         ${CMAKE_CURRENT_LIST_DIR}/grib/src
                                         ${CMAKE_CURRENT_LIST_DIR}/include
-                                        ${CMAKE_CURRENT_LIST_DIR}/src)
+                                        ${CMAKE_CURRENT_LIST_DIR}/src
+                                        ${PNG_INCLUDE_DIRS})
+
+message(STATUS ${PNG_INCLUDE_DIRS})
 
 set_target_properties(ECMWF_GD grib_c
                     PROPERTIES

@@ -4,13 +4,35 @@
 #include "PDSdate.h"
 #include "func.h"
 
+typedef enum{
+    ALL_TYPE_DATA,
+    U10,
+    V10,
+    T2,
+    NSSS,
+    INSS,
+    IEWS,
+    EWSS,
+    U100,
+    V100,
+    MLSPR
+}TypeData;
 
-struct EXTRACT_DATA
-{
+typedef struct{
     Date date;
     Rect bound;
-}Extract_Data;
+    const char* data_name;
+}ExtractData;
 
-#define EXTRACT_DATA(...) ((Extract_Data) { (.date = {-1,-1,-1,-1}), (.bound = {-1,-1,-1,-1}), ##__VA_ARGS__ })
+typedef struct{
+    int nx;
+    int ny;
+    float* values;
+}ValuesGrid;
 
-extern int extract(struct EXTRACT_DATA* data, const char* from, Values* values);
+#define EXTRACT_DATA(...) ((ExtractData) { .date = Date(), .bound = Rect(), .type = ALL_TYPE_DATA, ##__VA_ARGS__ })
+#define VALUESGRID(...) ((ValuesGrid) { .nx = -1, .ny = -1, .values = NULL, ##__VA_ARGS__ })
+
+extern GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long int* count, long unsigned* pos);
+
+extern ValuesGrid extract_ptr(ExtractData* data, const char* from, long int* count, long unsigned* pos);
