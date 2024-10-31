@@ -81,8 +81,18 @@
 },
 {
   "directory": "/home/oster/Mashroom",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/interpolation.c.o -c /home/oster/Mashroom/grib/src/interpolation.c",
+  "file": "/home/oster/Mashroom/grib/src/interpolation.c"
+},
+{
+  "directory": "/home/oster/Mashroom",
   "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/levels.c.o -c /home/oster/Mashroom/grib/src/levels.c",
   "file": "/home/oster/Mashroom/grib/src/levels.c"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/png_create.c.o -c /home/oster/Mashroom/grib/src/png_create.c",
+  "file": "/home/oster/Mashroom/grib/src/png_create.c"
 },
 {
   "directory": "/home/oster/Mashroom",
@@ -121,12 +131,12 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/ECMWF_GD.dir/main.cpp.o -c /home/oster/Mashroom/main.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/include -I/home/oster/Mashroom/src -g -o CMakeFiles/ECMWF_GD.dir/main.cpp.o -c /home/oster/Mashroom/main.cpp",
   "file": "/home/oster/Mashroom/main.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/ECMWF_GD.dir/functions.cpp.o -c /home/oster/Mashroom/functions.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/include -I/home/oster/Mashroom/src -g -o CMakeFiles/ECMWF_GD.dir/functions.cpp.o -c /home/oster/Mashroom/functions.cpp",
   "file": "/home/oster/Mashroom/functions.cpp"
 }
 ]

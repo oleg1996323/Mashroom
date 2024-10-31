@@ -53,7 +53,8 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "set": "cpp",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "complex": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

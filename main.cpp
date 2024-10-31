@@ -27,6 +27,10 @@ struct Color{
         return R+G+B<other.R+other.G+other.B;
     }
 
+    bool operator>(const Color& other) const{
+        return R+G+B>other.R+other.G+other.B;
+    }
+
     Color operator+(const Color& other){
         return {(uint8_t)(R+other.R),(uint8_t)(G+other.G),(uint8_t)(B+other.B)};
     }
@@ -46,6 +50,10 @@ struct Color{
 
 bool operator<(const Color& lhs, const Color& rhs){
     return lhs.R+lhs.G+lhs.B<rhs.R+rhs.G+rhs.B;
+}
+
+bool operator>(const Color& lhs, const Color& rhs){
+    return lhs.R+lhs.G+lhs.B>rhs.R+rhs.G+rhs.B;
 }
 
 Color operator+(const Color& lhs, const Color& rhs){
@@ -75,24 +83,61 @@ struct ColorAtValue{
     bool operator<(double val) const {
         return value<val;
     }
+
+    bool operator>(const ColorAtValue& other) const {
+        return value>other.value;
+    }
+
+    bool operator>(double val) const {
+        return value>val;
+    }
 };
 
 bool operator<(const ColorAtValue& lhs, const ColorAtValue& rhs){
     return lhs.value<rhs.value;
 }
 
+bool operator>(const ColorAtValue& lhs, const ColorAtValue& rhs){
+    return lhs.value>rhs.value;
+}
+
+bool operator<(double lhs, const ColorAtValue& rhs){
+    return lhs<rhs.value;
+}
+
+bool operator>(double lhs, const ColorAtValue& rhs){
+    return lhs>rhs.value;
+}
+#include <cassert>
 Color get_color_grad(double value, std::vector<ColorAtValue> color_grad){
     if(color_grad.size()>1){
-        std::vector<ColorAtValue>::const_iterator lesser = std::lower_bound(color_grad.begin(),color_grad.end(),value/*,[](const ColorAtValue& lhs, const ColorAtValue& rhs){
-            return
-        }*/);
-        if(lesser==color_grad.cend()){
+        // std::vector<ColorAtValue>::const_iterator lesser = std::lower_bound(color_grad.begin(),color_grad.end(),value/*,[](const ColorAtValue& lhs, const ColorAtValue& rhs){
+        //     return
+        // }*/);
+
+        std::vector<ColorAtValue>::const_reverse_iterator lesser = std::find_if(color_grad.rbegin(),color_grad.rend(),[&value](const ColorAtValue& col_val){
+            return col_val.value>value;
+        });
+        if(lesser==color_grad.rend()){
+            if(value>280 && value<290)
+                std::cout<<""<<std::endl;
             return lesser->color;
         }
-        else if(lesser==color_grad.cend()-1){
-            return lesser->color;
+        else if(lesser==color_grad.rbegin()){
+            Color y1 = (color_grad.cend()-2)->color;
+            Color y2 = (color_grad.cend()-1)->color;
+            double dx = (color_grad.cend()-1)->value - (color_grad.cend()-2)->value;
+            Color dy = (y2-y1)/dx*
+            (value - (color_grad.cend()-2)->value);
+            if(value>280 && value<290)
+                std::cout<<""<<std::endl;
+            return y1 + 
+            (y2-y1)/dx*
+            (value - (color_grad.cend()-2)->value);
         }
         else{
+            if(value>280 && value<290)
+                std::cout<<""<<std::endl;
             return lesser->color + 
             ((lesser+1)->color-lesser->color)/((lesser+1)->value - lesser->value)*
             (value - lesser->value);
@@ -193,18 +238,20 @@ void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::ve
     unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
     unsigned char *rows[h];
 
+    int count = 0;
     for (int i = 0; i < h; ++i) {
         rows[h - i - 1] = data + (i*w*3);
         for (int j = 0; j < w; ++j) {
             int i1 = (i*w+j)*3;
-            int i2 = (i*w+j)*4;
             Color c = get_color_grad(values[j+w*i],color_grad);
+            //std::cout<<"R: "<<(int)c.R<<" G: "<<(int)c.G<<" B: "<<(int)c.B<<std::endl;
+            ++count;
             data[i1++] = c.R;
             data[i1++] = c.G;
             data[i1++] = c.B;
         }
     }
-
+    std::cout << "Count: "<<count<<std::endl;
     png_set_rows(png_ptr, png_info, rows);
     png_write_png(png_ptr, png_info, PNG_TRANSFORM_IDENTITY, nullptr);
     png_write_end(png_ptr, png_info);
@@ -222,8 +269,8 @@ int main(){
     // extract_.bound.y1=50;
     // extract_.bound.y2=51;
     extract_.bound = Rect();
-    extract_.date.year=1990;
-    extract_.date.month=1;
+    extract_.date.year=2017;
+    extract_.date.month=5;
     extract_.date.day=15;
     extract_.date.hour=12;
     extract_.data_name = "2T";
@@ -231,13 +278,17 @@ int main(){
     long count=1;
     unsigned long pos = 0;
 
-    ColorAtValue violet_220 = {{102,0,214},220};
-    ColorAtValue blue_240 = {{0,128,255},240};
-    ColorAtValue whiteblue_260 = {{204,255,255},260};
-    ColorAtValue green_270 = {{0,255,0},270};
-    ColorAtValue yellow_280 = {{255,255,0},280};
-    ColorAtValue red_290 = {{255,0,0},280};
-    std::vector<ColorAtValue> grad = {violet_220,blue_240,whiteblue_260,green_270,yellow_280,red_290};
+    // ColorAtValue violet_220 = {{102,0,214},220};
+    // ColorAtValue blue_240 = {{0,128,255},240};
+    // ColorAtValue whiteblue_250 = {{204,255,255},250};
+    // ColorAtValue lightgreen_260 = {{102,255,102},260};
+    // ColorAtValue green_270 = {{0,255,0},270};
+    // ColorAtValue yellow_280 = {{255,255,0},280};
+    // ColorAtValue red_290 = {{255,0,0},290};
+    ColorAtValue blue_240 = {{0,128,255},255};
+    ColorAtValue red_290 = {{255,0,0},320};
+    //std::vector<ColorAtValue> grad = {violet_220,blue_240,whiteblue_250,lightgreen_260,green_270,yellow_280,red_290};
+    std::vector<ColorAtValue> grad = {blue_240,red_290};
     for(const std::filesystem::directory_entry& entry: std::filesystem::directory_iterator(path)){
         if(entry.is_regular_file())
             if(entry.path().has_extension() && (entry.path().extension()==".grib" || entry.path().extension()==".grb")){
@@ -251,7 +302,7 @@ int main(){
                     
                 // }
 
-                PngOut("temp_1990011512.png",values,grid.nx,grid.ny,grad);
+                PngOut("temp_2017051512.png",values,grid.nx,grid.ny,grad);
                 Array_2D arr;
                 count = 1;
                 pos = 0;
@@ -260,9 +311,9 @@ int main(){
                 arr.nx = res.nx;
                 arr.ny = res.ny;
                 arr.dx = grid.dx;
-                arr.dy = grid.dy;\
+                arr.dy = grid.dy;
                 Array_2D result = bilinear_interpolation(arr,res.nx*4,res.ny*4);
-                PngOut("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad);
+                PngOut("temp_2017051512_X4xX4.png",result.data,result.nx,result.ny,grad);
             }
         
     }

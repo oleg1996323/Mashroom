@@ -14,11 +14,13 @@ Array_2D bilinear_interpolation(Array_2D data, int x_sz, int y_sz){
     }
     else{
         Array_2D result = Array_2D();
+        size_t total_assert;
         if(!(result.data = (float*)malloc(sizeof(float)*(x_sz-1)*(y_sz-1)))){
             fprintf(stderr,"Error with memory");
             exit(1);
         }
         else{
+            total_assert= (x_sz-1)*(y_sz-1);
             result.dx = data.dx* data.nx/x_sz;
             result.dy = data.dy* data.ny/y_sz;
             result.nx = x_sz-1;
@@ -33,22 +35,20 @@ Array_2D bilinear_interpolation(Array_2D data, int x_sz, int y_sz){
                     float x2 = ((j*data.nx)/result.nx+1)*data.dx;
                     float x1 = ((j*data.nx)/result.nx)*data.dx;
                     size_t pos11 = data.nx*(i*data.ny/result.ny)+(j*data.nx)/result.nx;
-                    size_t pos12 = data.nx*(i*data.ny/result.ny)+(j*data.nx)/result.nx+1;
-                    size_t pos21 = data.nx*(i*data.ny/result.ny+1)+(j*data.nx)/result.nx;
-                    size_t pos22 = data.nx*(i*data.ny/result.ny+1)+(j*data.nx)/result.nx+1;
-                    assert(pos12-pos11==1);
-                    assert(pos21-pos11==data.nx);
-                    assert(pos22-pos21==1);
-                    assert(pos22-pos12==data.nx);
-                    //printf("Pos11: %d\tPos12: %d\tPos21: %d\tPos22: %d\n",pos11,pos12,pos21,pos22);
+                    size_t pos21 = data.nx*(i*data.ny/result.ny)+(j*data.nx)/result.nx+1;
+                    size_t pos12 = data.nx*((i+1)*data.ny/result.ny)+(j*data.nx)/result.nx;
+                    size_t pos22 = data.nx*((i+1)*data.ny/result.ny)+(j*data.nx)/result.nx+1; 
                     float Q11 = data.data[data.nx*(i*data.ny/result.ny)+(j*data.nx/result.nx)];
-                    float Q12 = data.data[data.nx*(i*data.ny/result.ny)+(j*data.nx/result.nx+1)];
-                    float Q21 = data.data[data.nx*(i*data.ny/result.ny+1)+(j*data.nx/result.nx)];
+                    float Q12 = data.data[data.nx*(i*data.ny/result.ny+1)+(j*data.nx/result.nx)];
+                    float Q21 = data.data[data.nx*(i*data.ny/result.ny)+(j*data.nx/result.nx+1)];
                     float Q22 = data.data[data.nx*(i*data.ny/result.ny+1)+(j*data.nx/result.nx+1)];
-                    float fR1 = (x2-x)/(x2-x1)*Q11+(x-x1)/(x2-x1)*Q21;
-                    float fR2 = (x2-x)/(x2-x1)*Q12+(x-x1)/(x2-x1)*Q22;
-                    result.data[j+result.nx*i] = (y2-y)/(y2-y1)*fR1+(y-y1)/(y2-y1)*fR2;
+                    result.data[j+result.nx*i] = (x2-x)*(y2-y)/(x2-x1)/(y2-y1)*Q11+
+                    (x-x1)*(y2-y)/(x2-x1)/(y2-y1)*Q21+
+                    (x2-x)*(y-y1)/(x2-x1)/(y2-y1)*Q12+
+                    (x-x1)*(y-y1)/(x2-x1)/(y2-y1)*Q22;
                     assert(old_val!=result.data[j+result.nx*i]);
+                    // assert(result.data[j+result.nx*i]<330);
+                    // assert(result.data[j+result.nx*i]>250);
                     if(i>0)
                         assert(old_val!=result.data[j+result.nx*(i-1)]);
                     if(i>0 && j>0)
@@ -57,8 +57,10 @@ Array_2D bilinear_interpolation(Array_2D data, int x_sz, int y_sz){
                     // printf("Lat1: %.3f\tLon1: %.3f\tLat2: %.3f\tLon2: %.3f\nval11: %.3f\tval12: %.3f\tval21: %.3f\tval22: %.3f\nResult: %.f\n",
                     // y1,x1,y2,x2,Q11,Q12,Q21,Q22,
                     // result.data[j+result.nx*i]);
+                    --total_assert;
                 }
             }
+            assert(total_assert==0);
         }
         return result;
     }

@@ -1,0 +1,3 @@
+sudo ./wgrib -s jan.grib | egrep "(:10U:)" | sudo ./wgrib -i -text jan.grib -o jan_gribfile_spec #извлекает конкретные параметры в текстовый формат
+sudo ./wgrib -s -text -4yr jan.grib | grep "d=1990011500" | sudo ./wgrib -i jan.grib -text -o jan_gribfile -s #извлекает данные за определённую дату
+
