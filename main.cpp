@@ -13,6 +13,8 @@ extern "C"{
     #include <capitalize.h>
     #include <extract.h>
     #include <libpng/png.h>
+    #include <interpolation.h>
+    #include <structures.h>
 }
 #endif
 
@@ -158,6 +160,59 @@ void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, 
     fclose(fp);
 }
 
+void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad={}){
+    std::sort(color_grad.begin(),color_grad.end());
+    FILE *fp = fopen(name.c_str(), "wb");
+    if (!fp) {
+       return;
+    }
+    png_structp png_ptr = nullptr;
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (!png_ptr) {
+        fclose(fp);
+    }
+
+    png_infop png_info;
+    if (!(png_info = png_create_info_struct(png_ptr))) {
+        png_destroy_write_struct(&png_ptr, nullptr);
+        return;
+    }
+
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_write_struct(&png_ptr, nullptr);
+        return;
+    }
+
+    png_init_io(png_ptr, fp);
+    
+    png_set_IHDR(png_ptr, png_info, w, h, 8, PNG_COLOR_TYPE_RGB,
+        PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT,
+        PNG_FILTER_TYPE_DEFAULT);
+    png_bytepp data_png;
+
+    unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
+    unsigned char *rows[h];
+
+    for (int i = 0; i < h; ++i) {
+        rows[h - i - 1] = data + (i*w*3);
+        for (int j = 0; j < w; ++j) {
+            int i1 = (i*w+j)*3;
+            int i2 = (i*w+j)*4;
+            Color c = get_color_grad(values[j+w*i],color_grad);
+            data[i1++] = c.R;
+            data[i1++] = c.G;
+            data[i1++] = c.B;
+        }
+    }
+
+    png_set_rows(png_ptr, png_info, rows);
+    png_write_png(png_ptr, png_info, PNG_TRANSFORM_IDENTITY, nullptr);
+    png_write_end(png_ptr, png_info);
+
+    png_destroy_write_struct(&png_ptr, nullptr);
+    fclose(fp);
+    free(data);
+}
 
 int main(){
     std::filesystem::path path = std::filesystem::current_path();
@@ -187,7 +242,7 @@ int main(){
         if(entry.is_regular_file())
             if(entry.path().has_extension() && (entry.path().extension()==".grib" || entry.path().extension()==".grb")){
                 std::cout<<entry.path()<<std::endl;
-                 GridData grid = extract(&extract_, entry.path().c_str(),&values,&count,&pos);
+                GridData grid = extract(&extract_, entry.path().c_str(),&values,&count,&pos);
                 //ValuesGrid grid = extract_ptr(&extract_, entry.path().c_str(),&count,&pos);
                 // for(size_t i=0;i<grid.nxny;++i){
                 //     //std::cout<<"At lat:"<<values[i].lat<<"; lon:"<<values[i].lon<<" value:"<<values[i].value<<std::endl;
@@ -197,6 +252,17 @@ int main(){
                 // }
 
                 PngOut("temp_1990011512.png",values,grid.nx,grid.ny,grad);
+                Array_2D arr;
+                count = 1;
+                pos = 0;
+                auto res = extract_ptr(&extract_,entry.path().c_str(),&count,&pos);
+                arr.data = res.values;
+                arr.nx = res.nx;
+                arr.ny = res.ny;
+                arr.dx = grid.dx;
+                arr.dy = grid.dy;\
+                Array_2D result = bilinear_interpolation(arr,res.nx*4,res.ny*4);
+                PngOut("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad);
             }
         
     }

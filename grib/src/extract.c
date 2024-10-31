@@ -565,9 +565,9 @@ fail:
                         grid_result.nx = (end_id_x - begin_id_x);
                         grid_result.ny = (end_id_y - begin_id_y);
                         grid_result.values = values;
-                        for(int y_iter = end_id_y;y_iter>=begin_id_y;--y_iter){
+                        for(int y_iter = begin_id_y;y_iter<end_id_y;++y_iter){
                             for(int x_iter = begin_id_x;x_iter<end_id_x;++x_iter){
-                                values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter-begin_id_y)] = 
+                                values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)] = 
                                                 array[nx*y_iter+x_iter];
                                 // printf("Lat: %.2f;Lon: %.2f;Value: %.2f\n",
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter-begin_id_y)].lat,
