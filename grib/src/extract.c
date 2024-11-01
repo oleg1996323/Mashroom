@@ -575,6 +575,8 @@ fail:
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter-begin_id_y)].value);
                                 // if(y_iter==180 || x_iter==648)
                                 //     printf("Cycle");
+                                if(values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)]<200)
+                                    printf("x_iter: %d, y_iter: %d, value: %.3f",x_iter,y_iter,values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)]);
                             }
                         }
                         return grid_result;

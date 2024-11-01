@@ -1,265 +1,25 @@
-#include <iostream>
-#include <dlfcn.h>
-#include <memory>
-#include <filesystem>
-#include "functions.h"
-#include <vector>
-#include <algorithm>
-#include <numeric>
-
 #ifdef __cplusplus
 extern "C"{
     #include <decode.h>
     #include <capitalize.h>
     #include <extract.h>
-    #include <libpng/png.h>
     #include <interpolation.h>
     #include <structures.h>
+    #undef max
+    #undef min
 }
 #endif
+#include <iostream>
+#include <dlfcn.h>
+#include <memory>
+#include <filesystem>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+#include "color.h"
+#include "png_out.h"
 
-struct Color{
-    uint8_t R = 0;
-    uint8_t G = 0;
-    uint8_t B = 0;
-
-    bool operator<(const Color& other) const{
-        return R+G+B<other.R+other.G+other.B;
-    }
-
-    bool operator>(const Color& other) const{
-        return R+G+B>other.R+other.G+other.B;
-    }
-
-    Color operator+(const Color& other){
-        return {(uint8_t)(R+other.R),(uint8_t)(G+other.G),(uint8_t)(B+other.B)};
-    }
-
-    Color operator-(const Color& other){
-        return {(uint8_t)(R-other.R),(uint8_t)(G-other.G),(uint8_t)(B-other.B)};
-    }
-
-    Color operator*(double factor){
-        return {(uint8_t)(R*factor),(uint8_t)(G*factor),(uint8_t)(B*factor)};
-    }
-
-    Color operator/(double factor){
-        return {(uint8_t)(R/factor),(uint8_t)(G/factor),(uint8_t)(B/factor)};
-    }
-};
-
-bool operator<(const Color& lhs, const Color& rhs){
-    return lhs.R+lhs.G+lhs.B<rhs.R+rhs.G+rhs.B;
-}
-
-bool operator>(const Color& lhs, const Color& rhs){
-    return lhs.R+lhs.G+lhs.B>rhs.R+rhs.G+rhs.B;
-}
-
-Color operator+(const Color& lhs, const Color& rhs){
-    return {(uint8_t)(lhs.R+rhs.R),(uint8_t)(lhs.G+rhs.G),(uint8_t)(lhs.B+rhs.B)};
-}
-
-Color operator-(const Color& lhs, const Color& rhs){
-    return {(uint8_t)(lhs.R-rhs.R),(uint8_t)(lhs.G-rhs.G),(uint8_t)(lhs.B-rhs.B)};
-}
-
-Color operator*(const Color& color,double factor){
-    return {(uint8_t)(color.R*factor),(uint8_t)(color.G*factor),(uint8_t)(color.B*factor)};
-}
-
-Color operator/(const Color& color,double factor){
-    return {(uint8_t)(color.R/factor),(uint8_t)(color.G/factor),(uint8_t)(color.B/factor)};
-}
-
-struct ColorAtValue{
-    Color color;
-    double value;
-
-    bool operator<(const ColorAtValue& other) const {
-        return value<other.value;
-    }
-
-    bool operator<(double val) const {
-        return value<val;
-    }
-
-    bool operator>(const ColorAtValue& other) const {
-        return value>other.value;
-    }
-
-    bool operator>(double val) const {
-        return value>val;
-    }
-};
-
-bool operator<(const ColorAtValue& lhs, const ColorAtValue& rhs){
-    return lhs.value<rhs.value;
-}
-
-bool operator>(const ColorAtValue& lhs, const ColorAtValue& rhs){
-    return lhs.value>rhs.value;
-}
-
-bool operator<(double lhs, const ColorAtValue& rhs){
-    return lhs<rhs.value;
-}
-
-bool operator>(double lhs, const ColorAtValue& rhs){
-    return lhs>rhs.value;
-}
 #include <cassert>
-Color get_color_grad(double value, std::vector<ColorAtValue> color_grad){
-    if(color_grad.size()>1){
-        // std::vector<ColorAtValue>::const_iterator lesser = std::lower_bound(color_grad.begin(),color_grad.end(),value/*,[](const ColorAtValue& lhs, const ColorAtValue& rhs){
-        //     return
-        // }*/);
-
-        std::vector<ColorAtValue>::const_reverse_iterator lesser = std::find_if(color_grad.rbegin(),color_grad.rend(),[&value](const ColorAtValue& col_val){
-            return col_val.value>value;
-        });
-        if(lesser==color_grad.rend()){
-            if(value>280 && value<290)
-                std::cout<<""<<std::endl;
-            return lesser->color;
-        }
-        else if(lesser==color_grad.rbegin()){
-            Color y1 = (color_grad.cend()-2)->color;
-            Color y2 = (color_grad.cend()-1)->color;
-            double dx = (color_grad.cend()-1)->value - (color_grad.cend()-2)->value;
-            Color dy = (y2-y1)/dx*
-            (value - (color_grad.cend()-2)->value);
-            if(value>280 && value<290)
-                std::cout<<""<<std::endl;
-            return y1 + 
-            (y2-y1)/dx*
-            (value - (color_grad.cend()-2)->value);
-        }
-        else{
-            if(value>280 && value<290)
-                std::cout<<""<<std::endl;
-            return lesser->color + 
-            ((lesser+1)->color-lesser->color)/((lesser+1)->value - lesser->value)*
-            (value - lesser->value);
-        }
-    }
-    return Color({0,0,0});
-}
-
-struct mem_encode
-{
-  char *buffer;
-  size_t size;
-};
-
-void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad={}){
-    std::sort(color_grad.begin(),color_grad.end());
-    FILE *fp = fopen(name.c_str(), "wb");
-    if (!fp) {
-       return;
-    }
-    png_structp png_ptr = nullptr;
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (!png_ptr) {
-        fclose(fp);
-    }
-
-    png_infop png_info;
-    if (!(png_info = png_create_info_struct(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, nullptr);
-        return;
-    }
-
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, nullptr);
-        return;
-    }
-
-    png_init_io(png_ptr, fp);
-    
-    png_set_IHDR(png_ptr, png_info, w, h, 8, PNG_COLOR_TYPE_RGB,
-        PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT,
-        PNG_FILTER_TYPE_DEFAULT);
-    png_bytepp data_png;
-
-    unsigned char data[w*h*3];
-    unsigned char *rows[h];
-
-    for (int i = 0; i < h; ++i) {
-        rows[h - i - 1] = data + (i*w*3);
-        for (int j = 0; j < w; ++j) {
-            int i1 = (i*w+j)*3;
-            int i2 = (i*w+j)*4;
-            Color c = get_color_grad(values[j+w*i].value,color_grad);
-            data[i1++] = c.R;
-            data[i1++] = c.G;
-            data[i1++] = c.B;
-        }
-    }
-
-    png_set_rows(png_ptr, png_info, rows);
-    png_write_png(png_ptr, png_info, PNG_TRANSFORM_IDENTITY, nullptr);
-    png_write_end(png_ptr, png_info);
-
-    png_destroy_write_struct(&png_ptr, nullptr);
-    fclose(fp);
-}
-
-void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad={}){
-    std::sort(color_grad.begin(),color_grad.end());
-    FILE *fp = fopen(name.c_str(), "wb");
-    if (!fp) {
-       return;
-    }
-    png_structp png_ptr = nullptr;
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (!png_ptr) {
-        fclose(fp);
-    }
-
-    png_infop png_info;
-    if (!(png_info = png_create_info_struct(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, nullptr);
-        return;
-    }
-
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, nullptr);
-        return;
-    }
-
-    png_init_io(png_ptr, fp);
-    
-    png_set_IHDR(png_ptr, png_info, w, h, 8, PNG_COLOR_TYPE_RGB,
-        PNG_INTERLACE_ADAM7, PNG_COMPRESSION_TYPE_DEFAULT,
-        PNG_FILTER_TYPE_DEFAULT);
-    png_bytepp data_png;
-
-    unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char)*w*h*3);
-    unsigned char *rows[h];
-
-    int count = 0;
-    for (int i = 0; i < h; ++i) {
-        rows[h - i - 1] = data + (i*w*3);
-        for (int j = 0; j < w; ++j) {
-            int i1 = (i*w+j)*3;
-            Color c = get_color_grad(values[j+w*i],color_grad);
-            //std::cout<<"R: "<<(int)c.R<<" G: "<<(int)c.G<<" B: "<<(int)c.B<<std::endl;
-            ++count;
-            data[i1++] = c.R;
-            data[i1++] = c.G;
-            data[i1++] = c.B;
-        }
-    }
-    std::cout << "Count: "<<count<<std::endl;
-    png_set_rows(png_ptr, png_info, rows);
-    png_write_png(png_ptr, png_info, PNG_TRANSFORM_IDENTITY, nullptr);
-    png_write_end(png_ptr, png_info);
-
-    png_destroy_write_struct(&png_ptr, nullptr);
-    fclose(fp);
-    free(data);
-}
 
 int main(){
     std::filesystem::path path = std::filesystem::current_path();
@@ -269,8 +29,8 @@ int main(){
     // extract_.bound.y1=50;
     // extract_.bound.y2=51;
     extract_.bound = Rect();
-    extract_.date.year=2017;
-    extract_.date.month=5;
+    extract_.date.year=1990;
+    extract_.date.month=1;
     extract_.date.day=15;
     extract_.date.hour=12;
     extract_.data_name = "2T";
@@ -278,17 +38,17 @@ int main(){
     long count=1;
     unsigned long pos = 0;
 
-    // ColorAtValue violet_220 = {{102,0,214},220};
-    // ColorAtValue blue_240 = {{0,128,255},240};
-    // ColorAtValue whiteblue_250 = {{204,255,255},250};
-    // ColorAtValue lightgreen_260 = {{102,255,102},260};
-    // ColorAtValue green_270 = {{0,255,0},270};
-    // ColorAtValue yellow_280 = {{255,255,0},280};
-    // ColorAtValue red_290 = {{255,0,0},290};
-    ColorAtValue blue_240 = {{0,128,255},255};
-    ColorAtValue red_290 = {{255,0,0},320};
-    //std::vector<ColorAtValue> grad = {violet_220,blue_240,whiteblue_250,lightgreen_260,green_270,yellow_280,red_290};
-    std::vector<ColorAtValue> grad = {blue_240,red_290};
+    ColorAtValue violet_220 = {{102,0,214},200};
+    ColorAtValue blue_240 = {{0,128,UCHAR_MAX},220};
+    ColorAtValue whiteblue_250 = {{204,UCHAR_MAX,UCHAR_MAX},240};
+    ColorAtValue lightgreen_260 = {{102,UCHAR_MAX,102},260};
+    ColorAtValue green_270 = {{0,UCHAR_MAX,0},280};
+    ColorAtValue yellow_280 = {{UCHAR_MAX,UCHAR_MAX,0},300};
+    ColorAtValue red_290 = {{UCHAR_MAX,0,0},320};
+    //ColorAtValue blue_240 = {{0,128,UCHAR_MAX},UCHAR_MAX};
+    //ColorAtValue red_290 = {{UCHAR_MAX,0,0},320};
+    std::vector<ColorAtValue> grad = {violet_220,blue_240,whiteblue_250,lightgreen_260,green_270,yellow_280,red_290};
+    //std::vector<ColorAtValue> grad = {blue_240,red_290};
     for(const std::filesystem::directory_entry& entry: std::filesystem::directory_iterator(path)){
         if(entry.is_regular_file())
             if(entry.path().has_extension() && (entry.path().extension()==".grib" || entry.path().extension()==".grb")){
@@ -302,7 +62,7 @@ int main(){
                     
                 // }
 
-                PngOut("temp_2017051512.png",values,grid.nx,grid.ny,grad);
+                PngOut("temp_1990011512.png",values,grid.nx,grid.ny,grad);
                 Array_2D arr;
                 count = 1;
                 pos = 0;
@@ -313,7 +73,9 @@ int main(){
                 arr.dx = grid.dx;
                 arr.dy = grid.dy;
                 Array_2D result = bilinear_interpolation(arr,res.nx*4,res.ny*4);
-                PngOut("temp_2017051512_X4xX4.png",result.data,result.nx,result.ny,grad);
+                PngOutGray("temp_1990011512_X4xX4_gray.png",result.data,result.nx,result.ny);
+                PngOutGradient("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad,true);
+                //PngOut("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad);
             }
         
     }

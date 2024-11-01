@@ -9,8 +9,8 @@ set(CMAKE_C_COMPILER "/usr/bin/gcc")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR} *.c)
-
+file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR} grib/src/*.c)
+file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR} *.cpp)
 add_library(grib_c STATIC ${GRIB_SOURCES})
 
 add_executable(ECMWF_GD main.cpp functions.cpp)
