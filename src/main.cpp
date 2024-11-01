@@ -5,8 +5,6 @@ extern "C"{
     #include <extract.h>
     #include <interpolation.h>
     #include <structures.h>
-    #undef max
-    #undef min
 }
 #endif
 #include <iostream>
@@ -29,8 +27,8 @@ int main(){
     // extract_.bound.y1=50;
     // extract_.bound.y2=51;
     extract_.bound = Rect();
-    extract_.date.year=1990;
-    extract_.date.month=1;
+    extract_.date.year=2017;
+    extract_.date.month=5;
     extract_.date.day=15;
     extract_.date.hour=12;
     extract_.data_name = "2T";
@@ -52,17 +50,9 @@ int main(){
     for(const std::filesystem::directory_entry& entry: std::filesystem::directory_iterator(path)){
         if(entry.is_regular_file())
             if(entry.path().has_extension() && (entry.path().extension()==".grib" || entry.path().extension()==".grb")){
+
                 std::cout<<entry.path()<<std::endl;
                 GridData grid = extract(&extract_, entry.path().c_str(),&values,&count,&pos);
-                //ValuesGrid grid = extract_ptr(&extract_, entry.path().c_str(),&count,&pos);
-                // for(size_t i=0;i<grid.nxny;++i){
-                //     //std::cout<<"At lat:"<<values[i].lat<<"; lon:"<<values[i].lon<<" value:"<<values[i].value<<std::endl;
-                //     if(values[i].lon = 0 || values[i].lat==0)
-                //         std::cout<<"Invalid output"<<std::endl;
-                    
-                // }
-
-                PngOut("temp_1990011512.png",values,grid.nx,grid.ny,grad);
                 Array_2D arr;
                 count = 1;
                 pos = 0;
@@ -74,7 +64,7 @@ int main(){
                 arr.dy = grid.dy;
                 Array_2D result = bilinear_interpolation(arr,res.nx*4,res.ny*4);
                 PngOutGray("temp_1990011512_X4xX4_gray.png",result.data,result.nx,result.ny);
-                PngOutGradient("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad,true);
+                PngOutRGBGradient("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad,true);
                 //PngOut("temp_1990011512_X4xX4.png",result.data,result.nx,result.ny,grad);
             }
         

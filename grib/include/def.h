@@ -162,21 +162,10 @@ extern enum Def_NCEP_Table def_ncep_table;
 #define MSEEK 1024
 #define BUFF_ALLOC0	40000
 
-
-#ifndef min
-#define min(a,b)  ((a) < (b) ? (a) : (b))
-#define max(a,b)  ((a) < (b) ? (b) : (a))
-#endif
-
 #ifndef DEF_T62_NCEP_TABLE
 #define DEF_T62_NCEP_TABLE	rean
 #endif
 
-
-
-#ifndef min
-   #define min(a,b)  ((a) < (b) ? (a) : (b))
-#endif
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)

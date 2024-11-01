@@ -1,142 +1,147 @@
 [
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c.o -c /home/oster/Mashroom/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c",
-  "file": "/home/oster/Mashroom/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/BDS.c.o -c /home/oster/Mashroom/grib/src/BDS.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/BDS.c.o -c /home/oster/Mashroom/grib/src/BDS.c",
   "file": "/home/oster/Mashroom/grib/src/BDS.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/GDS.c.o -c /home/oster/Mashroom/grib/src/GDS.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/GDS.c.o -c /home/oster/Mashroom/grib/src/GDS.c",
   "file": "/home/oster/Mashroom/grib/src/GDS.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/PDSdate.c.o -c /home/oster/Mashroom/grib/src/PDSdate.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/PDSdate.c.o -c /home/oster/Mashroom/grib/src/PDSdate.c",
   "file": "/home/oster/Mashroom/grib/src/PDSdate.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/PDStimes.c.o -c /home/oster/Mashroom/grib/src/PDStimes.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/PDStimes.c.o -c /home/oster/Mashroom/grib/src/PDStimes.c",
   "file": "/home/oster/Mashroom/grib/src/PDStimes.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/Parm_Table.c.o -c /home/oster/Mashroom/grib/src/Parm_Table.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/Parm_Table.c.o -c /home/oster/Mashroom/grib/src/Parm_Table.c",
   "file": "/home/oster/Mashroom/grib/src/Parm_Table.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/capitalize.c.o -c /home/oster/Mashroom/grib/src/capitalize.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/capitalize.c.o -c /home/oster/Mashroom/grib/src/capitalize.c",
   "file": "/home/oster/Mashroom/grib/src/capitalize.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/decode.c.o -c /home/oster/Mashroom/grib/src/decode.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/decode.c.o -c /home/oster/Mashroom/grib/src/decode.c",
   "file": "/home/oster/Mashroom/grib/src/decode.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/decode_aux.c.o -c /home/oster/Mashroom/grib/src/decode_aux.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/decode_aux.c.o -c /home/oster/Mashroom/grib/src/decode_aux.c",
   "file": "/home/oster/Mashroom/grib/src/decode_aux.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/def.c.o -c /home/oster/Mashroom/grib/src/def.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/def.c.o -c /home/oster/Mashroom/grib/src/def.c",
   "file": "/home/oster/Mashroom/grib/src/def.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/ecmwf_ext.c.o -c /home/oster/Mashroom/grib/src/ecmwf_ext.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/ecmwf_ext.c.o -c /home/oster/Mashroom/grib/src/ecmwf_ext.c",
   "file": "/home/oster/Mashroom/grib/src/ecmwf_ext.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/ecmwf_hack.c.o -c /home/oster/Mashroom/grib/src/ecmwf_hack.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/ecmwf_hack.c.o -c /home/oster/Mashroom/grib/src/ecmwf_hack.c",
   "file": "/home/oster/Mashroom/grib/src/ecmwf_hack.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/ensemble.c.o -c /home/oster/Mashroom/grib/src/ensemble.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/ensemble.c.o -c /home/oster/Mashroom/grib/src/ensemble.c",
   "file": "/home/oster/Mashroom/grib/src/ensemble.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/error.c.o -c /home/oster/Mashroom/grib/src/error.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/error.c.o -c /home/oster/Mashroom/grib/src/error.c",
   "file": "/home/oster/Mashroom/grib/src/error.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/extract.c.o -c /home/oster/Mashroom/grib/src/extract.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/extract.c.o -c /home/oster/Mashroom/grib/src/extract.c",
   "file": "/home/oster/Mashroom/grib/src/extract.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/func.c.o -c /home/oster/Mashroom/grib/src/func.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/func.c.o -c /home/oster/Mashroom/grib/src/func.c",
   "file": "/home/oster/Mashroom/grib/src/func.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/interpolation.c.o -c /home/oster/Mashroom/grib/src/interpolation.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/interpolation.c.o -c /home/oster/Mashroom/grib/src/interpolation.c",
   "file": "/home/oster/Mashroom/grib/src/interpolation.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/levels.c.o -c /home/oster/Mashroom/grib/src/levels.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/levels.c.o -c /home/oster/Mashroom/grib/src/levels.c",
   "file": "/home/oster/Mashroom/grib/src/levels.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/png_create.c.o -c /home/oster/Mashroom/grib/src/png_create.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/png_create.c.o -c /home/oster/Mashroom/grib/src/png_create.c",
   "file": "/home/oster/Mashroom/grib/src/png_create.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/print.c.o -c /home/oster/Mashroom/grib/src/print.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/print.c.o -c /home/oster/Mashroom/grib/src/print.c",
   "file": "/home/oster/Mashroom/grib/src/print.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/read.c.o -c /home/oster/Mashroom/grib/src/read.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/read.c.o -c /home/oster/Mashroom/grib/src/read.c",
   "file": "/home/oster/Mashroom/grib/src/read.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/seek_grib.c.o -c /home/oster/Mashroom/grib/src/seek_grib.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/seek_grib.c.o -c /home/oster/Mashroom/grib/src/seek_grib.c",
   "file": "/home/oster/Mashroom/grib/src/seek_grib.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/time_date.c.o -c /home/oster/Mashroom/grib/src/time_date.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/time_date.c.o -c /home/oster/Mashroom/grib/src/time_date.c",
   "file": "/home/oster/Mashroom/grib/src/time_date.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/user.c.o -c /home/oster/Mashroom/grib/src/user.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/user.c.o -c /home/oster/Mashroom/grib/src/user.c",
   "file": "/home/oster/Mashroom/grib/src/user.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/verf.c.o -c /home/oster/Mashroom/grib/src/verf.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/verf.c.o -c /home/oster/Mashroom/grib/src/verf.c",
   "file": "/home/oster/Mashroom/grib/src/verf.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -g -o CMakeFiles/grib_c.dir/grib/src/write.c.o -c /home/oster/Mashroom/grib/src/write.c",
+  "command": "/usr/bin/gcc  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -g -o CMakeFiles/grib_c.dir/grib/src/write.c.o -c /home/oster/Mashroom/grib/src/write.c",
   "file": "/home/oster/Mashroom/grib/src/write.c"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/include -I/home/oster/Mashroom/src -g -o CMakeFiles/ECMWF_GD.dir/main.cpp.o -c /home/oster/Mashroom/main.cpp",
-  "file": "/home/oster/Mashroom/main.cpp"
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
+  "file": "/home/oster/Mashroom/src/color.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/include -I/home/oster/Mashroom/src -g -o CMakeFiles/ECMWF_GD.dir/functions.cpp.o -c /home/oster/Mashroom/functions.cpp",
-  "file": "/home/oster/Mashroom/functions.cpp"
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
+  "file": "/home/oster/Mashroom/src/functions.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
+  "file": "/home/oster/Mashroom/src/main.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/png_out.cpp.o -c /home/oster/Mashroom/src/png_out.cpp",
+  "file": "/home/oster/Mashroom/src/png_out.cpp"
 }
 ]

@@ -12,6 +12,11 @@ FILE* get_std_out(){
       return stdout;
 }
 
+#ifndef min
+#define min(a,b)  ((a) < (b) ? (a) : (b))
+#define max(a,b)  ((a) < (b) ? (b) : (a))
+#endif
+
 int minute = 0;
 int ncep_ens = 0;
 int cmc_eq_ncep = 0;

@@ -17,7 +17,7 @@ void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
     if (BDS_ComplexPacking(bds)) {
 	fprintf(stderr,"*** Cannot decode complex packed fields n=%d***\n", n);
 	exit(8);
-	memset(flt,UNDEFINED,n);
+	memset(flt,-UNDEFINED,n);
 	return;
     }
 

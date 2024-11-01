@@ -716,8 +716,8 @@ fail:
 			rmax = -FLT_MAX;
 				for (i = 0; i < nxny; i++) {
 				if (fabs(array[i]-UNDEFINED) > 0.0001*UNDEFINED) {
-						rmin = min(rmin,array[i]);
-						rmax = max(rmax,array[i]);
+						rmin = fmin(rmin,array[i]);
+						rmax = fmax(rmax,array[i]);
 				}
 				}
 				printf("  min/max data %g %g  num bits %d "

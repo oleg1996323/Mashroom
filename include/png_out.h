@@ -17,4 +17,4 @@ void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::ve
 
 void PngOutGray(std::string name,float* values, png_uint_32 w,png_uint_32 h);
 
-void PngOutGradient(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad, bool minmax_grad);
+void PngOutRGBGradient(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad, bool minmax_grad);

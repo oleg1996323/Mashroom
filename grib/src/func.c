@@ -6,6 +6,11 @@
 #include <error.h>
 #include "def.h"
 
+#ifndef min
+#define min(a,b)  ((a) < (b) ? (a) : (b))
+#define max(a,b)  ((a) < (b) ? (b) : (a))
+#endif
+
 bool intersect_rect(const Rect* rect1, const Rect* rect2) {
 	if(rect1 && rect2)
 		return !(rect2->x1 > rect1->x2 ||
