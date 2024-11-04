@@ -38,17 +38,17 @@ struct HSV{
     double s;       // a fraction between 0 and 1
     double v;       // a fraction between 0 and 1
 
-    // bool operator<(const HSV& other) const;
+    bool operator<(const HSV& other) const;
 
-    // bool operator>(const HSV& other) const;
+    bool operator>(const HSV& other) const;
 
-    // HSV operator+(const HSV& other);
+    HSV operator+(const HSV& other);
 
-    // HSV operator-(const HSV& other);
+    HSV operator-(const HSV& other);
 
-    // HSV operator*(double factor);
+    HSV operator*(double factor);
 
-    // HSV operator/(double factor);
+    HSV operator/(double factor);
 };
 
 HSV   rgb2hsv(RGB in);

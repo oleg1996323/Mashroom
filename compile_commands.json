@@ -126,22 +126,27 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -std=gnu++20 -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
   "file": "/home/oster/Mashroom/src/color.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -std=gnu++20 -o CMakeFiles/Mashroom.dir/src/color_conc.cpp.o -c /home/oster/Mashroom/src/color_conc.cpp",
+  "file": "/home/oster/Mashroom/src/color_conc.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -std=gnu++20 -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
   "file": "/home/oster/Mashroom/src/functions.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -std=gnu++20 -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
   "file": "/home/oster/Mashroom/src/main.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -o CMakeFiles/Mashroom.dir/src/png_out.cpp.o -c /home/oster/Mashroom/src/png_out.cpp",
+  "command": "/usr/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src -g -std=gnu++20 -o CMakeFiles/Mashroom.dir/src/png_out.cpp.o -c /home/oster/Mashroom/src/png_out.cpp",
   "file": "/home/oster/Mashroom/src/png_out.cpp"
 }
 ]
