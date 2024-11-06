@@ -7,7 +7,7 @@ extern "C"{
 }
 #endif
 
-void PngOutGray(std::string name,float* values, png_uint_32 w,png_uint_32 h){
+void PngOutGray(std::string name,const float* values, png_uint_32 w,png_uint_32 h){
     std::vector<float> data(values,values+w*h);
     auto minmax = std::minmax_element(data.begin(),data.end());
     uint8_t bit_depth = 16;
@@ -53,21 +53,6 @@ void PngOutGray(std::string name,float* values, png_uint_32 w,png_uint_32 h){
     for (int i=0; i<h; i++)
         png_write_row (png_ptr, (png_const_bytep)&data_ptr[i*w]);
     png_write_end (png_ptr, NULL);
-
-
-    // int count = 0;
-    // for (int i = 0; i < h; ++i) {
-    //     rows[h - i - 1] = data_ptr + (i*w);
-    //     for (int j = 0; j < w; ++j) {
-    //         int i1 = (i*w+j);
-    //         //std::cout<<"R: "<<(int)c.R<<" G: "<<(int)c.G<<" B: "<<(int)c.B<<std::endl;
-    //         ++count;
-    //         data_ptr[i1++] = values[j+w*i]/(*minmax.second-*minmax.first)/2*255;
-    //     }
-    // }
-    // std::cout << "Count: "<<count<<std::endl;
-    // png_set_rows(png_ptr, png_info, rows);
-    // png_write_png(png_ptr, png_info, PNG_TRANSFORM_IDENTITY, nullptr);
 
     png_destroy_write_struct(&png_ptr, nullptr);
     fclose(fp);

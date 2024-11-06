@@ -10,23 +10,26 @@ extern "C"{
 #include <string>
 #include <vector>
 #include "color.h"
+#include <iterator>
+#include <algorithm>
 
-void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
+// void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
 
-void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
+// void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
 
-void PngOutGray(std::string name,float* values, png_uint_32 w,png_uint_32 h);
+void PngOutGray(std::string name, const float* values, png_uint_32 w,png_uint_32 h);
 
-template<uint8_t BIT_DEPTH=8>
-requires BitDepthCor<BIT_DEPTH>
-void PngOutRGBGradient(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad, bool minmax_grad){
-    std::pair<std::vector<float>::iterator, std::vector<float>::iterator> minmax;
-    {
-        std::vector<float> data(values,values+w*h);
-        minmax = std::minmax_element(data.begin(),data.end());
-    }
+template<typename COL_T>
+requires std::is_class_v<COL_T>
+void PngOutRGBGradient(std::string name, const float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue<COL_T>> color_grad, bool minmax_grad){
     if(minmax_grad){
+        std::pair<std::vector<float>::iterator, std::vector<float>::iterator> minmax;
+        {
+            std::vector<float> data(values,values+w*h);
+            minmax = std::minmax_element(data.begin(),data.end());
+        }
         if(!color_grad.empty()){
+
             std::sort(color_grad.begin(),color_grad.end());
             float diff = (*minmax.second - *minmax.first)/(color_grad.size()-1);
             for(int i = 0;i<color_grad.size();++i){
@@ -71,7 +74,7 @@ void PngOutRGBGradient(std::string name,float* values, png_uint_32 w,png_uint_32
     for (int i = 0; i < h; ++i) {
         for (int j = 0; j < w; ++j) {
             size_t iter = (i*w+j)*3;
-            RGB<BIT_DEPTH> c = get_color_grad(values[j+w*i],color_grad);
+            auto c = get_color_grad(values[j+w*i],color_grad);
             data_ptr[iter] = (unsigned short)c.R;
             data_ptr[iter+1] = (unsigned short)c.G;
             data_ptr[iter+2] = (unsigned short)c.B;

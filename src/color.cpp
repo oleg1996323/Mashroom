@@ -6,77 +6,6 @@
 #include <cmath>
 #include "interpolation.h"
 
-template<typename T_Y, typename T_X>
-std::decay_t<T_Y> lin_interp_between(T_Y y1, T_X x1, T_Y y2, T_X x2, T_X x_value){
-    if(x_value!=x1){
-        return y1+(y2-y1)*((x_value - x1)/(x2 - x1));
-    }
-    else return y1;
-}
-
-RGB get_color_grad(double value, std::vector<ColorAtValue> color_grad)
-{
-    if(color_grad.size()>1){
-        std::vector<ColorAtValue>::const_iterator lesser = std::find_if(color_grad.begin(),color_grad.end(),[&value](const ColorAtValue& col_val){
-            return col_val.value>=value;
-        });
-        if(lesser==color_grad.end()){
-            return (color_grad.end()-1)->color;
-        }
-        else if(lesser==color_grad.begin()){
-            return color_grad.begin()->color;
-        }
-        else{
-            // double koef = (value - (lesser-1)->value)/(lesser->value - (lesser-1)->value);
-            // ColorAtValue y1 = *(lesser-1);
-            // RGB y22 = koef*lesser->color;
-            // RGB y21 = koef*(lesser-1)->color;
-            // RGB dif = y22 - y21;
-            //return (lesser-1)->color+koef*lesser->color-koef*(lesser-1)->color;
-            //return hsv2rgb(lin_interp_between(rgb2hsv((lesser-1)->color),(lesser-1)->value,rgb2hsv(lesser->color),lesser->value,value));
-            return lin_interp_between<const RGB&, float>((lesser-1)->color,(lesser-1)->value,lesser->color,lesser->value,value);
-        }
-    }
-    return RGB({0,0,0});
-}
-
-bool operator<(const RGB& lhs, const RGB& rhs){
-    return lhs.operator<(rhs);
-}
-
-bool operator>(const RGB& lhs, const RGB& rhs){
-    return lhs.operator>(rhs);
-}
-
-RGB operator+(const RGB& lhs, const RGB& rhs){
-    return {clamp(lhs.R+rhs.R,0,UCHAR_MAX),
-            clamp(lhs.G+rhs.G,0,UCHAR_MAX),
-            clamp(lhs.B+rhs.B,0,UCHAR_MAX)};
-}
-
-RGB operator-(const RGB& lhs, const RGB& rhs){
-    return {clamp(lhs.R-rhs.R,0,UCHAR_MAX),
-            clamp(lhs.G-rhs.G,0,UCHAR_MAX),
-            clamp(lhs.B-rhs.B,0,UCHAR_MAX)};
-}
-
-RGB operator*(const RGB& color,double factor){
-    return {(int)clamp(color.R*factor,0,UCHAR_MAX),
-            (int)clamp(color.G*factor,0,UCHAR_MAX),
-            (int)clamp(color.B*factor,0,UCHAR_MAX)};
-}
-
-RGB operator*(double factor,const RGB& color){
-    return {(int)clamp(color.R*factor,0,UCHAR_MAX),
-            (int)clamp(color.G*factor,0,UCHAR_MAX),
-            (int)clamp(color.B*factor,0,UCHAR_MAX)};
-}
-
-RGB operator/(const RGB& color,double factor){
-    return {(int)clamp(color.R/factor,0,UCHAR_MAX),
-            (int)clamp(color.G/factor,0,UCHAR_MAX),
-            (int)clamp(color.B/factor,0,UCHAR_MAX)};
-}
 
 bool HSV::operator<(const HSV& other) const{
     return v<other.v;
@@ -102,39 +31,7 @@ inline HSV HSV::operator/(double factor){
     return {std::fmod(h/factor,360),std::fmod(s/factor,1),std::fmod(v/factor,1)};
 }
 
-inline bool ColorAtValue::operator<(const ColorAtValue& other) const {
-    return value<other.value;
-}
-
-inline bool ColorAtValue::operator<(double val) const {
-    return value<val;
-}
-
-inline bool ColorAtValue::operator>(const ColorAtValue& other) const {
-    return value>other.value;
-}
-
-inline bool ColorAtValue::operator>(double val) const {
-    return value>val;
-}
-
-bool operator<(const ColorAtValue& lhs, const ColorAtValue& rhs){
-    return lhs.value<rhs.value;
-}
-
-bool operator>(const ColorAtValue& lhs, const ColorAtValue& rhs){
-    return lhs.value>rhs.value;
-}
-
-bool operator<(double lhs, const ColorAtValue& rhs){
-    return lhs<rhs.value;
-}
-
-bool operator>(double lhs, const ColorAtValue& rhs){
-    return lhs>rhs.value;
-}
-
-HSV rgb2hsv(RGB in)
+HSV rgb2hsv(RGB<> in)
 {
     HSV         out;
     double      min, max, delta;
@@ -172,7 +69,7 @@ HSV rgb2hsv(RGB in)
     return out;
 }
 
-RGB hsv2rgb(HSV in)
+RGB<> hsv2rgb(HSV in)
 {
     double      hh, p, q, t, ff;
     long        i;
