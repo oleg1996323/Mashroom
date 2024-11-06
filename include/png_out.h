@@ -12,16 +12,19 @@ extern "C"{
 #include "color.h"
 #include <iterator>
 #include <algorithm>
+#include "size.h"
 
 // void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
 
 // void PngOut(std::string name,float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
 
-void PngOutGray(std::string name, const float* values, png_uint_32 w,png_uint_32 h);
+void PngOutGray(std::string name, const float* values, const Size& sz);
 
-template<typename COL_T>
-requires std::is_class_v<COL_T>
-void PngOutRGBGradient(std::string name, const float* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue<COL_T>> color_grad, bool minmax_grad){
+template<uint8_t BIT_DEPTH = 8,typename COL_T> //add checking BIT_DEPTH by concept
+requires std::is_class_v<COL_T> && BitDepthCor<BIT_DEPTH>
+void PngOutRGBGradient(std::string name, const float* values, const Size& sz, std::vector<ColorAtValue<COL_T>> color_grad, bool minmax_grad){
+    uint32_t w = sz.width();
+    uint32_t h = sz.height();
     if(minmax_grad){
         std::pair<std::vector<float>::iterator, std::vector<float>::iterator> minmax;
         {
@@ -37,11 +40,10 @@ void PngOutRGBGradient(std::string name, const float* values, png_uint_32 w,png_
             }
         }
         else {
-            color_grad.push_back({{0,0,UCHAR_MAX},*minmax.first});
-            color_grad.push_back({{UCHAR_MAX,0,0},*minmax.second});
+            color_grad.push_back({{0,0,max_value_bit_depth<BIT_DEPTH>()},*minmax.first});
+            color_grad.push_back({{max_value_bit_depth<BIT_DEPTH>(),0,0},*minmax.second});
         }
     }
-    uint8_t bit_depth =16;
     
     FILE *fp = fopen(name.c_str(), "wb");
     if (!fp) {
@@ -66,18 +68,24 @@ void PngOutRGBGradient(std::string name, const float* values, png_uint_32 w,png_
 
     png_init_io(png_ptr, fp);
     
-    png_set_IHDR(png_ptr, png_info, w, h, bit_depth, PNG_COLOR_TYPE_RGB,
+    png_set_IHDR(png_ptr, png_info, w, h, BIT_DEPTH, PNG_COLOR_TYPE_RGB,
         PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
-    unsigned short* data_ptr = (unsigned short*)malloc(w*h*3*sizeof(unsigned short));
+    unsigned char* data_ptr = (unsigned char*)malloc(w*h*3*BIT_DEPTH/8);
     for (int i = 0; i < h; ++i) {
         for (int j = 0; j < w; ++j) {
-            size_t iter = (i*w+j)*3;
+            size_t iter = (i*w+j)*3*BIT_DEPTH/8;
             auto c = get_color_grad(values[j+w*i],color_grad);
-            data_ptr[iter] = (unsigned short)c.R;
-            data_ptr[iter+1] = (unsigned short)c.G;
-            data_ptr[iter+2] = (unsigned short)c.B;
+            if(BIT_DEPTH==16)
+                data_ptr[iter++] = (unsigned char)c.R<<8;
+            data_ptr[iter++] = (unsigned char)c.R;
+            if(BIT_DEPTH==16)
+                data_ptr[iter++] = (unsigned short)c.G<<8;
+            data_ptr[iter++] = (unsigned short)c.G;
+            if(BIT_DEPTH==16)
+                data_ptr[iter++] = (unsigned short)c.B<<8;
+            data_ptr[iter++] = (unsigned short)c.B;
         }
     }
 

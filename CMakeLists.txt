@@ -12,15 +12,16 @@ file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib/src/*.c)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
 
 message(STATUS ${Mashroom_SOURCES})
-add_library(grib_c STATIC ${GRIB_SOURCES})
 
-add_executable(Mashroom ${Mashroom_SOURCES})
 
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/grib/include ${CMAKE_CURRENT_LIST_DIR}/include)
 
+add_library(grib_c STATIC ${GRIB_SOURCES})
+
+add_executable(Mashroom ${Mashroom_SOURCES})
 set_target_properties(grib_c PROPERTIES CMAKE_C_COMPILER "/usr/bin/gcc")
 set_target_properties(Mashroom PROPERTIES CMAKE_CXX_COMPILER "/usr/bin/g++")
 
@@ -40,4 +41,4 @@ set_target_properties(Mashroom grib_c
                     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/bin/Debug"
                     ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/lib/Release"
                     LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/shared/Release"
-                    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")   
+                    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")

@@ -7,7 +7,9 @@ extern "C"{
 }
 #endif
 
-void PngOutGray(std::string name,const float* values, png_uint_32 w,png_uint_32 h){
+void PngOutGray(std::string name,const float* values, const Size& sz){
+    uint32_t w = sz.width();
+    uint32_t h = sz.height();
     std::vector<float> data(values,values+w*h);
     auto minmax = std::minmax_element(data.begin(),data.end());
     uint8_t bit_depth = 16;
@@ -40,7 +42,6 @@ void PngOutGray(std::string name,const float* values, png_uint_32 w,png_uint_32 
     png_bytepp data_png;
 
     unsigned short* data_ptr = (unsigned short*)malloc(sizeof(unsigned short)*w*h);
-    int sz  =sizeof(unsigned short)*w*h;
     for (int i = 0; i < h; ++i) {
         for (int j = 0; j < w; ++j) {
             data_ptr[i*w+j] = lin_interp_between(0,*minmax.first,SHRT_MAX,*minmax.second,values[j+w*i]);
