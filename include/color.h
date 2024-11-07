@@ -7,15 +7,21 @@
 #include "interp_pp.h"
 
 template<uint8_t BIT_DEPTH>
-constexpr uint16_t max_value_bit_depth(){return BIT_DEPTH==8?UCHAR_MAX:USHRT_MAX;}
+inline constexpr uint16_t max_value_bit_depth(){return BIT_DEPTH==8?UCHAR_MAX:USHRT_MAX;}
 
-template<typename T1,typename T2, typename T3>
-std::common_type_t<std::common_type_t<T1,T2>,T3> clamp(T1 x, T2 left, T3 right) {
+template<typename T1,typename T2, typename T3, typename Tr = T1>
+inline Tr clamp(T1 x, T2 left, T3 right) {
     return (x < left ? left : (x > right ? right : x));
 }
 
 template<uint8_t T>
 concept BitDepthCor = (T == 8 || T == 16);
+
+template<typename COL_T, uint8_t BIT_DEPTH>
+concept CheckColorStruct = requires (COL_T color){
+    { COL_T::bit_depth } -> std::convertible_to<uint8_t>;
+    requires COL_T::bit_depth == BIT_DEPTH;
+};
 
 template<uint8_t BIT_DEPTH=8>
 requires BitDepthCor<BIT_DEPTH>
@@ -23,7 +29,7 @@ struct RGB{
     int R = 0;
     int G = 0;
     int B = 0;
-    uint8_t bit_depth=BIT_DEPTH;
+    static constexpr uint8_t bit_depth=BIT_DEPTH;
     
     template<typename T>
     requires std::is_same_v<std::decay_t<T>,RGB<BIT_DEPTH>>
@@ -40,13 +46,17 @@ struct RGB{
     template<typename T>
     requires std::is_same_v<std::decay_t<T>,RGB<BIT_DEPTH>>
     inline RGB<BIT_DEPTH> operator+(T&& other) const{
-        return {clamp(R+other.R,0,max_value_bit_depth<BIT_DEPTH>()),clamp(G+other.G,0,max_value_bit_depth<BIT_DEPTH>()),clamp(B+other.B,0,max_value_bit_depth<BIT_DEPTH>())};
+        return RGB<BIT_DEPTH>({clamp(R+other.R,0,max_value_bit_depth<BIT_DEPTH>()),
+                clamp(G+other.G,0,max_value_bit_depth<BIT_DEPTH>()),
+                clamp(B+other.B,0,max_value_bit_depth<BIT_DEPTH>())});
     }
 
     template<typename T>
     requires std::is_same_v<std::decay_t<T>,RGB<BIT_DEPTH>>
     inline RGB<BIT_DEPTH> operator-(T&& other) const{
-        return {clamp(R-other.R,0,max_value_bit_depth<BIT_DEPTH>()),clamp(G-other.G,0,max_value_bit_depth<BIT_DEPTH>()),clamp(B-other.B,0,max_value_bit_depth<BIT_DEPTH>())};
+        return RGB<BIT_DEPTH>({clamp(R-other.R,0,max_value_bit_depth<BIT_DEPTH>()),
+                                clamp(G-other.G,0,max_value_bit_depth<BIT_DEPTH>()),
+                                clamp(B-other.B,0,max_value_bit_depth<BIT_DEPTH>())});
     }
 
     template<typename T>
@@ -68,15 +78,19 @@ struct RGB{
     }
 
     template<typename T>
-    requires std::is_fundamental_v<T>
-    inline RGB<BIT_DEPTH> operator*(T factor) const{
-        return {clamp(R*factor,0,max_value_bit_depth<BIT_DEPTH>()),clamp(G*factor,0,max_value_bit_depth<BIT_DEPTH>()),clamp(B*factor,0,max_value_bit_depth<BIT_DEPTH>())};
+    requires std::is_fundamental_v<std::decay_t<T>>
+    inline RGB<BIT_DEPTH> operator*(std::decay_t<T> factor) const{
+        return RGB<BIT_DEPTH>({(int)clamp(R*factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                                (int)clamp(G*factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                                (int)clamp(B*factor,0,max_value_bit_depth<BIT_DEPTH>())});
     }
 
     template<typename T>
-    requires std::is_fundamental_v<T>
-    inline RGB<BIT_DEPTH> operator/(T factor) const{
-        return {clamp(R/factor,0,max_value_bit_depth<BIT_DEPTH>()),clamp(G/factor,0,max_value_bit_depth<BIT_DEPTH>()),clamp(B/factor,0,max_value_bit_depth<BIT_DEPTH>())};
+    requires std::is_fundamental_v<std::decay_t<T>>
+    inline RGB<BIT_DEPTH> operator/(std::decay_t<T> factor) const{
+        return RGB<BIT_DEPTH>({(int)clamp(R/factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                                (int)clamp(G/factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                                (int)clamp(B/factor,0,max_value_bit_depth<BIT_DEPTH>())});
     }
 };
 
@@ -91,15 +105,33 @@ inline bool operator>(const RGB<BIT_DEPTH>& lhs, const RGB<BIT_DEPTH>& rhs){
 }
 
 template<uint8_t BIT_DEPTH, typename T>
-requires std::is_fundamental_v<T>
-inline std::decay_t<RGB<BIT_DEPTH>> operator*(const RGB<BIT_DEPTH>& color,T factor){
-    return RGB<BIT_DEPTH>(color.R*factor,color.G*factor,color.B*factor);
+requires std::is_fundamental_v<std::decay_t<T>>
+inline std::decay_t<RGB<BIT_DEPTH>> operator*(T&& factor,const RGB<BIT_DEPTH>& color){
+    return RGB<BIT_DEPTH>({(int)clamp(color.R*factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                        (int)clamp(color.G*factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                        (int)clamp(color.B*factor,0,max_value_bit_depth<BIT_DEPTH>())});
 }
 
 template<uint8_t BIT_DEPTH, typename T>
-requires std::is_fundamental_v<T>
-inline std::decay_t<RGB<BIT_DEPTH>> operator/(const RGB<BIT_DEPTH>& color,T factor){
-    return RGB<BIT_DEPTH>(color.R/factor,color.G/factor,color.B/factor);
+requires std::is_fundamental_v<std::decay_t<T>>
+inline std::decay_t<RGB<BIT_DEPTH>> operator/(T&& factor,const RGB<BIT_DEPTH>& color){
+    return RGB<BIT_DEPTH>({(int)clamp(color.R/factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                        (int)clamp(color.G/factor,0,max_value_bit_depth<BIT_DEPTH>()),
+                        (int)clamp(color.B/factor,0,max_value_bit_depth<BIT_DEPTH>())});
+}
+
+template<uint8_t BIT_DEPTH, typename T_X1, typename T_X2, typename T_X_VAL>
+RGB<BIT_DEPTH> lin_interp_between(const RGB<BIT_DEPTH>& y_1, T_X1&& x_1, const RGB<BIT_DEPTH>& y_2, T_X2&& x_2, T_X_VAL&& x_value){
+    if(x_value==x_2)
+        return y_2;
+    else if(x_value==x_1)
+        return y_1;
+    else{
+        int R = (y_2.R - y_1.R)*(x_value - x_1)/(x_2 - x_1)+y_1.R;
+        int G = (y_2.G - y_1.G)*(x_value - x_1)/(x_2 - x_1)+y_1.G;
+        int B = (y_2.B - y_1.B)*(x_value - x_1)/(x_2 - x_1)+y_1.B;
+        return {R<0?0:R,G<0?0:G,B<0?0:B};
+    }
 }
 
 struct HSV{

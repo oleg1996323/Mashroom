@@ -13,6 +13,7 @@ extern "C"{
 #include <iterator>
 #include <algorithm>
 #include "size.h"
+#include <iostream>
 
 // void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);
 
@@ -21,27 +22,32 @@ extern "C"{
 void PngOutGray(std::string name, const float* values, const Size& sz);
 
 template<uint8_t BIT_DEPTH = 8,typename COL_T> //add checking BIT_DEPTH by concept
-requires std::is_class_v<COL_T> && BitDepthCor<BIT_DEPTH>
+requires std::is_class_v<COL_T> && BitDepthCor<BIT_DEPTH> && CheckColorStruct<COL_T, BIT_DEPTH>
 void PngOutRGBGradient(std::string name, const float* values, const Size& sz, std::vector<ColorAtValue<COL_T>> color_grad, bool minmax_grad){
+    using DATA_TYPE = typename std::conditional<(BIT_DEPTH ==8), uint8_t, uint16_t>::type;
+
     uint32_t w = sz.width();
     uint32_t h = sz.height();
     if(minmax_grad){
-        std::pair<std::vector<float>::iterator, std::vector<float>::iterator> minmax;
+        float max;
+        float min;
         {
             std::vector<float> data(values,values+w*h);
-            minmax = std::minmax_element(data.begin(),data.end());
+            auto minmax = std::minmax_element(data.begin(),data.end());
+            max = *minmax.second;
+            min = *minmax.first;
         }
         if(!color_grad.empty()){
 
             std::sort(color_grad.begin(),color_grad.end());
-            float diff = (*minmax.second - *minmax.first)/(color_grad.size()-1);
+            float diff = (max - min)/(color_grad.size()-1);
             for(int i = 0;i<color_grad.size();++i){
-                color_grad.at(i).value = (*minmax.first)+diff*i;
+                color_grad.at(i).value = (min)+diff*i;
             }
         }
         else {
-            color_grad.push_back({{0,0,max_value_bit_depth<BIT_DEPTH>()},*minmax.first});
-            color_grad.push_back({{max_value_bit_depth<BIT_DEPTH>(),0,0},*minmax.second});
+            color_grad.push_back({{0,0,max_value_bit_depth<BIT_DEPTH>()},min});
+            color_grad.push_back({{max_value_bit_depth<BIT_DEPTH>(),0,0},max});
         }
     }
     
@@ -72,20 +78,14 @@ void PngOutRGBGradient(std::string name, const float* values, const Size& sz, st
         PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
         PNG_FILTER_TYPE_DEFAULT);
 
-    unsigned char* data_ptr = (unsigned char*)malloc(w*h*3*BIT_DEPTH/8);
+    DATA_TYPE* data_ptr = (DATA_TYPE*)malloc(w*h*3*sizeof(DATA_TYPE));
     for (int i = 0; i < h; ++i) {
         for (int j = 0; j < w; ++j) {
-            size_t iter = (i*w+j)*3*BIT_DEPTH/8;
+            size_t iter = (i*w+j)*3;
             auto c = get_color_grad(values[j+w*i],color_grad);
-            if(BIT_DEPTH==16)
-                data_ptr[iter++] = (unsigned char)c.R<<8;
-            data_ptr[iter++] = (unsigned char)c.R;
-            if(BIT_DEPTH==16)
-                data_ptr[iter++] = (unsigned short)c.G<<8;
-            data_ptr[iter++] = (unsigned short)c.G;
-            if(BIT_DEPTH==16)
-                data_ptr[iter++] = (unsigned short)c.B<<8;
-            data_ptr[iter++] = (unsigned short)c.B;
+            data_ptr[iter++] = (DATA_TYPE)c.R;
+            data_ptr[iter++] = (DATA_TYPE)c.G;
+            data_ptr[iter++] = (DATA_TYPE)c.B;
         }
     }
 

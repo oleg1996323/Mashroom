@@ -282,11 +282,11 @@ fail:
                         grid_result.dy = grid_.dy;
                         for(int y_iter = begin_id_y;y_iter<end_id_y;++y_iter){
                             for(int x_iter = begin_id_x;x_iter<end_id_x;++x_iter){
-                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].lat = 
+                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)].lat = 
                                                 zone_load.y1+(y_iter-begin_id_y)*grid_.dy;
-                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].lon = 
+                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)].lon = 
                                                 zone_load.x1+(x_iter-begin_id_x)*grid_.dx;
-                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].value = 
+                                (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)].value = 
                                                 array[nx*y_iter+x_iter];
                                 // printf("Lat: %.2f;Lon: %.2f;Value: %.2f\n",
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].lat,
@@ -294,8 +294,8 @@ fail:
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].value);
                                 // if(y_iter==180 || x_iter==648)
                                 //     printf("Cycle");
-                                assert(((*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].lat!=0));
-                                assert((*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)].lon!=0);
+                                assert(((*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)].lat!=0));
+                                assert((*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)].lon!=0);
                             }
                         }
                         return grid_result;
@@ -567,7 +567,7 @@ fail:
                         grid_result.values = values;
                         for(int y_iter = begin_id_y;y_iter<end_id_y;++y_iter){
                             for(int x_iter = begin_id_x;x_iter<end_id_x;++x_iter){
-                                values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)] = 
+                                values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)] = 
                                                 array[nx*y_iter+x_iter];
                                 // printf("Lat: %.2f;Lon: %.2f;Value: %.2f\n",
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter-begin_id_y)].lat,
@@ -575,8 +575,8 @@ fail:
                                 // (*values)[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter-begin_id_y)].value);
                                 // if(y_iter==180 || x_iter==648)
                                 //     printf("Cycle");
-                                if(values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)]<200)
-                                    printf("x_iter: %d, y_iter: %d, value: %.3f",x_iter,y_iter,values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(end_id_y-1 - y_iter)]);
+                                if(values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)]<200)
+                                    printf("x_iter: %d, y_iter: %d, value: %.3f",x_iter,y_iter,values[(x_iter-begin_id_x)+(end_id_x - begin_id_x)*(y_iter - begin_id_y)]);
                             }
                         }
                         return grid_result;
