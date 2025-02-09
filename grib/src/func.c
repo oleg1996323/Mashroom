@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <error.h>
 #include "def.h"
+#include "coords.h"
 
 #ifndef min
 #define min(a,b)  ((a) < (b) ? (a) : (b))
@@ -21,6 +22,10 @@ bool intersect_rect(const Rect* rect1, const Rect* rect2) {
 		fprintf(stderr,"Not defined arguments");
 		exit(1);
 	}
+}
+
+bool point_in_rect(const Rect* rect, const Coord point){
+	
 }
 
 Rect intersection_rect(const Rect* source, const Rect* searched){

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdbool.h>
 
-typedef struct{
+typedef struct RECT_S{
     double x1;
     double x2;
     double y1;
@@ -44,5 +44,7 @@ double ibm2flt(unsigned char *ibm);
 
 int flt2ieee(float x, unsigned char *ieee);
 
+#include "coords.h"
 extern bool intersect_rect(const Rect* rect1, const Rect* rect2);
 extern Rect intersection_rect(const Rect* rect1, const Rect* rect2);
+extern bool point_in_rect(const Rect* rect, const Coord point);

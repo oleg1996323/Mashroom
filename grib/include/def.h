@@ -9,9 +9,6 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-extern FILE* get_std_in();
-extern FILE* get_std_out();
-
 enum DATA_FORMAT{
     NONE,
     BINARY,

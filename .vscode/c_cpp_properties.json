@@ -7,7 +7,7 @@
             ],
             "defines": [],
             "cStandard": "c17",
-            "cppStandard": "c++14",
+            "cppStandard": "c++23",
             "intelliSenseMode": "linux-clang-x64",
             "configurationProvider": "ms-vscode.cmake-tools"
         },
@@ -18,9 +18,9 @@
             ],
             "defines": [],
             "cStandard": "c17",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-clang-x64",
-            "compilerPath": "/usr/bin/g++"
+            "cppStandard": "c++23",
+            "intelliSenseMode": "gcc-x86",
+            "compilerPath": "~/gcc/gcc-install/bin/g++"
         }
     ],
     "version": 4

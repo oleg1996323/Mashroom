@@ -1,29 +1,33 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.22)
 project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX C)
 set(CMAKE_SYSTEM_NAME Windows)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD 23)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{HOME}/gcc/gcc-install/lib64")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
 
 file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib/src/*.c)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)
 
-message(STATUS ${Mashroom_SOURCES})
-
 
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)
+
+make_directory(third_party)
+make_directory(third_party/png)
+file(COPY ${PNG_LIBRARIES} DESTINATION third_party/png)
+make_directory(third_party/libc)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/grib/include ${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_library(grib_c STATIC ${GRIB_SOURCES})
 
 add_executable(Mashroom ${Mashroom_SOURCES})
-set_target_properties(grib_c PROPERTIES CMAKE_C_COMPILER "/usr/bin/gcc")
-set_target_properties(Mashroom PROPERTIES CMAKE_CXX_COMPILER "/usr/bin/g++")
+
+file(GLOB PNG_LIBS third_party/png/*.so)
 
 target_link_libraries(Mashroom PRIVATE grib_c ${PNG_LIBRARIES})
 target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include

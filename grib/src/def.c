@@ -5,13 +5,6 @@ struct ParmTable parm_table_user[256];
 
 enum Def_NCEP_Table def_ncep_table = DEF_T62_NCEP_TABLE;
 
-FILE* get_std_in(){
-      return stdin;
-}
-FILE* get_std_out(){
-      return stdout;
-}
-
 #ifndef min
 #define min(a,b)  ((a) < (b) ? (a) : (b))
 #define max(a,b)  ((a) < (b) ? (b) : (a))

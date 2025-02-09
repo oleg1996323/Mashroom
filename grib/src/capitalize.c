@@ -199,7 +199,7 @@ int capitalize(const char* in,
 	char* fmt;
 
 	if ((input = fopen(in,"rb")) == NULL) {
-        fprintf(stderr,"could not open file: %s\n", in);
+        //fprintf(stderr,"could not open file: %s\n", in);
         exit(7);
     }
     if(strlen(fmt_cap)==0){

@@ -299,7 +299,7 @@ int decode(int argc, const char **argv) {
 	exit(8);
     }
     if ((input = fopen(argv[file_arg],"rb")) == NULL) {
-        fprintf(stderr,"could not open file: %s\n", argv[file_arg]);
+        //fprintf(stderr,"could not open file: %s\n", argv[file_arg]);
         exit(7);
     }
 

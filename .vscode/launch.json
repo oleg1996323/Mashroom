@@ -4,13 +4,19 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${cwd}/bin/Debug/Mashroom",
-        "args": [],
+        "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
+        "args": ["-p","/home/oster/grib_files/","-j","4"],
         "stopAtEntry": false,
         "cwd": "${cwd}",
-        "environment": [],
         "externalConsole": false,
         "MIMode": "gdb",
+        "miDebuggerPath": "/home/oster/binutils-gdb/gdb-install/bin/gdb",
+        "environment": [
+            {
+                "name": "LD_LIBRARY_PATH",
+                "value": "/home/oster/gcc/gcc-install/lib64"
+            }
+        ],
         "setupCommands": [
             {
                 "description": "Enable pretty-printing for gdb",

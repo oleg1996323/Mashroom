@@ -55,7 +55,24 @@
         "set": "cpp",
         "stdbool.h": "c",
         "complex": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "cstring": "cpp",
+        "list": "cpp",
+        "optional": "cpp",
+        "ranges": "cpp",
+        "map": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "print": "cpp",
+        "span": "cpp",
+        "text_encoding": "cpp",
+        "variant": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "future": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
