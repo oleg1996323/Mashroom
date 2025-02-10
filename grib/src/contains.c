@@ -254,10 +254,10 @@ fail:
     fflush(stdout);
     return false;
 }
+
     
-    
-ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
-    ExtractData result;
+Result get_from_pos(const char* from,long int* count,long unsigned* pos){
+    Result result;
     unsigned char *buffer;
     float *array;
     double temp;
@@ -280,11 +280,14 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 	if ((input = fopen(from,"rb")) == NULL) {
         printf("At openning in get_from_pos\n");
         fprintf(stderr,"could not open file: %s\n", from);
-        exit(7);
+        result.code = OPEN;
+        return result;
     }
 
     if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
-	fprintf(stderr,"not enough memory\n");
+	    fprintf(stderr,"not enough memory\n");
+        result.code = MEMORY;
+        return result;
     }
     buffer_size = BUFF_ALLOC0;
 
@@ -293,7 +296,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 	msg = seek_grib(input, pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
 	    fprintf(stderr, "ran out of data or bad file\n");
-	    exit(8);
+	    result.code = BAD_FILE;
+        return result;
 	}
 	*pos += len_grib;
     }
@@ -304,7 +308,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 	if (msg == NULL) {
 	    // if (mode == INVENTORY || mode == DUMP_ALL) break;
 	    fprintf(stderr,"missing GRIB record(s)\n");
-	    exit(8);
+	    result.code = MISS_GRIB_REC;
+        return result;
 	}
 
         /* read all whole grib record */
@@ -313,12 +318,14 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
             buffer = (unsigned char *) realloc((void *) buffer, buffer_size);
             if (buffer == NULL) {
                 fprintf(stderr,"ran out of memory\n");
-                exit(8);
+                result.code = RUN_OUT;
+                return result;
             }
         }
         if (read_grib(input, *pos, len_grib, buffer) == 0) {
                 fprintf(stderr,"error, could not read to end of record %ld\n",*count);
-                exit(8);
+                result.code = READ_END_ERR;
+                return result;
 	}
 
 	/* parse grib message */
@@ -346,7 +353,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 
 	if (pointer > end_msg) {
 	    *pos++;
-	    exit(8);
+        result.code = NONE_ERR;
+        return result;
 	}
 
         if (PDS_HAS_GDS(pds)) {
@@ -354,7 +362,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
             pointer += GDS_LEN(gds);
 	    if (pointer > end_msg) {
 	        *pos++;
-	        exit(8);
+	        result.code = NONE_ERR;
+            return result;  
 	    }
         }
         else {
@@ -371,7 +380,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 
 	if (pointer+10 > end_msg) {
 	    *pos++;
-	    exit(8);
+	    result.code = NONE_ERR;
+        return result; 
 	}
 
         bds = pointer;
@@ -391,7 +401,8 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
 	    printf("ignoring missing end section\n");
 #else
         free(msg);
-	    exit(8);
+	    result.code = MISS_END_SECTION;
+        return result; 
 #endif
         }
 
@@ -445,7 +456,7 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
         
         *pos += len_grib;
         *count++;
-        result.bound = grid_.bound;
+        result.data.bound = grid_.bound;
         
         date_.year = PDS_Year4(pds);
         date_.month = PDS_Month(pds);
@@ -453,9 +464,10 @@ ExtractData get_from_pos(const char* from,long int* count,long unsigned* pos){
         date_.hour = PDS_Hour(pds);
                 
         //if everyone is defined
-        result.date = date_;
+        result.data.date = date_;
         free(msg);
         fclose(input);
         fflush(stdout);
-        return result;
+        result.code = NONE_ERR;
+        return result; 
 }

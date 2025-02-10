@@ -104,8 +104,18 @@ struct std::incrementable_traits<std::chrono::time_point<Clock, Duration>> {
   using difference_type = typename Duration::rep;
 };
 
-std::set<std::chrono::sys_days> process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) {
+struct ErrorFiles{
+    std::filesystem::path name;
+    ErrorCodes code;
+};
+
+struct ProcessResult{
     std::set<std::chrono::sys_days> found;
+    std::vector<ErrorFiles> err_files;
+};
+
+ProcessResult process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) {
+    ProcessResult result;
     for (const std::filesystem::directory_entry& entry : entries) {
         if (entry.is_regular_file() && entry.path().has_extension() && 
             (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -132,7 +142,7 @@ std::set<std::chrono::sys_days> process_core(std::ranges::random_access_range au
                     std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
                     bar.update(0);
                     bar.print();
-                    std::cout << entry.path()<<std::flush;
+                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
                 }
                 else{
                     p_line = progress_line++;
@@ -140,35 +150,49 @@ std::set<std::chrono::sys_days> process_core(std::ranges::random_access_range au
                     std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
                     bar.update(0);
                     bar.print();
-                    std::cout << entry.path()<<std::flush;
+                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
                 }
             }
 
             while (pos < max_pos) {
 
                 auto data = get_from_pos(entry.path().c_str(), &count, &pos);
-                found.insert(std::chrono::sys_days(std::chrono::year_month_day(
-                    std::chrono::year(data.date.year),
-                    std::chrono::month(data.date.month),
-                    std::chrono::day(data.date.day))));
+                if(data.code==0)
+                    result.found.insert(std::chrono::sys_days(std::chrono::year_month_day(
+                        std::chrono::year(data.data.date.year),
+                        std::chrono::month(data.data.date.month),
+                        std::chrono::day(data.data.date.day))));
+                else{
+                    if (mute_at_print){
+                        std::lock_guard<std::mutex> locked(*mute_at_print);
+                        std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                        result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                        break;
+                    }
+                    else {
+                        std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                        result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                        break;
+                    }
+                }
 
                 {
                     if (mute_at_print){
                         std::lock_guard<std::mutex> locked(*mute_at_print);
                         bar.update((double)pos/(double)max_pos*100);
                         bar.print();
-                        std::cout << entry.path()<<std::flush;
+                        std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
                     }
                     else {
                         bar.update((double)pos/(double)max_pos*100);
                         bar.print();
-                        std::cout << entry.path()<<std::flush;
+                        std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
                     }
                 }
             }
         }
     }
-    return found;
+    return result;
 }
 
 
@@ -189,7 +213,7 @@ bool missing_files(std::filesystem::path path,unsigned int cpus, std::chrono::ye
     {
         if(entries.size()/cpus>1){
             std::vector<std::thread> threads(cpus);
-            std::vector<std::promise<std::set<std::chrono::sys_days>>> threads_results(cpus);
+            std::vector<std::promise<ProcessResult>> threads_results(cpus);
 
             for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
                 auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
@@ -198,20 +222,36 @@ bool missing_files(std::filesystem::path path,unsigned int cpus, std::chrono::ye
                                                                                     entries.end()
                                                                                     );
                 std::mutex mute_at_print;
-                std::promise<std::set<std::chrono::sys_days>>* prom = &threads_results.at(cpu);
+                std::promise<ProcessResult>* prom = &threads_results.at(cpu);
                 threads.at(cpu) = std::move(std::thread([r,prom,&mute_at_print]() mutable{
                                     prom->set_value(process_core(std::move(r),&mute_at_print));
                                 }));
             }
             for(int i = 0;i<cpus;++i){
-                found.merge(threads_results.at(i).get_future().get());
+                ProcessResult res = std::move(threads_results.at(i).get_future().get());
+                if(!res.err_files.empty()){
+                    std::ofstream err_log("error_files_log.txt",std::ios::trunc);
+                    if(err_log.is_open())
+                    for(ErrorFiles& err_f:res.err_files){
+                        err_log<<err_f.name<<". Error code: "<<err_f.code<<std::endl;
+                    }
+                }
+                found.merge(res.found);
                 threads.at(i).join();
             }
             threads.clear();
             threads_results.clear();
         }
         else{
-            found = process_core(entries);
+            ProcessResult res = process_core(entries);
+            if(!res.err_files.empty()){
+                std::ofstream err_log("error_files_log.txt",std::ios::trunc);
+                if(err_log.is_open())
+                for(ErrorFiles& err_f:res.err_files){
+                    err_log<<err_f.name<<". Error code: "<<err_f.code<<std::endl;
+                }
+            }
+            found = res.found;
         }
     }
     
