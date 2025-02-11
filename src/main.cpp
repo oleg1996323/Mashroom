@@ -30,6 +30,7 @@ extern "C"{
 #include <future>
 #include <cstdio>
 #include "log_duration.h"
+#include "cap.h"
 
 static int progress_line = 6;
 
@@ -273,6 +274,32 @@ bool missing_files(std::filesystem::path path,unsigned int cpus, std::chrono::ye
 
 using namespace std::chrono_literals;
 
+enum class MODE{
+    NONE,
+    CHECK_ALL_IN_PERIOD,
+    CAPITALIZE,
+    EXTRACT
+};
+
+std::string get_string_mode(MODE mode){
+    switch(mode){
+        case(MODE::NONE):
+            return "None mode";
+        case(MODE::CAPITALIZE):
+            return "Capitalize mode (arg = -cap)";
+        case(MODE::CHECK_ALL_IN_PERIOD):
+            return "Check mode (arg = -check)";
+        case(MODE::EXTRACT):
+            return "Extract mode (arg = -ext)";
+        default:{
+            std::cout<<"Argument error at \"get_string_mode\""<<std::endl;
+            exit(1);
+        }
+    }
+}
+
+#include <variant>
+
 int main(int argc, char* argv[]){
     std::cout << "Command-line arguments:" << std::endl;
     for (int i = 0; i < argc; ++i) {
@@ -281,6 +308,9 @@ int main(int argc, char* argv[]){
 
     unsigned int cpus = std::thread::hardware_concurrency();
     std::filesystem::path path;
+    std::filesystem::path indir;
+    MODE mode = MODE::NONE;
+    std::variant<std::monostate,OrderItems> var_mode;
     for(int i = 1;i<argc;++i){
         if(strcmp(argv[i],"-j")==0){
             long tmp = std::stol(argv[++i]);
@@ -290,8 +320,151 @@ int main(int argc, char* argv[]){
         else if(strcmp(argv[i],"-p")==0){
             path = argv[++i];
             if(!std::filesystem::is_directory(path)){
-                std::cout<<"Set path=env ${HOME}"<<std::endl;
-                path = getenv("HOME");
+                std::cout<<"Error at path argument: not dorectory. Abort."<<std::endl;
+                exit(1);
+            }
+        }
+        else if(strcmp(argv[i],"-ext")==0){
+            if(MODE::NONE==mode || MODE::EXTRACT==mode)
+                mode = MODE::EXTRACT;
+            else{
+                std::cout<<"Incorrect argument. Already choosen mode: "<<get_string_mode(mode)<<std::endl;
+                exit(1);
+            }
+        }
+        else if(strcmp(argv[i],"-cap")==0){
+            if(MODE::NONE==mode || MODE::CAPITALIZE==mode)
+                mode = MODE::CAPITALIZE;
+            else{
+                std::cout<<"Incorrect argument. Already choosen mode: "<<get_string_mode(mode)<<std::endl;
+                exit(1);
+            }
+        }
+        else if(strcmp(argv[i],"-check")==0){
+            if(MODE::NONE==mode || MODE::CAPITALIZE==mode)
+                mode = MODE::CAPITALIZE;
+            else{
+                std::cout<<"Incorrect argument. Already choosen mode: "<<get_string_mode(mode)<<std::endl;
+                exit(1);
+            }
+        }
+        else if(strcmp(argv[i],"-hier")==0 && (mode==MODE::CAPITALIZE || mode==MODE::NONE)){
+            if(!std::holds_alternative<std::monostate>(var_mode)){
+                if(!std::holds_alternative<OrderItems>(var_mode)){
+                    std::cout<<"Already initialized variable mode data or other type mode defined. Abort."<<std::endl;
+                    exit(1);
+                }
+            }
+            else var_mode = ORDERITEMS();
+            mode = MODE::CAPITALIZE;
+            int order = 0;
+            ++i;
+            char* str = strtok(argv[i],":");
+            while(str){
+                if(strlen(str)>0){
+                    if(strcmp(str,"h")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.hour!=-1){
+                            std::cout<<"Already defined \"hour\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.hour = order++;
+                    }
+                    else if(strcmp(str,"y")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.year!=-1){
+                            std::cout<<"Already defined \"year\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.year = order++;
+                    }
+                    else if(strcmp(str,"m")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.month!=-1){
+                            std::cout<<"Already defined \"month\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.month = order++;
+                    }
+                    else if(strcmp(str,"d")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.day!=-1){
+                            std::cout<<"Already defined \"day\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.day = order++;
+                    }
+                    else if(strcmp(str,"lat")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.lat!=-1){
+                            std::cout<<"Already defined \"lat\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.lat = order++;
+                    }
+                    else if(strcmp(str,"lon")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.lon!=-1){
+                            std::cout<<"Already defined \"lon\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else vm.lon = order++;
+                    }
+                    else if(strcmp(str,"latlon")==0){
+                        auto& vm = std::get<OrderItems>(var_mode);
+                        if(vm.lat!=-1 || vm.lon!=-1){
+                            std::cout<<"Already defined \"lat or lon\" hierarchy capitalize mode item. Abort."<<std::endl;
+                        }
+                        else{
+                            vm.lat = order;
+                            vm.lon = order++;
+                        }
+                    }
+                    else{
+                        std::cout<<"Unknown token for capitalize mode hierarchy. Abort"<<std::endl;
+                        exit(1);
+                    }
+                }
+                str = strtok(nullptr,":");
+            }
+        }
+        else if(strcmp(argv[i],"-format")==0){
+            if(!std::holds_alternative<std::monostate>(var_mode)){
+                if(!std::holds_alternative<OrderItems>(var_mode)){
+                    std::cout<<"Already initialized variable mode data or other type mode defined. Abort."<<std::endl;
+                    exit(1);
+                }
+            }
+            else var_mode = ORDERITEMS();
+            mode = MODE::CAPITALIZE;
+            int order = 0;
+            ++i;
+            if(strcmp(argv[i],"bin")==0){
+                if(std::get<OrderItems>(var_mode).fmt==NONE)
+                    std::get<OrderItems>(var_mode).fmt = BINARY;
+                else{
+                    std::cout<<"Already defined file format output at capitalize mode. Abort."<<std::endl;
+                    exit(1);
+                }
+            }
+            else if(strcmp(argv[i],"txt")==0){
+                if(std::get<OrderItems>(var_mode).fmt==NONE)
+                    std::get<OrderItems>(var_mode).fmt = TEXT;
+                else{
+                    std::cout<<"Already defined file format output at capitalize mode. Abort."<<std::endl;
+                    exit(1);
+                }
+            }
+            else if(strcmp(argv[i],"grib")==0){
+                if(std::get<OrderItems>(var_mode).fmt==GRIB)
+                    std::get<OrderItems>(var_mode).fmt = TEXT;
+                else{
+                    std::cout<<"Already defined file format output at capitalize mode. Abort."<<std::endl;
+                    exit(1);
+                }
+            }
+        }
+        else if(strcmp(argv[i],"-idir")==0){
+            indir = argv[++i];
+            if(!std::filesystem::is_directory(indir)){
+                if(!std::filesystem::create_directory(indir)){
+                    std::cout<<indir<<" is not a directory. Abort.";
+                    exit(1);
+                }
             }
         }
     }
@@ -307,9 +480,14 @@ int main(int argc, char* argv[]){
             progress_line = row;
         else exit(1);
     }
-    if(missing_files(path,cpus,1d/1/1991))
-        std::cout<<"Missing files are placed to file "<<path/"missing_files.txt"<<std::endl;
-    else std::cout<<"No missing files detected"<<std::endl;
+    if(mode==MODE::CHECK_ALL_IN_PERIOD)
+        if(missing_files(path,cpus,1d/1/1991))
+            std::cout<<"Missing files are placed to file "<<path/"missing_files.txt"<<std::endl;
+        else std::cout<<"No missing files detected"<<std::endl;
+    else if(mode==MODE::CAPITALIZE)
+        cap(path,indir,std::get<OrderItems>(var_mode));
+    else
+        std::cout<<"Error parsing args. Abort."<<std::endl;
     // std::filesystem::path path = std::filesystem::current_path();
     // ExtractData extract_ = ExtractData();
     // // extract_.bound.x1=20;

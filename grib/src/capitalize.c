@@ -72,6 +72,40 @@ int __capitalize_write__(GridData* grid,
 					}
 					break;
 				}
+				case 'O':{
+					char str[40];
+					memset(&str,0,40);
+					sprintf(str, "lon%.2f", grid->bound.y1 - grid->dy*(double)i,grid->bound.x1 + grid->dx*(double)j);
+					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+					if(fmt_c<strlen(fmt))
+						change_directory(cur_path);
+					if (fmt_c==strlen(fmt)-1){
+						strcat(dump_file_name,k5toa(pds));
+						strcat(dump_file_name,".omdb");
+						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
+						//printf("Try to open dump file: %s",cur_path);	
+						dump_file = fopen(dump_file_name,"a");
+						assert(dump_file);
+					}
+					break;
+				}
+				case 'L':{
+					char str[40];
+					memset(&str,0,40);
+					sprintf(str, "lat%.2f", grid->bound.y1 - grid->dy*(double)i,grid->bound.x1 + grid->dx*(double)j);
+					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+					if(fmt_c<strlen(fmt))
+						change_directory(cur_path);
+					if (fmt_c==strlen(fmt)-1){
+						strcat(dump_file_name,k5toa(pds));
+						strcat(dump_file_name,".omdb");
+						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
+						//printf("Try to open dump file: %s",cur_path);	
+						dump_file = fopen(dump_file_name,"a");
+						assert(dump_file);
+					}
+					break;
+				}
 				case 'D':{
 					char str[2];
 					memset(&str,0,2);
@@ -161,7 +195,7 @@ int __capitalize_write__(GridData* grid,
 			}
 			if (ferror(dump_file)) {
 				fprintf(stderr,"error writing %s\n",dump_file_name);
-				exit(8);
+				exit(1);
 			}
 			fclose(dump_file);
 			memset(dump_file_name,0,51);
@@ -202,7 +236,7 @@ int capitalize(const char* in,
         //fprintf(stderr,"could not open file: %s\n", in);
         exit(7);
     }
-    if(strlen(fmt_cap)==0){
+    if(strlen(fmt_cap)!=0){
 		fmt = (char*)malloc(strlen(fmt_cap));
 		strcpy(fmt,fmt_cap);
 		fmt = "CYM";

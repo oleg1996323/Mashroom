@@ -126,6 +126,11 @@
 },
 {
   "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/cap.cpp.o -c /home/oster/Mashroom/src/cap.cpp",
+  "file": "/home/oster/Mashroom/src/cap.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
   "file": "/home/oster/Mashroom/src/color.cpp"
 },

@@ -9,13 +9,13 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-enum DATA_FORMAT{
+typedef enum DATA_FORMAT{
     NONE,
     BINARY,
     TEXT, 
     IEEE, 
     GRIB
-};
+}DataFormat;
 
 #define UNDEF_GRID_VALUE -99999999
 typedef struct GRID_DATA_S
