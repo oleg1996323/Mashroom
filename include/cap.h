@@ -11,6 +11,7 @@ extern "C"{
 #endif
 
 #include <filesystem>
+#include <string>
 
-const char* get_fmt(const OrderItems&);
+std::string get_fmt(const OrderItems&);
 void cap(const std::filesystem::path& root,const std::filesystem::path& from,const OrderItems& order);

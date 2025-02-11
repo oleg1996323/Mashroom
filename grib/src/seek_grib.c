@@ -12,7 +12,10 @@ unsigned char *seek_grib(FILE *file, unsigned long *pos, long *len_grib,
     while ( !feof(file) ) {
 
         if (fseek(file, *pos, SEEK_SET) == -1) break;
-	i = fread(buffer, sizeof (unsigned char), buf_len, file);     
+	    i = fread(buffer, sizeof (unsigned char), buf_len, file);
+        if(i==0){
+            break;
+        }
         if (ferror(file)) break;
         len = i - LEN_HEADER_PDS;
      

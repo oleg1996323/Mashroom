@@ -304,6 +304,7 @@ Result get_from_pos(const char* from,long int* count,long unsigned* pos){
     if (dump > 0) *count += dump - 1;
     n_dump = 0;
 
+    for(;;){
 	msg = seek_grib(input, pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
 	    // if (mode == INVENTORY || mode == DUMP_ALL) break;
@@ -469,5 +470,6 @@ Result get_from_pos(const char* from,long int* count,long unsigned* pos){
         fclose(input);
         fflush(stdout);
         result.code = NONE_ERR;
+    }
         return result; 
 }

@@ -34,7 +34,11 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-
+typedef enum COORD_DEPEND{
+	NOT_LL_DEPEND = 0x00,
+	LAT_DEPEND = 1L <<0,
+	LON_DEPEND = 1L <<1
+}CoordDepend;
 
 int __capitalize_write__(GridData* grid,
 						const char* root_cap_dir_name,
@@ -49,10 +53,27 @@ int __capitalize_write__(GridData* grid,
 	char dump_file_name[51];
 	FILE* dump_file = NULL;
 	memset(dump_file_name,0,51);
+	CoordDepend is_lat_lon_dependent;
+	{
+		u_int8_t fmt_c=0;
+		while(fmt_c<strlen(fmt)){
+			if(fmt[fmt_c]=='C'){
+				is_lat_lon_dependent = LAT_DEPEND|LON_DEPEND;
+				break;
+			}
+			else if(fmt[fmt_c]=='L'){
+				is_lat_lon_dependent = is_lat_lon_dependent | LAT_DEPEND;
+			}
+			else if(fmt[fmt_c]=='O'){
+				is_lat_lon_dependent = is_lat_lon_dependent | LON_DEPEND;
+			}
+			++fmt_c;
+		}
+	}
 	for(int i = 0; i < grid->ny; ++i){
 		for(int j = 0; j< grid->nx; ++j){
 			u_int8_t fmt_c=0;
-			while(fmt_c<strlen(fmt)){
+			while((!dump_file || !(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)) && fmt_c<strlen(fmt)){
 				switch (fmt[fmt_c])
 				{
 				case 'C':{
@@ -65,10 +86,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -82,10 +99,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -99,10 +112,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -116,10 +125,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -133,10 +138,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -150,10 +151,6 @@ int __capitalize_write__(GridData* grid,
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
 						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
 					}
 					break;
 				}
@@ -166,11 +163,7 @@ int __capitalize_write__(GridData* grid,
 						change_directory(cur_path);
 					if (fmt_c==strlen(fmt)-1){
 						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-						//strcpy(cur_path,strcat(strcat(strcat(strcat(cur_path,".omdb"),k5toa(pds)),"/"),str));
-						//printf("Try to open dump file: %s",cur_path);	
-						dump_file = fopen(dump_file_name,"a");
-						assert(dump_file);
+						strcat(dump_file_name,".omdb");						
 					}
 					break;
 				}
@@ -181,32 +174,60 @@ int __capitalize_write__(GridData* grid,
 				}
 				++fmt_c;
 			}
+			dump_file = fopen(dump_file_name,"a");
 			change_directory(root_cap_dir_name);
+			assert(dump_file);
 			getcwd(cur_path,strlen(cur_path));
 			//may be usefull to separate in a unique function for C++ use
 			//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
-			if(d_fmt==TEXT){
-				double cur_lat = grid->bound.y1 + grid->dy*(double)i;
-				double cur_lon = grid->bound.x1 + grid->dx*(double)j;
-				fprintf(dump_file, "%d %d %d %d %g\n",date->year,date->month,date->day,date->hour,array[i*j]);
+			if(is_lat_lon_dependent&LON_DEPEND || is_lat_lon_dependent&LAT_DEPEND){
+				if(d_fmt==TEXT){
+					double cur_lat = grid->bound.y1 + grid->dy*(double)i;
+					double cur_lon = grid->bound.x1 + grid->dx*(double)j;
+					fprintf(dump_file, "%d %d %d %d %g\n",date->year,date->month,date->day,date->hour,array[i*j]);
+				}
+				else{
+					//add lat_lon write additionally
+					fwrite((void*)&array[i*j], sizeof(float), 1, dump_file);
+						
+				}
+				if (ferror(dump_file)) {
+					fprintf(stderr,"error writing %s\n",dump_file_name);
+					exit(1);
+				}
+				fclose(dump_file);
+				memset(dump_file_name,0,51);
 			}
-			else{
-				fwrite((void*)&array[i*j], sizeof(float), 1, dump_file);
-			}
-			if (ferror(dump_file)) {
-				fprintf(stderr,"error writing %s\n",dump_file_name);
-				exit(1);
-			}
-			fclose(dump_file);
-			memset(dump_file_name,0,51);
-			dump_file = NULL;
+			else break;
+		}
+		if(!(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)){
+			break;
 		}
 	}
-	free(array);
+	if(!(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)){
+		fwrite((void*)&date->year, sizeof(date->year), 1, dump_file);
+		fwrite((void*)&date->month, sizeof(date->month), 1, dump_file);
+		fwrite((void*)&date->day, sizeof(date->day), 1, dump_file);
+		fwrite((void*)&grid->bound.x1, sizeof(grid->bound.x1), 1, dump_file);
+		fwrite((void*)&grid->bound.x2, sizeof(grid->bound.x2), 1, dump_file);
+		fwrite((void*)&grid->bound.y1, sizeof(grid->bound.y1), 1, dump_file);
+		fwrite((void*)&grid->bound.y2, sizeof(grid->bound.y2), 1, dump_file);
+		fwrite((void*)&grid->nx, sizeof(grid->nx), 1, dump_file);
+		fwrite((void*)&grid->ny, sizeof(grid->ny), 1, dump_file);
+		//add lat_lon write additionally
+		fwrite((void*)array, sizeof(float), grid->nx*grid->ny, dump_file);
+		if (ferror(dump_file)) {
+			fprintf(stderr,"error writing %s\n",dump_file_name);
+			exit(1);
+		}
+		fclose(dump_file);
+		memset(dump_file_name,0,51);
+		dump_file = NULL;
+	}
 	fflush(dump_file);
 }
 
-int capitalize(const char* in,
+void capitalize(const char* in,
                         const char* root_cap_dir_name,
                         const char* fmt_cap,
                         enum DATA_FORMAT output_type) {
@@ -214,23 +235,18 @@ int capitalize(const char* in,
 		fprintf(stderr,"Cannot change or create directory");
 		exit(1);
 	}
-    unsigned char *buffer;
-    float *array;
-    double temp;
-    int i, nx, ny;
-    long int len_grib, nxny, buffer_size, n_dump, count = 1;
+    unsigned char *buffer = NULL;
+    float *array = NULL;
+    double temp = 0;
+    int i = 0, nx = 0, ny = 0;
+	long int len_grib = 0, nxny = 0, buffer_size = 0;
+    long int count = 1;
     long unsigned pos = 0;
-    unsigned char *msg, *pds, *gds, *bms, *bds, *pointer, *end_msg;
-    FILE *input, *dump_file = NULL;
-    char line[2000];
-    enum {none, dwd, simple} header = simple;
+    unsigned char *msg = NULL, *pds = NULL, *gds = NULL, *bms = NULL, *bds = NULL, *pointer = NULL, *end_msg = NULL;
+    FILE *input = NULL;
 
     long int dump = -1;
-    int verbose = 0, append = 0, v_time = 0, year_4 = 0, output_PDS_GDS = 0;
-	int table_mode = 0;
-    char open_parm[3];
-    int return_code = 0;
-	char* fmt;
+	char* fmt = NULL;
 
 	if ((input = fopen(in,"rb")) == NULL) {
         //fprintf(stderr,"could not open file: %s\n", in);
@@ -239,7 +255,6 @@ int capitalize(const char* in,
     if(strlen(fmt_cap)!=0){
 		fmt = (char*)malloc(strlen(fmt_cap));
 		strcpy(fmt,fmt_cap);
-		fmt = "CYM";
 	}
 	else{
 		fmt = (char*)malloc(3);
@@ -247,31 +262,17 @@ int capitalize(const char* in,
 	}
 
     if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
-	fprintf(stderr,"not enough memory\n");
+		fprintf(stderr,"not enough memory\n");
+		exit(0);
     }
     buffer_size = BUFF_ALLOC0;
-
-    /* open output file */
-	open_parm[0] = append ? 'a' : 'w'; open_parm[1] = 'b'; open_parm[2] = '\0';
-	if (output_type == TEXT) open_parm[1] = '\0';
-
-    /* skip dump - 1 records */
-    for (i = 1; i < dump; i++) {
-	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
-	if (msg == NULL) {
-	    fprintf(stderr, "ran out of data or bad file\n");
-	    exit(8);
-	}
-	pos += len_grib;
-    }
-    if (dump > 0) count += dump - 1;
-    n_dump = 0;
 
     for (;;) {
 fail:
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
-	    // if (mode == INVENTORY || mode == DUMP_ALL) break;
+		if(len_grib==0)
+            return;
 	    fprintf(stderr,"missing GRIB record(s)\n");
 	    exit(8);
 	}
@@ -286,9 +287,9 @@ fail:
             }
         }
         if (read_grib(input, pos, len_grib, buffer) == 0) {
-                fprintf(stderr,"error, could not read to end of record %ld\n",count);
-                exit(8);
-	}
+			fprintf(stderr,"error, could not read to end of record %ld\n",count);
+			exit(8);
+		}
 
 	/* parse grib message */
 
@@ -299,11 +300,11 @@ fail:
 
 //	simple check is for last 4 bytes == '7777'
 //    	better check to see if pointers don't go past end_msg
-//      if (end_msg[0] != 0x37 || end_msg[-1] != 0x37 || end_msg[-2] != 0x37 || end_msg[-3] != 0x37) {
-//	    fprintf(stderr,"Skipping illegal grib1 message: error expected ending 7777\n");
-//	    pos++;
-//	    goto fail;
-//	}
+     if (end_msg[0] != 0x37 || end_msg[-1] != 0x37 || end_msg[-2] != 0x37 || end_msg[-3] != 0x37) {
+	    fprintf(stderr,"Skipping illegal grib1 message: error expected ending 7777\n");
+	    pos++;
+	    goto fail;
+	}
 
 	if (msg + 8 + 27 > end_msg) {
 	    pos++;
@@ -318,36 +319,37 @@ fail:
 	    goto fail;
 	}
 
-        if (PDS_HAS_GDS(pds)) {
-            gds = pointer;
-            pointer += GDS_LEN(gds);
-	    if (pointer > end_msg) {
-	        pos++;
-	        goto fail;
-	    }
-        }
-        else {
-            gds = NULL;
-        }
+	if (PDS_HAS_GDS(pds)) {
+		gds = pointer;
+		pointer += GDS_LEN(gds);
+	if (pointer > end_msg) {
+		pos++;
+		goto fail;
+	}
+	}
+	else {
+		gds = NULL;
+	}
 
-        if (PDS_HAS_BMS(pds)) {
-            bms = pointer;
-            pointer += BMS_LEN(bms);
-        }
-        else {
-            bms = NULL;
-        }
+	if (PDS_HAS_BMS(pds)) {
+		bms = pointer;
+		pointer += BMS_LEN(bms);
+	}
+	else {
+		bms = NULL;
+	}
 
 	if (pointer+10 > end_msg) {
 	    pos++;
 	    goto fail;
 	}
 
-        bds = pointer;
-        pointer += BDS_LEN(bds);
+	bds = pointer;
+	pointer += BDS_LEN(bds);
 
 	if (pointer-msg+4 != len_grib) {
 	    fprintf(stderr,"Len of grib message is inconsistent.\n");
+		exit(1);
 	}
 
         /* end section - "7777" in ascii */
@@ -359,7 +361,7 @@ fail:
 #ifdef DEBUG
 	    printf("ignoring missing end section\n");
 #else
-	    exit(8);
+	    exit(1);
 #endif
         }
 
@@ -392,7 +394,6 @@ fail:
 	            i += missing_points(BMS_bitmap(bms),nxny);
 	        }
 	        if (i != nxny) {
-		    return_code = 15;
 		    nxny = nx = i;
 		    ny = 1;
 	        }
@@ -400,29 +401,20 @@ fail:
  
         }
 #endif
-		if (output_type == GRIB) {
-			if (header == dwd) wrtieee_header((int) len_grib, dump_file);
-			fwrite((void *) msg, sizeof(char), len_grib, dump_file);
-			if (header == dwd) wrtieee_header((int) len_grib, dump_file);
-			n_dump++;
-		}
-
-		if ((output_type != GRIB) || verbose > 1) {
+		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	
-				if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
-					fprintf(stderr,"memory problems\n");
-					exit(8);
-				}
+			if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
+				fprintf(stderr,"memory problems\n");
+				exit(8);
+			}
 
 			temp = int_power(10.0, - PDS_DecimalScale(pds));
 
 			BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
 				temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
 
-			if (output_type != GRIB) {
-				if(dump_file)
-					fclose(dump_file);				
+			if (output_type != GRIB) {		
 				GridData grid_;
 				grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
 				grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
@@ -450,16 +442,16 @@ fail:
 				/* number of points in grid */
 					__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,TEXT,array);
 				}
-				n_dump++;
 			}
+			free(array);
+			array = NULL;
 		}
 			fflush(stdout);
 			
 			pos += len_grib;
 			count++;
-		}
-
-	if (header == dwd && output_type == GRIB) wrtieee_header(0, dump_file);
+	}
     fclose(input);
-    return (return_code);
+	free(fmt);
+    return;
 }

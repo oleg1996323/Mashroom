@@ -345,6 +345,7 @@ int decode(int argc, const char **argv) {
 	}
 
 fail:
+	//
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
 	    if (mode == INVENTORY || mode == DUMP_ALL) break;

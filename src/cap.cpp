@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 
-const char* get_fmt(const OrderItems& order){
+std::string get_fmt(const OrderItems& order){
     std::vector<int OrderItems::*> items{
                                         &OrderItems::day,
                                         &OrderItems::hour,
@@ -45,11 +45,12 @@ void cap(const std::filesystem::path& from,const std::filesystem::path& root,con
             std::cout<<root<<" is not a directory and unable to create directory. Abort."<<std::endl;
             exit(1);
     }
-    const char* hier = get_fmt(order);
+    std::string hier = get_fmt(order);
     for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from)){
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
-            capitalize(entry.path().c_str(),root.c_str(),hier,order.fmt);
+            std::cout<<entry.path()<<std::endl;
+            capitalize(entry.path().c_str(),root.c_str(),hier.c_str(),order.fmt);
         }
     }
 }
