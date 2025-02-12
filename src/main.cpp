@@ -450,8 +450,8 @@ int main(int argc, char* argv[]){
                 }
             }
             else if(strcmp(argv[i],"grib")==0){
-                if(std::get<OrderItems>(var_mode).fmt==GRIB)
-                    std::get<OrderItems>(var_mode).fmt = TEXT;
+                if(std::get<OrderItems>(var_mode).fmt==NONE)
+                    std::get<OrderItems>(var_mode).fmt = GRIB;
                 else{
                     std::cout<<"Already defined file format output at capitalize mode. Abort."<<std::endl;
                     exit(1);

@@ -40,6 +40,114 @@ typedef enum COORD_DEPEND{
 	LON_DEPEND = 1L <<1
 }CoordDepend;
 
+int __write_grib__(unsigned char* msg,
+					long len_grib,
+					const char* root_cap_dir_name,
+					GridData* grid,
+					Date* date,
+					unsigned char* pds,
+					const char* fmt
+					)
+{
+	char cur_path[strlen(root_cap_dir_name)+PATH_MAX];
+	strcpy(cur_path,root_cap_dir_name);
+	char dump_file_name[51];
+	FILE* dump_file = NULL;
+	memset(dump_file_name,0,51);
+	CoordDepend is_lat_lon_dependent = NOT_LL_DEPEND;
+	{
+		u_int8_t fmt_c=0;
+		while(fmt_c<strlen(fmt)){
+			if(fmt[fmt_c]=='C' || fmt[fmt_c]=='L' || fmt[fmt_c]=='O'){
+				fprintf(stdout,"Not allowed capitalize .grib file by lat/lon. Abort.\n");
+				exit(1);
+			}
+			++fmt_c;
+		}
+	}
+		u_int8_t fmt_c=0;
+		while(fmt_c<strlen(fmt)){
+			switch (fmt[fmt_c])
+			{
+			case 'D':{
+				char str[2];
+				memset(&str,0,2);
+				sprintf(str, "%.d", date->day);
+				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+				if(fmt_c<strlen(fmt))
+					change_directory(cur_path);
+				if (fmt_c==strlen(fmt)-1){
+					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,".grib");
+				}
+				break;
+			}
+			case 'M':{
+				char str[2];
+				memset(&str,0,2);
+				sprintf(str, "%.d", date->month);
+				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+				if(fmt_c<strlen(fmt))
+					change_directory(cur_path);
+				if (fmt_c==strlen(fmt)-1){
+					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,".grib");
+				}
+				break;
+			}
+			case 'H':{
+				char str[2];
+				memset(&str,0,2);
+				sprintf(str, "%.d", date->hour);
+				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+				if(fmt_c<strlen(fmt))
+					change_directory(cur_path);
+				if (fmt_c==strlen(fmt)-1){
+					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,".grib");
+				}
+				break;
+			}
+			case 'Y':{
+				char str[4];
+				memset(&str,0,4);
+				sprintf(str, "%.d", date->year);
+				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
+				if(fmt_c<strlen(fmt))
+					change_directory(cur_path);
+				if (fmt_c==strlen(fmt)-1){
+					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,".grib");						
+				}
+				break;
+			}
+			default:
+				fprintf(stderr,"Error reading format");
+				exit(1);
+				break;
+			}
+			++fmt_c;
+		}
+		dump_file = fopen(dump_file_name,"a");
+		if(!dump_file){
+			fprintf(stdout,"Error openning file %s. Abort.\n",dump_file_name);
+			exit(1);
+		}
+		change_directory(root_cap_dir_name);
+		assert(dump_file);
+		getcwd(cur_path,strlen(cur_path));
+		//may be usefull to separate in a unique function for C++ use
+		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
+		wrtieee_header((int) len_grib, dump_file);
+		fwrite((void *) msg, sizeof(char), len_grib, dump_file);
+		if (ferror(dump_file)) {
+			fprintf(stderr,"error writing %s\n",dump_file_name);
+			exit(1);
+		}
+		fclose(dump_file);
+		memset(dump_file_name,0,51);
+}
+
 int __capitalize_write__(GridData* grid,
 						const char* root_cap_dir_name,
 						Date* date,
@@ -401,50 +509,46 @@ fail:
  
         }
 #endif
+		GridData grid_;
+		Date date_;
+		
+		grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
+		grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
+		grid_.dy = 0.001*GDS_LatLon_dy(gds);
+		grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
+		grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
+		grid_.dx = 0.001*GDS_LatLon_dx(gds);
+		grid_.nx = nx;
+		grid_.ny = ny;
+		grid_.nxny = nxny;
+
+		date_.year = PDS_Year4(pds);
+		date_.month = PDS_Month(pds);
+		date_.day  = PDS_Day(pds);
+		date_.hour = PDS_Hour(pds);
 		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	
 			if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
 				fprintf(stderr,"memory problems\n");
 				exit(8);
-			}
-
+			}	
 			temp = int_power(10.0, - PDS_DecimalScale(pds));
-
 			BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
 				temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
-
-			if (output_type != GRIB) {		
-				GridData grid_;
-				grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
-				grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
-				grid_.dy = 0.001*GDS_LatLon_dy(gds);
-				grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
-				grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
-				grid_.dx = 0.001*GDS_LatLon_dx(gds);
-				grid_.nx = nx;
-				grid_.ny = ny;
-				grid_.nxny = nxny;
-
-				Date date_;
-				date_.year = PDS_Year4(pds);
-				date_.month = PDS_Month(pds);
-				date_.day  = PDS_Day(pds);
-				date_.hour = PDS_Hour(pds);
-
-				root_cap_dir_name = root_cap_dir_name;
-
-				/* dump code */
-				if (output_type == BINARY) {
-					__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,BINARY,array);
-				}
-				else if (output_type == TEXT) {
-				/* number of points in grid */
-					__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,TEXT,array);
-				}
+			/* dump code */
+			if (output_type == BINARY) {
+				__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,BINARY,array);
+			}
+			else if (output_type == TEXT) {
+			/* number of points in grid */
+				__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,TEXT,array);
 			}
 			free(array);
 			array = NULL;
+		}
+		else{
+			__write_grib__(msg,len_grib,root_cap_dir_name,&grid_,&date_,pds,fmt);
 		}
 			fflush(stdout);
 			

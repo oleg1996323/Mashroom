@@ -5,7 +5,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
-        "args": ["-p","/home/oster/grib_files/","-j","4","-cap","-hier","y:m","-idir","/home/oster/out_test","-format","bin"],
+        "args": ["-p","/home/oster/grib_files/","-j","4","-cap","-hier","y:m","-idir","/home/oster/out_test","-format","grib"],
         "stopAtEntry": false,
         "cwd": "${cwd}",
         "externalConsole": false,
