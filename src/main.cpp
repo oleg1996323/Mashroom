@@ -486,6 +486,17 @@ int main(int argc, char* argv[]){
         else std::cout<<"No missing files detected"<<std::endl;
     else if(mode==MODE::CAPITALIZE)
         cap(path,indir,std::get<OrderItems>(var_mode));
+    else if(mode==MODE::EXTRACT){
+        std::tm tm = { /* .tm_sec  = */ 0,
+               /* .tm_min  = */ 0,
+               /* .tm_hour = */ 0,
+               /* .tm_mday = */ (9),
+               /* .tm_mon  = */ (12) - 1,
+               /* .tm_year = */ (2001) - 1900,
+             };
+            tm.tm_isdst = -1; // Use DST value from local time zone
+            auto tp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+    }
     else
         std::cout<<"Error parsing args. Abort."<<std::endl;
     // std::filesystem::path path = std::filesystem::current_path();

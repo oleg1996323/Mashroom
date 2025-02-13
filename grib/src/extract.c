@@ -599,16 +599,6 @@ fail:
     return VALUESGRID();
 }
 
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-typedef struct DIRLIST{
-    DIR* current;
-    struct DIRLIST* ex;
-    struct DIRLIST* next;
-}DirList;
-
 void EXTRACT_MOD(const char* path,
                     enum DATA_FORMAT output_type) {
     unsigned char *buffer = NULL;

@@ -1,69 +1,89 @@
 #pragma once
 #include <filesystem>
 #include <string>
+#include <fstream>
+#include <memory>
+#include <ranges>
+#include <regex>
+#include <chrono>
 
-/*
-char* fmt = NULL;
-    {
-        FILE* fmt_f = fopen("format.bin","rb");
-        fseek(fmt_f,0,SEEK_END);
-        unsigned end=ftell(fmt_f);
-        fseek(fmt_f,0,0);
-        if(fmt){
-            fprintf(stderr,"Internal error. Abort.\n");
-            exit(1);
-        }
-        if(fmt = (char*)malloc(end)==NULL){
-            fprintf(stderr,"Memory allocation error. Abort.\n");
-            exit(1);
-        }
-        fread(fmt,sizeof(char),end,fmt_f);
-        fclose(fmt_f);
-    }
-    DirList root;
-    DirList* cwd = &root;
-    cwd->current = opendir(root_cap_dir_name);
-    //here we begin the cycle
-    struct dirent* entry_ptr;
-    struct stat status;
-    for(;;){
-        if(entry_ptr = readdir(cwd->current)==NULL){
-            if(cwd->ex){
-                closedir(cwd->current);
-                cwd = cwd->ex;
-                free(cwd->next);
-            }
-            else return;
-        }
-        else{
-            if(S_ISDIR(status.st_mode)){
-                cwd->next = (DirList*)malloc(sizeof(DirList));
-                cwd->next->ex = cwd;
-                cwd = cwd->next;
-                continue;
-            }
-            else{
-                if(S_ISREG(status.st_mode) && S_H){
+#ifdef __cplusplus
+extern "C"{
+    #include "PDSdate.h"
+    #include "extract.h"
+}
+#endif
 
-                }
-            }
-        }
+bool parse_dir_name_match(const std::filesystem::path& path,char type){
+    if(!std::filesystem::is_directory(path))
+        throw std::runtime_error("Error at extraction");
+}
+
+struct DirList{
+    std::filesystem::directory_iterator cur_dir;
+    std::filesystem::directory_entry cur_iter; 
+    std::unique_ptr<DirList> ex;
+    char type;
+
+    void next(){
         
     }
-    while(entry_ptr = readdir(cwd->current)!=NULL){
+};
 
+void extract_cpp(const std::filesystem::path& root_path,
+                std::chrono::time_point<std::chrono::system_clock> from, 
+                std::chrono::time_point<std::chrono::system_clock> to){
+    std::string fmt;
+    {
+        std::ifstream fmt_f("format.bin",std::ios::binary);
+        fmt_f.seekg(0,std::ios::end);
+        unsigned end=fmt_f.tellg();
+        fmt_f.seekg(0);
+        fmt.resize(end);
+        fmt_f.read(fmt.data(),end);
     }
-
+    using namespace std::chrono;
+    time_t from_t = system_clock::to_time_t(from);
+    time_t to_t = system_clock::to_time_t(to);
+    tm* local_from_t = localtime(&from_t);
+    tm* local_to_t = localtime(&to_t);
+    DirList root;
+    root.cur_dir = std::filesystem::directory_iterator(root_path);
+    DirList* cur_dir = &root;
+    size_t count = 0;
     
-    
-    S_ISDIR(status.st_mode);
-    entry_ptr->d_type == DT_DIR
-	while ((entry_ptr = readdir(cwd->current)) != NULL)
-        puts (entry_ptr->d_name);
-        (void)closedir (dp);
-    return 0;
-*/
+    for(const std::filesystem::directory_entry& entry:cur_dir->cur_dir){
+        if(count<fmt.size()){
+            switch(fmt.at(count)){
+                case 'Y':{
+                    std::regex reg("R(^19[0-9][0-9]|20[0-9][0-9]$)");
+                    std::regex_match(entry.path().string(),reg);
+                    if(std::regex_match(entry.path().string(),reg) &&
+                        local_from_t->tm_year<=std::stoi(entry.path().string()) &&
+                        local_to_t->tm_year>=std::stoi(entry.path().string())){
+                        cur_dir->cur_iter=
+                    }   
+                    break;
+                }
+                case 'M':{
+                    std::regex reg("R(^([1-9]|0[1-9]|1[0-2])$)");
+                    if(std::regex_match(entry.path().string(),reg))
+                        std::stoi(entry.path().string());
+                    break;
+                }
+                case 'D':
 
-void extract_cpp(){
+                case 'H':
 
+                case 'L':
+
+                case 'O':
+
+                case 'C':
+
+                default:
+            }
+            ++count;
+        }
+    }
 }

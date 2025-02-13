@@ -73,7 +73,9 @@
         "future": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "types.h": "c"
+        "types.h": "c",
+        "bitset": "cpp",
+        "regex": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
