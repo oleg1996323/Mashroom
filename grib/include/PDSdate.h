@@ -33,8 +33,7 @@ int day;
 int hour;
 }Date;
 
-#define DATE(...) ((Date){ (.year = -1), (.month = -1), (.day = -1), (.hour = -1), ##__VA_ARGS__ })
-
+#define Date(...) ((Date){ .year = -1, .month = -1, .day = -1, .hour = -1, ##__VA_ARGS__ })
 #define  FEB29   (31+29)
 static int monthjday[13] = {
         0,31,59,90,120,151,181,212,243,273,304,334,365};

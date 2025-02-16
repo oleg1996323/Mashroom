@@ -17,4 +17,4 @@ typedef struct ORDER_ITEMS{
     DataFormat fmt;
 }OrderItems;
 
-#define ORDERITEMS(...) ((OrderItems){.hour=-1,.day=-1,.month=-1,.year=-1,.lat=-1,.lon=-1,.fmt = NONE},##__VA_ARGS__)
+#define OrderItems(...) ((OrderItems){.hour=-1,.day=-1,.month=-1,.year=-1,.lat=-1,.lon=-1,.fmt = NONE},##__VA_ARGS__)

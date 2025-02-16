@@ -599,34 +599,20 @@ fail:
     return VALUESGRID();
 }
 
-void EXTRACT_MOD(const char* path,
-                    enum DATA_FORMAT output_type) {
+float extract_val_by_coord_grib(ExtractDataCoord data,const char* from, ValueByCoord* value,long int count, long unsigned pos){
     unsigned char *buffer = NULL;
-    float *array = NULL;
-    double temp = 0;
-    int i = 0, nx = 0, ny = 0;
+    float value_res = UNDEFINED;
+    int nx = 0, ny = 0;
 	long int len_grib = 0, nxny = 0, buffer_size = 0;
-    long int count = 1;
-    long unsigned pos = 0;
     unsigned char *msg = NULL, *pds = NULL, *gds = NULL, *bms = NULL, *bds = NULL, *pointer = NULL, *end_msg = NULL;
     FILE *input = NULL;
-    long int dump = -1;
 
-    if(output_type==BINARY || output_type==GRIB){
-        if ((input = fopen(path,"rb")) == NULL) {
-            fprintf(stderr,"could not open file: %s\n", path);
-            exit(7);
-        }
-    }
-    else if(output_type==TEXT){
-        if ((input = fopen(path,"r")) == NULL) {
-            fprintf(stderr,"could not open file: %s\n", path);
-            exit(7);
-        }
-    }
-    else{
-        fprintf(stdout,"Unable data format. Abort.\n");
-        exit(1);
+    long int dump = -1;
+	char* fmt = NULL;
+
+	if ((input = fopen(from,"rb")) == NULL) {
+        //fprintf(stderr,"could not open file: %s\n", in);
+        exit(7);
     }
 
     if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
@@ -640,7 +626,7 @@ fail:
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
 		if(len_grib==0)
-            return;
+            return UNDEFINED;
 	    fprintf(stderr,"missing GRIB record(s)\n");
 	    exit(8);
 	}
@@ -670,12 +656,12 @@ fail:
 //    	better check to see if pointers don't go past end_msg
      if (end_msg[0] != 0x37 || end_msg[-1] != 0x37 || end_msg[-2] != 0x37 || end_msg[-3] != 0x37) {
 	    fprintf(stderr,"Skipping illegal grib1 message: error expected ending 7777\n");
-	    pos++;
+	    (pos)++;
 	    goto fail;
 	}
 
 	if (msg + 8 + 27 > end_msg) {
-	    pos++;
+	    (pos)++;
 	    goto fail;
 	}
 
@@ -683,7 +669,7 @@ fail:
         pointer = pds + PDS_LEN(pds);
 
 	if (pointer > end_msg) {
-	    pos++;
+	    (pos)++;
 	    goto fail;
 	}
 
@@ -691,7 +677,7 @@ fail:
 		gds = pointer;
 		pointer += GDS_LEN(gds);
 	if (pointer > end_msg) {
-		pos++;
+		(pos)++;
 		goto fail;
 	}
 	}
@@ -708,7 +694,7 @@ fail:
 	}
 
 	if (pointer+10 > end_msg) {
-	    pos++;
+	    (pos)++;
 	    goto fail;
 	}
 
@@ -753,6 +739,7 @@ fail:
 	    ny = 1;
 	}
 #ifdef CHECK_GRIB
+    int i = 0;
 	if (gds && ! GDS_Harmonic(gds)) {
 	/* this grib check only works for simple packing */
 	/* turn off if harmonic */
@@ -786,35 +773,21 @@ fail:
 		date_.month = PDS_Month(pds);
 		date_.day  = PDS_Day(pds);
 		date_.hour = PDS_Hour(pds);
-		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	
-			if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
-				fprintf(stderr,"memory problems\n");
-				exit(8);
-			}	
-			temp = int_power(10.0, - PDS_DecimalScale(pds));
-			BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
-				temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
-			/* dump code */
-			if (output_type == BINARY) {
-				
-			}
-			else if (output_type == TEXT) {
-			/* number of points in grid */
-				
-			}
-			free(array);
-			array = NULL;
-		}
-		else{
-			
-		}
-			fflush(stdout);
-			
-			pos += len_grib;
-			count++;
+        double temp = int_power(10.0, - PDS_DecimalScale(pds));
+        int y_offset = (grid_.bound.y1 - data.coord.lat_)/grid_.dy;
+        int x_offset = (grid_.bound.x1 - data.coord.lon_)/grid_.dx;
+        value_res = BDS_unpack_val(bds, BMS_bitmap(bms), BDS_NumBits(bds), (int)(x_offset+grid_.nx*y_offset),
+            temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
+        /* dump code */
+        fprintf(stdout,"Point: %d (Time: %d/%d/%d %d:00) Val: %f\n",(int)(x_offset+grid_.nx*y_offset),date_.year, date_.month,date_.day,date_.hour,value_res);
+        fflush(stdout);
+        
+        (pos) += len_grib;
+        (count)++;
 	}
     fclose(input);
-    return;
+	free(fmt);
+    return value_res;
 }

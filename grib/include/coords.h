@@ -9,4 +9,4 @@ typedef struct COORDS_S
     Lon lon_;
 }Coord;
 
-#define Coord(...) ((Coord) { (.Lat = -999), (.Lon = -999)},##__VA_ARGS__)
+#define Coord(...) ((Coord) { .lat_ = -999, .lon_ = -999},##__VA_ARGS__)

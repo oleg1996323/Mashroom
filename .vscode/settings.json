@@ -75,7 +75,15 @@
         "mutex": "cpp",
         "types.h": "c",
         "bitset": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "socket": "cpp",
+        "internet": "cpp",
+        "forward_list": "cpp",
+        "buffer": "cpp",
+        "executor": "cpp",
+        "io_context": "cpp",
+        "netfwd": "cpp",
+        "timer": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

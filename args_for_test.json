@@ -1,0 +1,2 @@
+"args": ["-cap","-p","/home/oster/grib_files/","-j","4","-hier","y:m","-idir","/home/oster/out_test","-format","grib"],
+"-lattop","45","-latbot","40","-lonleft","40","-lonrig","45"

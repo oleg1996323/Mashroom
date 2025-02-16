@@ -70,3 +70,6 @@ void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
 	int n_bits, int n, double ref, double scale);
 
 int BDS_NValues(unsigned char *bds);
+
+float BDS_unpack_val(unsigned char *bds, unsigned char *bitmap,
+	int n_bits, int n, double ref, double scale);
