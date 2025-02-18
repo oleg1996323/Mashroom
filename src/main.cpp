@@ -311,11 +311,11 @@ std::string get_string_mode(MODE mode){
 #include <variant>
 
 enum DATA_OUT{
-    DEFAULT= -1,
-    TXT_F = 0,
-    BIN_F = 1,
-    GRIB_F = 1<<1,
-    ARCHIVED = 1<<2,
+    DEFAULT= 0,
+    TXT_F = 1,
+    BIN_F = 2,
+    GRIB_F = 3<<1,
+    ARCHIVED = 4<<2,
 };
 
 //separation by files
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]){
     Date data_from = Date();
     Date data_to = Date();
     Rect rect = Rect();
-    DataExtractMode mode_extract;
+    DataExtractMode mode_extract = DataExtractMode::UNDEFINED;
     DATA_OUT extract_out_fmt;
     DIV_DATA_OUT extract_div_data;
     Coord coord = Coord();
@@ -448,54 +448,75 @@ int main(int argc, char* argv[]){
                 str = strtok(nullptr,":");
             }
         }
-        else if(strcmp(argv[i],"-coord")==0){
-            if(mode_extract == DataExtractMode::RECT){
-                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
-                exit(1);
-            }
-            else if(mode_extract == DataExtractMode::POSITION){
-                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
-                continue;
-            }
-            ++i;
-            char* str = strtok(argv[i],":");
-            coord.lat_ = std::stod(str);
-            str = strtok(argv[i],":");
-            coord.lon_ = std::stod(str);
-        }
+        // else if(strcmp(argv[i],"-coord")==0){
+        //     if(mode_extract == DataExtractMode::RECT){
+        //         std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+        //         exit(1);
+        //     }
+        //     else if(mode_extract == DataExtractMode::POSITION){
+        //         std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+        //         continue;
+        //     }
+        //     else mode_extract=DataExtractMode::POSITION;
+        //     ++i;
+        //     char* str = strtok(argv[i],":");
+        //     coord.lat_ = std::stod(str);
+        //     str = strtok(argv[i],":");
+        //     coord.lon_ = std::stod(str);
+        // }
         //input integer or float value with '.' separation
         else if(strcmp(argv[i],"-lattop")==0){
             if(mode_extract == DataExtractMode::POSITION){
-                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+                std::cout<<"Conflict between arguments. Already choosen extraction mode by coordinate position. Abort"<<std::endl;
                 exit(1);
             }
+            else if(mode_extract == DataExtractMode::RECT){
+                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+                continue;
+            }
+            else mode_extract = DataExtractMode::RECT;
             ++i;
             rect.y1 = std::stod(argv[i]);
         }
         //input integer or float value with '.' separation
         else if(strcmp(argv[i],"-latbot")==0){
             if(mode_extract == DataExtractMode::POSITION){
-                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+                std::cout<<"Conflict between arguments. Already choosen extraction mode by coordinate position. Abort"<<std::endl;
                 exit(1);
             }
+            else if(mode_extract == DataExtractMode::RECT){
+                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+                continue;
+            }
+            else mode_extract = DataExtractMode::RECT;
             ++i;
             rect.y2 = std::stod(argv[i]);
         }
         //input integer or float value with '.' separation
         else if(strcmp(argv[i],"-lonleft")==0){
             if(mode_extract == DataExtractMode::POSITION){
-                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+                std::cout<<"Conflict between arguments. Already choosen extraction mode by coordinate position. Abort"<<std::endl;
                 exit(1);
             }
+            else if(mode_extract == DataExtractMode::RECT){
+                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+                continue;
+            }
+            else mode_extract = DataExtractMode::RECT;
             ++i;
             rect.x1 = std::stod(argv[i]);
         }
         //input integer or float value with '.' separation
         else if(strcmp(argv[i],"-lonrig")==0){
             if(mode_extract == DataExtractMode::POSITION){
-                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+                std::cout<<"Conflict between arguments. Already choosen extraction mode by coordinate position. Abort"<<std::endl;
                 exit(1);
             }
+            else if(mode_extract == DataExtractMode::RECT){
+                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+                continue;
+            }
+            else mode_extract = DataExtractMode::RECT;
             ++i;
             rect.x2 = std::stod(argv[i]);
         }
@@ -611,25 +632,24 @@ int main(int argc, char* argv[]){
                 exit(1);
             }
         }
-        else if(strcmp(argv[i],"-extfmt")){
+        else if(strcmp(argv[i],"-extfmt")==0){
             ++i;
             if(extract_out_fmt==-1 || extract_out_fmt==ARCHIVED)
-                if(strcmp(argv[i],"zip")){
+                if(strcmp(argv[i],"zip")==0){
                     extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::ARCHIVED);
                     ++i;
                 }
-            if(strcmp(argv[i],"txt") && (extract_out_fmt==DEFAULT || extract_out_fmt==ARCHIVED))
+            if(strcmp(argv[i],"txt")==0 && (extract_out_fmt==DEFAULT || extract_out_fmt==ARCHIVED))
                 extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::TXT_F);
-            else if(strcmp(argv[i],"bin"))
+            else if(strcmp(argv[i],"bin")==0)
                 extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::BIN_F);
-            else if(strcmp(argv[i],"grib"))
+            else if(strcmp(argv[i],"grib")==0)
                 extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::GRIB_F);
             else{
                 std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
                 exit(1);
             }
-            ++i;
-            if(strcmp(argv[i],"zip")){
+            if(strcmp(argv[i],"zip")==0){
                 if((!(extract_out_fmt&DEFAULT) && !(extract_out_fmt&ARCHIVED))){
                     extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::ARCHIVED);
                     ++i;
@@ -639,12 +659,9 @@ int main(int argc, char* argv[]){
                     exit(1);
                 }
             }
-            else{
-                std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
-                exit(1);
-            }
+            continue;
         }
-        else if(strcmp(argv[i],"-divby")){
+        else if(strcmp(argv[i],"-divby")==0){
             ++i;
             if(strcmp(argv[i],"h")==0)
                 extract_div_data = DIV_DATA_OUT::HOUR_T;
@@ -664,6 +681,31 @@ int main(int argc, char* argv[]){
                 std::cout<<"Unknown token for capitalize mode hierarchy. Abort"<<std::endl;
                 exit(1);
             }
+        }
+        else if(strcmp(argv[i],"-pos")==0){
+            ++i;
+            char* arg = argv[i];
+            char* tokens;
+            size_t pos = 0;
+            if(mode_extract == DataExtractMode::RECT){
+                std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
+                exit(1);
+            }
+            else if(mode_extract == DataExtractMode::POSITION){
+                std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
+                continue;
+            }
+            else mode_extract=DataExtractMode::POSITION;
+            try{
+                coord.lat_ = std::stof(std::string(strtok_r(arg,":",&tokens)),&pos);
+                if(pos!=std::strlen(arg))
+                    throw std::invalid_argument("Invalid lat value argument");
+                coord.lon_ = std::stof(std::string(strtok_r(arg,":",&tokens)));
+                if(pos!=std::strlen(arg))
+                    throw std::invalid_argument("Invalid lon value argument");
+            }
+            catch(const std::invalid_argument& err){std::cout<<err.what()<<std::endl; exit(1);}
+            catch(const std::out_of_range){std::cout<<"Error at position definition"<<std::endl;exit(1);}
         }
         else{
             std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
@@ -700,9 +742,9 @@ int main(int argc, char* argv[]){
         cap(path,out,order);
     else if(mode==MODE::EXTRACT){
         if(mode_extract==DataExtractMode::POSITION)
-            extract_cpp<false,false>(path,data_from,data_to,GRIB);
+            extract_cpp_pos<false,false>(path,out,data_from,data_to,coord,GRIB);
         else if(mode_extract==DataExtractMode::RECT)
-            extract_cpp<true,false>(path,data_from,data_to,GRIB);
+            extract_cpp_rect<true,false>(path,data_from,data_to,rect,GRIB);
         else {
             std::cout<<"Undefined extraction data mode. Abort."<<std::endl;
         }

@@ -83,7 +83,9 @@
         "executor": "cpp",
         "io_context": "cpp",
         "netfwd": "cpp",
-        "timer": "cpp"
+        "timer": "cpp",
+        "filesystem": "cpp",
+        "cassert": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

@@ -40,5 +40,4 @@ typedef struct{
 #define VALUESGRID(...) ((ValuesGrid) { .nx = -1, .ny = -1, .values = NULL, ##__VA_ARGS__ })
 
 extern GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long int* count, long unsigned* pos);
-extern float extract_val_by_coord_grib(ExtractDataCoord data,const char* from, ValueByCoord* value,long int count, long unsigned pos);
 extern ValuesGrid extract_ptr(ExtractData* data, const char* from, long int* count, long unsigned* pos);

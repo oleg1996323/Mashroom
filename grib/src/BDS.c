@@ -132,65 +132,63 @@ float BDS_unpack_val(unsigned char *bds, unsigned char *bitmap,
 		fprintf(stderr,"*** Cannot decode complex packed fields n=%d***\n", n);
 		exit(8);
 		return flt;
-    }
+	}
 
-    if (BDS_Harmonic(bds)) {
-        bits = bds + 15;
-        n -= 1; 
-    }
-    else {
-        bits = bds + 11;  
-    }
+	if (BDS_Harmonic(bds)) {
+		bits = bds + 15;
+		/* fill in global mean */
+		flt = BDS_Harmonic_RefValue(bds);
+		n -= 1; 
+	}
+	else {
+		bits = bds + 11;  
+	}
 
-    tbits = bbits = 0;
+	tbits = bbits = 0;
 
-    /* assume integer has 32+ bits */
-    if (n_bits <= 25) {
-        jmask = (1 << n_bits) - 1;
-        t_bits = 0;
+	/* assume integer has 32+ bits */
+	if (n_bits <= 25) {
+		jmask = (1 << n_bits) - 1;
+		t_bits = 0;
 
-        if (bitmap) {
-			for (i = 0; i < n; i++) {
-				/* check bitmap */
-				mask_idx = i & 7;
-				if (mask_idx == 0) bbits = *bitmap++;
-					if ((bbits & map_masks[mask_idx]) == 0) {
-						continue;
-					}
+		if (bitmap) {
 
-					while (t_bits < n_bits) {
-						tbits = (tbits * 256) + *bits++;
-						t_bits += 8;
-					}
-					t_bits -= n_bits;
-					j = (tbits >> t_bits) & jmask;
-					if(i==n-1){
-						flt = ref + scale*j;
-						return flt;
-					}
+		/* check bitmap */
+		bitmap+=n-1;
+	/* check bitmap */
+			mask_idx = n & 7;
+			if (mask_idx == 0) bbits = *bitmap;
+			if ((bbits & map_masks[mask_idx]) == 0) {
+				return UNDEFINED;
 			}
-        }
-        else {
-			for (i = 0; i < n; i++) {
-				if (n_bits - t_bits > 8) {
-							tbits = (tbits << 16) | (bits[0] << 8) | (bits[1]);
-					bits += 2;
-							t_bits += 16;
-				}
-				while (t_bits < n_bits) {
-					tbits = (tbits * 256) + *bits++;
-					t_bits += 8;
-				}
-				t_bits -= n_bits;
-				if(i==n-1){
-					flt = (tbits >> t_bits) & jmask;
-					return flt;
-				}
+
+			while (t_bits < n_bits) {
+				tbits = (tbits * 256) + *bits++;
+				t_bits += 8;
 			}
+			t_bits -= n_bits;
+			j = (tbits >> t_bits) & jmask;
+			return ref + scale*j;
 			
-        }
+		}
+		else {
+			bits += 2*(n-1);
+			if (n_bits - t_bits > 8) {
+				tbits = (tbits << 16) | (bits[0] << 8) | (bits[1]);
+				bits += 2;
+				t_bits += 16;
+			}
+			while (t_bits < n_bits) {
+				tbits = (tbits * 256) + *bits++;
+				t_bits += 8;
+			}
+			t_bits -= n_bits;
+			flt = (tbits >> t_bits) & jmask;
+			return ref + scale*flt;
+		/* at least this vectorizes :) */
+		}
 		return flt;
-    }
+	}
     // else {
 	// /* older unoptimized code, not often used */
     //     c_bits = 8;

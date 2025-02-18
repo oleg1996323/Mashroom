@@ -5,7 +5,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
-        "args": ["-ext","-p","/home/oster/out_test","-dfrom","h12:d15:m1:y1991","-dto","h13:d15:m1:y1991","-pos","40.000:45.000","-send","dir:/home/oster/extracted","-format","grib"],
+        "args": ["-ext","-p","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m12:y2020","-pos","40.000:45.000","-send","dir:/home/oster/extracted_after_ch_BDS","-format","grib"],
         "stopAtEntry": false,
         "cwd": "${cwd}",
         "externalConsole": false,
@@ -32,3 +32,5 @@
     }
     ]
 }
+
+//"h0:d1:m1:y1992","-dto","h23:d31:m12:y2020"

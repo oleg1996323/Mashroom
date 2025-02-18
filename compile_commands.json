@@ -141,6 +141,11 @@
 },
 {
   "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/extract_cpp.cpp.o -c /home/oster/Mashroom/src/extract_cpp.cpp",
+  "file": "/home/oster/Mashroom/src/extract_cpp.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
   "file": "/home/oster/Mashroom/src/functions.cpp"
 },
