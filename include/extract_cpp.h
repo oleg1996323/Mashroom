@@ -17,14 +17,6 @@ extern "C"{
 
 namespace cpp{
 
-struct ReturnVal{
-    Date time;
-    float val;
-    const char* tag;
-};
-
-ReturnVal* extract_val_by_coord_grib(Date dfrom, Date dto,Coord coord,const std::filesystem::path& ffrom,const std::filesystem::path& fto,long int count, long unsigned pos);
-
 template<bool RECTDATA,bool HOUR>
 struct mapping_vals;
 
