@@ -7,11 +7,14 @@
 #include <regex>
 #include <chrono>
 #include <cassert>
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C"{
     #include "PDSdate.h"
     #include "coords.h"
+    #include "extract.h"
+    #include "def.h"
 }
 #endif
 
@@ -55,7 +58,54 @@ struct mapping_vals<true,false>{
     int day_=-1;
 };
 
-template<bool RECTDATA,bool HOUR>
+using namespace std::chrono;
+
+bool operator<(const StampVal& lhs,const StampVal& rhs){
+    if(lhs.time.year==-1?0:lhs.time.year<rhs.time.year==-1?0:rhs.time.year)
+        return true;
+    else if(lhs.time.year==-1?0:lhs.time.year>rhs.time.year==-1?0:rhs.time.year)
+        return true;
+    
+    if(lhs.time.month==-1?0:lhs.time.month<rhs.time.month==-1?0:rhs.time.month)
+        return true;
+    else if(lhs.time.month==-1?0:lhs.time.month>rhs.time.month==-1?0:rhs.time.month)
+        return false;
+
+    if(lhs.time.day==-1?0:lhs.time.day<rhs.time.day==-1?0:rhs.time.day)
+        return true;
+    else if(lhs.time.day==-1?0:lhs.time.day>rhs.time.day==-1?0:rhs.time.day)
+        return false;
+
+    if(lhs.time.hour==-1?0:lhs.time.hour<rhs.time.hour==-1?0:rhs.time.hour)
+        return true;
+    else if(lhs.time.hour==-1?0:lhs.time.hour>rhs.time.hour==-1?0:rhs.time.hour)
+        return false;
+    return false;
+}
+
+bool operator<(const Date& lhs,const Date& rhs){
+    if(lhs.year==-1?0:lhs.year<rhs.year==-1?0:rhs.year)
+        return true;
+    else if(lhs.year==-1?0:lhs.year>rhs.year==-1?0:rhs.year)
+        return true;
+    
+    if(lhs.month==-1?0:lhs.month<rhs.month==-1?0:rhs.month)
+        return true;
+    else if(lhs.month==-1?0:lhs.month>rhs.month==-1?0:rhs.month)
+        return false;
+
+    if(lhs.day==-1?0:lhs.day<rhs.day==-1?0:rhs.day)
+        return true;
+    else if(lhs.day==-1?0:lhs.day>rhs.day==-1?0:rhs.day)
+        return false;
+
+    if(lhs.hour==-1?0:lhs.hour<rhs.hour==-1?0:rhs.hour)
+        return true;
+    else if(lhs.hour==-1?0:lhs.hour>rhs.hour==-1?0:rhs.hour)
+        return false;
+    return false;
+}
+
 void extract_cpp_pos(const std::filesystem::path& root_path,
                 const std::filesystem::path& destination,
                 Date from, 
@@ -123,9 +173,9 @@ void extract_cpp_pos(const std::filesystem::path& root_path,
         std::cout<<str_reg<<std::endl;
         reg = str_reg;
     }
-    using namespace std::chrono;
+
     time_point<system_clock> beg = system_clock::now();
-    mapping_vals<RECTDATA,HOUR> map_vals;
+    std::map<Date,std::map<std::string,StampVal*>> tags;
     {
         for(const std::filesystem::directory_entry& entry:std::filesystem::recursive_directory_iterator(root_path)){
             std::smatch m;
@@ -136,24 +186,27 @@ void extract_cpp_pos(const std::filesystem::path& root_path,
                 continue;
             }
             else{
-                ValueByCoord val;
+                int year;
+                int month;
+                int day = 0;
+                int hour = 0;
                 if(fmt_pos.contains('Y')){
                     std::ssub_match year_m = m[fmt_pos.at('Y')];
-                    int year = std::stoi(year_m);
+                    year = std::stoi(year_m);
                     if(from.year>year ||
                         to.year<year)
                         continue;
                 }
                 if(fmt_pos.contains('M')){
                     std::ssub_match month_m = m[fmt_pos.at('M')];
-                    int month = std::stoi(month_m);
+                    month = std::stoi(month_m);
                     if(from.month>month ||
                         to.month<month)
                         continue;
                 }
                 if(fmt_pos.contains('D')){
                     std::ssub_match day_m = m[fmt_pos.at('D')];
-                    int day = std::stoi(day_m);
+                    day = std::stoi(day_m);
                     if(from.day>day ||
                         to.day<day)
                         continue;
@@ -177,12 +230,39 @@ void extract_cpp_pos(const std::filesystem::path& root_path,
                 // if(!output.is_open()){
                 //     std::cout<<root_path/(m[m.size()-1].str()+".txt")<<" not openned. Abort."<<std::endl;
                 // }
-                
-                auto result = extract_val_by_coord_grib(from,to,coord,entry.path().c_str(),(destination/(m[m.size()-1].str()+".txt")).c_str(),&val,0,0);
+                std::ofstream out((destination/(m[m.size()-1].str()+".txt")).c_str(),std::ios::trunc);
+                TaggedValues result = extract_val_by_coord_grib(from,to,coord,entry.path().c_str(),0,0);
+                for(int i=0;i<result.sz;++i)
+                    tags[{year,month,day}][result.vals[i].tag]=result.vals[i].values;
                 //output<<result.time.day<<"/"<<result.time.month<<"/"<<result.time.year<<" "<<result.time.hour<<":"<<result.val<<std::endl;
             }
         }
         std::cout<<"Duration: "<<duration_cast<seconds>(system_clock::now()-beg)<<std::endl;
+        if(!std::filesystem::create_directory(root_path/"out")){
+            std::cout<<"Cannot create directory \"out\". Abort."<<std::endl;
+            exit(1);
+        }
+
+        for(auto& [fdate_,tag]:tags){
+            std::filesystem::path cur_path = root_path/(std::to_string(fdate_.year)+"_"+std::to_string(fdate_.month)+"_"+std::to_string(fdate_.day)+".txt");
+            std::ofstream out(cur_path,std::ios::trunc);
+            if(!out.is_open()){
+                std::cout<<"Cannot open file \""<<cur_path<<"\". Abort."<<std::endl;
+                exit(1);
+            }
+            out<<"Time\t";
+            for(auto& [tag,values]:tag){
+                out<<tag<<"\t";
+            }
+            out<<std::endl;
+        }
+
+        //add checking by tags size. 
+        for(auto& [fdate_,tag]:tags){
+            std::filesystem::path cur_path = root_path/(std::to_string(fdate_.year)+"_"+std::to_string(fdate_.month)+"_"+std::to_string(fdate_.day)+".txt");
+            std::ofstream out(cur_path,std::ios::trunc);
+            out
+        }
     }
 }
 

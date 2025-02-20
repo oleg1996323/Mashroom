@@ -742,9 +742,9 @@ int main(int argc, char* argv[]){
         cap(path,out,order);
     else if(mode==MODE::EXTRACT){
         if(mode_extract==DataExtractMode::POSITION)
-            extract_cpp_pos<false,false>(path,out,data_from,data_to,coord,GRIB);
+            cpp::extract_cpp_pos<false,false>(path,out,data_from,data_to,coord,GRIB);
         else if(mode_extract==DataExtractMode::RECT)
-            extract_cpp_rect<true,false>(path,data_from,data_to,rect,GRIB);
+            cpp::extract_cpp_rect<true,false>(path,data_from,data_to,rect,GRIB);
         else {
             std::cout<<"Undefined extraction data mode. Abort."<<std::endl;
         }

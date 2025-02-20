@@ -46,11 +46,12 @@ typedef struct STAMP_VAL{
 
 typedef struct TAGGED_VAL{
     size_t sz;
+    size_t capacity;
     const char* tag;
     StampVal* values;
 }TaggedVal;
 
-#define TaggedVal(...) (TaggedVal){.sz=0,.tag=NULL,.values=NULL,## __VA_ARGS__}
+#define TaggedVal(...) (TaggedVal){.sz=0,.capacity=0,.tag=NULL,.values=NULL,## __VA_ARGS__}
 
 typedef struct TAGGED_VALUES{
     size_t sz;

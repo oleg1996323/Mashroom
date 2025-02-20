@@ -608,6 +608,94 @@ TaggedVal* find_tagged_val_by_tag(TaggedValues* tagged_vals, const char* tag){
     return NULL;
 }
 
+#include <assert.h>
+
+StampVal* push_back_empty_val_to_tag(TaggedVal* tag_val){
+    assert(tag_val);
+    assert(tag_val->tag);
+    if(tag_val->values==NULL){
+        if((tag_val->values=(StampVal*)malloc(1))==NULL){
+            fprintf(stderr,"Not enough memory. Abort.\n");
+            exit(1);    
+        }
+        tag_val->capacity = 1;
+        tag_val->values[0]=StampVal();
+    }
+    else if(tag_val->sz==tag_val->capacity){
+        StampVal* tmp_ptr = (StampVal*)realloc(tag_val->values,tag_val->sz*2);
+        if(tmp_ptr==NULL){
+            if((tmp_ptr = (StampVal*)malloc(tag_val->sz*2))==NULL){
+                fprintf(stderr,"Not enough memory. Abort.\n");
+                exit(1);
+            }
+            memcpy(tmp_ptr,tag_val->values,tag_val->sz);
+            free(tag_val->values);
+            tag_val->values = tmp_ptr;
+        }
+        tag_val->capacity = tag_val->sz*2;
+    }
+    tag_val->values[tag_val->sz] = StampVal();
+    return &tag_val->values[tag_val->sz++];
+}
+
+void delete_values(TaggedValues* values){
+    if(values && values->vals)
+        free(values->vals);
+}
+
+TaggedVal* push_back_empty_tagged_val(TaggedValues* values){
+    assert(values);
+    if(values->vals==NULL){
+        if((values->vals=(TaggedVal*)malloc(1))==NULL){
+            fprintf(stderr,"Not enough memory. Abort.\n");
+            exit(1);    
+        }
+        values->capacity = 1;
+        values->vals[0]=TaggedVal();
+    }
+    else if(values->sz==values->capacity){
+        TaggedVal* tmp_ptr = (TaggedVal*)realloc(values->vals,values->sz*2);
+        if(tmp_ptr==NULL){
+            if((tmp_ptr = (TaggedVal*)malloc(values->sz*2))==NULL){
+                fprintf(stderr,"Not enough memory. Abort.\n");
+                exit(1);
+            }
+            memcpy(tmp_ptr,values->vals,values->sz);
+            free(values->vals);
+            values->vals = tmp_ptr;
+        }
+        values->capacity = values->sz*2;
+    }
+    values->vals[values->sz] = TaggedVal();
+    return &values->vals[values->sz++];
+}
+
+void delete_tagged_val(TaggedVal* tag_val){
+    if(tag_val && tag_val->values)
+        free(tag_val->values);
+}
+
+StampVal* append_stamped_val(TaggedValues* values, const char* tag, float val, Date* date, Coord* coord){
+    assert(values);
+    TaggedVal* tag_vals = find_tagged_val_by_tag(values,tag);
+    StampVal* stamp_val = NULL;
+    if(!tag_vals){
+        tag_vals = push_back_empty_tagged_val(values);
+        tag_vals->tag = tag;
+    }
+    stamp_val = push_back_empty_val_to_tag(tag_vals);
+    if(!stamp_val){
+        fprintf(stdout,"Error at adding stamped value. Abort.");
+        exit(1);
+    }
+    stamp_val->val = val;
+    if(date)
+        stamp_val->time = *date;
+    if(coord)
+        stamp_val->coord = *coord;
+    return &tag_vals->values[tag_vals->sz++];
+}
+
 TaggedValues extract_val_by_coord_grib(Date dfrom, Date dto,Coord coord,const char* ffrom,long int count, long unsigned pos){
     unsigned char *buffer = NULL;
     //float value_res = UNDEFINED;
@@ -806,55 +894,23 @@ fail:
             continue;
         }
 
-        if(values.vals==NULL){
-            if((values.vals=(TaggedVal*)malloc(1))==NULL){
-                fprintf(stderr,"Not enough memory. Abort.\n");
-		        exit(1);    
-            }
-            values.capacity = 1;
-            values.sz = 0;
-        }
-        else{
-            TaggedVal* tmp_ptr = (TaggedVal*)realloc(values.vals,values.sz*2);
-            if(tmp_ptr==NULL){
-                if((tmp_ptr = (TaggedVal*)malloc(values.sz*2))==NULL){
-                    fprintf(stderr,"Not enough memory. Abort.\n");
-		            exit(1);
-                }
-                memcpy(tmp_ptr,values.vals,values.sz);
-                free(values.vals);
-                values.vals = tmp_ptr;
-            }
-            values.capacity = values.sz*2;
-        }
-			/* decode numeric data */
+        /* decode numeric data */
 	
         double temp = int_power(10.0, - PDS_DecimalScale(pds));
         int y_offset = (coord.lat_-grid_.bound.y2)/grid_.dy;
         int x_offset = (coord.lon_-grid_.bound.x1)/grid_.dx;
-
-        //TODO: this section
-        TaggedVal* current_tagged_val = find_tagged_val_by_tag(&values,k5toa(pds));
-        if(current_tagged_val==NULL){
-            current_tagged_val->tag = k5toa(pds);
-            current_tagged_val->sz = 0;
-            current_tagged_val->values = malloc();
-            ++values.sz;
-        }
-
-
-        result_date.val = BDS_unpack_val(bds, BMS_bitmap(bms), BDS_NumBits(bds), (int)(x_offset+grid_.nx*y_offset),
+        
+        float tmp_val;
+        tmp_val = BDS_unpack_val(bds, BMS_bitmap(bms), BDS_NumBits(bds), (int)(x_offset+grid_.nx*y_offset),
             temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
+
+        StampVal* current_val = append_stamped_val(&values,k5toa(pds),tmp_val,&tmp_date,&coord);
         /* dump code */
-        fprintf(output,"Series: %s Point: %d (Time: %d/%d/%d %d:00) Val: %f\n",k5toa(pds),(int)(x_offset+grid_.nx*y_offset),
-                                result_date.time.year, result_date.time.month,result_date.time.day,result_date.time.hour,result_date.val);
-        fflush(output);
         
         (pos) += len_grib;
         (count)++;
 	}
     fclose(input);
-    fclose(output);
 	free(fmt);
-    return UNDEFINED;
+    return values;
 }
