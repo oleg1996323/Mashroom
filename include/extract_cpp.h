@@ -84,7 +84,7 @@ bool operator<(const StampVal& lhs,const StampVal& rhs){
 }
 
 bool operator<(const Date& lhs,const Date& rhs){
-    if(lhs.year==-1?0:lhs.year<rhs.year==-1?0:rhs.year)
+    /*if(lhs.year==-1?0:lhs.year<rhs.year==-1?0:rhs.year)
         return true;
     else if(lhs.year==-1?0:lhs.year>rhs.year==-1?0:rhs.year)
         return true;
@@ -103,7 +103,12 @@ bool operator<(const Date& lhs,const Date& rhs){
         return true;
     else if(lhs.hour==-1?0:lhs.hour>rhs.hour==-1?0:rhs.hour)
         return false;
-    return false;
+    return false;*/
+
+    if (lhs.year != rhs.year) return lhs.year < rhs.year;
+    if (lhs.month != rhs.month) return lhs.month < rhs.month;
+    if (lhs.day != rhs.day) return lhs.day < rhs.day;
+    return lhs.hour < rhs.hour;
 }
 
 void extract_cpp_pos(const std::filesystem::path& root_path,
@@ -233,11 +238,11 @@ void extract_cpp_pos(const std::filesystem::path& root_path,
                 std::ofstream out((destination/(m[m.size()-1].str()+".txt")).c_str(),std::ios::trunc);
                 TaggedValues result = extract_val_by_coord_grib(from,to,coord,entry.path().c_str(),0,0);
                 for(int i=0;i<result.sz;++i)
-                    tags[{year,month,day}][result.vals[i].tag]=result.vals[i].values;
+                    tags[{year,month,day,0}][result.vals[i].tag]=result.vals[i].values;
                 //output<<result.time.day<<"/"<<result.time.month<<"/"<<result.time.year<<" "<<result.time.hour<<":"<<result.val<<std::endl;
             }
         }
-        std::cout<<"Duration: "<<duration_cast<seconds>(system_clock::now()-beg)<<std::endl;
+        //std::cout<<"Duration: "<<duration_cast<seconds>(system_clock::now()-beg)<<std::endl;
         if(!std::filesystem::create_directory(root_path/"out")){
             std::cout<<"Cannot create directory \"out\". Abort."<<std::endl;
             exit(1);
@@ -261,7 +266,7 @@ void extract_cpp_pos(const std::filesystem::path& root_path,
         for(auto& [fdate_,tag]:tags){
             std::filesystem::path cur_path = root_path/(std::to_string(fdate_.year)+"_"+std::to_string(fdate_.month)+"_"+std::to_string(fdate_.day)+".txt");
             std::ofstream out(cur_path,std::ios::trunc);
-            out
+            
         }
     }
 }
@@ -334,7 +339,6 @@ void extract_cpp_rect(const std::filesystem::path& root_path,
         reg = str_reg;
     }
     using namespace std::chrono;
-    mapping_vals<RECTDATA,HOUR> map_vals;
     for(const std::filesystem::directory_entry& entry:std::filesystem::recursive_directory_iterator(root_path)){
         std::smatch m;
         const std::string& p = entry.path().string();
