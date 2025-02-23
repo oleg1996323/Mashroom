@@ -220,7 +220,7 @@ template<typename COL_T, typename T>
 //requires std::is_default_constructible_v<COL_T> && std::is_fundamental_v<std::decay_t<T>>
 COL_T get_color_grad(T&& value, std::vector<ColorAtValue<COL_T>> color_grad){
     if(color_grad.size()>1){
-        typename std::vector<ColorAtValue<COL_T>>::const_iterator lesser = std::find_if(color_grad.begin(),color_grad.end(),[&value](const ColorAtValue<COL_T>& col_val){
+        typename std::vector<ColorAtValue<COL_T>>::const_iterator lesser = std::ranges::find_if(color_grad.begin(),color_grad.end(),[&value](const ColorAtValue<COL_T>& col_val){
             return col_val.value>=value;
         });
         if(lesser==color_grad.end()){

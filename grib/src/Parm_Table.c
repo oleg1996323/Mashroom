@@ -105,7 +105,6 @@ static const struct ParmTable *Parm_Table(unsigned char *pds) {
 }
 
 char *k5toa(unsigned char *pds) {
-
     return (Parm_Table(pds) + PDS_PARAM(pds))->name;
 }
 

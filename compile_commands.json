@@ -126,42 +126,42 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/cap.cpp.o -c /home/oster/Mashroom/src/cap.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/cap.cpp.o -c /home/oster/Mashroom/src/cap.cpp",
   "file": "/home/oster/Mashroom/src/cap.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/color.cpp.o -c /home/oster/Mashroom/src/color.cpp",
   "file": "/home/oster/Mashroom/src/color.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/color_conc.cpp.o -c /home/oster/Mashroom/src/color_conc.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/color_conc.cpp.o -c /home/oster/Mashroom/src/color_conc.cpp",
   "file": "/home/oster/Mashroom/src/color_conc.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/extract_cpp.cpp.o -c /home/oster/Mashroom/src/extract_cpp.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/extract_cpp.cpp.o -c /home/oster/Mashroom/src/extract_cpp.cpp",
   "file": "/home/oster/Mashroom/src/extract_cpp.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
   "file": "/home/oster/Mashroom/src/functions.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
   "file": "/home/oster/Mashroom/src/main.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/png_out.cpp.o -c /home/oster/Mashroom/src/png_out.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/png_out.cpp.o -c /home/oster/Mashroom/src/png_out.cpp",
   "file": "/home/oster/Mashroom/src/png_out.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/size.cpp.o -c /home/oster/Mashroom/src/size.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++  -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lasan -static-libgcc -static-libstdc++ -g -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/size.cpp.o -c /home/oster/Mashroom/src/size.cpp",
   "file": "/home/oster/Mashroom/src/size.cpp"
 }
 ]

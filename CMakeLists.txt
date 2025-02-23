@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
 project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX C)
-set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 23)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{HOME}/gcc/gcc-install/lib64")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+#add_compile_options(-fsanitize=address)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lasan -static-libgcc -static-libstdc++")
 
 file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib/src/*.c)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp)

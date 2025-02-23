@@ -65,6 +65,8 @@ typedef struct TAGGED_VALUES{
 #define VALUESGRID(...) ((ValuesGrid) { .nx = -1, .ny = -1, .values = NULL, ##__VA_ARGS__ })
 
 TaggedVal* find_tagged_val_by_tag(TaggedValues* tagged_vals, const char* tag);
+extern void delete_values(TaggedValues tag_vals);
+extern void delete_values_by_ptr(TaggedValues* tag_vals);
 
 extern GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long int* count, long unsigned* pos);
 extern TaggedValues extract_val_by_coord_grib(Date dfrom, Date dto,Coord coord,const char* ffrom,long int count, long unsigned pos);

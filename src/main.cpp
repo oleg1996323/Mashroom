@@ -38,7 +38,6 @@ extern "C"{
 #include <experimental/io_context>
 #include <experimental/socket>
 #include <experimental/timer>
-#include <netinet/tcp.h>
 #include <filesystem>
 #include <fstream>
 
@@ -742,7 +741,7 @@ int main(int argc, char* argv[]){
         cap(path,out,order);
     else if(mode==MODE::EXTRACT){
         if(mode_extract==DataExtractMode::POSITION)
-            cpp::extract_cpp_pos<false,false>(path,out,data_from,data_to,coord,GRIB);
+            cpp::extract_cpp_pos(path,out,data_from,data_to,coord,GRIB);
         else if(mode_extract==DataExtractMode::RECT)
             cpp::extract_cpp_rect<true,false>(path,data_from,data_to,rect,GRIB);
         else {
