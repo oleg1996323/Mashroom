@@ -14,7 +14,7 @@
         "environment": [
             {
                 "name": "LD_LIBRARY_PATH",
-                "value": "/home/oster/gcc/gcc-install/lib64"
+                "value": "$LD_LIBRARY_PATH"
             }
         ],
         "setupCommands": [

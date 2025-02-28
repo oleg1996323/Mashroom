@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 23)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{HOME}/gcc/gcc-install/lib64")
-#add_compile_options(-fsanitize=address)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
+add_compile_options(-fsanitize=address)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lasan -static-libgcc -static-libstdc++")
 
 file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib/src/*.c)

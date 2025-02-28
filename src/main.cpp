@@ -336,6 +336,11 @@ enum class DataExtractMode{
 
 int main(int argc, char* argv[]){
     std::cout << "Command-line arguments:" << std::endl;
+    if(argc<2){
+        std::cout<<"Invalid args. Abort."<<std::endl;
+        exit(1);
+    }
+
     for (int i = 0; i < argc; ++i) {
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
     }
