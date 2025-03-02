@@ -27,11 +27,20 @@ extern int minute;
 int PDS_date(unsigned char *pds, int option, int v_time);
 
 typedef struct DATE_S{
-int year;
-int month;
-int day;
-int hour;
+    int year;
+    int month;
+    int day;
+    int hour;
 }Date;
+
+// Функция для проверки високосного года
+extern int is_leap_year(int year);
+    
+// Функция для получения количества дней в месяце
+extern int days_in_month(int year, int month);
+
+// Функция для получения времени в секундах с начала эпохи
+extern long long get_epoch_time(const Date* date);
 
 #define Date(...) ((Date){ .year = -1, .month = -1, .day = -1, .hour = -1, ##__VA_ARGS__ })
 #define  FEB29   (31+29)

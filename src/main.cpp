@@ -309,24 +309,7 @@ std::string get_string_mode(MODE mode){
 
 #include <variant>
 
-enum DATA_OUT{
-    DEFAULT= 0,
-    TXT_F = 1,
-    BIN_F = 2,
-    GRIB_F = 3<<1,
-    ARCHIVED = 4<<2,
-};
 
-//separation by files
-enum DIV_DATA_OUT{
-    ALL_IN_ONE = 0, //all in one file with data inline
-    YEAR_T = 1<<0,
-    MONTH_T = 1<<2,
-    DAY_T = 1<<3,
-    HOUR_T = 1<<4,
-    LAT = 1<<5,
-    LON = 1<<6
-};
 
 enum class DataExtractMode{
     UNDEFINED,
@@ -354,8 +337,8 @@ int main(int argc, char* argv[]){
     Date data_to = Date();
     Rect rect = Rect();
     DataExtractMode mode_extract = DataExtractMode::UNDEFINED;
-    DATA_OUT extract_out_fmt;
-    DIV_DATA_OUT extract_div_data;
+    cpp::DATA_OUT extract_out_fmt;
+    cpp::DIV_DATA_OUT extract_div_data;
     Coord coord = Coord();
     if(strcmp(argv[1],"-ext")==0){
         if(MODE::NONE==mode || MODE::EXTRACT==mode)
@@ -638,24 +621,30 @@ int main(int argc, char* argv[]){
         }
         else if(strcmp(argv[i],"-extfmt")==0){
             ++i;
-            if(extract_out_fmt==-1 || extract_out_fmt==ARCHIVED)
+            if(extract_out_fmt==-1 || extract_out_fmt==cpp::DATA_OUT::ARCHIVED)
                 if(strcmp(argv[i],"zip")==0){
-                    extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::ARCHIVED);
+                    extract_out_fmt=(cpp::DATA_OUT)(extract_out_fmt&cpp::DATA_OUT::ARCHIVED);
                     ++i;
                 }
-            if(strcmp(argv[i],"txt")==0 && (extract_out_fmt==DEFAULT || extract_out_fmt==ARCHIVED))
-                extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::TXT_F);
-            else if(strcmp(argv[i],"bin")==0)
-                extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::BIN_F);
-            else if(strcmp(argv[i],"grib")==0)
-                extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::GRIB_F);
+            if(strcmp(argv[i],"txt")==0 && (extract_out_fmt==cpp::DATA_OUT::DEFAULT || extract_out_fmt==cpp::DATA_OUT::ARCHIVED)){
+                extract_out_fmt=(cpp::DATA_OUT)(extract_out_fmt|cpp::DATA_OUT::TXT_F);
+                ++i;
+            }
+            else if(strcmp(argv[i],"bin")==0){
+                extract_out_fmt=(cpp::DATA_OUT)(extract_out_fmt|cpp::DATA_OUT::BIN_F);
+                ++i;
+            }
+            else if(strcmp(argv[i],"grib")==0){
+                extract_out_fmt=(cpp::DATA_OUT)(extract_out_fmt|cpp::DATA_OUT::GRIB_F);
+                ++i;
+            }
             else{
                 std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
                 exit(1);
             }
             if(strcmp(argv[i],"zip")==0){
-                if((!(extract_out_fmt&DEFAULT) && !(extract_out_fmt&ARCHIVED))){
-                    extract_out_fmt=(DATA_OUT)(extract_out_fmt&DATA_OUT::ARCHIVED);
+                if((!(extract_out_fmt&cpp::DATA_OUT::DEFAULT) && !(extract_out_fmt&cpp::DATA_OUT::ARCHIVED))){
+                    extract_out_fmt=(cpp::DATA_OUT)(extract_out_fmt|cpp::DATA_OUT::ARCHIVED);
                     ++i;
                 }
                 else{
@@ -668,19 +657,19 @@ int main(int argc, char* argv[]){
         else if(strcmp(argv[i],"-divby")==0){
             ++i;
             if(strcmp(argv[i],"h")==0)
-                extract_div_data = DIV_DATA_OUT::HOUR_T;
+                extract_div_data = cpp::DIV_DATA_OUT::HOUR_T;
             else if(strcmp(argv[i],"y")==0)
-                extract_div_data = DIV_DATA_OUT::YEAR_T;
+                extract_div_data = cpp::DIV_DATA_OUT::YEAR_T;
             else if(strcmp(argv[i],"m")==0)
-                extract_div_data = DIV_DATA_OUT::MONTH_T;
+                extract_div_data = cpp::DIV_DATA_OUT::MONTH_T;
             else if(strcmp(argv[i],"d")==0)
-                extract_div_data = DIV_DATA_OUT::DAY_T;
+                extract_div_data = cpp::DIV_DATA_OUT::DAY_T;
             else if(strcmp(argv[i],"lat")==0)
-                extract_div_data = DIV_DATA_OUT::LAT;
+                extract_div_data = cpp::DIV_DATA_OUT::LAT;
             else if(strcmp(argv[i],"lon")==0)
-                extract_div_data = DIV_DATA_OUT::LON;
+                extract_div_data = cpp::DIV_DATA_OUT::LON;
             else if(strcmp(argv[i],"latlon")==0)
-                extract_div_data = (DIV_DATA_OUT)(DIV_DATA_OUT::LAT|DIV_DATA_OUT::LON);
+                extract_div_data = (cpp::DIV_DATA_OUT)(cpp::DIV_DATA_OUT::LAT|cpp::DIV_DATA_OUT::LON);
             else{
                 std::cout<<"Unknown token for capitalize mode hierarchy. Abort"<<std::endl;
                 exit(1);
@@ -746,9 +735,9 @@ int main(int argc, char* argv[]){
         cap(path,out,order);
     else if(mode==MODE::EXTRACT){
         if(mode_extract==DataExtractMode::POSITION)
-            cpp::extract_cpp_pos(path,out,data_from,data_to,coord,GRIB);
+            cpp::extract_cpp_pos(path,out,data_from,data_to,coord,GRIB,extract_out_fmt);
         else if(mode_extract==DataExtractMode::RECT)
-            cpp::extract_cpp_rect<true,false>(path,data_from,data_to,rect,GRIB);
+            cpp::extract_cpp_rect(path,data_from,data_to,rect,GRIB);
         else {
             std::cout<<"Undefined extraction data mode. Abort."<<std::endl;
         }

@@ -887,25 +887,15 @@ fail:
  
         Date tmp_date = Date();
 		tmp_date.year = PDS_Year4(pds);
-        if(dto.year!=-1 && tmp_date.year>dto.year || dfrom.year!=-1 && tmp_date.year<dfrom.year){
-            pos += len_grib;
-            count++;
-            continue;
-        }
-		tmp_date.month = PDS_Month(pds);
-        if(dto.month!=-1 && tmp_date.month>dto.month || dfrom.month!=-1 && tmp_date.month<dfrom.month){
-            pos += len_grib;
-            count++;
-            continue;
-        }
-		tmp_date.day  = PDS_Day(pds);
-        if(dto.day!=-1 && tmp_date.day>dto.day || dfrom.day!=-1 && tmp_date.day<dfrom.day){
-            pos += len_grib;
-            count++;
-            continue;
-        }
-		tmp_date.hour = PDS_Hour(pds);
-        if(dto.hour!=-1 && tmp_date.hour>dto.hour || dfrom.hour!=-1 && tmp_date.hour<dfrom.hour){
+        tmp_date.month = PDS_Month(pds);
+        tmp_date.day  = PDS_Day(pds);
+        tmp_date.hour = PDS_Hour(pds);
+
+        long long from_time = get_epoch_time(&dfrom);
+        long long to_time = get_epoch_time(&dto);
+        long long tmp = get_epoch_time(&tmp_date);
+        
+        if(tmp>to_time || tmp<from_time){
             pos += len_grib;
             count++;
             continue;
