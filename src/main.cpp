@@ -1,3 +1,4 @@
+#include "application.h"
 #ifdef __cplusplus
 extern "C"{
     #include <decode.h>
@@ -794,5 +795,6 @@ int main(int argc, char* argv[]){
     //         }
         
     // }
+    delete &app();
     return 0;
 }

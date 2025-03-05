@@ -1,3 +1,4 @@
+#include "application.h"
 #include "extract_cpp.h"
 #ifdef __cplusplus
     extern "C"{
@@ -37,6 +38,8 @@
 #endif
 #include <set>
 #include <compressor.h>
+#include "error_code.h"
+#include "err_msg.h"
 
 namespace fs = std::filesystem;
 
@@ -82,7 +85,7 @@ namespace cpp{
         return stream;
     }
 
-    void extract_cpp_pos(const std::filesystem::path& root_path,
+    ErrorCode extract_cpp_pos(const std::filesystem::path& root_path,
         const std::filesystem::path& destination,
         Date from, 
         Date to,
@@ -95,14 +98,14 @@ namespace cpp{
         {
             if(!fs::exists(destination)){
                 if(!fs::create_directories(destination))
-                    std::cerr<<"Unable to create directory. Abort."<<std::endl;
-                    exit(1);
+                    std::cerr<<LogError::get_log_time()<<std::endl<<LogError::message(ErrorCodeLog::CREATE_DIR_X1_DENIED, destination.string())<<std::endl<<"Abort.";
+                    return ErrorCode::INTERNAL_ERROR;
             }
             std::string fmt;
             std::ifstream fmt_f(root_path/"format.bin",std::ios::binary|std::ios::out);
             if(!fmt_f.is_open()){
-                std::cout<<root_path<<" doesn't contains \"format.bin\". Abort."<<std::endl;
-                exit(1);
+                app().log()<<LogError::message(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,root_path.string())<<std::endl;
+                return ErrorCode::INTERNAL_ERROR;
             }
             fmt_f.seekg(0,std::ios::end);
             unsigned end=fmt_f.tellg();
@@ -232,13 +235,13 @@ namespace cpp{
                             fs::path out_f_name = (destination/std::to_string(year)/std::to_string(month)).string()+std::string(".txt");
                             if(!fs::exists(out_f_name.parent_path()))
                                 if(!fs::create_directories(out_f_name.parent_path())){
-                                    std::cout<<"Cannot access path: "+out_f_name.relative_path().string()<<". Abort."<<std::endl;
+                                    std::cout<<LogError::message(ErrorCodeLog::CANNOT_ACCESS_PATH_X1,out_f_name.relative_path().string())<<std::endl;
                                     exit(1);
                                 }
                             std::ofstream out(out_f_name,std::ios::trunc);
                             if(!out.is_open()){
-                                std::cout<<"Cannot open "<<out_f_name<<std::endl;
-                                exit(1);
+                                if(fs::exists(out_f_name) && fs::is_regular_file(out_f_name) && fs::status(out_f_name).permissions()>fs::perms::none)
+                                    std::cout<<LogError::message(ErrorCodeLog::FILE_X1_PERM_DENIED,out_f_name.string())<<std::endl;
                             }
                             else
                                 std::cout<<"Openned "<<out_f_name<<std::endl;
@@ -313,7 +316,7 @@ namespace cpp{
         }
     }
 
-    void extract_cpp_rect(const std::filesystem::path& root_path,
+    ErrorCode extract_cpp_rect(const std::filesystem::path& root_path,
         Date from, 
         Date to,
         Rect rect,

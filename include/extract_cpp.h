@@ -96,14 +96,14 @@ struct ExtractDataComparator{
 
 #ifdef __cplusplus
 extern "C"{
-extern void extract_cpp_pos(const std::filesystem::path& root_path,
+extern ErrorCode extract_cpp_pos(const std::filesystem::path& root_path,
                 const std::filesystem::path& destination,
                 Date from, 
                 Date to,
                 Coord coord,
                 DATA_FORMAT format, DATA_OUT out);
 
-extern void extract_cpp_rect(const std::filesystem::path& root_path,
+extern ErrorCode extract_cpp_rect(const std::filesystem::path& root_path,
                 Date from, 
                 Date to,
                 Rect rect,
