@@ -37,7 +37,7 @@
     }
 #endif
 #include <set>
-#include <compressor.h>
+#include "compressor.h"
 #include "error_code.h"
 #include "err_msg.h"
 
@@ -91,7 +91,8 @@ namespace cpp{
         Date to,
         Coord coord,
         DATA_FORMAT format,
-        DATA_OUT fmt_out){
+        DATA_OUT fmt_out)
+    {
         std::map<char,int> fmt_pos;
         std::regex reg;
         std::set<std::string> f_format;

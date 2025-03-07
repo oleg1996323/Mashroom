@@ -738,7 +738,7 @@ int main(int argc, char* argv[]){
         if(mode_extract==DataExtractMode::POSITION)
             cpp::extract_cpp_pos(path,out,data_from,data_to,coord,GRIB,extract_out_fmt);
         else if(mode_extract==DataExtractMode::RECT)
-            cpp::extract_cpp_rect(path,data_from,data_to,rect,GRIB);
+            cpp::extract_cpp_rect(path,data_from,data_to,rect,GRIB,extract_out_fmt);
         else {
             std::cout<<"Undefined extraction data mode. Abort."<<std::endl;
         }
