@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "PDSdate.h"
 #include "PDS.h"
 #include "verf.h"
@@ -64,10 +65,8 @@ long long get_epoch_time(const Date* date) {
     int hour = date->hour;
 
     // Проверка корректности даты
-    if (year < 1970 || month < 1 || month > 12 || day < 1 || day > days_in_month(year, month)) {
-        printf("Invalid date\n");
+    if (!is_correct_date(date))
         return -1;
-    }
 
     // Количество дней с начала эпохи до начала текущего года
     long long days_since_epoch = 0;
@@ -87,4 +86,30 @@ long long get_epoch_time(const Date* date) {
     long long seconds_since_epoch = days_since_epoch * 86400 + hour * 3600;
 
     return seconds_since_epoch;
+}
+
+bool date_less(const Date* lhs, const Date* rhs){
+    return get_epoch_time(lhs)<get_epoch_time(rhs);
+}
+bool date_equal(const Date* lhs, const Date* rhs){
+    return get_epoch_time(lhs)==get_epoch_time(rhs);
+}
+bool date_bigger(const Date* lhs, const Date* rhs){
+    return get_epoch_time(lhs)>get_epoch_time(rhs);
+}
+bool date_less_equal(const Date* lhs, const Date* rhs){
+    return get_epoch_time(lhs)<=get_epoch_time(rhs);
+}
+bool date_bigger_equal(const Date* lhs, const Date* rhs){
+    return get_epoch_time(lhs)>=get_epoch_time(rhs);
+}
+bool is_correct_date(const Date* date){
+    if (date->year < 1970 || date->month < 1 || date->month > 12 || date->day < 1 || date->day > days_in_month(date->year, date->month))
+        return false;
+    return true;
+}
+bool correct_date_interval(Date* from, Date* to){
+    if(!(is_correct_date(from) && is_correct_date(to)))
+        return false;
+    return get_epoch_time(from)<=get_epoch_time(to);
 }

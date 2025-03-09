@@ -255,6 +255,9 @@ fail:
     return false;
 }
 
+const char* get_file_error_text(ErrorCodeData err){
+    return err_code_data[(uint)err];
+}
     
 Result get_from_pos(const char* from,long int* count,long unsigned* pos){
     Result result;
@@ -280,7 +283,7 @@ Result get_from_pos(const char* from,long int* count,long unsigned* pos){
 	if ((input = fopen(from,"rb")) == NULL) {
         printf("At openning in get_from_pos\n");
         fprintf(stderr,"could not open file: %s\n", from);
-        result.code = OPEN;
+        result.code = OPEN_ERROR;
         return result;
     }
 

@@ -6,9 +6,9 @@
 #include "coords.h"
 #include "extract.h"
 
-enum ErrorCodes{
+typedef enum ERROR_CODE_DATA{
     NONE_ERR,
-    OPEN,ERROR,
+    OPEN_ERROR,
     READ_POS,
     MEMORY,
     BAD_FILE,
@@ -17,14 +17,31 @@ enum ErrorCodes{
     READ_END_ERR,
     LEN_UNCONSIST,
     MISS_END_SECTION
+}ErrorCodeData;
+
+static const char* err_code_data[11]={
+    "Correct",
+    "Error openning",
+    "Read position error",
+    "Memory allocation error (not enough memory)",
+    "Corrupted file",
+    "Missing grib record",
+    "Ran out of memory",
+    "Could not read to end of record",
+    "Ran out of data or bad file",
+    "Len of grib message is inconsistent",
+    "End section missed"
 };
 
 typedef struct Result_s
 {
     ExtractData data;
-    enum ErrorCodes code;
+    ErrorCodeData code;
 }Result;
 
 bool contains(const char* from,long int* count, long int* pos, Date* date ,Coord* coord);
 
-Result get_from_pos(const char* from,long int* count,long unsigned* pos);
+extern Result get_from_pos(const char* from,long int* count,long unsigned* pos);
+extern const char* get_file_error_text(ErrorCodeData err);
+
+extern const char* get_file_error_text(ErrorCodeData err);

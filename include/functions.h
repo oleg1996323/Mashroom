@@ -6,11 +6,15 @@
 #include <fstream>
 #include <filesystem>
 
-// struct GridSize{
-//     int x;
-//     int y;
-// };
+#ifdef __cplusplus
+    extern "C"{
+        #include "PDSdate.h"
+        #include "func.h"
+    }
+#endif
 
-// void extract_by_date(std::filesystem::path filename, const Date& date,std::filesystem::path output);
-
-// void extract_by_datetime(std::filesystem::path filename, const Date& date, const Time& time,std::filesystem::path output = std::string("./"));
+namespace auxiliairy{
+    bool is_correct_date_interval(const Date& from, const Date& to);
+    bool is_in_accessible_positions(const Coord& pos);
+    Rect get_accessible_rect();
+}

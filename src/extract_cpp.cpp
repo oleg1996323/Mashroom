@@ -44,6 +44,23 @@
 namespace fs = std::filesystem;
 
 namespace cpp{
+
+    DATA_OUT operator|(DATA_OUT lhs,DATA_OUT rhs){
+        return (DATA_OUT)((int)lhs|(int)(rhs));
+    }
+    DATA_OUT operator&(DATA_OUT lhs,DATA_OUT rhs){
+        return (DATA_OUT)((int)lhs&(int)(rhs));
+    }
+    DATA_OUT& operator|=(DATA_OUT& lhs,DATA_OUT rhs){
+        return lhs=lhs|rhs;
+    }
+    DATA_OUT& operator&=(DATA_OUT& lhs,DATA_OUT rhs){
+        return lhs=lhs&rhs;
+    }
+    DATA_OUT operator^(DATA_OUT lhs,DATA_OUT rhs){
+        return (DATA_OUT)((int)lhs^(int)(rhs));
+    }
+
     bool operator<(const Date& lhs,const Date& rhs){
         if (lhs.year != rhs.year) return lhs.year < rhs.year;
         if (lhs.month != rhs.month) return lhs.month < rhs.month;
@@ -90,32 +107,32 @@ namespace cpp{
         Date from, 
         Date to,
         Coord coord,
-        DATA_FORMAT format,
         DATA_OUT fmt_out)
     {
+        DATA_FORMAT format = DATA_FORMAT::NONE;
         std::map<char,int> fmt_pos;
         std::regex reg;
         std::set<std::string> f_format;
         {
             if(!fs::exists(destination)){
                 if(!fs::create_directories(destination))
-                    std::cerr<<LogError::get_log_time()<<std::endl<<LogError::message(ErrorCodeLog::CREATE_DIR_X1_DENIED, destination.string())<<std::endl<<"Abort.";
+                    log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",destination.c_str());
                     return ErrorCode::INTERNAL_ERROR;
             }
             std::string fmt;
             std::ifstream fmt_f(root_path/"format.bin",std::ios::binary|std::ios::out);
             if(!fmt_f.is_open()){
-                app().log()<<LogError::message(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,root_path.string())<<std::endl;
+                log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
             fmt_f.seekg(0,std::ios::end);
             unsigned end=fmt_f.tellg();
             fmt_f.seekg(0);
             fmt.resize(end);
-            fmt_f.read(fmt.data(),end);
-            for(int i=0;i<fmt.size();++i)
+            fmt_f.read(fmt.data(),1);
+            fmt_f.read(fmt.data()+1,end-1);
+            for(int i=0;i<fmt.size()-1;++i)
                 fmt_pos[fmt[i]]=i+1;
-
             std::string str_reg(root_path.string());
             for(auto ch:fmt){
                 switch(ch){
@@ -146,21 +163,20 @@ namespace cpp{
             }
             switch (format)
             {
-            case DATA_FORMAT::GRIB:
-                f_format.insert(".grib");
-                f_format.insert(".grb");
-                break;
-            case DATA_FORMAT::BINARY:
-                f_format.insert(".omdb");
-                break;
-            default:
-                break;
+                case DATA_FORMAT::GRIB:
+                    f_format.insert(".grib");
+                    f_format.insert(".grb");
+                    break;
+                case DATA_FORMAT::BINARY:
+                    f_format.insert(".omdb");
+                    break;
+                default:
+                    LogError::message(ErrorCodeLog::FORMAT_FILE_CORRUPTED,"");
+                    return ErrorCode::INTERNAL_ERROR;
+                    break;
             }
             str_reg.append("$");
-            std::cout<<str_reg<<std::endl;
-            reg = str_reg;
         }
-
         time_point<system_clock> beg = system_clock::now();
         std::map<std::string,StampVal*> tags;
         {
@@ -173,7 +189,7 @@ namespace cpp{
                 const std::string& p = iterator->path().string();
                 std::cout<<p<<std::endl;
                 if(!std::regex_match(p,m,reg)){
-                    std::cout<<p<<" : Not matched."<<std::endl;
+                    //std::cout<<p<<" : Not matched."<<std::endl;
                     ++iterator;
                     continue;
                 }
@@ -236,13 +252,15 @@ namespace cpp{
                             fs::path out_f_name = (destination/std::to_string(year)/std::to_string(month)).string()+std::string(".txt");
                             if(!fs::exists(out_f_name.parent_path()))
                                 if(!fs::create_directories(out_f_name.parent_path())){
-                                    std::cout<<LogError::message(ErrorCodeLog::CANNOT_ACCESS_PATH_X1,out_f_name.relative_path().string())<<std::endl;
-                                    exit(1);
+                                    log().record_log(ErrorCodeLog::CANNOT_ACCESS_PATH_X1,"",out_f_name.relative_path().c_str());
+                                    return ErrorCode::INTERNAL_ERROR;
                                 }
                             std::ofstream out(out_f_name,std::ios::trunc);
                             if(!out.is_open()){
-                                if(fs::exists(out_f_name) && fs::is_regular_file(out_f_name) && fs::status(out_f_name).permissions()>fs::perms::none)
-                                    std::cout<<LogError::message(ErrorCodeLog::FILE_X1_PERM_DENIED,out_f_name.string())<<std::endl;
+                                if(fs::exists(out_f_name) && fs::is_regular_file(out_f_name) && fs::status(out_f_name).permissions()>fs::perms::none){
+                                    log().record_log(ErrorCodeLog::FILE_X1_PERM_DENIED,"",out_f_name.c_str());
+                                    return ErrorCode::INTERNAL_ERROR;
+                                }   
                             }
                             else
                                 std::cout<<"Openned "<<out_f_name<<std::endl;
@@ -272,8 +290,8 @@ namespace cpp{
                             std::string out_f_name = (destination/(std::to_string(year)+'_'+std::to_string(month)+".omdb")).string();
                             std::ofstream out(out_f_name,std::ios::trunc|std::ios::binary);
                             if(!out.is_open()){
-                                std::cout<<"Cannot open "<<out_f_name<<std::endl;
-                                exit(1);
+                                log().record_log(ErrorCodeLog::CANNOT_OPEN_FILE_X1,"",out_f_name);
+                                return ErrorCode::INTERNAL_ERROR;
                             }
                             else
                                 std::cout<<"Openned "<<out_f_name<<std::endl;
@@ -315,125 +333,12 @@ namespace cpp{
                 }                    
             }
         }
+        return ErrorCode::NONE;
     }
 
     ErrorCode extract_cpp_rect(const std::filesystem::path& root_path,
         Date from, 
         Date to,
         Rect rect,
-        DATA_FORMAT format){
-    std::map<char,int> fmt_pos;
-    std::regex reg;
-    {
-        std::string fmt;
-        std::ifstream fmt_f(root_path/"format.bin",std::ios::binary|std::ios::out);
-        if(!fmt_f.is_open()){
-            std::cout<<root_path<<" doesn't contains \"format.bin\". Abort."<<std::endl;
-            exit(1);
-        }
-        fmt_f.seekg(0,std::ios::end);
-        unsigned end=fmt_f.tellg();
-        fmt_f.seekg(0);
-        fmt.resize(end);
-        fmt_f.read(fmt.data(),end);
-        for(int i=0;i<fmt.size();++i)
-            fmt_pos[fmt[i]]=i+1;
-
-        std::string str_reg(root_path.string());
-        for(auto ch:fmt){
-            switch(ch){
-                case 'Y':
-                str_reg = str_reg+R"(/(19[0-9]{2}|20[0-9]{2}))";
-                break;
-                case 'M':
-                str_reg = str_reg+R"(/(0?[1-9]|1[0-2]))";
-                break;
-                case 'D':
-                str_reg = str_reg+R"(/([1-2][0-9]|3[0-1]|0?[1-9]))";
-                break;
-                case 'H':
-                str_reg = str_reg+R"(/(0[1-9]|[12][0-9]|3[01]))";
-                break;
-                case 'L':
-                str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?)))";
-                break;
-                case 'O':
-                str_reg = str_reg+R"(/(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
-                break;
-                case 'C':
-                str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?))_(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
-                break;
-                default:
-                    break;
-            }
-        }
-        switch (format)
-        {
-            case DATA_FORMAT::GRIB:
-                str_reg = str_reg+R"(/([^/\\]+).grib)";
-                break;
-            case DATA_FORMAT::BINARY:
-                str_reg = str_reg+R"(/([^/\\]+).omdb)";
-                break;
-            default:
-                break;
-        }
-        str_reg.append("$");
-        std::cout<<str_reg<<std::endl;
-        reg = str_reg;
-    }
-    using namespace std::chrono;
-    for(const std::filesystem::directory_entry& entry:std::filesystem::recursive_directory_iterator(root_path)){
-        std::smatch m;
-        const std::string& p = entry.path().string();
-        std::cout<<p<<std::endl;
-        if(!std::regex_match(p,m,reg)){
-            std::cout<<p<<" : Not matched."<<std::endl;
-            continue;
-        }
-        else{
-            
-            ExtractDataCoord data;
-            ValueByCoord val;
-            
-            if(fmt_pos.contains('Y')){
-                std::ssub_match year_m = m[fmt_pos.at('Y')];
-                data.date.year = std::stoi(year_m);
-                if(!(from.year<=data.date.year &&
-                    from.year>=data.date.year))
-                    continue;
-            }
-            if(fmt_pos.contains('M')){
-                std::ssub_match month_m = m[fmt_pos.at('M')];
-                data.date.month = std::stoi(month_m);
-                if(!(from.month<=data.date.month &&
-                    to.month>=data.date.month))
-                    continue;
-            }
-            if(fmt_pos.contains('D')){
-                std::ssub_match day_m = m[fmt_pos.at('D')];
-                data.date.day = std::stoi(day_m);
-                if(!(from.day<=data.date.day &&
-                    to.day>=data.date.day))
-                    continue;
-            }
-            if(fmt_pos.contains('L')){
-                std::ssub_match lat_m = m[fmt_pos.at('L')];
-                // if(!(local_from_t->tm_year<=std::stoi(lat_m) &&
-                //     local_to_t->tm_year>=std::stoi(lat_m)))
-                //     continue;
-            }
-            if(fmt_pos.contains('O')){
-                std::ssub_match lon_m = m[fmt_pos.at('O')];
-                // if(!(local_from_t->tm_year<=std::stoi(year_m) &&
-                //     local_to_t->tm_year>=std::stoi(year_m)))
-                //     continue;
-            }
-            if(fmt_pos.contains('C'))
-                std::ssub_match lon_m = m[fmt_pos.at('C')];
-
-            //extract_val_by_coord_grib(data,entry.path().c_str(),&val,0,0);
-        }
-    }
-    }
+        DATA_OUT out_fmt){return ErrorCode::INTERNAL_ERROR;} //unused method
 }

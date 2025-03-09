@@ -1,4 +1,4 @@
-#include "cap.h"
+#include "capitalize_cpp.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -34,7 +34,7 @@ std::string get_fmt(const OrderItems& order){
     return res.c_str();
 }
 
-void cap(const std::filesystem::path& from,const std::filesystem::path& root,const OrderItems& order){
+void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::path& root,const OrderItems& order){
     //std::vector<std::filesystem::directory_entry> entries;
     if(!std::filesystem::is_directory(from)){
         std::cout<<from<<" is not a directory. Abort."<<std::endl;

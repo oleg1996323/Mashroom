@@ -1,4 +1,4 @@
-#include "color.h"
+#include "images/color.h"
 #include <cassert>
 #include <algorithm>
 #include <iostream>
