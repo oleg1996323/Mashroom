@@ -156,6 +156,11 @@
 },
 {
   "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/cmd_parse/config_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/config_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/config_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/cmd_parse/execute.cpp.o -c /home/oster/Mashroom/src/cmd_parse/execute.cpp",
   "file": "/home/oster/Mashroom/src/cmd_parse/execute.cpp"
 },
@@ -178,6 +183,11 @@
   "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
   "file": "/home/oster/Mashroom/src/functions.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/help.cpp.o -c /home/oster/Mashroom/src/help.cpp",
+  "file": "/home/oster/Mashroom/src/help.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
@@ -251,6 +261,11 @@
 },
 {
   "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -fPIC -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/cmd_parse/config_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/config_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/config_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -fPIC -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/cmd_parse/execute.cpp.o -c /home/oster/Mashroom/src/cmd_parse/execute.cpp",
   "file": "/home/oster/Mashroom/src/cmd_parse/execute.cpp"
 },
@@ -273,6 +288,11 @@
   "directory": "/home/oster/Mashroom",
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -fPIC -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/functions.cpp.o -c /home/oster/Mashroom/src/functions.cpp",
   "file": "/home/oster/Mashroom/src/functions.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR=\\\"/home/oster/.config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/grib/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/grib/src -I/home/oster/Mashroom/src  -lzip -static-libgcc -static-libstdc++ -g -fPIC -fPIC -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/help.cpp.o -c /home/oster/Mashroom/src/help.cpp",
+  "file": "/home/oster/Mashroom/src/help.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",

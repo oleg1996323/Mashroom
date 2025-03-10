@@ -5,6 +5,8 @@
 #include <string_view>
 #include <array>
 
+namespace translate::token{
+
 enum class Command:uint16_t{
     UNDEF,
     OUT_PATH,
@@ -21,6 +23,22 @@ enum class Command:uint16_t{
     EXTRACTION_DIV,
     CAPITALIZE_HIERARCHY,
     CAPITILIZE_FORMAT
+};
+
+enum class ModeArgs:uint8_t{
+    NONE,
+    EXTRACT,
+    CAPITALIZE,
+    CHECK,
+    CONFIG,
+    HELP
+};
+
+enum class ConfigAction:uint8_t{
+    NONE,
+    ADD,
+    DELETE,
+    GET_COMMAND
 };
 
 enum class ExtractFormatArgs:uint8_t{
@@ -58,85 +76,113 @@ enum class CapitilizeFormatArgs:uint8_t{
     BIN,
     GRIB
 };
+}
 
-constexpr std::array<const char*,8> extract_div_txt = {
-    "",
-    "h",
-    "m",
-    "d",
-    "y",
-    "lat",
-    "lon",
-    "latlon"
+template<typename T>
+struct __Token_text__;
+
+template<>
+struct __Token_text__<translate::token::Command>{
+    static constexpr std::array<const char*,15> txt = {
+        "",
+        "-outp",
+        "-inp",
+        "-dfrom",
+        "-dto",
+        "-pos",
+        "-lattop",
+        "-latbot",
+        "-lonleft",
+        "-lonrig",
+        "-j",
+        "-extfmt",
+        "-divby",
+        "-hier",
+        "-format"
+    };
 };
 
-constexpr std::array<const char*,8> capitalize_hier_txt = {
-    "",
-    "h",
-    "m",
-    "d",
-    "y",
-    "lat",
-    "lon",
-    "latlon"
+template<>
+struct __Token_text__<translate::token::ModeArgs>{
+    static constexpr std::array<const char*,6> txt = {
+        "",
+        "-ext",
+        "-cap",
+        "-check",
+        "-config",
+        "-h"
+    };
 };
 
-constexpr std::array<const char*,4> capitalize_fmt_txt = {
-    "",
-    "txt",
-    "bin",
-    "grib"
+template<>
+struct __Token_text__<translate::token::ConfigAction>{
+    static constexpr std::array<const char*,4> txt = {
+        "",
+        "add",
+        "delete",
+        "get_command"
+    };
 };
 
-constexpr std::array<const char*,5> extract_fmt_txt = {
-    "",
-    "txt",
-    "bin",
-    "grib",
-    "zip"
+template<>
+struct __Token_text__<translate::token::CapitalizeHierArgs>{
+    static constexpr std::array<const char*,8> txt = {
+        "",
+        "h",
+        "m",
+        "d",
+        "y",
+        "lat",
+        "lon",
+        "latlon"
+    };
 };
 
-constexpr std::array<const char*,15> cmd_txt = {
-    "",
-    "-outp",
-    "-inp",
-    "-dfrom",
-    "-dto",
-    "-pos",
-    "-lattop",
-    "-latbot",
-    "-lonleft",
-    "-lonrig",
-    "-j",
-    "-extfmt",
-    "-divby",
-    "-hier",
-    "-format"
+template<>
+struct __Token_text__<translate::token::ExtractDivArgs>{
+    static constexpr std::array<const char*,8> txt = {
+        "",
+        "h",
+        "m",
+        "d",
+        "y",
+        "lat",
+        "lon",
+        "latlon"
+    };
 };
 
-/*
-enum DATA_OUT{
-    DEFAULT= 0,
-    TXT_F = 1,
-    BIN_F = 2,
-    GRIB_F = 3<<1,
-    ARCHIVED = 4<<2
+template<>
+struct __Token_text__<translate::token::CapitilizeFormatArgs>{
+    static constexpr std::array<const char*,4> txt = {
+        "",
+        "txt",
+        "bin",
+        "grib"
+    };
 };
 
-//separation by files
-enum DIV_DATA_OUT{
-    ALL_IN_ONE = 0, //all in one file with data inline
-    YEAR_T = 1<<0,
-    MONTH_T = 1<<2,
-    DAY_T = 1<<3,
-    HOUR_T = 1<<4,
-    LAT = 1<<5,
-    LON = 1<<6
+template<>
+struct __Token_text__<translate::token::ExtractFormatArgs>{
+    static constexpr std::array<const char*,5> txt = {
+        "",
+        "txt",
+        "bin",
+        "grib",
+        "zip"
+    };
 };
-*/
 
-Command translate_from_txt(std::string_view cmd);
-ExtractFormatArgs translate_extract_fmt(std::string_view arg);
-ExtractDivArgs translate_extract_div(std::string_view arg);
-CapitalizeHierArgs translate_cap_hierarchy(std::string_view arg);
-CapitilizeFormatArgs translate_cap_format(std::string_view arg);
+template<typename T>
+inline T translate_from_txt(std::string_view cmd) noexcept{
+    for(int i=0;i<__Token_text__<T>::txt.size();++i){
+        if(cmd==__Token_text__<T>::txt[i])
+            return (T)i;
+    }
+    return (T)0U;
+}
+
+template<typename T>
+inline std::string_view translate_from_token(T token) noexcept{
+    return __Token_text__<T>::txt.at((uint)token);
+}

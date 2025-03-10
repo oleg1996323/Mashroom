@@ -74,3 +74,60 @@ Date get_date_from_token(std::string_view input){
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed tokens for extraction mode hierarchy",AT_ERROR_ACTION::ABORT,input);
     return result;
 }
+
+namespace functions::capitalize{
+    OrderItems get_item_orders(std::string_view input){
+        using namespace translate::token;
+        OrderItems order = OrderItems();
+        int order_count = 0;
+        std::vector<std::string_view> tokens = split(std::string_view(input),":");
+        for(std::string_view token:tokens){
+            if(token.size()>0){
+                switch(translate_from_txt<CapitalizeHierArgs>(token)){
+                    case CapitalizeHierArgs::HOUR:
+                        if(order.hour!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for hour",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.hour = order_count++;
+                        break;
+                    case CapitalizeHierArgs::DAY:
+                        if(order.day!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for day",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.day = order_count++;
+                        break;
+                    case CapitalizeHierArgs::MONTH:
+                        if(order.month!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for month",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.month = order_count++;
+                        break;
+                    case CapitalizeHierArgs::YEAR:
+                        if(order.year!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for year",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.year = order_count++;
+                        break;
+                    case CapitalizeHierArgs::LAT:
+                        if(order.lat!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for latitude",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.lat = order_count++;
+                        break;
+                    case CapitalizeHierArgs::LON:
+                        if(order.lon!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
+                        else order.lon = order_count++;
+                        break;
+                    case CapitalizeHierArgs::LATLON:
+                        if(order.lon!=-1 && order.lat!=-1)
+                            ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
+                        else{
+                            order.lat = order_count;
+                            order.lon = order_count++;
+                        }
+                        break;
+                    default:{
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize hierarchy order",AT_ERROR_ACTION::ABORT,token);
+                    }
+                }
+            }
+        }
+        return order;
+    }
+}

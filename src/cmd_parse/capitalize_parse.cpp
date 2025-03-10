@@ -6,6 +6,7 @@
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
 #include "capitalize_cpp.h"
+#include "cmd_parse/functions.h"
 #ifdef __cplusplus
     extern "C"{
         #include "capitalize.h"
@@ -14,67 +15,15 @@
 
 namespace fs = std::filesystem;
 
-OrderItems get_item_orders(std::string_view input){
-    OrderItems order = OrderItems();
-    int order_count = 0;
-    std::vector<std::string_view> tokens = split(std::string_view(input),":");
-    for(std::string_view token:tokens){
-        if(token.size()>0){
-            switch(translate_cap_hierarchy(token)){
-                case CapitalizeHierArgs::HOUR:
-                    if(order.hour!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for hour",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.hour = order_count++;
-                    break;
-                case CapitalizeHierArgs::DAY:
-                    if(order.day!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for day",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.day = order_count++;
-                case CapitalizeHierArgs::MONTH:
-                    if(order.month!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for month",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.month = order_count++;
-                    break;
-                case CapitalizeHierArgs::YEAR:
-                    if(order.year!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for year",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.year = order_count++;
-                    break;
-                case CapitalizeHierArgs::LAT:
-                    if(order.lat!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for latitude",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.lat = order_count++;
-                    break;
-                case CapitalizeHierArgs::LON:
-                    if(order.lon!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
-                    else order.lon = order_count++;
-                    break;
-                case CapitalizeHierArgs::LATLON:
-                    if(order.lon!=-1 && order.lat!=-1)
-                        ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
-                    else{
-                        order.lat = order_count;
-                        order.lon = order_count++;
-                    }
-                    break;
-                default:{
-                    ErrorPrint::message(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize hierarchy order",token);
-                }
-            }
-        }
-    }
-    return order;
-}
-
-void capitalize_parse(std::vector<std::string_view> input){
+void capitalize_parse(const std::vector<std::string_view>& input){
+    using namespace translate::token;
     unsigned int cpus = std::thread::hardware_concurrency();
     fs::path in = fs::current_path();
     fs::path out = fs::current_path();
     OrderItems order = OrderItems();
     for(size_t i=0;i<input.size();++i){
-        switch(translate_from_txt(input[i++])){
-            case::Command::THREADS:{
+        switch(translate_from_txt<Command>(input[i++])){
+            case Command::THREADS:{
                 long tmp = from_chars<long>(input[++i]);
                 if(tmp>=1 & tmp<=std::thread::hardware_concurrency())
                     cpus = tmp;
@@ -104,12 +53,12 @@ void capitalize_parse(std::vector<std::string_view> input){
                 break;
             }
             case Command::CAPITALIZE_HIERARCHY:{
-                order = get_item_orders(input[i]);
+                order = functions::capitalize::get_item_orders(input[i]);
                 break;
             }
             case Command::CAPITILIZE_FORMAT:{
                 if(order.fmt==NONE){
-                    switch(translate_cap_format(input[++i])){
+                    switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
                         case CapitilizeFormatArgs::BIN:
                             order.fmt = BINARY;
                             break;
@@ -133,4 +82,72 @@ void capitalize_parse(std::vector<std::string_view> input){
         }
     }
     capitalize_cpp(in,out,order);
+}
+
+std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<std::string_view>& input){
+    using namespace translate::token;
+    std::vector<std::string_view> commands;
+    OrderItems order = OrderItems();
+    for(size_t i=0;i<input.size();++i){
+        switch(translate_from_txt<Command>(input[i++])){
+            case Command::THREADS:{
+                commands.push_back(input[i]);
+                break;
+            }
+            case Command::IN_PATH:{
+                if(!fs::is_directory(input[i]))
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,input[i]);
+                break;
+            }
+            case Command::OUT_PATH:{
+                std::vector<std::string_view> tokens = split(input[i],":");
+                if(tokens.size()!=2)
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::ABORT,input[i]);
+                if(tokens.at(0)=="dir"){
+                    if(!fs::is_directory(tokens.at(1))){
+                        if(!fs::create_directory(tokens.at(1)))
+                            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,tokens.at(1));
+                    }
+                    commands.push_back(input[i]);
+                }
+                else if(tokens.at(0)=="ip")
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use capitalize mode by IP",AT_ERROR_ACTION::ABORT,tokens[0]);
+                else
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::ABORT,input[i]);
+                break;
+            }
+            case Command::CAPITALIZE_HIERARCHY:{
+                order = functions::capitalize::get_item_orders(input[i]);
+                commands.push_back(input[i]);
+                break;
+            }
+            case Command::CAPITILIZE_FORMAT:{
+                if(order.fmt==NONE){
+                    switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
+                        case CapitilizeFormatArgs::BIN:
+                            order.fmt = BINARY;
+                            break;
+                        case CapitilizeFormatArgs::GRIB:
+                            order.fmt = GRIB;
+                            break;
+                        case CapitilizeFormatArgs::TXT:
+                            order.fmt = TEXT;
+                            break;
+                        default:
+                            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
+                    }
+                }
+                else{
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Already choosen other capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
+                }
+                commands.push_back(input[i]);
+            }
+            default:{
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::ABORT,input[i]);
+            }
+        }
+    }
+    if(commands.empty())
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero args for capitalize mode",AT_ERROR_ACTION::ABORT);
+    return commands;
 }

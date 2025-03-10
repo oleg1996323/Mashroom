@@ -3,4 +3,5 @@
 #include <vector>
 #include <string>
 
-void capitalize_parse(std::vector<std::string_view> input);
+void capitalize_parse(const std::vector<std::string_view>& input);
+std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<std::string_view>& input);

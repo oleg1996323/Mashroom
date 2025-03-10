@@ -12,6 +12,7 @@
 #include "capitalize_parse.h"
 #include "check_parse.h"
 #include "extract_parse.h"
+#include "help.h"
 #include <ranges>
 
 
@@ -22,43 +23,57 @@ void set_config_parse(std::string_view input){
 
 void execute(std::vector<std::string_view> argv){
     std::cout << "Command-line arguments:" << std::endl;
-    if(argv.size()<1){
-        std::cout<<"Invalid args. Abort."<<std::endl;
-        exit(1);
-    }
+    if(argv.size()<2)
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::ABORT);
 
     for (size_t i = 0;i<argv.size();++i) {
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
     }
 
-
     std::filesystem::path path;
     std::filesystem::path out;
     MODE mode = MODE::NONE;
     
-    if(MODE::NONE==mode){
-        if(argv[1]=="-ext")
+    switch(translate_from_txt<translate::token::ModeArgs>(argv.at(1))){
+        case translate::token::ModeArgs::EXTRACT:
             mode = MODE::EXTRACT;
-        else if(argv[1]=="-cap")
+            break;
+        case translate::token::ModeArgs::CAPITALIZE:
             mode = MODE::CAPITALIZE;
-        //enable the checking mode of full full package of downloaded files
-        else if(argv[1]=="-check")
+            break;
+        case translate::token::ModeArgs::CHECK:
             mode = MODE::CHECK_ALL_IN_PERIOD;
-        else
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument.",AT_ERROR_ACTION::ABORT);
-    }
-    else
-        ErrorPrint::print_error(ErrorCode::INCOR_ARG_X1_ALREADY_CHOOSEN_MODE_X2,"",AT_ERROR_ACTION::ABORT,argv[1],get_string_mode(mode));
-    std::ranges::subrange<std::vector<std::string_view>::iterator> args(argv.begin()+1,argv.end());
-    switch(mode){
-        case MODE::CAPITALIZE:
-            capitalize_parse({args.begin(),args.end()});
-        case MODE::EXTRACT:
-            extract_parse({args.begin(),args.end()});
-        case MODE::CHECK_ALL_IN_PERIOD:
-            check_parse({args.begin(),args.end()});
+            break;
+        case translate::token::ModeArgs::CONFIG:
+            mode = MODE::CONFIG;
+            break;
+        case translate::token::ModeArgs::HELP:
+            mode = MODE::HELP;
+            for(int i=2;i<argv.size();++i)
+                ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,argv.at(i));
+            break;
         default:
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument.",AT_ERROR_ACTION::ABORT);
+            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,argv.at(1));
+    }
+    std::ranges::subrange<std::vector<std::string_view>::iterator> args(argv.begin()+2,argv.end());
+    {
+        std::vector<std::string_view> tmp_args(args.begin(),args.end());
+        switch(mode){
+            case MODE::CAPITALIZE:
+                capitalize_parse(tmp_args);
+                break;
+            case MODE::EXTRACT:
+                extract_parse(tmp_args);
+                break;
+            case MODE::CHECK_ALL_IN_PERIOD:
+                check_parse(tmp_args);
+                break;
+            case MODE::HELP:
+                help();
+                break;
+            default:
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument.",AT_ERROR_ACTION::ABORT);
+        }
     }
     for(int i = 2;i<argv.size();++i){
         //date from for extraction

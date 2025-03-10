@@ -64,3 +64,9 @@ T get_coord_from_token(std::string_view input, DataExtractMode& mode){
     }
     //else static_assert(1);
 }
+
+#include "capitalize.h"
+#include "cmd_translator.h"
+namespace functions::capitalize{
+    OrderItems get_item_orders(std::string_view input);
+}

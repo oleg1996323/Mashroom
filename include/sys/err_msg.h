@@ -15,10 +15,11 @@ constexpr std::array<const char*,11> err_msg_log = {
     "Format file {0} is corrupted"
 };
 
-constexpr std::array<const char*,17> err_msg={
+constexpr std::array<const char*,18> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
+    "Incorrect argument: date. Arg: {0}",
     "Incorrect argument: coordinate position",
     "Incorrect argument: rectangle",
     "Error at command input {0}",
