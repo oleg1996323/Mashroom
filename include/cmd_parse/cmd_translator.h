@@ -22,7 +22,7 @@ enum class Command:uint16_t{
     EXTRACT_FORMAT,
     EXTRACTION_DIV,
     CAPITALIZE_HIERARCHY,
-    CAPITILIZE_FORMAT
+    CAPITALIZE_FORMAT
 };
 
 enum class ModeArgs:uint8_t{

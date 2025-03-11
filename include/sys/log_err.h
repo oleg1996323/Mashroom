@@ -16,9 +16,10 @@ class LogError:public std::ofstream{
     LogError(const fs::path& log_dir = LOG_DIR){
         if(!fs::exists(log_dir))
         {
-            if(!log_dir.has_extension())
+            if(!log_dir.has_extension()){
                 if(!fs::create_directories(log_dir))
                     ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,log_dir.c_str());
+            }
             else
                 ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,log_dir.c_str());
         }

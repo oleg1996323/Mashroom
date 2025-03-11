@@ -53,16 +53,16 @@ Date get_date_from_token(std::string_view input){
         for(std::string_view token:tokens){
             if(token.size()>0){
                 if(token.starts_with("h")){
-                    result.hour = from_chars<int>(token);
+                    result.hour = from_chars<int>(token.substr(1));
                 }
-                else if(token=="y"){
-                    result.year = from_chars<int>(token);
+                else if(token.starts_with("y")){
+                    result.year = from_chars<int>(token.substr(1));
                 }
-                else if(token=="m"){
-                    result.month = from_chars<int>(token);
+                else if(token.starts_with("m")){
+                    result.month = from_chars<int>(token.substr(1));
                 }
-                else if(token=="d"){
-                    result.day = from_chars<int>(token);
+                else if(token.starts_with("d")){
+                    result.day = from_chars<int>(token.substr(1));
                 }
                 else
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown token for extraction mode hierarchy",AT_ERROR_ACTION::ABORT,token);

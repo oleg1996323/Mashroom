@@ -56,7 +56,7 @@ void capitalize_parse(const std::vector<std::string_view>& input){
                 order = functions::capitalize::get_item_orders(input[i]);
                 break;
             }
-            case Command::CAPITILIZE_FORMAT:{
+            case Command::CAPITALIZE_FORMAT:{
                 if(order.fmt==NONE){
                     switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
                         case CapitilizeFormatArgs::BIN:
@@ -121,7 +121,7 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
                 commands.push_back(input[i]);
                 break;
             }
-            case Command::CAPITILIZE_FORMAT:{
+            case Command::CAPITALIZE_FORMAT:{
                 if(order.fmt==NONE){
                     switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
                         case CapitilizeFormatArgs::BIN:
