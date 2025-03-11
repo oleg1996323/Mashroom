@@ -110,7 +110,7 @@ struct __Token_text__<translate::token::ModeArgs>{
         "-cap",
         "-check",
         "-config",
-        "-h"
+        "-help"
     };
 };
 
@@ -172,7 +172,6 @@ struct __Token_text__<translate::token::ExtractFormatArgs>{
         "zip"
     };
 };
-
 template<typename T>
 inline T translate_from_txt(std::string_view cmd) noexcept{
     for(int i=0;i<__Token_text__<T>::txt.size();++i){

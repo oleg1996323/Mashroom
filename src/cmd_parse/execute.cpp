@@ -23,8 +23,8 @@ void set_config_parse(std::string_view input){
 
 void execute(std::vector<std::string_view> argv){
     std::cout << "Command-line arguments:" << std::endl;
-    if(argv.size()<2)
-        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::ABORT);
+    if(argv.size()<1)
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::ABORT,"");
 
     for (size_t i = 0;i<argv.size();++i) {
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
@@ -34,7 +34,7 @@ void execute(std::vector<std::string_view> argv){
     std::filesystem::path out;
     MODE mode = MODE::NONE;
     
-    switch(translate_from_txt<translate::token::ModeArgs>(argv.at(1))){
+    switch(translate_from_txt<translate::token::ModeArgs>(argv.at(0))){
         case translate::token::ModeArgs::EXTRACT:
             mode = MODE::EXTRACT;
             break;
@@ -49,15 +49,17 @@ void execute(std::vector<std::string_view> argv){
             break;
         case translate::token::ModeArgs::HELP:
             mode = MODE::HELP;
-            for(int i=2;i<argv.size();++i)
+            for(int i=1;i<argv.size();++i)
                 ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,argv.at(i));
+            help();
+            return;
             break;
         default:
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,argv.at(1));
+            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,argv.at(0));
     }
-    std::ranges::subrange<std::vector<std::string_view>::iterator> args(argv.begin()+2,argv.end());
+    std::ranges::subrange<std::vector<std::string_view>::iterator> args(argv.begin()+1,argv.end());
     {
-        std::vector<std::string_view> tmp_args(args.begin(),args.end());
+        std::vector<std::string_view> tmp_args(args.begin()+1,args.end());
         switch(mode){
             case MODE::CAPITALIZE:
                 capitalize_parse(tmp_args);
@@ -72,10 +74,10 @@ void execute(std::vector<std::string_view> argv){
                 help();
                 break;
             default:
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument.",AT_ERROR_ACTION::ABORT);
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument",AT_ERROR_ACTION::ABORT);
         }
     }
-    for(int i = 2;i<argv.size();++i){
+    //for(int i = 1;i<argv.size();++i){
         //date from for extraction
         //input separated by ':' with first tokens ('h','d','m','y'),integer values
         // else if(strcmp(argv[i],"-coord")==0){
@@ -128,6 +130,6 @@ void execute(std::vector<std::string_view> argv){
         //     std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
         //     exit(1);
         // }
-    }    
+    //}    
     return;
 }

@@ -34,10 +34,11 @@ void help(){
         translate_from_token<ModeArgs>(ModeArgs::CHECK)<<' '<<\
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)<<' '<<\
         ") - define the output path, where will be situated the mode execution result.\n"<<
-        "For "<<translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)<<" the result is the catalogued data by directories tree (depend of the the defined hierarchy)."<<\
+        "For "<<translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)<<" the result is the catalogued by directories data respectively to the defined hierarchy."<<\
         "For "<<translate_from_token<ModeArgs>(ModeArgs::CHECK)<<" the result is the file \""<<miss_files_filename<<"\" with list of missed files in defined interval."<<\
-        "For "<<translate_from_token<ModeArgs>(ModeArgs::EXTRACT)<<" the result is the files of defined format with data extracted from massive data-file. These files must be catalogued respectively to the user definition."<<\
-        //continue
+        "For "<<translate_from_token<ModeArgs>(ModeArgs::EXTRACT)<<" the result is the files of defined format with data extracted from massive data-file."<<\
+        " These files must be catalogued respectively to the defined by called before capitalize-mode's hierarchy\"\"."<<\
+        "";
         
         " If the interval end value is not defined, it will be defined as now-date. ";
 }
