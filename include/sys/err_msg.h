@@ -15,7 +15,7 @@ constexpr std::array<const char*,11> err_msg_log = {
     "Format file {0} is corrupted"
 };
 
-constexpr std::array<const char*,18> err_msg={
+constexpr std::array<const char*,20> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -23,6 +23,8 @@ constexpr std::array<const char*,18> err_msg={
     "Incorrect argument: coordinate position",
     "Incorrect argument: rectangle",
     "Error at command input {0}",
+    "Too few arguments.",
+    "Too many arguments.",
     "Incorrect argument \"{0}\". Already choosen mode: \"{1}\"",
     "Directory \"{0}\" creation denied",
     "File \"{0}\" access denied by permissions",

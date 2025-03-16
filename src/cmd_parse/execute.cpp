@@ -12,16 +12,12 @@
 #include "capitalize_parse.h"
 #include "check_parse.h"
 #include "extract_parse.h"
+#include "config_parse.h"
 #include "help.h"
 #include <ranges>
 
 
-
-void set_config_parse(std::string_view input){
-
-}
-
-void execute(std::vector<std::string_view> argv){
+void execute(const std::vector<std::string_view>& argv){
     std::cout << "Command-line arguments:" << std::endl;
     if(argv.size()<1)
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::ABORT,"");
@@ -57,18 +53,21 @@ void execute(std::vector<std::string_view> argv){
         default:
             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,argv.at(0));
     }
-    std::ranges::subrange<std::vector<std::string_view>::iterator> args(argv.begin()+1,argv.end());
+    
+    std::vector<std::string_view> args(argv.begin()+1,argv.end());
     {
-        std::vector<std::string_view> tmp_args(args.begin()+1,args.end());
         switch(mode){
             case MODE::CAPITALIZE:
-                capitalize_parse(tmp_args);
+                capitalize_parse(args);
                 break;
             case MODE::EXTRACT:
-                extract_parse(tmp_args);
+                extract_parse(args);
                 break;
             case MODE::CHECK_ALL_IN_PERIOD:
-                check_parse(tmp_args);
+                check_parse(args);
+                break;
+            case MODE::CONFIG:
+                config_parse(args);
                 break;
             case MODE::HELP:
                 help();

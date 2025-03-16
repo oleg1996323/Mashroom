@@ -14,6 +14,9 @@ class Application{
     static Application& app(){
         return *app_;
     }
+    static Config& config(){
+        return *conf_;
+    }
     static std::string_view program_name(){
         return program_invocation_name;
     }

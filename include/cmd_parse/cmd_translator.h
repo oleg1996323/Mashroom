@@ -35,11 +35,14 @@ enum class ModeArgs:uint8_t{
 };
 
 enum class ConfigAction:uint8_t{
-    NONE,
-    ADD,
-    DELETE,
-    GET_COMMAND
-};
+    UNDEF,      //undefined action (error)
+    ADD,        //check and add configuration by name
+    REDEFINE,   //redefine configuration by name if exists or create
+    REMOVE,     //remove configuration by name
+    SET,        //set permanent configuration
+    ADDSET,
+    GET         //get config action by name or all (if '.' is inputed)
+};    
 
 enum class ExtractFormatArgs:uint8_t{
     UNDEF,
@@ -116,11 +119,14 @@ struct __Token_text__<translate::token::ModeArgs>{
 
 template<>
 struct __Token_text__<translate::token::ConfigAction>{
-    static constexpr std::array<const char*,4> txt = {
+    static constexpr std::array<const char*,7> txt = {
         "",
         "add",
-        "delete",
-        "get_command"
+        "redef",
+        "remove",
+        "set",
+        "addset",
+        "get"
     };
 };
 

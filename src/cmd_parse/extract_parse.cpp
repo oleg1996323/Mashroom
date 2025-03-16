@@ -267,6 +267,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     commands.push_back(input.at(i));
                 else
                     ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::ABORT,input.at(i));
+                break;
             }
             case translate::token::Command::DATE_TO:{
                 date_to = get_date_from_token(input.at(i));
@@ -274,6 +275,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     commands.push_back(input.at(i));
                 else
                     ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::ABORT,input.at(i));
+                break;
             }
             case translate::token::Command::LAT_TOP:{
                 try{
@@ -338,6 +340,9 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     exit(1);
                 }
                 */
+            }
+            case translate::token::Command::CAPITALIZE_FORMAT:{
+                //define after in-path defined and read format.bin
             }
             case translate::token::Command::POSITION:{
                 coord = get_coord_from_token<Coord>(input[i],mode_extract);    

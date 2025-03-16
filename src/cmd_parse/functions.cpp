@@ -35,15 +35,13 @@ std::vector<std::string> split(const std::string& str,const char* delimiter){
 std::vector<std::string_view> split(std::string_view str, const char* delimiter){
     std::vector<std::string_view> result;
     size_t beg_pos = 0;
-    size_t pos = beg_pos;
-    while(true){
-        pos=str.find_first_of(delimiter,pos);
-        if(pos!=std::string::npos){
-            result.push_back(str.substr(beg_pos,pos-beg_pos));
-            beg_pos=pos;
-        }
-        else return result;
+    size_t pos = 0;
+    while(pos!=std::string::npos){
+        pos = str.find_first_of(delimiter,beg_pos);
+        result.push_back(str.substr(beg_pos,pos-beg_pos));
+        beg_pos=pos+1;
     }
+    return result;
 }
 
 Date get_date_from_token(std::string_view input){

@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <ranges>
 #ifdef __cplusplus
     extern "C"{
         #include "capitalize.h"
@@ -9,4 +10,4 @@
     }
 #endif
 
-void execute(std::vector<std::string_view> argv);
+void execute(const std::vector<std::string_view>& argv);
