@@ -20,25 +20,28 @@ void Config::read(){
         while(line_stream>>internal_buffer)
             commands.push_back(internal_buffer);
     }
+    cmd_file.close();
 }
 
 void Config::save(){
-    if(!changed)
+    if(changed)
         write();
     changed = false;
 }
 
 void Config::write(){
-    if(!cmd_file.is_open())
+    if(!cmd_file.is_open()){
+        std::cout<<"Openning "<<fs::path(config_mashroom_dir)/"usr.txt"<<std::endl;
         cmd_file.open(fs::path(config_mashroom_dir)/"usr.txt",std::ios::out);
         if(!cmd_file.is_open())
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Error at writing to the config file.",AT_ERROR_ACTION::ABORT,(fs::path(config_mashroom_dir)/"usr.txt").c_str());
+    }
     for(auto& [name,commands]:configs_){
         cmd_file<<name<<' ';
         for(const std::string& command:commands){
             cmd_file<<command<<' ';
         }
-        cmd_file.seekp(-1);
+        cmd_file.seekp(std::fstream::end-1);
         cmd_file<<std::endl;
     }
 }

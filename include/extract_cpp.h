@@ -21,12 +21,13 @@ extern "C"{
 
 namespace cpp{
 
-enum DATA_OUT{
+enum DATA_OUT:uint{
+    UNDEF = 1,
     DEFAULT= 0,
-    TXT_F = 1,
-    BIN_F = 2,
-    GRIB_F = 3<<1,
-    ARCHIVED = 4<<2
+    TXT_F = (1<<2),
+    BIN_F = (1<<3),
+    GRIB_F = (1<<4),
+    ARCHIVED = (1<<5)
 };
 
 DATA_OUT operator|(DATA_OUT lhs,DATA_OUT rhs);

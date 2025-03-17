@@ -104,4 +104,6 @@ void config_parse(const std::vector<std::string_view>& input){
         default:
             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,input.at(2));
     }
+
+    Application::config().add_user_config(config_name,commands_saved);
 }

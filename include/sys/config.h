@@ -16,6 +16,11 @@ class Config{
         read();
     }
 
+    ~Config(){
+        save();
+        cmd_file.close();
+    }
+
     DataInfo get_config_data_info() const{
         return DataInfo();//TODO
     }

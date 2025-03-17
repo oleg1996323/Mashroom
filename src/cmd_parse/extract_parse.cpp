@@ -10,11 +10,12 @@
 namespace fs = std::filesystem;
 
 cpp::DATA_OUT get_extract_format(std::string_view input){
-    std::vector<std::string_view> tokens = split(input,"|");
+    std::vector<std::string_view> tokens = split(input,":");
     if(tokens.empty())
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input at extract format definition",AT_ERROR_ACTION::ABORT,input);
     else{
-        cpp::DATA_OUT result = (cpp::DATA_OUT)-1;
+        cpp::DATA_OUT result;
+        result = cpp::DATA_OUT::UNDEF;
         for(std::string_view token:tokens){
             if(token.empty())
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input at extract format definition",AT_ERROR_ACTION::ABORT,input);
@@ -30,7 +31,7 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                 }
                 case translate::token::ExtractFormatArgs::BIN:{
                     cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
-                    if(cur==cpp::DATA_OUT::DEFAULT)
+                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::BIN_F;
                     else if(cur==cpp::DATA_OUT::BIN_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Binary format already defined",AT_ERROR_ACTION::CONTINUE,token);
@@ -40,7 +41,7 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                 }
                 case translate::token::ExtractFormatArgs::GRIB:{
                     cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
-                    if(cur==cpp::DATA_OUT::DEFAULT)
+                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::GRIB_F;
                     else if(cur==cpp::DATA_OUT::GRIB_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Grib format already defined",AT_ERROR_ACTION::CONTINUE,token);
@@ -49,8 +50,8 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                     break;
                 }
                 case translate::token::ExtractFormatArgs::TXT:{
-                    cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
-                    if(cur==cpp::DATA_OUT::DEFAULT)
+                    cpp::DATA_OUT cur = result|cpp::DATA_OUT::ARCHIVED^cpp::DATA_OUT::ARCHIVED;
+                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::TXT_F;
                     else if(cur==cpp::DATA_OUT::TXT_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Text format already defined",AT_ERROR_ACTION::CONTINUE,token);
@@ -236,15 +237,21 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
         switch (translate_from_txt<translate::token::Command>(input[i++]))
         {
             case translate::token::Command::THREADS:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::IN_PATH:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 if(!fs::is_directory(input.at(i)))
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,input.at(i));
                 break;
             }
             case translate::token::Command::OUT_PATH:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 std::vector<std::string_view> tokens = split(input.at(i),":");
                 if(tokens.size()!=2)
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::ABORT,input.at(i));
@@ -262,6 +269,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::DATE_FROM:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 date_from = get_date_from_token(input.at(i));
                 if(is_correct_date(&date_from))
                     commands.push_back(input.at(i));
@@ -270,6 +279,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::DATE_TO:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 date_to = get_date_from_token(input.at(i));
                 if(is_correct_date(&date_to))
                     commands.push_back(input.at(i));
@@ -278,6 +289,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::LAT_TOP:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.y1 = get_coord_from_token<double>(input[i],mode_extract);
                 }
@@ -287,6 +300,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::LAT_BOT:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.y2 = get_coord_from_token<double>(input[i],mode_extract);
                 }
@@ -296,6 +311,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::LON_LEFT:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.x1 = get_coord_from_token<double>(input[i],mode_extract);
                 }
@@ -305,6 +322,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::LON_RIG:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.x2 = get_coord_from_token<double>(input[i],mode_extract);
                 }
@@ -314,10 +333,14 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 break;
             }
             case translate::token::Command::EXTRACT_FORMAT:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 extract_out_fmt = get_extract_format(input[i]);
                 break;
             }
             case translate::token::Command::EXTRACTION_DIV:{
+                if(i>=input.size())
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Extract division data format still not supported in this Mashroom's version",AT_ERROR_ACTION::ABORT,input[i]);
                 /*
                 ++i;
@@ -341,9 +364,10 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 }
                 */
             }
-            case translate::token::Command::CAPITALIZE_FORMAT:{
-                //define after in-path defined and read format.bin
-            }
+            // case translate::token::Command::CAPITALIZE_FORMAT:{
+            //     //define after in-path defined and read format.bin
+            //      format (grib,archive,txt,bin)(hierarchy)(begin date)(end date)(lattop,latbot,lonleft,lonrig)
+            // }
             case translate::token::Command::POSITION:{
                 coord = get_coord_from_token<Coord>(input[i],mode_extract);    
                 break;        
