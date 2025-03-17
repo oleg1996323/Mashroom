@@ -15,7 +15,7 @@ constexpr std::array<const char*,11> err_msg_log = {
     "Format file {0} is corrupted"
 };
 
-constexpr std::array<const char*,20> err_msg={
+constexpr std::array<const char*,21> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -35,5 +35,6 @@ constexpr std::array<const char*,20> err_msg={
     "Invalid path of directories \"{0}\"",
     "\"{0}\" is not a directory",
     "\"{0}\" is not a file",
-    "Ignoring argument \"{0}\""
+    "Ignoring argument \"{0}\"",
+    "Already existing configuration name"
 };

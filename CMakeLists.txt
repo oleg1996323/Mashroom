@@ -4,7 +4,8 @@ set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 23)
-
+option(LOG_ON OFF)
+option(PERMANENT_GET ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
 add_compile_options(-fPIC)
@@ -29,7 +30,7 @@ add_library(grib_c STATIC ${GRIB_SOURCES})
 add_executable(Mashroom ${Mashroom_SOURCES})
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
 
-target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}")
+target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}" $<$<BOOL:${LOG_ON}>:LOG_ON> $<$<BOOL:${PERMANENT_GET}>:PERMANENT_GET> )
 target_compile_definitions(Mashroom_lib PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}")
 file(GLOB PNG_LIBS third_party/png/*.so)
 

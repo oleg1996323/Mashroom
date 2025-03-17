@@ -14,6 +14,7 @@
 #include "extract_parse.h"
 #include "config_parse.h"
 #include "help.h"
+#include "application.h"
 #include <ranges>
 
 
@@ -22,14 +23,10 @@ void execute(const std::vector<std::string_view>& argv){
     if(argv.size()<1)
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::ABORT,"");
 
-    for (size_t i = 0;i<argv.size();++i) {
-        std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
-    }
-
-    std::filesystem::path path;
-    std::filesystem::path out;
+    // for (size_t i = 0;i<argv.size();++i) {
+    //     std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
+    // }
     MODE mode = MODE::NONE;
-    
     switch(translate_from_txt<translate::token::ModeArgs>(argv.at(0))){
         case translate::token::ModeArgs::EXTRACT:
             mode = MODE::EXTRACT;
@@ -51,6 +48,13 @@ void execute(const std::vector<std::string_view>& argv){
             return;
             break;
         default:
+            if(Application::config().has_config_name(argv.at(0))){
+                for(int i=1;i<argv.size();++i)
+                    ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,argv.at(i));
+                execute(Application::config().get_user_config(argv.at(0))|std::ranges::views::transform([](auto& str){
+                    return std::string_view(str);
+                })|std::ranges::to<std::vector<std::string_view>>());
+            }
             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::ABORT,argv.at(0));
     }
     

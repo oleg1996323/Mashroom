@@ -200,7 +200,7 @@ void extract_parse(const std::vector<std::string_view>& input){
             }
         }
     }
-    if(fs::exists(in))
+    if(!fs::exists(in))
         ErrorPrint::print_error(ErrorCode::INVALID_PATH_OF_DIRECTORIES_X1,"",AT_ERROR_ACTION::ABORT,in.c_str());
 
     if(!is_correct_date(&date_from))
@@ -224,6 +224,7 @@ void extract_parse(const std::vector<std::string_view>& input){
 
 std::vector<std::string_view> commands_from_extract_parse(const std::vector<std::string_view>& input){
     std::vector<std::string_view> commands;
+    commands.push_back(translate_from_token(translate::token::ModeArgs::EXTRACT));
     Date date_from = Date();
     Date date_to = Date();
     DataExtractMode mode_extract = DataExtractMode::UNDEFINED;
@@ -234,7 +235,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
     unsigned int cpus = std::thread::hardware_concurrency();
 
     for(size_t i=0;i<input.size();++i){
-        switch (translate_from_txt<translate::token::Command>(input[i++]))
+        switch (translate_from_txt<translate::token::Command>(commands.emplace_back(input[i++])))
         {
             case translate::token::Command::THREADS:{
                 if(i>=input.size())
@@ -247,6 +248,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 if(!fs::is_directory(input.at(i)))
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,input.at(i));
+                commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::OUT_PATH:{
@@ -293,6 +295,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.y1 = get_coord_from_token<double>(input[i],mode_extract);
+                    commands.push_back(input.at(i));
                 }
                 catch(const std::invalid_argument& err){
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
@@ -304,6 +307,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.y2 = get_coord_from_token<double>(input[i],mode_extract);
+                    commands.push_back(input.at(i));
                 }
                 catch(const std::invalid_argument& err){
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
@@ -315,6 +319,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.x1 = get_coord_from_token<double>(input[i],mode_extract);
+                    commands.push_back(input.at(i));
                 }
                 catch(const std::invalid_argument& err){
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
@@ -326,6 +331,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 try{
                     rect.x2 = get_coord_from_token<double>(input[i],mode_extract);
+                    commands.push_back(input.at(i));
                 }
                 catch(const std::invalid_argument& err){
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
@@ -336,6 +342,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 extract_out_fmt = get_extract_format(input[i]);
+                commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::EXTRACTION_DIV:{
@@ -369,7 +376,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             //      format (grib,archive,txt,bin)(hierarchy)(begin date)(end date)(lattop,latbot,lonleft,lonrig)
             // }
             case translate::token::Command::POSITION:{
-                coord = get_coord_from_token<Coord>(input[i],mode_extract);    
+                coord = get_coord_from_token<Coord>(input[i],mode_extract);
+                commands.push_back(input.at(i));
                 break;        
             }
             default:{

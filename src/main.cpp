@@ -8,6 +8,12 @@
 static int progress_line = 6;
 
 int main(int argc, char* argv[]){
+    #ifdef PERMANENT_GET 
+        while(int ch =std::getchar()){
+            std::cout<<ch<<std::endl;
+        }
+        //will be added
+    #else
     std::cout << "Command-line arguments:" << std::endl;
     if(argc<2){
         std::cout<<"Invalid args. Abort."<<std::endl;
@@ -23,6 +29,7 @@ int main(int argc, char* argv[]){
     }
 
     execute(commands);
+    #endif
     // unsigned int cpus = std::thread::hardware_concurrency();
     // std::filesystem::path path;
     // std::filesystem::path out;

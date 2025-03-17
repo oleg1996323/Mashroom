@@ -11,8 +11,13 @@ constexpr const char* log_path = LOG_DIR;
 namespace fs = std::filesystem;
 namespace chrono = std::chrono;
 
+#ifdef LOG_ON 
 class LogError:public std::ofstream{
+#else
+class LogError:public std::ostream{
+#endif
     public:
+    #ifdef LOG_ON 
     LogError(const fs::path& log_dir = LOG_DIR){
         if(!fs::exists(log_dir))
         {
@@ -26,14 +31,23 @@ class LogError:public std::ofstream{
         if(fs::is_regular_file(log_dir))
             ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,log_dir.c_str());
         fs::path filename = fs::path(log_dir)/(std::format("{:%Y_%m_%d_%H_%M_%S}",chrono::system_clock::now())+".txt");
+        #ifdef LOG_ON 
         open(filename,std::ios::trunc);
         if(!is_open())
             ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,filename.c_str());
+        #endif
+    }
+    #endif
+
+    LogError(){
+        set_rdbuf(std::clog.rdbuf());
     }
 
     ~LogError(){
         flush();
-        close();
+        #ifdef LOG_ON 
+            close();
+        #endif
     }
 
     template<typename... Args>

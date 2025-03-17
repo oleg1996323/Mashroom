@@ -26,6 +26,8 @@ class Config{
     }
     bool add_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool add_user_config(const std::string& name,const std::vector<std::string>& commands);
+    void change_user_config(std::string_view name,const std::vector<std::string_view>& commands);
+    void change_user_config(const std::string& name,const std::vector<std::string>& commands);
     void remove_user_config(const std::string& name);
     void remove_user_config(std::string_view name);
     void save();
@@ -42,11 +44,11 @@ class Config{
     void read();
     void write();
     std::unordered_map<std::string,std::vector<std::string>> configs_;
+    std::unordered_map<std::string,std::vector<std::string>> not_saved_;
     fs::path p_{config_mashroom_dir};
     static const std::vector<std::string> empty_;
     std::fstream cmd_file;
     std::fstream data_file;
-    bool changed = false;
 };
 
 //config_file

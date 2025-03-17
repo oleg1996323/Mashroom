@@ -24,40 +24,47 @@ void Config::read(){
 }
 
 void Config::save(){
-    if(changed)
+    if(!not_saved_.empty())
         write();
-    changed = false;
 }
 
 void Config::write(){
     if(!cmd_file.is_open()){
         std::cout<<"Openning "<<fs::path(config_mashroom_dir)/"usr.txt"<<std::endl;
-        cmd_file.open(fs::path(config_mashroom_dir)/"usr.txt",std::ios::out);
+        cmd_file.open(fs::path(config_mashroom_dir)/"usr.txt",std::ios::out|std::ios::app);
         if(!cmd_file.is_open())
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Error at writing to the config file.",AT_ERROR_ACTION::ABORT,(fs::path(config_mashroom_dir)/"usr.txt").c_str());
     }
-    for(auto& [name,commands]:configs_){
+    for(auto& [name,commands]:not_saved_){
         cmd_file<<name<<' ';
         for(const std::string& command:commands){
             cmd_file<<command<<' ';
         }
-        cmd_file.seekp(std::fstream::end-1);
+        cmd_file.seekp(-1,std::ios_base::end);
         cmd_file<<std::endl;
     }
+    configs_.merge(not_saved_);
+    not_saved_.clear();
 }
 
 bool Config::add_user_config(const std::string& name,const std::vector<std::string>& commands){
-    configs_[name] = commands;
-    changed = true;
-    save();
-    return true;
+    if(!not_saved_.contains(name)){
+        not_saved_[name] = commands;
+        save();
+        return true;
+    }
+    else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::ABORT,name);
+    return false;
 }
 
 bool Config::add_user_config(std::string_view name,const std::vector<std::string_view>& commands){
-    configs_[name.data()] = std::vector<std::string>({commands.begin(),commands.end()});
-    changed = true;
-    save();
-    return true;
+    if(!not_saved_.contains(name.data())){
+        not_saved_[name.data()] = std::vector<std::string>({commands.begin(),commands.end()});
+        save();
+        return true;
+    }
+    else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::ABORT,name);
+    return false;
 }
 
 void Config::remove_user_config(const std::string& name){
