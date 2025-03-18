@@ -13,7 +13,7 @@ extern "C"{
 }
 #endif
 #include "cmd_parse/cmd_def.h"
-#include "error_print.h"
+#include "sys/error_print.h"
 
 template <class T, class... Args>
 T from_chars(std::string_view s, Args... args){
@@ -69,4 +69,5 @@ T get_coord_from_token(std::string_view input, DataExtractMode& mode){
 #include "cmd_translator.h"
 namespace functions::capitalize{
     OrderItems get_item_orders(std::string_view input);
+    std::string get_txt_order(const OrderItems&);
 }

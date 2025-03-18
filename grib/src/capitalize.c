@@ -25,7 +25,7 @@
 #include "read.h"
 #include "seek_grib.h"
 #include "levels.h"
-
+#include "def.h"
 #include "decode_aux.h"
 #include "PDSdate.h"
 #include "capitalize.h"
@@ -335,7 +335,7 @@ int __capitalize_write__(GridData* grid,
 	fflush(dump_file);
 }
 
-void capitalize(const char* in,
+CapitalizeData capitalize(const char* in,
                         const char* root_cap_dir_name,
                         const char* fmt_cap,
                         enum DATA_FORMAT output_type) {
@@ -352,12 +352,13 @@ void capitalize(const char* in,
     long unsigned pos = 0;
     unsigned char *msg = NULL, *pds = NULL, *gds = NULL, *bms = NULL, *bds = NULL, *pointer = NULL, *end_msg = NULL;
     FILE *input = NULL;
-
+	CapitalizeData data_info;
     long int dump = -1;
 	char* fmt = NULL;
 
 	if ((input = fopen(in,"rb")) == NULL) {
         //fprintf(stderr,"could not open file: %s\n", in);
+		data_info.err = ErrorCodeData::;
         exit(7);
     }
     if(strlen(fmt_cap)!=0){

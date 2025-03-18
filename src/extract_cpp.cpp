@@ -40,6 +40,7 @@
 #include "compressor.h"
 #include "error_code.h"
 #include "err_msg.h"
+#include "format.h"
 
 namespace fs = std::filesystem;
 
@@ -109,7 +110,6 @@ namespace cpp{
         Coord coord,
         DATA_OUT fmt_out)
     {
-        DATA_FORMAT format = DATA_FORMAT::NONE;
         std::map<char,int> fmt_pos;
         std::regex reg;
         std::set<std::string> f_format;
@@ -119,20 +119,12 @@ namespace cpp{
                     log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",destination.c_str());
                     return ErrorCode::INTERNAL_ERROR;
             }
-            std::string fmt;
-            std::ifstream fmt_f(root_path/"format.bin",std::ios::binary|std::ios::out);
-            if(!fmt_f.is_open()){
+            if(!fs::exists(root_path/"format.bin")){
                 log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
-            fmt_f.seekg(0,std::ios::end);
-            unsigned end=fmt_f.tellg();
-            fmt_f.seekg(0);
-            fmt.resize(end);
-            fmt_f.read(fmt.data(),1);
-            fmt_f.read(fmt.data()+1,end-1);
-            for(int i=0;i<fmt.size()-1;++i)
-                fmt_pos[fmt[i]]=i+1;
+            FormatData format = format::read(root_path/"format.bin");
+            std::string fmt = functions::capitalize::get_txt_order(format.order);
             std::string str_reg(root_path.string());
             for(auto ch:fmt){
                 switch(ch){
@@ -161,7 +153,7 @@ namespace cpp{
                         break;
                 }
             }
-            switch (format)
+            switch (format.order.fmt)
             {
                 case DATA_FORMAT::GRIB:
                     f_format.insert(".grib");

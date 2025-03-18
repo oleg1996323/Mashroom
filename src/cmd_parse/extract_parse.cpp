@@ -74,7 +74,7 @@ void extract_parse(const std::vector<std::string_view>& input){
     Date date_to = Date();
     std::filesystem::path in;
     std::filesystem::path out;
-    DataExtractMode mode_extract = DataExtractMode::UNDEFINED;
+    DataExtractMode mode_extract = DataExtractMode::UNDEF;
     cpp::DATA_OUT extract_out_fmt;
     cpp::DIV_DATA_OUT extract_div_data;
     Rect rect = Rect();
@@ -94,6 +94,8 @@ void extract_parse(const std::vector<std::string_view>& input){
                 in = input[i];
                 if(!fs::is_directory(in))
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,in.c_str());
+                if(!fs::exists(in/"format.bin"))
+                    ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::ABORT,(in/"format.bin").c_str());
                 break;
             }
             case translate::token::Command::OUT_PATH:{
@@ -227,7 +229,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
     commands.push_back(translate_from_token(translate::token::ModeArgs::EXTRACT));
     Date date_from = Date();
     Date date_to = Date();
-    DataExtractMode mode_extract = DataExtractMode::UNDEFINED;
+    DataExtractMode mode_extract = DataExtractMode::UNDEF;
     cpp::DATA_OUT extract_out_fmt;
     cpp::DIV_DATA_OUT extract_div_data;
     Rect rect = Rect();

@@ -10,7 +10,7 @@ enum class MODE{
 };
 
 enum class DataExtractMode{
-    UNDEFINED,
+    UNDEF,
     POSITION,
     RECT
 };

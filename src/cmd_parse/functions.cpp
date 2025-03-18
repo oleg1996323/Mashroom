@@ -128,4 +128,35 @@ namespace functions::capitalize{
         }
         return order;
     }
+
+    std::string get_txt_order(const OrderItems& order){
+        std::vector<int OrderItems::*> items{
+        &OrderItems::day,
+        &OrderItems::hour,
+        &OrderItems::lat,
+        &OrderItems::lon,
+        &OrderItems::month,
+        &OrderItems::year};
+        int max = std::max({order.day,order.hour,order.lat,order.lon,order.month,order.year});
+        int current_order = 0;
+        std::string res;
+        while(current_order<=max){
+            if(order.day==current_order)
+                res.push_back('D');
+            else if(order.hour==current_order)
+                res.push_back('H');
+            else if(order.month==current_order)
+                res.push_back('M');
+            else if(order.year==current_order)
+                res.push_back('Y');
+            else if(order.lat==current_order)
+                if(order.lat==order.lon)
+                    res.push_back('C');
+                else res.push_back('L');
+            else if(order.lon==current_order)
+                res.push_back('O');
+            ++current_order;
+        }
+        return res.c_str();
+    }
 }

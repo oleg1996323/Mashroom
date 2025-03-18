@@ -25,3 +25,15 @@ namespace auxiliairy{
         //TODO
     }
 }
+
+namespace auxiliairy::format{
+        void read(const fs::path& path){
+            
+        }
+        void write(OrderItems order,const Date& from, const Date& to, Coord pos){
+
+        }
+        void write(OrderItems order,const Date& from, const Date& to, const Rect& rect){
+
+        }
+}

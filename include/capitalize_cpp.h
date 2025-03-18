@@ -13,5 +13,4 @@ extern "C"{
 #include <filesystem>
 #include <string>
 
-std::string get_fmt(const OrderItems&);
 void capitalize_cpp(const std::filesystem::path& root,const std::filesystem::path& from,const OrderItems& order);

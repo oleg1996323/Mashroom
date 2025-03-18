@@ -9,9 +9,19 @@
 #ifdef __cplusplus
     extern "C"{
         #include "PDSdate.h"
+        #include "capitalize.h"
+        #include "extract.h"
+    }
+#endif
+
+#ifdef __cplusplus
+    extern "C"{
+        #include "PDSdate.h"
         #include "func.h"
     }
 #endif
+
+namespace fs = std::filesystem;
 
 namespace auxiliairy{
     bool is_correct_date_interval(const Date& from, const Date& to);

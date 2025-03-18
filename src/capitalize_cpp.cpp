@@ -2,37 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-std::string get_fmt(const OrderItems& order){
-    std::vector<int OrderItems::*> items{
-                                        &OrderItems::day,
-                                        &OrderItems::hour,
-                                        &OrderItems::lat,
-                                        &OrderItems::lon,
-                                        &OrderItems::month,
-                                        &OrderItems::year};
-    int max = std::max({order.day,order.hour,order.lat,order.lon,order.month,order.year});
-    int current_order = 0;
-    std::string res;
-    while(current_order<=max){
-        if(order.day==current_order)
-            res.push_back('D');
-        else if(order.hour==current_order)
-            res.push_back('H');
-        else if(order.month==current_order)
-            res.push_back('M');
-        else if(order.year==current_order)
-            res.push_back('Y');
-        else if(order.lat==current_order)
-            if(order.lat==order.lon)
-                res.push_back('C');
-            else res.push_back('L');
-        else if(order.lon==current_order)
-            res.push_back('O');
-        ++current_order;
-    }
-    return res.c_str();
-}
+#include "cmd_parse/functions.h"
 
 void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::path& root,const OrderItems& order){
     //std::vector<std::filesystem::directory_entry> entries;
@@ -45,7 +15,7 @@ void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::pat
             std::cout<<root<<" is not a directory and unable to create directory. Abort."<<std::endl;
             exit(1);
     }
-    std::string hier = get_fmt(order);
+    std::string hier = functions::capitalize::get_txt_order(order);
     for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from)){
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
