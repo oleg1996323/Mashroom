@@ -17,10 +17,12 @@ typedef struct ORDER_ITEMS{
 typedef struct CAPITALIZEDATA{
     Date from;
     Date to;
-    Rect coord_data;
+    GridData grid_data;
     OrderItems order;
     ErrorCodeData err;
 }CapitalizeData;
+
+#define CapitalizeData(...) ((CapitalizeData){.from = Date(), .to = Date(),.grid_data = GridData(),.order = OrderItems(),.err = NONE_ERR})
 
 extern CapitalizeData capitalize(const char* in,
     const char* root_cap_dir_name,

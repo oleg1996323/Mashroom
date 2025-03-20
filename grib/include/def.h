@@ -9,11 +9,12 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-typedef enum ERROR_CODE_DATA{
+typedef enum {
     NONE_ERR,
+    DATA_EMPTY,
     OPEN_ERROR,
     READ_POS,
-    MEMORY,
+    MEMORY_ERROR,
     BAD_FILE,
     MISS_GRIB_REC,
     RUN_OUT,

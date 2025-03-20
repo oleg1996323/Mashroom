@@ -24,7 +24,7 @@ void capitalize_parse(const std::vector<std::string_view>& input){
     for(size_t i=0;i<input.size();++i){
         switch(translate_from_txt<Command>(input[i++])){
             case Command::THREADS:{
-                long tmp = from_chars<long>(input[++i]);
+                long tmp = from_chars<long>(input[i]);
                 if(tmp>=1 & tmp<=std::thread::hardware_concurrency())
                     cpus = tmp;
                 break;
@@ -58,7 +58,7 @@ void capitalize_parse(const std::vector<std::string_view>& input){
             }
             case Command::CAPITALIZE_FORMAT:{
                 if(order.fmt==NONE){
-                    switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
+                    switch(translate_from_txt<CapitilizeFormatArgs>(input[i])){
                         case CapitilizeFormatArgs::BIN:
                             order.fmt = BINARY;
                             break;
@@ -75,12 +75,15 @@ void capitalize_parse(const std::vector<std::string_view>& input){
                 else{
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Already choosen other capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
                 }
+                break;
             }
             default:{
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::ABORT,input[i]);
             }
         }
     }
+    if(order.fmt==NONE)
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Not defined output format for capitalize mode",AT_ERROR_ACTION::ABORT);
     capitalize_cpp(in,out,order);
 }
 
@@ -147,6 +150,8 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
             }
         }
     }
+    if(order.fmt==NONE)
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Not defined output format for capitalize mode",AT_ERROR_ACTION::ABORT);
     if(commands.empty())
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero args for capitalize mode",AT_ERROR_ACTION::ABORT);
     return commands;

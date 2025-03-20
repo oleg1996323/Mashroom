@@ -123,8 +123,8 @@ namespace cpp{
                 log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
-            FormatData format = format::read(root_path/"format.bin");
-            std::string fmt = functions::capitalize::get_txt_order(format.order);
+            FormatBinData format = format::read(root_path/"format.bin");
+            std::string fmt = functions::capitalize::get_txt_order(format.order_);
             std::string str_reg(root_path.string());
             for(auto ch:fmt){
                 switch(ch){
@@ -153,7 +153,7 @@ namespace cpp{
                         break;
                 }
             }
-            switch (format.order.fmt)
+            switch (format.order_.fmt)
             {
                 case DATA_FORMAT::GRIB:
                     f_format.insert(".grib");

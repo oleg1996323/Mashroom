@@ -87,7 +87,9 @@
         "filesystem": "cpp",
         "cassert": "cpp",
         "unordered_set": "cpp",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "def.h": "c",
+        "stdint.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

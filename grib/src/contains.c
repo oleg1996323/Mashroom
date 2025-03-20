@@ -254,9 +254,9 @@ fail:
     fflush(stdout);
     return false;
 }
-
+#include <stdint.h>
 const char* get_file_error_text(ErrorCodeData err){
-    return err_code_data[(uint)err];
+    return err_code_data[(unsigned int)err];
 }
     
 Result get_from_pos(const char* from,long int* count,long unsigned* pos){
@@ -289,7 +289,7 @@ Result get_from_pos(const char* from,long int* count,long unsigned* pos){
 
     if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
 	    fprintf(stderr,"not enough memory\n");
-        result.code = MEMORY;
+        result.code = MEMORY_ERROR;
         return result;
     }
     buffer_size = BUFF_ALLOC0;

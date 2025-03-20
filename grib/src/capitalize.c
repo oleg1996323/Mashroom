@@ -334,7 +334,7 @@ int __capitalize_write__(GridData* grid,
 	}
 	fflush(dump_file);
 }
-
+#include "def.h"
 CapitalizeData capitalize(const char* in,
                         const char* root_cap_dir_name,
                         const char* fmt_cap,
@@ -352,14 +352,14 @@ CapitalizeData capitalize(const char* in,
     long unsigned pos = 0;
     unsigned char *msg = NULL, *pds = NULL, *gds = NULL, *bms = NULL, *bds = NULL, *pointer = NULL, *end_msg = NULL;
     FILE *input = NULL;
-	CapitalizeData data_info;
+	CapitalizeData data_info = CapitalizeData();
     long int dump = -1;
 	char* fmt = NULL;
 
 	if ((input = fopen(in,"rb")) == NULL) {
         //fprintf(stderr,"could not open file: %s\n", in);
-		data_info.err = ErrorCodeData::;
-        exit(7);
+		data_info.err = OPEN_ERROR;
+        return data_info;
     }
     if(strlen(fmt_cap)!=0){
 		fmt = (char*)malloc(strlen(fmt_cap));
@@ -367,12 +367,13 @@ CapitalizeData capitalize(const char* in,
 	}
 	else{
 		fmt = (char*)malloc(3);
-		fmt = "CYM";
+		fmt = "YM";
 	}
 
     if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
 		fprintf(stderr,"not enough memory\n");
-		exit(0);
+		data_info.err = MEMORY_ERROR;
+        return data_info;
     }
     buffer_size = BUFF_ALLOC0;
 
@@ -380,10 +381,13 @@ CapitalizeData capitalize(const char* in,
 fail:
 	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
-		if(len_grib==0)
-            return;
+		if(len_grib==0){
+			data_info.err = NONE_ERR;
+			return data_info;
+		}
 	    fprintf(stderr,"missing GRIB record(s)\n");
-	    exit(8);
+	    data_info.err = MISS_GRIB_REC;
+        return data_info;
 	}
 
         /* read all whole grib record */
@@ -392,12 +396,14 @@ fail:
             buffer = (unsigned char *) realloc((void *) buffer, buffer_size);
             if (buffer == NULL) {
                 fprintf(stderr,"ran out of memory\n");
-                exit(8);
+				data_info.err = RUN_OUT;
+				return data_info;
             }
         }
         if (read_grib(input, pos, len_grib, buffer) == 0) {
 			fprintf(stderr,"error, could not read to end of record %ld\n",count);
-			exit(8);
+			data_info.err = READ_END_ERR;
+			return data_info;
 		}
 
 	/* parse grib message */
@@ -513,20 +519,36 @@ fail:
 		GridData grid_;
 		Date date_;
 		
-		grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
-		grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
-		grid_.dy = 0.001*GDS_LatLon_dy(gds);
-		grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
-		grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
-		grid_.dx = 0.001*GDS_LatLon_dx(gds);
-		grid_.nx = nx;
-		grid_.ny = ny;
-		grid_.nxny = nxny;
+		grid_.bound.y1 = data_info.grid_data.bound.y1 = 0.001*GDS_LatLon_La1(gds);
+		grid_.bound.y2 = data_info.grid_data.bound.y2 = 0.001*GDS_LatLon_La2(gds);
+		grid_.dy = data_info.grid_data.dy = 0.001*GDS_LatLon_dy(gds);
+		grid_.bound.x1 = data_info.grid_data.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
+		grid_.bound.x2 = data_info.grid_data.bound.y2 = 0.001*GDS_LatLon_Lo2(gds);
+		grid_.dx = data_info.grid_data.dx = 0.001*GDS_LatLon_dx(gds);
+		grid_.nx = data_info.grid_data.nx = nx;
+		grid_.ny = data_info.grid_data.ny = ny;
+		grid_.nxny = data_info.grid_data.nxny = nxny;
+		
+		/*
+		data_info.grid_data.bound.y1 = 0.001*GDS_LatLon_La1(gds);
+		data_info.grid_data.bound.y2 = 0.001*GDS_LatLon_La2(gds);
+		data_info.grid_data.dy = 0.001*GDS_LatLon_dy(gds);
+		data_info.grid_data.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
+		data_info.grid_data.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
+		data_info.grid_data.dx = 0.001*GDS_LatLon_dx(gds);
+		data_info.grid_data.nx = nx;
+		data_info.grid_data.ny = ny;
+		data_info.grid_data.nxny = nxny;
+		*/
 
 		date_.year = PDS_Year4(pds);
 		date_.month = PDS_Month(pds);
 		date_.day  = PDS_Day(pds);
 		date_.hour = PDS_Hour(pds);
+		if(!is_correct_date(&data_info.from) || get_epoch_time(&date_)<get_epoch_time(&data_info.from))
+			data_info.from=date_;
+		if(!is_correct_date(&data_info.to) || get_epoch_time(&date_)>get_epoch_time(&data_info.to))
+			data_info.to=date_;
 		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	
@@ -558,5 +580,6 @@ fail:
 	}
     fclose(input);
 	free(fmt);
-    return;
+	data_info.err = NONE;
+	return data_info;
 }

@@ -14,14 +14,28 @@
     }
 #endif
 namespace fs = std::filesystem;
-struct FormatData{
-    Date from;
-    Date to;
-    std::variant<std::monostate,Coord,Rect> coord_data;
-    OrderItems order;
+
+enum class FormatTokens{
+    DateFrom,
+    DateTo,
+    Coord,
+    Rect,
+    Capitalize_data,
+    Capitalize_format
+};
+// struct FormatBinData{
+//     Date from;
+//     Date to;
+//     std::variant<std::monostate,Coord,Rect> coord_data;
+//     OrderItems order;
+// };
+struct FormatBinData{
+    CapitalizeData data_ = CapitalizeData();
+    OrderItems order_ = OrderItems();
 };
 namespace format{
-FormatData read(const fs::path& path);
-void write(OrderItems order,const Date& from, const Date& to, Coord pos);
-void write(OrderItems order,const Date& from, const Date& to, const Rect& rect);
+FormatBinData read(const fs::path& path);
+// void write(OrderItems order,const Date& from, const Date& to, Coord pos);
+void write(const fs::path& dir, const OrderItems& order,const CapitalizeData& data);
+void write(const fs::path& dir,const FormatBinData& data);
 }
