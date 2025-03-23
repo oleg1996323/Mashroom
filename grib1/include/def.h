@@ -9,20 +9,12 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-<<<<<<< HEAD:grib1/include/def.h
 typedef enum {
     NONE_ERR,
     DATA_EMPTY,
     OPEN_ERROR,
     READ_POS,
     MEMORY_ERROR,
-=======
-typedef enum ERROR_CODE_DATA{
-    NONE_ERR,
-    OPEN_ERROR,
-    READ_POS,
-    MEMORY,
->>>>>>> 8364990 (temp):grib/include/def.h
     BAD_FILE,
     MISS_GRIB_REC,
     RUN_OUT,
@@ -31,7 +23,6 @@ typedef enum ERROR_CODE_DATA{
     MISS_END_SECTION
 }ErrorCodeData;
 
-<<<<<<< HEAD:grib1/include/def.h
 static const char* err_code_data[11]={
     "Correct",
     "Error openning",
@@ -46,8 +37,6 @@ static const char* err_code_data[11]={
     "End section missed"
 };
 
-=======
->>>>>>> 8364990 (temp):grib/include/def.h
 typedef enum DATA_FORMAT{
     NONE,
     BINARY,
