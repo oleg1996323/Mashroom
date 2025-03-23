@@ -407,13 +407,13 @@ int main(int argc, char* argv[]){
     //         exit(1);
     //     }
     // }
-    // std::ofstream fmt(path/"format.bin",std::ios::trunc|std::ios::binary);
+    // std::ofstream fmt(path/format_filename,std::ios::trunc|std::ios::binary);
     // if(!fmt.is_open()){
-    //     std::cout<<"Cannot open "<<path/"format.bin"<<std::endl;
+    //     std::cout<<"Cannot open "<<path/format_filename<<std::endl;
     //     exit(1);
     // }
     // else{
-    //     std::cout<<"Openned "<<path/"format.bin"<<std::endl;
+    //     std::cout<<"Openned "<<path/format_filename<<std::endl;
     // }
     // fmt.write("YM",2);
     // fmt.close();

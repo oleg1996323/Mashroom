@@ -89,7 +89,20 @@
         "unordered_set": "cpp",
         "stdlib.h": "c",
         "def.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "pds.h": "c",
+        "pdsdate.h": "c",
+        "memory.h": "c",
+        "user.h": "c",
+        "verf.h": "c",
+        "time_date.h": "c",
+        "write.h": "c",
+        "decode_aux.h": "c",
+        "seek_grib.h": "c",
+        "gds.h": "c",
+        "func.h": "c",
+        "ensemble.h": "c",
+        "dirent.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

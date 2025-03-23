@@ -2,7 +2,7 @@
 #include "sys/base.h"
 #ifdef __cplusplus
 extern "C"{
-    #include "PDSdate.h"
+    #include "sections/PDSdate.h"
 }
 #endif
 
@@ -24,16 +24,4 @@ namespace auxiliairy{
     Rect get_accessible_rect(){
         //TODO
     }
-}
-
-namespace auxiliairy::format{
-        void read(const fs::path& path){
-            
-        }
-        void write(OrderItems order,const Date& from, const Date& to, Coord pos){
-
-        }
-        void write(OrderItems order,const Date& from, const Date& to, const Rect& rect){
-
-        }
 }

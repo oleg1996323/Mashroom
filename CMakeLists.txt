@@ -3,7 +3,6 @@ project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX C)
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_C_STANDARD 23)
 option(LOG_ON OFF)
 option(PERMANENT_GET ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -11,7 +10,8 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY
 add_compile_options(-fPIC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libgcc -static-libstdc++")
 
-file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib/src/**.c)
+file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.c
+                                ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 
 
@@ -23,20 +23,20 @@ make_directory(third_party/png)
 file(COPY ${PNG_LIBRARIES} DESTINATION third_party/png)
 make_directory(third_party/libc)
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/grib/include ${CMAKE_CURRENT_LIST_DIR}/include ${CMAKE_CURRENT_LIST_DIR}/include/sys ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/grib1/include 
+                    ${CMAKE_CURRENT_LIST_DIR}/include 
+                    ${CMAKE_CURRENT_LIST_DIR}/include/sys 
+                    ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
 
-add_library(grib_c STATIC ${GRIB_SOURCES})
-
-add_executable(Mashroom ${Mashroom_SOURCES})
+add_executable(Mashroom ${Mashroom_SOURCES} ${GRIB_SOURCES})
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
 
 target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}" $<$<BOOL:${LOG_ON}>:LOG_ON> $<$<BOOL:${PERMANENT_GET}>:PERMANENT_GET> )
 target_compile_definitions(Mashroom_lib PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}")
 file(GLOB PNG_LIBS third_party/png/*.so)
 
-target_link_libraries(Mashroom PRIVATE grib_c ${PNG_LIBRARIES})
-target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include
-                                        ${CMAKE_CURRENT_LIST_DIR}/grib/src
+target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/include
+                                        ${CMAKE_CURRENT_LIST_DIR}/grib1/src
                                         ${CMAKE_CURRENT_LIST_DIR}/include
                                         ${CMAKE_CURRENT_LIST_DIR}/src
                                         ${PNG_INCLUDE_DIRS}
@@ -54,7 +54,7 @@ target_include_directories(Mashroom_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/i
 
 message(STATUS ${PNG_INCLUDE_DIRS})
 
-set_target_properties(Mashroom grib_c Mashroom_lib
+set_target_properties(Mashroom Mashroom_lib
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
                     LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/shared/Debug"

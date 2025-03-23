@@ -6,9 +6,10 @@
 #include "functions.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
+#include "sys/format_def.h"
 #ifdef __cplusplus
     extern "C"{
-        #include "PDSdate.h"
+        #include "sections/PDSdate.h"
         #include "capitalize.h"
         #include "extract.h"
     }
@@ -34,8 +35,9 @@ struct FormatBinData{
     OrderItems order_ = OrderItems();
 };
 namespace format{
-FormatBinData read(const fs::path& path);
-// void write(OrderItems order,const Date& from, const Date& to, Coord pos);
-void write(const fs::path& dir, const OrderItems& order,const CapitalizeData& data);
-void write(const fs::path& dir,const FormatBinData& data);
+    using namespace std::string_literals;
+    FormatBinData read(const fs::path& path);
+    // void write(OrderItems order,const Date& from, const Date& to, Coord pos);
+    void write(const fs::path& dir, const OrderItems& order,const CapitalizeData& data);
+    void write(const fs::path& dir,const FormatBinData& data);
 }

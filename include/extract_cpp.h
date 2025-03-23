@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
 extern "C"{
-    #include "PDSdate.h"
+    #include "sections/PDSdate.h"
     #include "coords.h"
     #include "extract.h"
     #include "def.h"
@@ -100,11 +100,13 @@ ErrorCode extract_cpp_pos(const std::filesystem::path& root_path,
                 Date from, 
                 Date to,
                 Coord coord,
-                DATA_OUT fmt_out);
+                DATA_OUT fmt_out,
+                float* progress=nullptr);
 
 ErrorCode extract_cpp_rect(const std::filesystem::path& root_path,
                 Date from, 
                 Date to,
                 Rect rect,
-                DATA_OUT fmt_out);
+                DATA_OUT fmt_out,
+                float* progress=nullptr);
 }

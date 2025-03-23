@@ -159,4 +159,44 @@ namespace functions::capitalize{
         }
         return res.c_str();
     }
+
+    OrderItems get_order_txt(std::string_view txt){
+        OrderItems order;
+        for(int i=0;i<txt.size();++i){
+            switch (txt[i])
+            {
+            case 'd':
+            case 'D':
+                order.day = i;
+            case 'h':
+            case 'H':
+                order.hour = i;
+                break;
+            case 'm':
+            case 'M':
+                order.month = i;
+                break;
+            case 'y':
+            case 'Y':
+                order.year = i;
+                break;
+            case 'c':
+            case 'C':
+                order.lat = i;
+                order.lon = i;
+                break;
+            case 'l':
+            case 'L':
+                order.lat = i;
+                break;
+            case 'o':
+            case 'O':
+                order.lon = i;
+                break;
+            default:
+                break;
+            }
+        }
+        return order;
+    }
 }

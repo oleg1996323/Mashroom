@@ -10,9 +10,9 @@
         #include <string.h>
         #include <math.h>
         #include "extract.h"
-        #include "PDS.h"
-        #include "BDS.h"
-        #include "GDS.h"
+        #include "sections/PDS.h"
+        #include "sections/BDS.h"
+        #include "sections/GDS.h"
         #include "write.h"
         #include "ensemble.h"
         #include "func.h"
@@ -22,7 +22,7 @@
         #include "read.h"
         #include "seek_grib.h"
         #include "levels.h"
-        #include "Parm_Table.h"
+        #include "sections/Parm_Table.h"
         #include "def.h"
         #include <sys/types.h>
         #include <dirent.h>
@@ -43,7 +43,7 @@
 #include "format.h"
 
 namespace fs = std::filesystem;
-
+using namespace std::string_literals;
 namespace cpp{
 
     DATA_OUT operator|(DATA_OUT lhs,DATA_OUT rhs){
@@ -108,7 +108,8 @@ namespace cpp{
         Date from, 
         Date to,
         Coord coord,
-        DATA_OUT fmt_out)
+        DATA_OUT fmt_out,
+        float* progress)
     {
         std::map<char,int> fmt_pos;
         std::regex reg;
@@ -119,36 +120,59 @@ namespace cpp{
                     log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",destination.c_str());
                     return ErrorCode::INTERNAL_ERROR;
             }
-            if(!fs::exists(root_path/"format.bin")){
+            if(!fs::exists(root_path/format_filename)){
                 log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
-            FormatBinData format = format::read(root_path/"format.bin");
+            FormatBinData format = format::read(root_path/format_filename);
+            if(correct_date_interval(&from,&to) && (get_epoch_time(&format.data_.from)>get_epoch_time(&to) || get_epoch_time(&format.data_.to)<get_epoch_time(&from))){
+                ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
+                return ErrorCode::INCORRECT_DATE;
+            }
+            else if(!point_in_grid(&format.data_.grid_data,coord)){
+                ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
+                return ErrorCode::INCORRECT_COORD;
+            }
+                
             std::string fmt = functions::capitalize::get_txt_order(format.order_);
-            std::string str_reg(root_path.string());
-            for(auto ch:fmt){
-                switch(ch){
+            std::string str_reg("^"s+root_path.string());
+            for(int i = 0;i<fmt.size();++i){
+                switch(fmt[i]){
+                    case 'y':
                     case 'Y':
-                    str_reg = str_reg+R"(/(19[0-9]{2}|20[0-9]{2}))";
-                    break;
+                        str_reg = str_reg+R"(/(19[0-9]{2}|20[0-9]{2}))";
+                        fmt_pos['Y']=i+1;
+                        break;
+                    case 'm':
                     case 'M':
-                    str_reg = str_reg+R"(/(0?[1-9]|1[0-2]))";
-                    break;
+                        str_reg = str_reg+R"(/(0?[1-9]|1[0-2]))";
+                        fmt_pos['M']=i+1;
+                        break;
+                    case 'd':
                     case 'D':
-                    str_reg = str_reg+R"(/([1-2][0-9]|3[0-1]|0?[1-9]))";
-                    break;
+                        str_reg = str_reg+R"(/([1-2][0-9]|3[0-1]|0?[1-9]))";
+                        fmt_pos['D']=i+1;
+                        break;
+                    case 'h':
                     case 'H':
-                    str_reg = str_reg+R"(/(0[1-9]|[12][0-9]|3[01]))";
-                    break;
+                        str_reg = str_reg+R"(/(0[1-9]|[12][0-9]|3[01]))";
+                        fmt_pos['H']=i+1;
+                        break;
+                    case 'l':
                     case 'L':
-                    str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?)))";
-                    break;
+                        str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?)))";
+                        fmt_pos['L']=i+1;
+                        break;
+                    case 'o':
                     case 'O':
-                    str_reg = str_reg+R"(/(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
-                    break;
+                        str_reg = str_reg+R"(/(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
+                        fmt_pos['O']=i+1;
+                        break;
+                    case 'c':
                     case 'C':
-                    str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?))_(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
-                    break;
+                        str_reg = str_reg+R"(/(?:lat(-?90(?:\.[0]+)?|[0-8]?[0-9](?:\.[0-9]+)?))_(?:lon(-?180(?:\.[0]+)?|1[0-7]?[0-9](?:\.[0-9]+)?|0?[0-9]?[0-9](?:\.[0-9]+)?)))";
+                        fmt_pos['C']=i+1;
+                        break;
                     default:
                         break;
                 }
@@ -156,10 +180,12 @@ namespace cpp{
             switch (format.order_.fmt)
             {
                 case DATA_FORMAT::GRIB:
+                    str_reg = str_reg+R"((/([^/\\]+).grib))";
                     f_format.insert(".grib");
                     f_format.insert(".grb");
                     break;
                 case DATA_FORMAT::BINARY:
+                    str_reg = str_reg+R"(/*.omdb)";
                     f_format.insert(".omdb");
                     break;
                 default:
@@ -168,6 +194,8 @@ namespace cpp{
                     break;
             }
             str_reg.append("$");
+            std::cout<<str_reg<<std::endl;
+            reg = str_reg;
         }
         time_point<system_clock> beg = system_clock::now();
         std::map<std::string,StampVal*> tags;
@@ -181,7 +209,7 @@ namespace cpp{
                 const std::string& p = iterator->path().string();
                 std::cout<<p<<std::endl;
                 if(!std::regex_match(p,m,reg)){
-                    //std::cout<<p<<" : Not matched."<<std::endl;
+                    std::cout<<p<<" : Not matched."<<std::endl;
                     ++iterator;
                     continue;
                 }
@@ -332,5 +360,6 @@ namespace cpp{
         Date from, 
         Date to,
         Rect rect,
-        DATA_OUT out_fmt){return ErrorCode::INTERNAL_ERROR;} //unused method
+        DATA_OUT out_fmt,
+        float* progress){return ErrorCode::INTERNAL_ERROR;} //unused method
 }

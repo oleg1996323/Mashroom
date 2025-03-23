@@ -6,6 +6,7 @@
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
 #include "functions.h"
+#include "format.h"
 
 namespace fs = std::filesystem;
 
@@ -94,8 +95,8 @@ void extract_parse(const std::vector<std::string_view>& input){
                 in = input[i];
                 if(!fs::is_directory(in))
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,in.c_str());
-                if(!fs::exists(in/"format.bin"))
-                    ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::ABORT,(in/"format.bin").c_str());
+                if(!fs::exists(in/format_filename))
+                    ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::ABORT,(in/format_filename).c_str());
                 break;
             }
             case translate::token::Command::OUT_PATH:{
@@ -103,7 +104,7 @@ void extract_parse(const std::vector<std::string_view>& input){
                 if(tokens.size()!=2)
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::ABORT,input[i]);
                 if(tokens.at(0)=="dir"){
-                    out = tokens.at(1);
+                    out = std::string(tokens.at(1));
                     if(!fs::exists(out)){
                         if(!fs::create_directory(out))
                             ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,out.c_str());
@@ -377,6 +378,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             //     //define after in-path defined and read format.bin
             //      format (grib,archive,txt,bin)(hierarchy)(begin date)(end date)(lattop,latbot,lonleft,lonrig)
             // }
+                break;
             case translate::token::Command::POSITION:{
                 coord = get_coord_from_token<Coord>(input[i],mode_extract);
                 commands.push_back(input.at(i));

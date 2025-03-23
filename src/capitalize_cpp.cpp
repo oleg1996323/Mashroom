@@ -17,8 +17,13 @@ void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::pat
             exit(1);
     }
     std::string hier = functions::capitalize::get_txt_order(order);
+    if(hier.empty())
+        hier = "ym";
+    if(order.fmt==DataFormat::NONE)
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not defined capitalize format.",AT_ERROR_ACTION::ABORT);
     FormatBinData data;
-    data.order_ = order;
+    data.order_ = functions::capitalize::get_order_txt(hier);
+    data.order_.fmt = order.fmt;
     for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from)){
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -37,6 +42,10 @@ void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::pat
                         data.data_.to=cap_data.to;
                 }
                 else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
+
+                if(!is_correct_rect(&cap_data.grid_data.bound))
+                    ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
+                else data.data_.grid_data=cap_data.grid_data;
             }
             else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
         }
