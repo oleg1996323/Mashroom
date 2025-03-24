@@ -6,5 +6,8 @@
    requires getting the length of the binary data section.  To get this requires
    getting the lengths of the various sections before the bds.  To see if those
    sections are there requires checking the flags in the pds.  */
-
+#ifndef __cplusplus
 long echack(FILE *file, long pos, long len_grib);
+#else
+long echack(std::ifstream& file, long pos, long len_grib);
+#endif
