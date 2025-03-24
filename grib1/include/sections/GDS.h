@@ -11,6 +11,17 @@
 /* 8/08 - dx/dy (polar,lambert) controlled by bit 1 of resolution byte */
 /* 5/11 Paul Schou: fixed GDS_Lambert_LonSP(gds) */
 /* 6/11 Jeffery S. Smith Albers equal area projection */
+#include "data/GDS_data.h"
+#ifdef __cplusplus
+#include <cstdint>
+struct GridDescriptionSection{
+	uint32_t section2Length = 0;
+	uint8_t numberOfVerticalCoordinateValues = 0;
+	uint8_t pvLocation = 0;
+	RepresentationType dataRepresentationType = UNDEFINED_REPRESENTATION;
+	
+};
+#endif
 
 #ifndef INT3
 #define INT3(a,b,c) ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 127) << 16)+(b<<8)+c))
@@ -35,20 +46,20 @@
 #define GDS_Len1(gds)		(gds[0])
 #define GDS_Len2(gds)		(gds[1])
 #define GDS_Len3(gds)		(gds[2])
-#define GDS_LEN(gds)		((int) ((gds[0]<<16)+(gds[1]<<8)+gds[2]))
+#define GDS_LEN(gds)		((int) (UINT3(gds[0],gds[1],gds[2])))
 
 #define GDS_NV(gds)		(gds[3])
 #define GDS_DataType(gds)	(gds[5])
 
-#define GDS_LatLon(gds)		(gds[5] == 0)
-#define GDS_Mercator(gds)	(gds[5] == 1)
-#define GDS_Gnomonic(gds)	(gds[5] == 2)
-#define GDS_Lambert(gds)	(gds[5] == 3)
-#define GDS_Gaussian(gds)	(gds[5] == 4)
-#define GDS_Polar(gds)		(gds[5] == 5)
-#define GDS_Albers(gds)		(gds[5] == 8)
-#define GDS_RotLL(gds)		(gds[5] == 10)
-#define GDS_Harmonic(gds)	(gds[5] == 50)
+#define GDS_LatLon(gds)		(gds[5] == RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR)
+#define GDS_Mercator(gds)	(gds[5] == RepresentationType::MERCATOR)
+#define GDS_Gnomonic(gds)	(gds[5] == RepresentationType::GNOMONIC)
+#define GDS_Lambert(gds)	(gds[5] == RepresentationType::LAMBERT)
+#define GDS_Gaussian(gds)	(gds[5] == RepresentationType::GAUSSIAN)
+#define GDS_Polar(gds)		(gds[5] == RepresentationType::POLAR_STEREOGRAPH_PROJ)
+#define GDS_Albers(gds)		(gds[5] == RepresentationType::ALBERS_EQUAL_AREA)
+#define GDS_RotLL(gds)		(gds[5] == RepresentationType::ROTATED_LAT_LON)
+#define GDS_Harmonic(gds)	(gds[5] == RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS)
 #define GDS_Triangular(gds)	(gds[5] == 192)
 #define GDS_ssEgrid(gds)	(gds[5] == 201)	/* semi-staggered E grid */
 #define GDS_fEgrid(gds)		(gds[5] == 202) /* filled E grid */
@@ -70,8 +81,8 @@
 
 #define GDS_LatLon_scan(gds)	(gds[27])
 
-#define GDS_Polar_nx(gds)	(gds[16] & 128 ? ((gds[6] << 8) + gds[7]) : 0)
-#define GDS_Polar_ny(gds)	(gds[16] & 128 ? ((gds[8] << 8) + gds[9]) : 0)
+#define GDS_Polar_nx(gds)	(gds[16] & 128 ? (UINT2(gds[6],gds[7])) : 0)
+#define GDS_Polar_ny(gds)	(gds[16] & 128 ? (UINT2(gds[8],gds[9])) : 0)
 #define GDS_Polar_La1(gds)	INT3(gds[10],gds[11],gds[12])
 #define GDS_Polar_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 #define GDS_Polar_mode(gds)	(gds[16])
@@ -180,9 +191,9 @@
 #define GDS_Triangular_nd(gds)  INT3(gds[10],gds[11],gds[12])
 
 /* Harmonics data */
-#define GDS_Harmonic_nj(gds)     ((int) ((gds[6] << 8) + gds[7])) 
-#define GDS_Harmonic_nk(gds)     ((int) ((gds[8] << 8) + gds[9])) 
-#define GDS_Harmonic_nm(gds)     ((int) ((gds[10] << 8) + gds[11])) 
+#define GDS_Harmonic_nj(gds)     ((int) (UINT2(gds[6],gds[7]))) 
+#define GDS_Harmonic_nk(gds)     ((int) (UINT2(gds[8],gds[9]))) 
+#define GDS_Harmonic_nm(gds)     ((int) (UINT2(gds[10],gds[11]))) 
 #define GDS_Harmonic_type(gds)   (gds[12])
 #define GDS_Harmonic_mode(gds)   (gds[13])
 
@@ -228,3 +239,17 @@ static const char *scan_mode[8] = {
 
 
 void GDS_winds(unsigned char *gds, int verbose);
+
+#ifdef __cplusplus
+#include <fstream>
+#include <vector>
+bool read_GDS(std::ifstream& file, GridDescriptionSection& data){
+	file.clear();
+	std::vector<char> buf;
+	buf.resize(7);
+	if(!file.read(buf.data(),buf.size())) return false;
+	data.section2Length = UINT3(buf[0],buf[1],buf[2]);
+	if(data.section2Length==0) return false;
+		
+}
+#endif
