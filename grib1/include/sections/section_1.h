@@ -62,8 +62,10 @@
 		section_1.P1 = buffer[18];
 		section_1.P2 = buffer[19];
 		section_1.timeRangeIndicator = (TimeRange)buffer[20];
-		section_0.msg_length = read_bytes<3>(buffer[5],buffer[6],buffer[7]);
-		section_0.grib_edition = buffer[8];
+		section_1.numberIncludedInAverage = buffer[22]<<8+buffer[21];
+		section_1.numberMissingFromAveragesOrAccumulations = buffer[22];
+		section_1.centuryOfReferenceTimeOfData = buffer[23];
+		
 	}
 #else
 #include <stdint.h>
