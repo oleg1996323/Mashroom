@@ -1,7 +1,72 @@
 #pragma once
-#include "data/data_tags.h"
+#include "code_tables/table_0.h"
+#include "sections/def.h"
+#include "bit/byte_read.h"
+#include "code_tables/table_1.h"
+#include "code_tables/table_2.h"
+#include "code_tables/table_3.h"
+#include "code_tables/table_4.h"
+#include "code_tables/table_5.h"
+#ifdef __cplusplus
+	#include <cstdint>
+	#include <stdlib.h>
+	struct ProductDefinitionSection{
+		unsigned section1Length;
+		unsigned table2Version;
+		Organization centre;
+		uint8_t generatingProcessIdentifier;
+		uint8_t gridDefinition;
+		Section2_3_flag section1Flags;
+		ParameterGrib1 IndicatorOfParameter;
+		LevelsTags IndicatorOfTypeOfLevel;
+		uint16_t level_data;
+		uint8_t yearOfCentury;
+		uint8_t month;
+		uint8_t day;
+		uint8_t hour;
+		uint8_t minute;
+		UnitTime unitOfTimeRange;
+		uint8_t P1;
+		uint8_t P2;
+		TimeRange timeRangeIndicator;
+		uint16_t numberIncludedInAverage;
+		uint8_t numberMissingFromAveragesOrAccumulations;
+		uint8_t centuryOfReferenceTimeOfData;
+		uint8_t subCentre;
+		int16_t decimalScaleFactor;
+		char reserved[12];
+		char* additional;
+	};
+	bool check_and_get_section_1(ProductDefinitionSection& section_1,char* buffer,size_t file_size){
+		if(buffer == nullptr)
+			return false;
+		if(file_size<sec_0_sz+sec_1_min_sz)
+			return false;
+		unsigned length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
+		if(length<sec_1_min_sz)
+			return false;
+		unsigned char tab_version = buffer[3];
+		section_1.centre = (Organization)buffer[4];
+		section_1.generatingProcessIdentifier = buffer[5];
+		section_1.gridDefinition = buffer[6];
+		section_1.section1Flags = (Section2_3_flag)buffer[7];
+		section_1.IndicatorOfParameter = (ParameterGrib1)buffer[8];
+		section_1.IndicatorOfTypeOfLevel = (LevelsTags)buffer[9];
+		section_1.level_data = buffer[10]+buffer[11]<<8;
+		section_1.yearOfCentury = buffer[12];
+		section_1.month = buffer[13];
+		section_1.day = buffer[14];
+		section_1.hour = buffer[15];
+		section_1.minute = buffer[16];
+		section_1.unitOfTimeRange = (UnitTime)buffer[17];
+		section_1.P1 = buffer[18];
+		section_1.P2 = buffer[19];
+		section_1.timeRangeIndicator = (TimeRange)buffer[20];
+		section_0.msg_length = read_bytes<3>(buffer[5],buffer[6],buffer[7]);
+		section_0.grib_edition = buffer[8];
+	}
+#else
 #include <stdint.h>
-
 typedef struct{
 	unsigned section1Length;
 	unsigned table2Version;
@@ -46,15 +111,7 @@ typedef struct{
 /* old #define PDS_Year4(pds)   (pds[12] + 100*(pds[24] - (pds[12] != 0))) */
 #define PDS_Year4(pds)          (pds[12] + 100*(pds[24] - 1))
 
-#ifndef INT2
-#define INT2(a,b)   ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 0x7f) << 8) + b))
-#endif
-#ifndef UINT4
-#define UINT4(a,b,c,d) ((int) ((a << 24) + (b << 16) + (c << 8) + (d)))
-#endif
-#ifndef UINT2
-#define UINT2(a,b) ((int) ((a << 8) + (b)))
-#endif
+
 #define __LEN24(pds)    ((pds) == NULL ? 0 : (int) ((pds[0]<<16)+(pds[1]<<8)+pds[2]))
 
 #define PDS_Len1(pds)		(pds[0])
@@ -114,3 +171,4 @@ typedef struct{
 #define PDS_NcepFcstType(pds)	(pds[41])
 #define PDS_NcepFcstNo(pds)	(pds[42])
 #define PDS_NcepFcstProd(pds)	(pds[43])
+#endif

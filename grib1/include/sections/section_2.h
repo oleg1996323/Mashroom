@@ -23,26 +23,6 @@ struct GridDescriptionSection{
 };
 #endif
 
-#ifndef INT3
-#define INT3(a,b,c) ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 127) << 16)+(b<<8)+c))
-#endif
-#ifndef INT2
-#define INT2(a,b)   ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 127) << 8) + b))
-#endif
-
-#ifndef UINT4
-#define UINT4(a,b,c,d) ((int) ((a << 24) + (b << 16) + (c << 8) + (d)))
-#endif
-
-#ifndef UINT3
-#define UINT3(a,b,c) ((int) ((a << 16) + (b << 8) + (c)))
-#endif
-
-#ifndef UINT2
-#define UINT2(a,b) ((int) ((a << 8) + (b)))
-#endif
-
-
 #define GDS_Len1(gds)		(gds[0])
 #define GDS_Len2(gds)		(gds[1])
 #define GDS_Len3(gds)		(gds[2])

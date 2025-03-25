@@ -26,9 +26,7 @@
  *         1.2.2 added access to spectral reference value l. kornblueh
  */
 
-#ifndef INT2
-#define INT2(a,b)   ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 0x7f) << 8) + b))
-#endif
+
 
 #define BDS_LEN(bds)		(ec_large_grib ? len_ec_bds : ((int) ((bds[0]<<16)+(bds[1]<<8)+bds[2])) )
 

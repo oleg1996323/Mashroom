@@ -27,7 +27,7 @@ enum RepresentationType{
     SPACE_VIEW=90
 };
 
-const bool is_representation[255]={
+constexpr bool is_representation[255]={
     1,1,1,1,1,
     1,1,1,1,1,
     1,0,0,1,1,

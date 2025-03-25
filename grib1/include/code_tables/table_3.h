@@ -45,7 +45,7 @@ enum LevelsTags{
 };
 
 #include <stdbool.h>
-const bool levels_10_octets[255]={
+constexpr bool levels_10_octets[255]={
     0,1,1,1,1,
     1,1,1,1,1,
     0,0,0,0,0,
@@ -137,7 +137,7 @@ static_assert(levels_10_octets[ENTIRE_OCEAN]);
 static_assert(levels_10_octets[ISOBARIC_SURFACE_HP]);
 
 #include <stdint.h>
-const uint8_t levels_11_octets[255]={
+constexpr uint8_t levels_11_octets[255]={
     0,0,0,0,0,
     0,0,0,0,0,
     0,0,0,0,0,
@@ -228,7 +228,7 @@ static_assert(levels_11_octets[ENTIRE_ATMOSPHERE]==0);
 static_assert(levels_11_octets[ENTIRE_OCEAN]==0);
 static_assert(levels_11_octets[ISOBARIC_SURFACE_HP]==2);
 
-const uint8_t levels_12_octets[255]={
+constexpr uint8_t levels_12_octets[255]={
     0,0,0,0,0,
     0,0,0,0,0,
     0,0,0,0,0,
