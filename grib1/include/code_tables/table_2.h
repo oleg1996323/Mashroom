@@ -1,4 +1,5 @@
 #pragma once
+#include "generated/code_tables/eccodes_tables.h"
 
 typedef enum{
     Grib1_RESERVED = 0,

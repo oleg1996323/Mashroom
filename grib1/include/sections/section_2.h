@@ -11,7 +11,7 @@
 /* 8/08 - dx/dy (polar,lambert) controlled by bit 1 of resolution byte */
 /* 5/11 Paul Schou: fixed GDS_Lambert_LonSP(gds) */
 /* 6/11 Jeffery S. Smith Albers equal area projection */
-#include "data/GDS_data.h"
+#include "sections/section_3.h"
 #ifdef __cplusplus
 #include <cstdint>
 struct GridDescriptionSection{

@@ -8,6 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 include(loadCodeTables)
 
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables")
+execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 load_eccode_header(
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes/definitions/grib1"
 	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables"

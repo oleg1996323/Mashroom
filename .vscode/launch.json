@@ -43,6 +43,15 @@
         "cwd": "${cwd}",
         "console": "internalConsole",
         "env": {}
+    },
+    {
+        "name": "Launch",
+        "type": "cmake",
+        "request": "launch",
+        "scriptPath": "~/Mashroom/CMakeLists.txt",
+        "cmakeDebugType": "script",
+        "clean": false,
+        "configureAll": true
     }
     ]
 }

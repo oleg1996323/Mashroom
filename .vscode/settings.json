@@ -102,7 +102,8 @@
         "gds.h": "c",
         "func.h": "c",
         "ensemble.h": "c",
-        "dirent.h": "c"
+        "dirent.h": "c",
+        "section_2.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
