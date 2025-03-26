@@ -232,3 +232,8 @@ typedef enum DATA_ORGANIZATIONS{
     MPI_M = 252,
     EUMETSAT = 254
 }Organization;
+
+typedef enum{
+    ERA_INTERIM = 128,
+    ERA5 = 228
+}ECMWFsubcenter;

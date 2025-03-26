@@ -1,0 +1,3 @@
+[submodule "external/eccodes"]
+	path = external/eccodes
+	url = https://github.com/ecmwf/eccodes.git

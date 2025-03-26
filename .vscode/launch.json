@@ -5,17 +5,10 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
-<<<<<<< HEAD
         "args": ["-ext","-inp","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m12:y2024","-pos","40.000:45.000","-outp","dir:/home/oster/extracted_after_ch_BDS","-extfmt", "txt:zip"],//["-help"],
         //"test"
         //"-cap","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"
         //"-ext","-inp","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m12:y2024","-pos","40.000:45.000","-outp","dir:/home/oster/extracted_after_ch_BDS","-extfmt", "txt:zip"
-=======
-        "args": ["-cap","-outp","dir:/home/oster/out_test","-inp","/home/oster/grib_files","-format","grib"],//["-help"],
-        //"test"
->>>>>>> 8364990 (temp)
-        //"-config","add","test","-ext","-inp","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m1:y1991","-pos","40.000:45.000","-outp","dir:/home/oster/extracted_after_ch_BDS","-extfmt", "txt:zip"
-        //"-ext","-p","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m1:y1991","-pos","40.000:45.000","-send","dir:/home/oster/extracted_after_ch_BDS","-format","grib","-extfmt", "txt","zip"
         "stopAtEntry": false,
         "cwd": "${cwd}",
         "externalConsole": false,
@@ -39,6 +32,17 @@
                 "ignoreFailures": true
             }
         ]
+    },
+    {
+        "name": "Launch",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${file}",
+        "args": ["--src=/home/oster/Mashroom/external/eccodes/definitions/grib1",
+                 "--out=/home/oster/Mashroom/grib1/include/generated/code_tables"],
+        "cwd": "${cwd}",
+        "console": "internalConsole",
+        "env": {}
     }
     ]
 }
