@@ -4,6 +4,7 @@
 #include <vector>
 #include <ranges>
 #include "bit/byte_read.h"
+#include "sections/def.h"
 struct IndicatorSection{
     unsigned msg_length;
     unsigned char grib_edition; 

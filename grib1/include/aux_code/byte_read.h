@@ -6,7 +6,7 @@ unsigned read_bytes(ARGS&&... args){
     unsigned shift = 0;
     return ((static_cast<unsigned>(args)<<(shift++*8*BYTES))+...);
 }
-#else
+#endif
 #ifndef INT2
 #define INT2(a,b)   ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 0x7f) << 8) + b))
 #endif
@@ -21,5 +21,4 @@ unsigned read_bytes(ARGS&&... args){
 #endif
 #ifndef UINT4
 #define UINT4(a,b,c,d) ((int) ((a << 24) + (b << 16) + (c << 8) + (d)))
-#endif
 #endif

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "def.h"
-#include "sections/GDS.h"
-#include "sections/BDS.h"
+#include "sections/section_2.h"
+#include "sections/section_1.h"
 
 int GDS_LatLon_nx(unsigned char* gds){
 	int nx = ((int) ((gds[6] << 8) + gds[7]));

@@ -1,7 +1,7 @@
 #pragma once
 #include "code_tables/table_0.h"
 #include "sections/def.h"
-#include "bit/byte_read.h"
+#include "aux_code/byte_read.h"
 #include "code_tables/table_1.h"
 #include "code_tables/table_2.h"
 #include "code_tables/table_3.h"
@@ -10,83 +10,29 @@
 #ifdef __cplusplus
 	#include <cstdint>
 	#include <stdlib.h>
-	struct ProductDefinitionSection{
-		unsigned section1Length;
-		unsigned table2Version;
-		Organization centre;
-		uint8_t generatingProcessIdentifier;
-		uint8_t gridDefinition;
-		Section2_3_flag section1Flags;
-		ParameterGrib1 IndicatorOfParameter;
-		LevelsTags IndicatorOfTypeOfLevel;
-		uint16_t level_data;
-		uint8_t yearOfCentury;
-		uint8_t month;
-		uint8_t day;
-		uint8_t hour;
-		uint8_t minute;
-		UnitTime unitOfTimeRange;
-		uint8_t P1;
-		uint8_t P2;
-		TimeRange timeRangeIndicator;
-		uint16_t numberIncludedInAverage;
-		uint8_t numberMissingFromAveragesOrAccumulations;
-		uint8_t centuryOfReferenceTimeOfData;
-		uint8_t subCentre;
-		int16_t decimalScaleFactor;
-		char reserved[12];
-		char* additional;
-	};
-	bool check_and_get_section_1(ProductDefinitionSection& section_1,char* buffer,size_t file_size){
-		if(buffer == nullptr)
-			return false;
-		if(file_size<sec_0_sz+sec_1_min_sz)
-			return false;
-		unsigned length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
-		if(length<sec_1_min_sz)
-			return false;
-		unsigned char tab_version = buffer[3];
-		section_1.centre = (Organization)buffer[4];
-		section_1.generatingProcessIdentifier = buffer[5];
-		section_1.gridDefinition = buffer[6];
-		section_1.section1Flags = (Section2_3_flag)buffer[7];
-		section_1.IndicatorOfParameter = (ParameterGrib1)buffer[8];
-		section_1.IndicatorOfTypeOfLevel = (LevelsTags)buffer[9];
-		section_1.level_data = buffer[10]+buffer[11]<<8;
-		section_1.yearOfCentury = buffer[12];
-		section_1.month = buffer[13];
-		section_1.day = buffer[14];
-		section_1.hour = buffer[15];
-		section_1.minute = buffer[16];
-		section_1.unitOfTimeRange = (UnitTime)buffer[17];
-		section_1.P1 = buffer[18];
-		section_1.P2 = buffer[19];
-		section_1.timeRangeIndicator = (TimeRange)buffer[20];
-		section_1.numberIncludedInAverage = buffer[22]<<8+buffer[21];
-		section_1.numberMissingFromAveragesOrAccumulations = buffer[22];
-		section_1.centuryOfReferenceTimeOfData = buffer[23];
-		
-	}
 #else
 #include <stdint.h>
-typedef struct{
+#endif
+
+STRUCT_BEG(ProductDefinitionSection){
 	unsigned section1Length;
 	unsigned table2Version;
 	Organization centre;
 	uint8_t generatingProcessIdentifier;
 	uint8_t gridDefinition;
-	uint8_t section1Flags;
-	uint8_t IndicatorOfParameter;
-	uint8_t IndicatorOfTypeOfLevel;
+	Section2_3_flag section1Flags;
+	ParameterGrib1 IndicatorOfParameter;
+	LevelsTags IndicatorOfTypeOfLevel;
+	uint16_t level_data;
 	uint8_t yearOfCentury;
 	uint8_t month;
 	uint8_t day;
 	uint8_t hour;
 	uint8_t minute;
-	uint8_t unitOfTimeRange;
+	UnitTime unitOfTimeRange;
 	uint8_t P1;
 	uint8_t P2;
-	uint8_t timeRangeIndicator;
+	TimeRange timeRangeIndicator;
 	uint16_t numberIncludedInAverage;
 	uint8_t numberMissingFromAveragesOrAccumulations;
 	uint8_t centuryOfReferenceTimeOfData;
@@ -94,7 +40,40 @@ typedef struct{
 	int16_t decimalScaleFactor;
 	char reserved[12];
 	char* additional;
-}ProductDefinitionSection;
+}
+STRUCT_END(ProductDefinitionSection)
+
+bool check_and_get_section_1(ProductDefinitionSection& section_1,char* buffer,size_t file_size){
+	if(buffer == nullptr)
+		return false;
+	if(file_size<sec_0_sz+sec_1_min_sz)
+		return false;
+	unsigned length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
+	if(length<sec_1_min_sz)
+		return false;
+	unsigned char tab_version = buffer[3];
+	section_1.centre = (Organization)buffer[4];
+	section_1.generatingProcessIdentifier = buffer[5];
+	section_1.gridDefinition = buffer[6];
+	section_1.section1Flags = (Section2_3_flag)buffer[7];
+	section_1.IndicatorOfParameter = (ParameterGrib1)buffer[8];
+	section_1.IndicatorOfTypeOfLevel = (LevelsTags)buffer[9];
+	section_1.level_data = buffer[10]+buffer[11]<<8;
+	section_1.yearOfCentury = buffer[12];
+	section_1.month = buffer[13];
+	section_1.day = buffer[14];
+	section_1.hour = buffer[15];
+	section_1.minute = buffer[16];
+	section_1.unitOfTimeRange = (UnitTime)buffer[17];
+	section_1.P1 = buffer[18];
+	section_1.P2 = buffer[19];
+	section_1.timeRangeIndicator = (TimeRange)buffer[20];
+	section_1.numberIncludedInAverage = buffer[22]<<8+buffer[21];
+	section_1.numberMissingFromAveragesOrAccumulations = buffer[23];
+	section_1.centuryOfReferenceTimeOfData = buffer[24];
+	section_1.subCentre = buffer[25];
+	section_1.decimalScaleFactor = buffer[26]+buffer[27]<<8;
+}
 
 /* version 3.4 of grib headers  w. ebisuzaki */
 /* this version is incomplete */
@@ -173,4 +152,3 @@ typedef struct{
 #define PDS_NcepFcstType(pds)	(pds[41])
 #define PDS_NcepFcstNo(pds)	(pds[42])
 #define PDS_NcepFcstProd(pds)	(pds[43])
-#endif
