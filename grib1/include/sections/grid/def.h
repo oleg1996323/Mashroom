@@ -1,5 +1,6 @@
 #pragma once
-#include "sections/def.h"
+#include "code_tables/table_6.h"
+#include "aux_code/byte_read.h"
 
 #define GDS_Len1(gds)		(gds[0])
 #define GDS_Len2(gds)		(gds[1])
@@ -25,8 +26,8 @@
 #define GDS_ss2dBgrid(gds)      (gds[5] == 205) /* semi-staggered B grid 2 d*/
 
 #define GDS_has_dy(mode)	((mode) & 128)
-// #define GDS_LatLon_nx(gds)	((int) ((gds[6] << 8) + gds[7]))
-// #define GDS_LatLon_ny(gds)	((int) ((gds[8] << 8) + gds[9]))
+#define GDS_LatLon_nx(gds)	((int) ((gds[6] << 8) + gds[7]))
+#define GDS_LatLon_ny(gds)	((int) ((gds[8] << 8) + gds[9]))
 #define GDS_LatLon_La1(gds)	INT3(gds[10],gds[11],gds[12])
 #define GDS_LatLon_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 #define GDS_LatLon_mode(gds)	(gds[16])
@@ -142,6 +143,22 @@
 #define GDS_RotLL_LoSP(gds)	INT3(gds[35],gds[36],gds[37])
 #define GDS_RotLL_RotAng(gds)	ibm2flt(&(gds[38]))
 
+/* stretched Lat-lon grid */
+
+#define GDS_StrLL_nx(gds)	UINT2(gds[6],gds[7])
+#define GDS_StrLL_ny(gds)	UINT2(gds[8],gds[9])
+#define GDS_StrLL_La1(gds)	INT3(gds[10],gds[11],gds[12])
+#define GDS_StrLL_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
+#define GDS_StrLL_mode(gds)	(gds[16])
+#define GDS_StrLL_La2(gds)	INT3(gds[17],gds[18],gds[19])
+#define GDS_StrLL_Lo2(gds)	INT3(gds[20],gds[21],gds[22])
+#define GDS_StrLL_dx(gds)       (gds[16] & 128 ? INT2(gds[23],gds[24]) : 0)
+#define GDS_StrLL_dy(gds)       (gds[16] & 128 ? INT2(gds[25],gds[26]) : 0)
+#define GDS_StrLL_scan(gds)	(gds[27])
+#define GDS_StrLL_LoStrP(gds)	INT3(gds[32],gds[33],gds[34])
+#define GDS_StrLL_LaStrP(gds)	INT3(gds[35],gds[36],gds[37])
+#define GDS_StrLL_StrFactor(gds)	ibm2flt(&(gds[38]))
+
 /* Triangular grid of DWD */
 #define GDS_Triangular_ni2(gds)	INT2(gds[6],gds[7])
 #define GDS_Triangular_ni3(gds)	INT2(gds[8],gds[9])
@@ -159,361 +176,38 @@
 #define GDS_PV(gds)		((gds[3] == 0) ? -1 : (int) gds[4] - 1)
 #define GDS_PL(gds)		((gds[4] == 255) ? -1 : (int) gds[3] * 4 + (int) gds[4] - 1)
 
-#include "code_tables/table_7.h"
-#include "code_tables/table_8.h"
-#pragma pack(push,1)
+/*
+ * get grid size from GDS
+ *
+ * added calculation of nxny of spectral data and clean up of triangular
+ * grid nnxny calculation     l. kornblueh 
+ * 7/25/03 wind fix Dusan Jovic
+ * 9/17/03 fix scan mode
+ */
+extern int ec_large_grib, len_ec_bds;
 
-template<RepresentationType>
-struct GridDefinition;
+int GDS_grid(unsigned char *gds, unsigned char *bds, int *nx, int *ny, 
+             long int *nxny);
 
-template<>
-struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
+#define NCOL 15
+void GDS_prt_thin_lon(unsigned char *gds);
 
-template<>
-struct GridDefinition<RepresentationType::ROTATED_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
+/*
+ * prints out wind rel to grid or earth
+ */
 
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
+static const char *scan_mode[8] = {
+	"WE:NS",
+	"NS:WE",
 
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved_29_32[3];
-};
+	"WE:SN",
+	"SN:WE",
 
-template<>
-struct GridDefinition<RepresentationType::MERCATOR>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t latin;
-    char reserved_27;
-    ScanMode scan_mode;
-    uint32_t dy:24;
-    uint32_t dx:24;
-    uint8_t reserved_35_42[8];
-};
+        "EW:NS",
+	"NS:EW",
 
-template<>
-struct GridDefinition<RepresentationType::GAUSSIAN>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
+	"EW:SN",
+	"SN:EW" };
 
-template<>
-struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
 
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::GNOMONIC>{
-    
-};
-
-template<>
-struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::LAMBERT>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::SIMPLE_POLYCONIC>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::SPACE_VIEW>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-template<>
-struct GridDefinition<RepresentationType::UTM>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
-};
-
-#pragma pack(pop)
-
-#ifdef __cplusplus
-#include <cstdint>
-#include <cstdlib>
-#include <stdexcept>
-#include "code_tables/table_6.h"
-void define_GDS();
-template<typename T>
-T define_grid(RepresentationType rep_t,char* buffer, size_t file_size){
-    if(!rep_t<256 || !is_representation[rep_t])
-        throw std::invalid_argument("Invalid representation type.");
-    else{
-        switch (rep_t)
-        {
-        case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
-            /* code */
-            break;
-        
-        default:
-            break;
-        }
-    }
-}
-#else
-#include <stdint.h>
-
-extern void define_GDS()
-#endif
+void GDS_winds(unsigned char *gds, int verbose);

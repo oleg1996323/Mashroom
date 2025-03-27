@@ -38,45 +38,6 @@ bool define_GDS(GridDescriptionSection& gds,char* buffer,size_t file_size){
 extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size);
 #endif
 
-/*
- * get grid size from GDS
- *
- * added calculation of nxny of spectral data and clean up of triangular
- * grid nnxny calculation     l. kornblueh 
- * 7/25/03 wind fix Dusan Jovic
- * 9/17/03 fix scan mode
- */
-extern int ec_large_grib, len_ec_bds;
-
-int GDS_LatLon_nx(unsigned char* gds);
-int GDS_LatLon_ny(unsigned char* gds);
-
-int GDS_grid(unsigned char *gds, unsigned char *bds, int *nx, int *ny, 
-             long int *nxny);
-
-#define NCOL 15
-void GDS_prt_thin_lon(unsigned char *gds);
-
-/*
- * prints out wind rel to grid or earth
- */
-
-static const char *scan_mode[8] = {
-	"WE:NS",
-	"NS:WE",
-
-	"WE:SN",
-	"SN:WE",
-
-        "EW:NS",
-	"NS:EW",
-
-	"EW:SN",
-	"SN:EW" };
-
-
-void GDS_winds(unsigned char *gds, int verbose);
-
 #ifdef __cplusplus
 #include <fstream>
 #include <vector>
