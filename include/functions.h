@@ -8,15 +8,9 @@
 
 #ifdef __cplusplus
     extern "C"{
-        #include "sections/PDSdate.h"
+        #include "sections/section_1.h"
         #include "capitalize.h"
         #include "extract.h"
-    }
-#endif
-
-#ifdef __cplusplus
-    extern "C"{
-        #include "sections/PDSdate.h"
         #include "func.h"
     }
 #endif

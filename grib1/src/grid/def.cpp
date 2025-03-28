@@ -1,5 +1,5 @@
 #include "sections/grid/def.h"
-#include "sections/bitmap/def.h"
+#include "sections/binary/def.h"
 #include <stdio.h>
 
 int GDS_grid(unsigned char *gds, unsigned char *bds, int *nx, int *ny, 

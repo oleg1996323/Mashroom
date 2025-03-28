@@ -1,17 +1,12 @@
 #include <stdio.h>
 #include "levels.h"
-#include "sections/PDS.h"
-#include "sections/data_tags.h"
+#include "sections/section_1.h"
 
 void levels(int kpds6, int kpds7, int center, int verbose) {
-
 	int o11, o12;
-    
 	/* octets 11 and 12 */
 	o11 = kpds7 / 256;
 	o12 = kpds7 % 256;
-
-
 	switch (kpds6) {
 
 	case 1: printf("sfc");

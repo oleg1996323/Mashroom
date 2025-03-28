@@ -103,7 +103,9 @@
         "func.h": "c",
         "ensemble.h": "c",
         "dirent.h": "c",
-        "section_2.h": "c"
+        "section_2.h": "c",
+        "table_8.h": "c",
+        "cfenv": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

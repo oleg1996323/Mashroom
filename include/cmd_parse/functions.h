@@ -5,13 +5,9 @@
 #include <charconv>
 #include <stdexcept>
 
-#ifdef __cplusplus
-extern "C"{
-    #include "sections/PDSdate.h"
-    #include "coords.h"
-    #include "func.h"
-}
-#endif
+#include "data/PDSdate.h"
+#include "types/coord.h"
+#include "func.h"
 #include "cmd_parse/cmd_def.h"
 #include "sys/error_print.h"
 #include "capitalize_cpp.h"

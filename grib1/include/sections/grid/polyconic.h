@@ -6,23 +6,13 @@
 #include "def.h"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
-struct GridDefinition<RepresentationType::SIMPLE_POLYCONIC>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+struct GridDefinition<RepresentationType::SIMPLE_POLYCONIC>{    
+    GridDefinition(unsigned char* buffer){
+        
+    }
 };
-#pragma pack(pop)
 #endif

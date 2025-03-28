@@ -12,8 +12,8 @@
 
 #ifdef __cplusplus
 extern "C"{
-    #include "sections/PDSdate.h"
-    #include "coords.h"
+    #include "sections/section_1.h"
+    #include "types/coord.h"
     #include "extract.h"
     #include "def.h"
 }

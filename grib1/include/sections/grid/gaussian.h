@@ -24,13 +24,13 @@ struct GridDefinition<RepresentationType::GAUSSIAN>{
     GridDefinition(unsigned char* buffer){
         nx = GDS_LatLon_nx(buffer);
         ny = GDS_LatLon_ny(buffer);
-        y1 = GDS_LatLon_La1(buffer);
-        x1 = GDS_LatLon_Lo1(buffer);
+        y1 = 0.001*GDS_LatLon_La1(buffer);
+        x1 = 0.001*GDS_LatLon_Lo1(buffer);
         directionIncrement = GDS_LatLon_dx(buffer);
         N = GDS_Gaussian_nlat(buffer);
         resolutionAndComponentFlags = (ResolutionComponentFlags)GDS_LatLon_mode(buffer);
-        y2 = GDS_LatLon_La2(buffer);
-        x2 = GDS_LatLon_Lo2(buffer);
+        y2 = 0.001*GDS_LatLon_La2(buffer);
+        x2 = 0.001*GDS_LatLon_Lo2(buffer);
         scan_mode = (ScanMode)GDS_LatLon_mode(buffer);
     }
 };

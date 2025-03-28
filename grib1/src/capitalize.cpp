@@ -5,17 +5,13 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <limits.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <errno.h>
-#include "sections/PDS.h"
-#include "sections/BDS.h"
-#include "sections/GDS.h"
-#include "sections/Parm_Table.h"
+#include "sections/section_0.h"
+#include "sections/section_1.h"
+#include "sections/section_2.h"
 #include "write.h"
 #include "ensemble.h"
 #include "func.h"
@@ -26,8 +22,6 @@
 #include "seek_grib.h"
 #include "levels.h"
 #include "def.h"
-#include "decode_aux.h"
-#include "sections/PDSdate.h"
 #include "capitalize.h"
 
 #ifndef PATH_MAX

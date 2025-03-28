@@ -1,17 +1,9 @@
-#include "func.h"
-#include "math.h"
-#include "float.h"
+#include "types/rect.h"
+#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <error.h>
-#include "def.h"
-#include "types/coord.h"
-#include <signal.h>
-
-#ifndef min
-#define min(a,b)  ((a) < (b) ? (a) : (b))
-#define max(a,b)  ((a) < (b) ? (b) : (a))
-#endif
+#include <aux_code/def.h>
+#include "types/grid.h"
+#include "math.h"
 
 bool intersect_rect(const Rect* rect1, const Rect* rect2) {
 	if(rect1 && rect2)
@@ -33,10 +25,17 @@ bool point_in_rect(const Rect* rect, const Coord point){
 
 Rect intersection_rect(const Rect* source, const Rect* searched){
 	if(source && searched)
+        #ifndef __cplusplus
 		return Rect(.x1 = max(source->x1,searched->x1), 
 					.x2 = min(source->x2,searched->x2),
 					.y1 = max(source->y1,searched->y1),
 					.y2 = min(source->y2,searched->y2));
+        #else
+        return {max(source->x1,searched->x1), 
+                min(source->x2,searched->x2),
+                max(source->y1,searched->y1),
+                min(source->y2,searched->y2)};
+        #endif
 	else {
 		fprintf(stderr,"Not defined arguments");
 		exit(1);
@@ -103,4 +102,3 @@ bool point_in_grid(const GridData* grid, const Coord pos){
 		return false;
 	else return true;
 }
-

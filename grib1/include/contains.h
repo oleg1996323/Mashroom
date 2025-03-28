@@ -1,9 +1,9 @@
 #pragma once
 #include "def.h"
 #include "func.h"
-#include "coords.h"
+#include "types/coord.h"
 #include "extract.h"
-#include "sections/PDSdate.h"
+#include "sections/section_1.h"
 
 #include <stdio.h>
 #ifndef __cplusplus

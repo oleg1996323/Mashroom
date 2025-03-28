@@ -7,9 +7,9 @@
 #include <string.h>
 #include <math.h>
 #include "extract.h"
-#include "sections/PDS.h"
-#include "sections/BDS.h"
-#include "sections/GDS.h"
+#include "sections/section_1.h"
+#include "sections/section_2.h"
+#include "sections/section_3.h"
 #include "write.h"
 #include "ensemble.h"
 #include "func.h"

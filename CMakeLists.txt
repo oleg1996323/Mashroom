@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX C)
+project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX)
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
 set(CMAKE_CXX_STANDARD 23)
@@ -19,10 +19,9 @@ option(PERMANENT_GET ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
 add_compile_options(-fPIC)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libgcc -static-libstdc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
 
-file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.c
-                                ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.cpp)
+file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 
 
@@ -54,7 +53,7 @@ target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/incl
                                         ${CMAKE_CURRENT_LIST_DIR}/include/sys
                                         ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
 
-target_link_libraries(Mashroom_lib PRIVATE grib_c ${PNG_LIBRARIES})
+target_link_libraries(Mashroom_lib PRIVATE ${PNG_LIBRARIES})
 target_include_directories(Mashroom_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include
                                         ${CMAKE_CURRENT_LIST_DIR}/grib/src
                                         ${CMAKE_CURRENT_LIST_DIR}/include

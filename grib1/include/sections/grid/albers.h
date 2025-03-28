@@ -6,26 +6,43 @@
 #include "def.h"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
 template<RepresentationType>
 struct GridDefinition;
 template<>
 struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>{
+    float y1;
+    float x1;
+    float LoV;
+    float latin1;
+    float latin2;
+    float LoV;
+    float Dy;
+    float Dx;
+    int32_t latitude_south_pole;
+    int32_t longitude_south_pole;
     uint16_t ny;
     uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
+    bool is_south_pole;
+    bool is_bipolar;
     ScanMode scan_mode;
-    uint8_t reserved[3];
-
-    GridDefinition(char* buffer){
-
+    ResolutionComponentFlags resolutionAndComponentFlags;
+    
+    GridDefinition(unsigned char* buffer){
+        nx = GDS_Lambert_nx(buffer);
+        ny = GDS_Lambert_ny(buffer);
+        y1 = 0.001*GDS_Lambert_La1(buffer);
+        x1 = 0.001*GDS_Lambert_Lo1(buffer);
+        resolutionAndComponentFlags = (ResolutionComponentFlags)GDS_Lambert_mode(buffer);
+        LoV = 0.001*GDS_Lambert_Lov(buffer);
+        Dy = 0.001*GDS_Lambert_dy(buffer);
+        Dx = 0.001*GDS_Lambert_dx(buffer);
+        is_south_pole = (GDS_Lambert_NP(buffer)&0b01)!=0;
+        is_bipolar = (GDS_Lambert_NP(buffer)&0b10)!=0;
+        scan_mode = (ScanMode)GDS_Lambert_mode(buffer);
+        latin1 = 0.001*GDS_Lambert_Latin1(buffer);
+        latin2 = 0.001*GDS_Lambert_Latin2(buffer);
+        latitude_south_pole = 0.001*GDS_Lambert_LatSP(buffer);
+        longitude_south_pole = 0.001*GDS_Lambert_LonSP(buffer);
     }
 };
-#pragma pack(pop)
 #endif

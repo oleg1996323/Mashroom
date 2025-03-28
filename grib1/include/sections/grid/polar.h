@@ -6,23 +6,37 @@
 #include "def.h"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>{
+    float y1;
+    float x1;
+    float y2;
+    float x2;
+    float LoV;
+    uint32_t Dy;
+    uint32_t Dx;
     uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
+    int16_t nx;
+    uint16_t directionIncrement;
+    uint16_t N;
+    bool is_south_pole;
     ScanMode scan_mode;
-    uint8_t reserved[3];
+    ResolutionComponentFlags resolutionAndComponentFlags;
+    
+    GridDefinition(unsigned char* buffer){
+        nx = GDS_Polar_nx(buffer);
+        ny = GDS_Polar_ny(buffer);
+        y1 = 0.001*GDS_Polar_La1(buffer);
+        x1 = 0.001*GDS_Polar_Lo1(buffer);
+        resolutionAndComponentFlags = (ResolutionComponentFlags)GDS_Polar_mode(buffer);
+        LoV = 0.001*GDS_Polar_Lov(buffer);
+        Dy = GDS_Polar_Dy(buffer);
+        Dx = GDS_Polar_Dx(buffer);
+        is_south_pole = GDS_Polar_pole(buffer);
+        scan_mode = (ScanMode)GDS_Polar_mode(buffer);
+    }
 };
-#pragma pack(pop)
 #endif

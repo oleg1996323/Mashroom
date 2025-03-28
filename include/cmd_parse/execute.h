@@ -3,11 +3,8 @@
 #include <string>
 #include <string_view>
 #include <ranges>
-#ifdef __cplusplus
-    extern "C"{
-        #include "capitalize.h"
-        #include "decode.h"
-    }
-#endif
+
+    #include "capitalize.h"
+    #include "decode.h"
 
 void execute(const std::vector<std::string_view>& argv);

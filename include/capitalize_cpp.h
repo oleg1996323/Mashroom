@@ -1,10 +1,10 @@
 #pragma once
 #include <decode.h>
-#include <capitalize.h>
-#include <extract.h>
-#include <interpolation.h>
-#include <structures.h>
-#include <contains.h>
+//#include <grib1/include/capitalize.h>
+// #include <extract.h>
+// #include <interpolation.h>
+// #include <structures.h>
+// #include <contains.h>
 #include <filesystem>
 #include <string>
 
