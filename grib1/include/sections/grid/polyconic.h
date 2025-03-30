@@ -6,13 +6,15 @@
 #include "def.h"
 
 #ifdef __cplusplus
+#include <span>
+#include <stdexcept>
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::SIMPLE_POLYCONIC>{    
     GridDefinition(unsigned char* buffer){
-        
+        throw std::invalid_argument("Unable to use Polyconic coordinate-system");
     }
 };
 #endif

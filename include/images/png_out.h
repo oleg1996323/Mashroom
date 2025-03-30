@@ -12,7 +12,7 @@ extern "C"{
 #include "color.h"
 #include <iterator>
 #include <algorithm>
-#include "size.h"
+#include "types/size.h"
 #include <iostream>
 
 // void PngOut(std::string name,ValueByCoord* values, png_uint_32 w,png_uint_32 h, std::vector<ColorAtValue> color_grad);

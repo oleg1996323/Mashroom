@@ -29,12 +29,12 @@
 //     }
 //     return CapitalizeHierArgs::UNDEF;
 // }
-// CapitilizeFormatArgs translate_cap_format(std::string_view arg){
+// FileFormat translate_cap_format(std::string_view arg){
 //     for(int i=0;i<capitalize_fmt_txt.size();++i){
 //         if(arg==capitalize_fmt_txt[i])
-//             return (CapitilizeFormatArgs)i;
+//             return (FileFormat)i;
 //     }
-//     return CapitilizeFormatArgs::UNDEF;
+//     return FileFormat::UNDEF;
 // }
 
 // ModeArgs translate_mode(std::string_view arg){

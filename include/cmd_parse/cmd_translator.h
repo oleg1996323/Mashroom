@@ -44,7 +44,7 @@ enum class ConfigAction:uint8_t{
     GET         //get config action by name or all (if '.' is inputed)
 };    
 
-enum class ExtractFormatArgs:uint8_t{
+enum class FileFormat:uint8_t{
     UNDEF,
     TXT,
     BIN,
@@ -52,17 +52,7 @@ enum class ExtractFormatArgs:uint8_t{
     ARCHIVED
 };
 
-enum class ExtractDivArgs:uint8_t{
-    UNDEF,
-    HOUR,
-    MONTH,
-    DAY,
-    LAT,
-    LON,
-    LATLON
-};
-
-enum class CapitalizeHierArgs:uint8_t{
+enum class CategoryClassArgs:uint8_t{
     UNDEF,
     HOUR,
     MONTH,
@@ -71,13 +61,6 @@ enum class CapitalizeHierArgs:uint8_t{
     LAT,
     LON,
     LATLON
-};
-
-enum class CapitilizeFormatArgs:uint8_t{
-    UNDEF,
-    TXT,
-    BIN,
-    GRIB
 };
 }
 
@@ -131,7 +114,7 @@ struct __Token_text__<translate::token::ConfigAction>{
 };
 
 template<>
-struct __Token_text__<translate::token::CapitalizeHierArgs>{
+struct __Token_text__<translate::token::CategoryClassArgs>{
     static constexpr std::array<const char*,8> txt = {
         "",
         "h",
@@ -145,31 +128,7 @@ struct __Token_text__<translate::token::CapitalizeHierArgs>{
 };
 
 template<>
-struct __Token_text__<translate::token::ExtractDivArgs>{
-    static constexpr std::array<const char*,8> txt = {
-        "",
-        "h",
-        "m",
-        "d",
-        "y",
-        "lat",
-        "lon",
-        "latlon"
-    };
-};
-
-template<>
-struct __Token_text__<translate::token::CapitilizeFormatArgs>{
-    static constexpr std::array<const char*,4> txt = {
-        "",
-        "txt",
-        "bin",
-        "grib"
-    };
-};
-
-template<>
-struct __Token_text__<translate::token::ExtractFormatArgs>{
+struct __Token_text__<translate::token::FileFormat>{
     static constexpr std::array<const char*,5> txt = {
         "",
         "txt",

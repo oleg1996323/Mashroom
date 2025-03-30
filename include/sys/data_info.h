@@ -3,12 +3,7 @@
 #include <string>
 #include <set>
 #include <unordered_set>
-#ifdef __cplusplus
-    extern "C"{
-        #include "data/PDSdate.h"
-        #include "func.h"
-    }
-#endif  
+#include "data/PDSdate.h"
 #include "base.h"
 #include "tags.h"
 

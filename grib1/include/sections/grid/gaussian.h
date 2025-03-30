@@ -6,6 +6,7 @@
 #include "def.h"
 
 #ifdef __cplusplus
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 template<>

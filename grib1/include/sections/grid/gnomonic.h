@@ -7,15 +7,14 @@
 #include "stdexcept"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::GNOMONIC>{
-    GridDefinition(char* buffer){
+    GridDefinition(unsigned char* buffer){
         throw std::invalid_argument("Unable to use Gnomonic coordinate-system");
     }
 };
-#pragma pack(pop)
 #endif

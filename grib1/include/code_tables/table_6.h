@@ -24,7 +24,7 @@ enum RepresentationType{
     STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS=SPHERICAL_HARMONIC_COEFFICIENTS+\
                                                         ROTATED_LAT_LON+\
                                                         STRETCHED_LAT_LON,
-    SPACE_VIEW=90
+    SPACE_VIEW=90 //22
 };
 
 constexpr bool is_representation[255]={

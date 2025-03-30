@@ -105,7 +105,9 @@
         "dirent.h": "c",
         "section_2.h": "c",
         "table_8.h": "c",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "grid.h": "c",
+        "table_6.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

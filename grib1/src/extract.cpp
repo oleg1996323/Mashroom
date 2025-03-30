@@ -6,9 +6,6 @@
 #include <string.h>
 #include <math.h>
 #include "extract.h"
-#include "sections/PDS.h"
-#include "sections/BDS.h"
-#include "sections/GDS.h"
 #include "write.h"
 #include "ensemble.h"
 #include "func.h"
@@ -18,7 +15,7 @@
 #include "read.h"
 #include "seek_grib.h"
 #include "levels.h"
-#include "sections/Parm_Table.h"
+#include "data/Parm_Table.h"
 #include "def.h"
 #include <sys/types.h>
 #include <dirent.h>
@@ -28,16 +25,19 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <decode_aux.h>
-#include <png.h>
+#include "sections/section_1.h"
+#include "sections/section_2.h"
+#include "sys/mman.h"
+#include <fcntl.h>
+#include <sys/stat.h>
 
 GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long int* count, long unsigned* pos){
-    unsigned char *buffer;
     float *array;
     double temp;
     int i, nx, ny;
-    long int len_grib, nxny, buffer_size, n_dump;
+    long int len_grib, nxny, n_dump;
     unsigned char *msg, *pds, *gds, *bms, *bds, *pointer, *end_msg;
-    FILE *input, *dump_file = NULL;
+    int input_id = -1;
     GridData grid_ = GridData();
     Date date_;
     char line[2000];
@@ -50,30 +50,16 @@ GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long
     int return_code = 0;
 	char* fmt;
 
-	if ((input = fopen(from,"rb")) == NULL) {
+	if ((input_id = open(from,O_RDONLY)) == NULL) {
         fprintf(stderr,"could not open file: %s\n", from);
         exit(7);
     }
 
-    if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
-	fprintf(stderr,"not enough memory\n");
-    }
-    buffer_size = BUFF_ALLOC0;
-
-    /* skip dump - 1 records */
-    for (i = 1; i < dump; i++) {
-	msg = seek_grib(input, pos, &len_grib, buffer, MSEEK);
-	if (msg == NULL) {
-	    fprintf(stderr, "ran out of data or bad file\n");
-	    exit(8);
-	}
-	*pos += len_grib;
-    }
-    if (dump > 0) *count += dump - 1;
-    n_dump = 0;
-
     for (;;) {
-fail:
+        struct stat st;
+        fstat(input_id,&st);
+        st.st_size
+        void* buffer = (unsigned char*)mmap(NULL,BUFF_ALLOC0,PROT_READ,MAP_FILE|MAP_PRIVATE,input_id,pos);
 	msg = seek_grib(input, pos, &len_grib, buffer, MSEEK);
 	if (msg == NULL) {
 	    // if (mode == INVENTORY || mode == DUMP_ALL) break;
@@ -81,19 +67,6 @@ fail:
 	    exit(8);
 	}
 
-        /* read all whole grib record */
-        if (len_grib + msg - buffer > buffer_size) {
-            buffer_size = len_grib + msg - buffer + 1000;
-            buffer = (unsigned char *) realloc((void *) buffer, buffer_size);
-            if (buffer == NULL) {
-                fprintf(stderr,"ran out of memory\n");
-                exit(8);
-            }
-        }
-        if (read_grib(input, *pos, len_grib, buffer) == 0) {
-                fprintf(stderr,"error, could not read to end of record %ld\n",*count);
-                exit(8);
-	}
 
 	/* parse grib message */
 

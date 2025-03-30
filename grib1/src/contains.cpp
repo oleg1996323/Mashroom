@@ -12,14 +12,12 @@
 #include "sections/section_3.h"
 #include "write.h"
 #include "ensemble.h"
-#include "func.h"
 #include "print.h"
 #include "ecmwf_ext.h"
 #include "error_handle.h"
 #include "read.h"
 #include "seek_grib.h"
 #include "levels.h"
-#include "sections/Parm_Table.h"
 #include "def.h"
 #include <sys/types.h>
 #include <dirent.h>

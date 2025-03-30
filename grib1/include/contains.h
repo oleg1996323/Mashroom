@@ -1,6 +1,5 @@
 #pragma once
 #include "def.h"
-#include "func.h"
 #include "types/coord.h"
 #include "extract.h"
 #include "sections/section_1.h"

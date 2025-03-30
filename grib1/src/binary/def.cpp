@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <memory.h>
 
 void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
 	int n_bits, int n, double ref, double scale) {

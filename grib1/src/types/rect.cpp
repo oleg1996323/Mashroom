@@ -96,9 +96,3 @@ Rect merge_rect(const Rect* r_1,const Rect* r_2){
 bool rect_equal(const Rect* lhs,const Rect* rhs){
 	return lhs->x1==rhs->x1 && lhs->x2==rhs->x2 && lhs->y1==rhs->y1 && lhs->y2==rhs->y2;
 }
-
-bool point_in_grid(const GridData* grid, const Coord pos){
-	if(!point_in_rect(&grid->bound,pos) || fmod((double)(grid->bound.y1-pos.lat_)/grid->dy,1)!=0 || fmod((double)(grid->bound.x2-pos.lon_)/grid->dx,1)!=0)
-		return false;
-	else return true;
-}

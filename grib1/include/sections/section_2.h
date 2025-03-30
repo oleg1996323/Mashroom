@@ -13,6 +13,8 @@
 /* 6/11 Jeffery S. Smith Albers equal area projection */
 #include "sections/section_3.h"
 #include "sections/def.h"
+#include "sections/grid/def.h"
+#include "sections/grid/grid.h"
 
 #ifdef __cplusplus
 #include <cstdint>
@@ -22,32 +24,70 @@
 
 STRUCT_BEG(GridDescriptionSection)
 {
-	uint32_t section2Length = 0;
-	uint8_t numberOfVerticalCoordinateValues = 0;
-	uint8_t pvLocation = 0;
-	RepresentationType dataRepresentationType;
-	
+	unsigned char* buf_;
+	// GridDataType data;
+	// uint32_t section2Length DEF_STRUCT_VAL(0)
+	// uint8_t numberOfVerticalCoordinateValues DEF_STRUCT_VAL(0)
+	// uint8_t pvLocation DEF_STRUCT_VAL(0)
+	// RepresentationType dataRepresentationType DEF_STRUCT_VAL(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR)
+	// uint32_t PV DEF_STRUCT_VAL(0)
+	//bool defined DEF_STRUCT_VAL(false)
+	#ifdef __cplusplus
+	GridDescriptionSection(unsigned char* buffer):buf_(buffer){
+		// if(buffer.size()<sec_2_min_sz){
+		// 	defined = false;
+		// 	return;
+		// }
+		// section2Length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
+		// numberOfVerticalCoordinateValues = buffer[3];
+		// pvLocation = buffer[4];
+		// dataRepresentationType = (RepresentationType)buffer[5];
+		// data = define_grid(buffer,dataRepresentationType);
+		// if(numberOfVerticalCoordinateValues==0)
+		// 	if(pvLocation&0b11111111){
+		// 		defined = true;
+		// 		return;
+		// 	}
+		// 	else GDS_grid(buffer.data(),);
+		// defined = true;
+	}
+	#endif
 }
 STRUCT_END(GridDescriptionSection)
 
-#ifdef __cplusplus
-bool define_GDS(GridDescriptionSection& gds,char* buffer,size_t file_size){
-	uint32_t section2Length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
-}
-#else
+#ifndef __cplusplus
 extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size);
 #endif
 
 #ifdef __cplusplus
 #include <fstream>
 #include <vector>
-bool read_GDS(std::ifstream& file, GridDescriptionSection& data){
-	file.clear();
-	std::vector<char> buf;
-	buf.resize(7);
-	if(!file.read(buf.data(),buf.size())) return false;
-	data.section2Length = UINT3(buf[0],buf[1],buf[2]);
-	if(data.section2Length==0) return false;
-		
+unsigned long get_GDS_length(const GridDescriptionSection& data){
+	if(!data.buf_)
+		return 0;
 }
+RepresentationType get_representation_type(const GridDescriptionSection& data){
+	if(!data.buf_)
+		return (RepresentationType)-1;
+}
+GridInfo define_grid(const GridDescriptionSection& data,RepresentationType rep_t){
+    if(!rep_t<256 || !is_representation[rep_t])
+        throw std::invalid_argument("Invalid representation type.");
+    else
+        return GridInfo(GridDataType(data.buf_,rep_t),rep_t);
+}
+unsigned long get_number_vertical_coord_values(const GridDescriptionSection& data){
+	return GDS_NV(data.buf_);
+}
+unsigned long get_PV(const GridDescriptionSection& data){
+	
+}
+unsigned long get_PL(const GridDescriptionSection& data){
+	
+}
+
+#else
+#include <stdint.h>
+
+extern void define_GDS()
 #endif

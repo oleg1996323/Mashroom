@@ -6,68 +6,35 @@
 #include "def.h"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use Harmonic Coefficients coordinate-system");
+    }
 };
 
 template<>
 struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use Rotated Harmonic Coefficients coordinate-system");
+    }
 };
 
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use Stretched Harmonic Coefficients coordinate-system");
+    }
 };
 
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use Stretched Rotated Harmonic Coefficients coordinate-system");
+    }
 };
-#pragma pack(pop)
 #endif

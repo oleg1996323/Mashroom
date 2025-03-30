@@ -24,6 +24,8 @@ constexpr bool is_little_endian() {
 #ifdef __cplusplus
 #define STRUCT_BEG(x) struct x
 #define STRUCT_END(x) ;
+#define UNION_BEG(x) union x
+#define UNION_END(x) ;
 #define TEMPLATE_STRUCT_BEG(str_name,T) template<typename T> \
                                         struct str_name
 #define TEMPLATE_STRUCT_END(x) ;
@@ -34,6 +36,8 @@ constexpr bool is_little_endian() {
 #else 
 #define STRUCT_BEG(x) typedef struct
 #define STRUCT_END(x) x;
+#define UNION_BEG(x) typedef union
+#define UNION_END(x) x;
 #define DEF_STRUCT_VAL(val) ;
 
 #endif
@@ -71,16 +75,6 @@ constexpr bool is_little_endian() {
 #define MSEEK 1024
 #define BUFF_ALLOC0	40000
 
-#ifndef DEF_T62_NCEP_TABLE
-#define DEF_T62_NCEP_TABLE	rean
-#endif
-
-
-/* #define LEN_HEADER_PDS (28+42+100) */
-#define LEN_HEADER_PDS (28+8)
-
-extern int ec_large_grib;
-
 
 	
 
@@ -107,7 +101,7 @@ extern int cmc_eq_ncep;
 static int user_center = 0, user_subcenter = 0, user_ptable = 0;
 typedef enum {filled, not_found, not_checked, no_file, init}STATUS;
 
-extern struct ParmTable parm_table_user[256];
+//extern struct ParmTable parm_table_user[256];
 
 extern int ncep_ens;
 
@@ -119,6 +113,8 @@ extern int ncep_ens;
 
 extern int ec_large_grib,  len_ec_bds;
 
+
+enum Def_NCEP_Table {rean, opn, rean_nowarn, opn_nowarn};
 extern enum Def_NCEP_Table def_ncep_table;
 extern int minute;
 extern int ncep_ens;

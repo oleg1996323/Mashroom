@@ -2,21 +2,22 @@
 #include <stdio.h>
 #include "def.h"
 #include "sections/section_1.h"
-#include "func.h"
+#include "types/grid.h"
+#include "types/tagged_vals.h"
 
-typedef enum{
-    ALL_TYPE_DATA,
-    U10,
-    V10,
-    T2,
-    NSSS,
-    INSS,
-    IEWS,
-    EWSS,
-    U100,
-    V100,
-    MLSPR
-}TypeData;
+// typedef enum{
+//     ALL_TYPE_DATA,
+//     U10,
+//     V10,
+//     T2,
+//     NSSS,
+//     INSS,
+//     IEWS,
+//     EWSS,
+//     U100,
+//     V100,
+//     MLSPR
+// }TypeData;
 
 
 

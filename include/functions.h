@@ -5,15 +5,10 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-
-#ifdef __cplusplus
-    extern "C"{
-        #include "sections/section_1.h"
-        #include "capitalize.h"
-        #include "extract.h"
-        #include "func.h"
-    }
-#endif
+#include "sections/section_1.h"
+#include "capitalize.h"
+#include "extract.h"
+#include "types/date.h"
 
 namespace fs = std::filesystem;
 

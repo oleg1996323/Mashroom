@@ -6,6 +6,7 @@
 #include "def.h"
 
 #ifdef __cplusplus
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 template<>
@@ -15,7 +16,6 @@ struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>{
     float LoV;
     float latin1;
     float latin2;
-    float LoV;
     float Dy;
     float Dx;
     int32_t latitude_south_pole;

@@ -2,12 +2,9 @@
 #include <unordered_map>
 #include <string>
 #include <set>
-#ifdef __cplusplus
-    extern "C"{
-        #include "data/PDSdate.h"
-        #include "func.h"
-    }
-#endif  
+#include "data/PDSdate.h"
+#include "types/date.h"
+#include "types/rect.h"
 #include "tags.h"
 
 template<>

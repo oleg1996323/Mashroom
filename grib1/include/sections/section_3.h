@@ -1,27 +1,58 @@
 #pragma once
+#include "code_tables/table_6.h"
+#include "sections/section_3.h"
+#include "sections/def.h"
+#include "sections/grid/def.h"
+#include "sections/grid/grid.h"
 
-/* 1996				wesley ebisuzaki
- *
- * Unpack BDS section
- *
- * input: *bits, pointer to packed integer data
- *        *bitmap, pointer to bitmap (undefined data), NULL if none
- *        n_bits, number of bits per packed integer
- *        n, number of data points (includes undefined data)
- *        ref, scale: flt[] = ref + scale*packed_int
- * output: *flt, pointer to output array
- *        undefined values filled with UNDEFINED
- *
- * note: code assumes an integer > 32 bits
- *
- * 7/98 v1.2.1 fix bug for bitmaps and nbit >= 25 found by Larry Brasfield
- * 2/01 v1.2.2 changed jj from long int to double
- * 3/02 v1.2.3 added unpacking extensions for spectral data 
- *             Luis Kornblueh, MPIfM 
- * 7/06 v.1.2.4 fixed some bug complex packed data was not set to undefined
- */
+#ifdef __cplusplus
+#include <cstdint>
+#else
+#include <stdint.h>
+#endif
 
-/* 
- * version 1.2.1 of grib headers  w. ebisuzaki 
- *         1.2.2 added access to spectral reference value l. kornblueh
- */
+STRUCT_BEG(GridDescriptionSection)
+{
+	unsigned char* buf_;
+	#ifdef __cplusplus
+	GridDescriptionSection(unsigned char* buffer):buf_(buffer){}
+	#endif
+}
+STRUCT_END(GridDescriptionSection)
+
+#ifndef __cplusplus
+extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size);
+#endif
+
+#ifdef __cplusplus
+#include <fstream>
+#include <vector>
+unsigned long get_GDS_length(const GridDescriptionSection& data){
+	if(!data.buf_)
+		return 0;
+}
+RepresentationType get_representation_type(const GridDescriptionSection& data){
+	if(!data.buf_)
+		return (RepresentationType)-1;
+}
+GridInfo define_grid(const GridDescriptionSection& data,RepresentationType rep_t){
+    if(!rep_t<256 || !is_representation[rep_t])
+        throw std::invalid_argument("Invalid representation type.");
+    else
+        return GridInfo(GridDataType(data.buf_,rep_t),rep_t);
+}
+unsigned long get_number_vertical_coord_values(const GridDescriptionSection& data){
+	return GDS_NV(data.buf_);
+}
+unsigned long get_PV(const GridDescriptionSection& data){
+	
+}
+unsigned long get_PL(const GridDescriptionSection& data){
+	
+}
+
+#else
+#include <stdint.h>
+
+extern void define_GDS()
+#endif

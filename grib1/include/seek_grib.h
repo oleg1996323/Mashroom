@@ -80,8 +80,4 @@ unsigned char *seek_grib(FILE *file, unsigned long *pos, long *len_grib,
             *len_grib = 0;
             return (unsigned char *) NULL;
         }
-#else
-#include <fstream>
-#include <vector>
-std::vector<uint8_t>& seek_grib(std::ifstream& file, unsigned long& pos, long& len_grib,std::vector<uint8_t>& buffer);
 #endif

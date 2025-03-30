@@ -58,14 +58,14 @@ void capitalize_parse(const std::vector<std::string_view>& input){
             }
             case Command::CAPITALIZE_FORMAT:{
                 if(order.fmt==NONE){
-                    switch(translate_from_txt<CapitilizeFormatArgs>(input[i])){
-                        case CapitilizeFormatArgs::BIN:
+                    switch(translate_from_txt<FileFormat>(input[i])){
+                        case FileFormat::BIN:
                             order.fmt = BINARY;
                             break;
-                        case CapitilizeFormatArgs::GRIB:
+                        case FileFormat::GRIB:
                             order.fmt = GRIB;
                             break;
-                        case CapitilizeFormatArgs::TXT:
+                        case FileFormat::TXT:
                             order.fmt = TEXT;
                             break;
                         default:
@@ -126,14 +126,14 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
             }
             case Command::CAPITALIZE_FORMAT:{
                 if(order.fmt==NONE){
-                    switch(translate_from_txt<CapitilizeFormatArgs>(input[++i])){
-                        case CapitilizeFormatArgs::BIN:
+                    switch(translate_from_txt<FileFormat>(input[++i])){
+                        case FileFormat::BIN:
                             order.fmt = BINARY;
                             break;
-                        case CapitilizeFormatArgs::GRIB:
+                        case FileFormat::GRIB:
                             order.fmt = GRIB;
                             break;
-                        case CapitilizeFormatArgs::TXT:
+                        case FileFormat::TXT:
                             order.fmt = TEXT;
                             break;
                         default:

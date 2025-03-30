@@ -2,8 +2,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "func.h"
 #include "sections/section_2.h"
+#include "types/date.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
@@ -56,9 +56,11 @@ typedef struct VALUES{
     ValueByCoord* values_by_coord;
 }Values;
 
+/*
 struct ParmTable {
 	/* char *name, *comment; */
 	const char *name, *comment;
+/*
 };
 
 extern const struct ParmTable parm_table_ncep_opn[256];
@@ -102,11 +104,9 @@ extern const struct ParmTable parm_table_dwd_204[256];
 extern const struct ParmTable parm_table_dwd_205[256];
 extern const struct ParmTable parm_table_cptec_254[256];
 extern const struct ParmTable parm_table_jra55_200[256];
+*/
 
 
-enum Def_NCEP_Table {rean, opn, rean_nowarn, opn_nowarn};
-
-extern enum Def_NCEP_Table def_ncep_table;
 
 
 

@@ -7,7 +7,6 @@
 
 #include "data/PDSdate.h"
 #include "types/coord.h"
-#include "func.h"
 #include "cmd_parse/cmd_def.h"
 #include "sys/error_print.h"
 #include "capitalize_cpp.h"

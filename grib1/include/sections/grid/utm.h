@@ -6,23 +6,15 @@
 #include "def.h"
 
 #ifdef __cplusplus
-#pragma pack(push,1)
+#include <span>
+#include <stdexcept>
 template<RepresentationType>
 struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::UTM>{
-    uint16_t ny;
-    uint16_t nx;
-    uint32_t y1:24;
-    uint32_t x1:24;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-    uint32_t y2:24;
-    uint32_t x2:24;
-    uint16_t dy;
-    uint16_t dx;
-    ScanMode scan_mode;
-    uint8_t reserved[3];
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use UTM coordinate-system");
+    }
 };
-#pragma pack(pop)
 #endif

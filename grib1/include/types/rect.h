@@ -2,13 +2,13 @@
 #include "aux_code/def.h"
 #include "types/coord.h"
 
-typedef struct GRID_DATA_S GridData;
+#define RECT_TYPE
 #define UNDEF_RECT_VALUE -99999999
 STRUCT_BEG(Rect){
-    double x1 DEF_STRUCT_VAL(UNDEF_RECT_VALUE)
-    double x2 DEF_STRUCT_VAL(-UNDEF_RECT_VALUE)
-    double y1 DEF_STRUCT_VAL(UNDEF_RECT_VALUE)
-    double y2 DEF_STRUCT_VAL(-UNDEF_RECT_VALUE)
+    float x1 DEF_STRUCT_VAL(UNDEF_RECT_VALUE)
+    float x2 DEF_STRUCT_VAL(-UNDEF_RECT_VALUE)
+    float y1 DEF_STRUCT_VAL(UNDEF_RECT_VALUE)
+    float y2 DEF_STRUCT_VAL(-UNDEF_RECT_VALUE)
 }
 STRUCT_END(Rect)
 
@@ -25,4 +25,3 @@ extern bool correct_rect(Rect* rect);
 extern bool is_correct_rect(const Rect* rect);
 extern bool is_correct_pos(const Coord* pos);
 extern Rect merge_rect(const Rect* r_1,const Rect* r_2);
-extern bool point_in_grid(const GridData*, const Coord point);

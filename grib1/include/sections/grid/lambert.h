@@ -6,6 +6,7 @@
 #include "def.h"
 
 #ifdef __cplusplus
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 
@@ -47,8 +48,11 @@ struct GridDefinition<RepresentationType::LAMBERT>{
     }
 };
 
+#include <stdexcept>
 template<>
 struct GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>{
-    
+    GridDefinition(unsigned char* buffer){
+        throw std::invalid_argument("Unable to use Oblique Lambert Conformal coordinate-system");
+    }
 };
 #endif

@@ -7,6 +7,7 @@
 #include "float.h"
 
 #ifdef __cplusplus
+#include <span>
 template<RepresentationType>
 struct GridDefinition;
 

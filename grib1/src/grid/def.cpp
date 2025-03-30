@@ -2,8 +2,12 @@
 #include "sections/binary/def.h"
 #include <stdio.h>
 
-int GDS_grid(unsigned char *gds, unsigned char *bds, int *nx, int *ny, 
-    long int *nxny) {
+int GDS_grid(
+   unsigned char *gds, 
+   unsigned char *bds, 
+   int *nx, 
+   int *ny, 
+   long int *nxny) {
 
 int i, d, ix, iy, pl;
 long int isum;

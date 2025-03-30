@@ -1,6 +1,14 @@
 #pragma once
 #include "aux_code/ibmtofloat.h"
 #include "aux_code/floattoieee.h"
+#include "aux_code/byte_read.h"
+
+#ifndef DEF_T62_NCEP_TABLE
+#define DEF_T62_NCEP_TABLE	rean
+#endif
+
+extern int ec_large_grib;
+
 #define BDS_LEN(bds)		(ec_large_grib ? len_ec_bds : ((int) ((bds[0]<<16)+(bds[1]<<8)+bds[2])) )
 
 #define BDS_Flag(bds)		(bds[3])
@@ -17,7 +25,13 @@
 #define BDS_OriginalInt(bds)	((bds[3] & 32) != 0)
 
 #define BDS_MoreFlags(bds)      ((bds[3] & 16) != 0)
-#define BDS_UnusedBits(bds)	((int) (bds[3] & 15))
+#define BDS_UnusedBits(bds)	((int) (bds[3] & 0b00001111))
+
+#define BDS_MatrixDatum(bds) ((int) (bds[13] & 0b000000100))
+#define BDS_SingleDatum(bds) ((int) (bds[13] & 0b000000011))
+
+#define BDS_SecondairyBMP(bds) ((int) (bds[13] & 0b000000010))
+#define BDS_SecondOrdValsDiffWidth(bds) ((int) (bds[13] & 0b000000001))
 
 #define BDS_BinScale(bds)	INT2(bds[4],bds[5])
 

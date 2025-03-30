@@ -1,16 +1,18 @@
 #pragma once
 #include "types/rect.h"
 #include "aux_code/def.h"
+#include "types/grid.h"
+
+#ifndef RECT_TYPE
+#include_next "types/rect.h"
+#endif
 
 #define UNDEF_GRID_VALUE -99999999
 STRUCT_BEG(GridData)
 {
 	Rect bound DEF_STRUCT_VAL(Rect())
-	double dy DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
-	double dx DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
-	int nx DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
-	int ny DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
-	long int nxny DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
+	float dy DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
+	float dx DEF_STRUCT_VAL(UNDEF_GRID_VALUE)
 }
 STRUCT_END(GridData)
 
@@ -23,3 +25,5 @@ STRUCT_END(GridData)
                             .nxny = UNDEF_GRID_VALUE,\
                             ## __VA_ARGS__})
 #endif
+
+extern bool point_in_grid(const GridData*, const Coord point);
