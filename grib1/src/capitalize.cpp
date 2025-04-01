@@ -14,7 +14,6 @@
 #include "sections/section_2.h"
 #include "write.h"
 #include "ensemble.h"
-#include "func.h"
 #include "print.h"
 #include "ecmwf_ext.h"
 #include "error_handle.h"

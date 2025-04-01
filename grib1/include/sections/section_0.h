@@ -3,26 +3,39 @@
 #include <cstdint>
 #include <vector>
 #include <ranges>
+#include <functional>
 #include "aux_code/byte_read.h"
 #include "sections/def.h"
 #include <span>
+#include <stdexcept>
 struct IndicatorSection{
-    unsigned msg_length;
-    unsigned char grib_edition;
-    bool defined DEF_STRUCT_VAL(false);
+    unsigned char* buf_;
 
-    IndicatorSection(unsigned char* buffer){
-        if(buffer.size()<sec_0_min_sz){
-            defined = false;
-            return;
+    IndicatorSection(unsigned char* buffer)
+    try:buf_(std::invoke([buffer]()
+    {
+        if(!buffer){
+            throw std::invalid_argument("");
         }
-        if(!((char*)buffer.first(4).data()=="GRIB")){
-            defined = false;
-            return;
-        }
-        msg_length = read_bytes<3>(buffer[5],buffer[6],buffer[7]);
-        grib_edition = buffer[8];
-        defined = true;
+        else
+            if(!((char*)buffer=="GRIB")){
+                return buffer;
+            }
+            else
+                throw std::invalid_argument("Not Grib 1");
+    }
+    ))
+    {}
+    catch(const std::exception& err){
+        
+    }
+
+    unsigned char grib_version(){
+        return buf_[8];
+    }
+
+    unsigned long message_length(){
+        read_bytes<3>(buffer[5],buffer[6],buffer[7]);
     }
 };
 #else

@@ -59,7 +59,7 @@ typedef struct VALUES{
 /*
 struct ParmTable {
 	/* char *name, *comment; */
-	const char *name, *comment;
+	//const char *name, *comment;
 /*
 };
 

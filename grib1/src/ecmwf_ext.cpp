@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ecmwf_ext.h"
-#include "sections/PDS.h"
-#include "data/data_tags.h"
+#include "sections/section_1.h"
 
 void EC_ext(unsigned char *pds, char *prefix, char *suffix, int verbose) {
 
@@ -11,7 +10,7 @@ void EC_ext(unsigned char *pds, char *prefix, char *suffix, int verbose) {
 
     if (PDS_Center(pds) != ECMWF) return;
 
-    local_id = PDS_EcLocalId(pds);
+    local_id = PDS_LocalId(pds);
     if (local_id  == 0) return;
     ec_class = PDS_EcClass(pds);
     ec_type = PDS_EcType(pds);

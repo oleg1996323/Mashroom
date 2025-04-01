@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "sections/Parm_Table.h"
-#include "func.h"
+#include "sections/section_1.h"
 #include "ensemble.h"
-#include "sections/PDS.h"
 #include "def.h"
-#include "sections/data_tags.h"
 
 
 void ensemble(unsigned char *pds, int mode) {

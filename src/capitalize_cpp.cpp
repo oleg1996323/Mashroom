@@ -28,26 +28,27 @@ void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::pat
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
             std::cout<<entry.path()<<std::endl;
-            CapitalizeData cap_data = capitalize(entry.path().c_str(),root.c_str(),hier.c_str(),order.fmt);
+            std::vector<CapitalizeData> cap_data = capitalize(entry.path().c_str(),root.c_str(),hier.c_str(),order.fmt);
+            for(const CapitalizeData& c_d:cap_data){
+                if(c_d.err==ErrorCodeData::NONE_ERR){
+                    if(is_correct_date(&c_d.from)){
+                        if(!is_correct_date(&data.data_.from) || get_epoch_time(&c_d.from)<get_epoch_time(&data.data_.from))
+                            data.data_.from=c_d.from;
+                    }
+                    else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
 
-            if(cap_data.err==ErrorCodeData::NONE_ERR){
-                if(is_correct_date(&cap_data.from)){
-                    if(!is_correct_date(&data.data_.from) || get_epoch_time(&cap_data.from)<get_epoch_time(&data.data_.from))
-                        data.data_.from=cap_data.from;
+                    if(is_correct_date(&c_d.to)){
+                        if(!is_correct_date(&data.data_.to) || get_epoch_time(&c_d.to)>get_epoch_time(&data.data_.to))
+                            data.data_.to=c_d.to;
+                    }
+                    else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
+
+                    if(!is_correct_rect(&c_d.grid_data.bound))
+                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
+                    else data.data_.grid_data=c_d.grid_data;
                 }
                 else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
-
-                if(is_correct_date(&cap_data.to)){
-                    if(!is_correct_date(&data.data_.to) || get_epoch_time(&cap_data.to)>get_epoch_time(&data.data_.to))
-                        data.data_.to=cap_data.to;
-                }
-                else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
-
-                if(!is_correct_rect(&cap_data.grid_data.bound))
-                    ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
-                else data.data_.grid_data=cap_data.grid_data;
             }
-            else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT);
         }
     }
     format::write(root,data);
