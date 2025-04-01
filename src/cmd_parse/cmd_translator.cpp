@@ -22,12 +22,12 @@
 //     }
 //     return ExtractDivArgs::UNDEF;
 // }
-// CapitalizeHierArgs translate_cap_hierarchy(std::string_view arg){
+// CategoryClassArgs translate_cap_hierarchy(std::string_view arg){
 //     for(int i=0;i<capitalize_hier_txt.size();++i){
 //         if(arg==capitalize_hier_txt[i])
-//             return (CapitalizeHierArgs)i;
+//             return (CategoryClassArgs)i;
 //     }
-//     return CapitalizeHierArgs::UNDEF;
+//     return CategoryClassArgs::UNDEF;
 // }
 // FileFormat translate_cap_format(std::string_view arg){
 //     for(int i=0;i<capitalize_fmt_txt.size();++i){
@@ -40,7 +40,7 @@
 // ModeArgs translate_mode(std::string_view arg){
 //     for(int i=0;i<capitalize_hier_txt.size();++i){
 //         if(arg==capitalize_hier_txt[i])
-//             return (CapitalizeHierArgs)i;
+//             return (CategoryClassArgs)i;
 //     }
-//     return CapitalizeHierArgs::UNDEF;
+//     return CategoryClassArgs::UNDEF;
 // }

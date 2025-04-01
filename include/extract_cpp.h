@@ -10,14 +10,10 @@
 #include <iostream>
 #include "sys/error_code.h"
 
-#ifdef __cplusplus
-extern "C"{
-    #include "sections/section_1.h"
-    #include "types/coord.h"
-    #include "extract.h"
-    #include "def.h"
-}
-#endif
+#include "sections/section_1.h"
+#include "types/coord.h"
+#include "extract.h"
+#include "def.h"
 
 namespace cpp{
 

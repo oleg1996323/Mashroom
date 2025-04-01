@@ -65,6 +65,7 @@ extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size
 unsigned long get_GDS_length(const GridDescriptionSection& data){
 	if(!data.buf_)
 		return 0;
+	else read_bytes<3>(data.buf_[0],data.buf_[1],data.buf_[2]);
 }
 RepresentationType get_representation_type(const GridDescriptionSection& data){
 	if(!data.buf_)

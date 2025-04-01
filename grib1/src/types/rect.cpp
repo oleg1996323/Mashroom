@@ -31,10 +31,10 @@ Rect intersection_rect(const Rect* source, const Rect* searched){
 					.y1 = max(source->y1,searched->y1),
 					.y2 = min(source->y2,searched->y2));
         #else
-        return {max(source->x1,searched->x1), 
-                min(source->x2,searched->x2),
-                max(source->y1,searched->y1),
-                min(source->y2,searched->y2)};
+        return {std::max(source->x1,searched->x1), 
+                std::min(source->x2,searched->x2),
+                std::max(source->y1,searched->y1),
+                std::min(source->y2,searched->y2)};
         #endif
 	else {
 		fprintf(stderr,"Not defined arguments");

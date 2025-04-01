@@ -86,16 +86,16 @@ void help(){
 
     SplitByColumns(translate_from_token<Command>(Command::EXTRACT_FORMAT)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",\
-        " - define the output format of data ( ( "+translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::BIN)+" | "+\
-        translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::GRIB)+" | "+\
-        translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::TXT)+" ) & "+\
-        translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::ARCHIVED)+" ).\n");
+        " - define the output format of data ( ( "+translate_from_token<FileFormat>(FileFormat::BIN)+" | "+\
+        translate_from_token<FileFormat>(FileFormat::GRIB)+" | "+\
+        translate_from_token<FileFormat>(FileFormat::TXT)+" ) & "+\
+        translate_from_token<FileFormat>(FileFormat::ARCHIVED)+" ).\n");
 
     SplitByColumns(translate_from_token<Command>(Command::CAPITALIZE_FORMAT)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+" )",\
-        " - define the input accepted formats by capitalize mode ( "+translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::BIN)+" | "+\
-        translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::GRIB)+" | "+\
-        translate_from_token<ExtractFormatArgs>(ExtractFormatArgs::TXT)+" ).\n");
+        " - define the input accepted formats by capitalize mode ( "+translate_from_token<FileFormat>(FileFormat::BIN)+" | "+\
+        translate_from_token<FileFormat>(FileFormat::GRIB)+" | "+\
+        translate_from_token<FileFormat>(FileFormat::TXT)+" ).\n");
     
     SplitByColumns(translate_from_token<Command>(Command::CAPITALIZE_HIERARCHY)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+" )",\

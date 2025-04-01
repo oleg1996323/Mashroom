@@ -10,6 +10,7 @@
 #include "sections/section_1.h"
 #include "sections/section_2.h"
 #include "sections/section_3.h"
+#include "aux_code/int_pow.h"
 #include "write.h"
 #include "ensemble.h"
 #include "print.h"
@@ -211,9 +212,6 @@ fail:
         grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
         grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
         grid_.dx = 0.001*GDS_LatLon_dx(gds);
-        grid_.nx = nx;
-        grid_.ny = ny;
-        grid_.nxny = nxny;
         
         if(coord && !point_in_rect(&grid_.bound,*coord)){
             *pos += len_grib;
@@ -452,9 +450,6 @@ Result get_from_pos(const char* from,long int* count,long unsigned* pos){
         grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
         grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
         grid_.dx = 0.001*GDS_LatLon_dx(gds);
-        grid_.nx = nx;
-        grid_.ny = ny;
-        grid_.nxny = nxny;
         
         *pos += len_grib;
         *count++;

@@ -7,13 +7,10 @@
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "sys/format_def.h"
-#ifdef __cplusplus
-    extern "C"{
-        #include "sections/section_1.h"
-        #include "capitalize.h"
-        #include "extract.h"
-    }
-#endif
+
+#include "sections/section_1.h"
+#include "capitalize.h"
+#include "extract.h"
 namespace fs = std::filesystem;
 
 enum class FormatTokens{

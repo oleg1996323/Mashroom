@@ -3,7 +3,7 @@ project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX)
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
 set(CMAKE_CXX_STANDARD 23)
-
+add_compile_options("-w")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 include(loadCodeTables)
 

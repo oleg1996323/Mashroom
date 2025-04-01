@@ -21,16 +21,16 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
             if(token.empty())
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input at extract format definition",AT_ERROR_ACTION::ABORT,input);
             else
-                switch (translate_from_txt<translate::token::ExtractFormatArgs>(token))
+                switch (translate_from_txt<translate::token::FileFormat>(token))
                 {
-                case translate::token::ExtractFormatArgs::ARCHIVED:{
+                case translate::token::FileFormat::ARCHIVED:{
                     if(result&cpp::DATA_OUT::ARCHIVED)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Archive format already defined",AT_ERROR_ACTION::CONTINUE,token);
                     else
                         result|=cpp::DATA_OUT::ARCHIVED;
                     break;
                 }
-                case translate::token::ExtractFormatArgs::BIN:{
+                case translate::token::FileFormat::BIN:{
                     cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
                     if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::BIN_F;
@@ -40,7 +40,7 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use two different extraction format (except archiving)",AT_ERROR_ACTION::ABORT,input);
                     break;
                 }
-                case translate::token::ExtractFormatArgs::GRIB:{
+                case translate::token::FileFormat::GRIB:{
                     cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
                     if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::GRIB_F;
@@ -50,7 +50,7 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use two different extraction format (except archiving)",AT_ERROR_ACTION::ABORT,input);
                     break;
                 }
-                case translate::token::ExtractFormatArgs::TXT:{
+                case translate::token::FileFormat::TXT:{
                     cpp::DATA_OUT cur = result|cpp::DATA_OUT::ARCHIVED^cpp::DATA_OUT::ARCHIVED;
                     if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
                         result|=cpp::DATA_OUT::TXT_F;

@@ -2,11 +2,11 @@
 #ifdef __cplusplus
 extern "C"{
     #include "png.h"
-    #include "def.h"
-    #undef max
-    #undef min
 }
 #endif
+#include "def.h"
+#undef max
+#undef min
 #include <string>
 #include <vector>
 #include "color.h"

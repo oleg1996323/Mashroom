@@ -81,38 +81,38 @@ namespace functions::capitalize{
         std::vector<std::string_view> tokens = split(std::string_view(input),":");
         for(std::string_view token:tokens){
             if(token.size()>0){
-                switch(translate_from_txt<CapitalizeHierArgs>(token)){
-                    case CapitalizeHierArgs::HOUR:
+                switch(translate_from_txt<CategoryClassArgs>(token)){
+                    case CategoryClassArgs::HOUR:
                         if(order.hour!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for hour",AT_ERROR_ACTION::CONTINUE,token);
                         else order.hour = order_count++;
                         break;
-                    case CapitalizeHierArgs::DAY:
+                    case CategoryClassArgs::DAY:
                         if(order.day!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for day",AT_ERROR_ACTION::CONTINUE,token);
                         else order.day = order_count++;
                         break;
-                    case CapitalizeHierArgs::MONTH:
+                    case CategoryClassArgs::MONTH:
                         if(order.month!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for month",AT_ERROR_ACTION::CONTINUE,token);
                         else order.month = order_count++;
                         break;
-                    case CapitalizeHierArgs::YEAR:
+                    case CategoryClassArgs::YEAR:
                         if(order.year!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for year",AT_ERROR_ACTION::CONTINUE,token);
                         else order.year = order_count++;
                         break;
-                    case CapitalizeHierArgs::LAT:
+                    case CategoryClassArgs::LAT:
                         if(order.lat!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for latitude",AT_ERROR_ACTION::CONTINUE,token);
                         else order.lat = order_count++;
                         break;
-                    case CapitalizeHierArgs::LON:
+                    case CategoryClassArgs::LON:
                         if(order.lon!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
                         else order.lon = order_count++;
                         break;
-                    case CapitalizeHierArgs::LATLON:
+                    case CategoryClassArgs::LATLON:
                         if(order.lon!=-1 && order.lat!=-1)
                             ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Already choosen order hierarchy for longitude",AT_ERROR_ACTION::CONTINUE,token);
                         else{

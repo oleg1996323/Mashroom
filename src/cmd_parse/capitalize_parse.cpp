@@ -7,11 +7,7 @@
 #include "cmd_parse/cmd_translator.h"
 #include "capitalize_cpp.h"
 #include "cmd_parse/functions.h"
-#ifdef __cplusplus
-    extern "C"{
-        #include "capitalize.h"
-    }
-#endif
+#include "capitalize.h"
 
 namespace fs = std::filesystem;
 

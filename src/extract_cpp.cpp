@@ -1,42 +1,27 @@
+#include <cassert>
+#include <dirent.h>
+#include <unistd.h>
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <decode_aux.h>
+#include <set>
 #include "application.h"
 #include "extract_cpp.h"
-#ifdef __cplusplus
-    extern "C"{
-        #include <stdio.h>
-        #include <stdlib.h>
-        #include <stdbool.h>
-        #include <float.h>
-        #include <assert.h>
-        #include <string.h>
-        #include <math.h>
-        #include "extract.h"
-        #include "sections/PDS.h"
-        #include "sections/BDS.h"
-        #include "sections/GDS.h"
-        #include "write.h"
-        #include "ensemble.h"
-        #include "func.h"
-        #include "print.h"
-        #include "ecmwf_ext.h"
-        #include "error_handle.h"
-        #include "read.h"
-        #include "seek_grib.h"
-        #include "levels.h"
-        #include "sections/Parm_Table.h"
-        #include "def.h"
-        #include <sys/types.h>
-        #include <dirent.h>
-        #include <unistd.h>
-        #include <limits.h>
-        #include <sys/types.h>
-        #include <sys/stat.h>
-        #include <errno.h>
-        #include <decode_aux.h>
-        #include <png.h>
-        #include <zip.h>
-    }
-#endif
-#include <set>
+#include "extract.h"
+#include "sections/section_1.h"
+#include "sections/section_3.h"
+#include "sections/section_2.h"
+#include "write.h"
+#include "ensemble.h"
+#include "print.h"
+#include "ecmwf_ext.h"
+#include "error_handle.h"
+#include "read.h"
+#include "seek_grib.h"
+#include "levels.h"
+#include "def.h"
 #include "compressor.h"
 #include "error_code.h"
 #include "err_msg.h"

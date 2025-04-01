@@ -17,11 +17,7 @@
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
 #include "sys/log_err.h"
-#ifdef __cplusplus
-    extern "C"{
-        #include "contains.h"
-    }
-#endif
+#include "contains.h"
 
 static constexpr const char* miss_files_filename = "missing_files.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
