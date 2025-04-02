@@ -227,7 +227,6 @@ float BDS_unpack_val(unsigned char *bds, unsigned char *bitmap,
     // }
     return UNDEFINED;
 }
-
 int BDS_NValues(unsigned char *bds) {
 
     /* returns number of grid points as determined from the BDS */

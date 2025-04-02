@@ -33,8 +33,7 @@ STRUCT_BEG(Message)
                                     section_1_(buffer+sec_0_min_sz),
                                     section_2_(buffer+sec_0_min_sz+section_1_.section_length()),
                                     section_3_(section_2_.buf_+section_2_.section_length()),
-                                    section_4_(section_3.buf_+section_3_.section_length()),
-                                    section_5_(section_4.buf_+section_4_.section_length()){}
+                                    section_4_(section_3_.buf_+section_3_.section_length()){}
     #endif
 }
 STRUCT_END(Message)

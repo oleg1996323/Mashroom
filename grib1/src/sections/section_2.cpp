@@ -10,29 +10,26 @@ extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size
 #ifdef __cplusplus
 #include <fstream>
 #include <vector>
-unsigned long get_GDS_length(const GridDescriptionSection& data){
-	if(!data.buf_)
-		return 0;
-	else read_bytes<3>(data.buf_[0],data.buf_[1],data.buf_[2]);
+unsigned long GridDescriptionSection::section_length(){
+	return read_bytes<3>(buf_[0],buf_[1],buf_[2]);
 }
-RepresentationType get_representation_type(const GridDescriptionSection& data){
-	if(!data.buf_)
-		return (RepresentationType)-1;
+RepresentationType GridDescriptionSection::get_representation_type(){
+	return (RepresentationType)-1;
 }
-GridInfo define_grid(const GridDescriptionSection& data,RepresentationType rep_t){
-    if(!rep_t<256 || !is_representation[rep_t])
+GridInfo GridDescriptionSection::define_grid(){
+    if(!get_representation_type()<256 || !is_representation[get_representation_type()])
         throw std::invalid_argument("Invalid representation type.");
     else
-        return GridInfo(GridDataType(data.buf_,rep_t),rep_t);
+        return GridInfo(GridDataType(buf_,get_representation_type()),get_representation_type());
 }
-unsigned long get_number_vertical_coord_values(const GridDescriptionSection& data){
-	return GDS_NV(data.buf_);
+unsigned long GridDescriptionSection::get_number_vertical_coord_values(){
+	return GDS_NV(buf_);
 }
-unsigned long get_PV(const GridDescriptionSection& data){
-	
+unsigned long GridDescriptionSection::get_PV(){
+	return GDS_PV(buf_);
 }
-unsigned long get_PL(const GridDescriptionSection& data){
-	
+unsigned long GridDescriptionSection::get_PL(){
+	return GDS_PL(buf_);
 }
 
 #else

@@ -18,6 +18,8 @@
 
 #ifdef __cplusplus
 #include <cstdint>
+#include <fstream>
+#include <vector>
 #else
 #include <stdint.h>
 #endif
@@ -33,40 +35,26 @@ STRUCT_BEG(GridDescriptionSection)
 	// uint32_t PV DEF_STRUCT_VAL(0)
 	//bool defined DEF_STRUCT_VAL(false)
 	#ifdef __cplusplus
-	GridDescriptionSection(unsigned char* buffer):buf_(buffer){
-		// if(buffer.size()<sec_2_min_sz){
-		// 	defined = false;
-		// 	return;
-		// }
-		// section2Length = read_bytes<3>(buffer[0],buffer[1],buffer[2]);
-		// numberOfVerticalCoordinateValues = buffer[3];
-		// pvLocation = buffer[4];
-		// dataRepresentationType = (RepresentationType)buffer[5];
-		// data = define_grid(buffer,dataRepresentationType);
-		// if(numberOfVerticalCoordinateValues==0)
-		// 	if(pvLocation&0b11111111){
-		// 		defined = true;
-		// 		return;
-		// 	}
-		// 	else GDS_grid(buffer.data(),);
-		// defined = true;
-	}
+	GridDescriptionSection(unsigned char* buffer):buf_(buffer){}
+
+	unsigned long section_length();
+	RepresentationType get_representation_type();
+	GridInfo define_grid();
+	unsigned long get_number_vertical_coord_values();
+	unsigned long get_PV();
+	unsigned long get_PL();
 	#endif
 }
 STRUCT_END(GridDescriptionSection)
 
-#ifdef __cplusplus
-#include <fstream>
-#include <vector>
-unsigned long get_GDS_length(const GridDescriptionSection& data);
-RepresentationType get_representation_type(const GridDescriptionSection& data);
-GridInfo define_grid(const GridDescriptionSection& data,RepresentationType rep_t);
-unsigned long get_number_vertical_coord_values(const GridDescriptionSection& data);
-unsigned long get_PV(const GridDescriptionSection& data);
-unsigned long get_PL(const GridDescriptionSection& data);
-
-#else
+#ifndef __cplusplus
 #include <stdint.h>
 
 extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size);
+unsigned long section_length(const GridDescriptionSection* data);
+RepresentationType get_representation_type(const GridDescriptionSection* data);
+GridInfo define_grid(const GridDescriptionSection* data,RepresentationType rep_t);
+unsigned long get_number_vertical_coord_values(const GridDescriptionSection* data);
+unsigned long get_PV(const GridDescriptionSection* data);
+unsigned long get_PL(const GridDescriptionSection* data);
 #endif

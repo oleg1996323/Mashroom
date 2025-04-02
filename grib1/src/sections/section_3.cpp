@@ -1,31 +1,21 @@
 #include "sections/section_3.h"
+#include "sections/bitmap/def.h"
 
 #ifdef __cplusplus
 #include <fstream>
 #include <vector>
-unsigned long get_BMS_length(const BitMapSection& data){
-	if(!data.buf_)
-		return 0;
-	else return read_bytes<3>(data.buf_[0],data.buf_[1],data.buf_[2]);
+
+unsigned long BitMapSection::section_length(){
+	return read_bytes<3>(buf_[0],buf_[1],buf_[2]);
 }
-RepresentationType get_representation_type(const BitMapSection& data){
-	if(!data.buf_)
-		return (RepresentationType)-1;
+unsigned long BitMapSection::unused_bits(){
+	return BMS_UnusedBits(buf_);
 }
-GridInfo define_grid(const BitMapSection& data,RepresentationType rep_t){
-    if(!rep_t<256 || !is_representation[rep_t])
-        throw std::invalid_argument("Invalid representation type.");
-    else
-        return GridInfo(GridDataType(data.buf_,rep_t),rep_t);
+unsigned short BitMapSection::table_ref(){
+    return BMS_StdMap(buf_);
 }
-unsigned long get_number_vertical_coord_values(const BitMapSection& data){
-	return GDS_NV(data.buf_);
-}
-unsigned long get_PV(const BitMapSection& data){
-	
-}
-unsigned long get_PL(const BitMapSection& data){
-	
+unsigned char* BitMapSection::data(){
+	return BMS_bitmap(buf_);
 }
 
 #else

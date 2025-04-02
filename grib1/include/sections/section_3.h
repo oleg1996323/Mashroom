@@ -7,6 +7,8 @@
 
 #ifdef __cplusplus
 #include <cstdint>
+#include <fstream>
+#include <vector>
 #else
 #include <stdint.h>
 #endif
@@ -16,26 +18,15 @@ STRUCT_BEG(BitMapSection)
 	unsigned char* buf_;
 	#ifdef __cplusplus
 	BitMapSection(unsigned char* buffer):buf_(buffer){}
+	unsigned long section_length();
+	unsigned long unused_bits();
+	unsigned short table_ref();
+	unsigned char* data();
 	#endif
 }
 STRUCT_END(BitMapSection)
 
 #ifndef __cplusplus
-extern bool define_GDS(BitMapSection* gds,char* buffer,size_t file_size);
-#endif
-
-#ifdef __cplusplus
-#include <fstream>
-#include <vector>
-unsigned long get_BMS_length(const BitMapSection& data);
-RepresentationType get_representation_type(const BitMapSection& data);
-GridInfo define_grid(const BitMapSection& data,RepresentationType rep_t);
-unsigned long get_number_vertical_coord_values(const BitMapSection& data);
-unsigned long get_PV(const BitMapSection& data);
-unsigned long get_PL(const BitMapSection& data);
-
-#else
 #include <stdint.h>
-
-extern void define_GDS()
+extern bool define_GDS(BitMapSection* gds,char* buffer,size_t file_size);
 #endif
