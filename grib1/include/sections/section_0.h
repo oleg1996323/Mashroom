@@ -30,12 +30,12 @@ struct IndicatorSection{
         
     }
 
-    unsigned char grib_version(){
+    unsigned char grib_version() const noexcept{
         return buf_[8];
     }
 
-    unsigned long message_length(){
-        read_bytes<3>(buffer[5],buffer[6],buffer[7]);
+    unsigned long message_length() const noexcept{
+        read_bytes<3>(buf_[5],buf_[6],buf_[7]);
     }
 };
 #else

@@ -4,7 +4,7 @@ enum TimeFrame{
     MINUTE = 0,
     HOUR = 1,
     DAY = 2,
-    MOUNTH = 3,
+    MONTH = 3,
     YEAR = 4,
     DECADE = 5,
     NORMAL = 6,

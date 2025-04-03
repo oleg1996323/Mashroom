@@ -9,19 +9,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
-#include "sections/section_0.h"
-#include "sections/section_1.h"
-#include "sections/section_2.h"
-#include "write.h"
-#include "ensemble.h"
-#include "print.h"
-#include "ecmwf_ext.h"
-#include "error_handle.h"
-#include "read.h"
-#include "seek_grib.h"
-#include "levels.h"
-#include "def.h"
 #include "capitalize.h"
+#include "aux_code/directories.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8

@@ -1,24 +1,3 @@
-#include <stdio.h>
-#include "data/Parm_Table.h"
-#include "code_tables/table_0.h"
-#include "sections/section_1.h"
-#include "generated/code_tables/eccodes_tables.h"
-#include "aux_code/def.h"
-#include "user.h"
-
-const ParmTable *Parm_Table(const ProductDefinitionSection& data){
-    switch (data.center)
-    {
-    case Organization::ECMWF:
-    if(pds.subcenter)
-        return ParmTable_2_98_128;
-        break;
-    
-    default:
-        break;
-    }
-    
-}
 
 // static const struct ParmTable *Parm_Table(const ProductDefinitionSection& pds){
 
@@ -117,11 +96,3 @@ const ParmTable *Parm_Table(const ProductDefinitionSection& data){
 //     return &parm_table_ncep_opn[0];
 // }
 
-char *k5toa(unsigned char *pds) {
-    return (Parm_Table(pds) + PDS_PARAM(pds))->name;
-}
-
-char *k5_comments(unsigned char *pds) {
-
-    return (Parm_Table(pds) + PDS_PARAM(pds))->comment;
-}

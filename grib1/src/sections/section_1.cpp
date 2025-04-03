@@ -1,6 +1,17 @@
 #include "sections/section_1.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "generated/code_tables/include/eccodes_tables.h"
+#include "code_tables/table_4.h"
+
+char *k5toa(ProductDefinitionSection* pds) {
+    return (ParmTable(pds->buffer_) + PDS_PARAM(pds))->name;
+}
+
+char *k5_comments(unsigned char *pds) {
+
+    return (Parm_Table(pds) + PDS_PARAM(pds))->comment;
+}
 
 void PDStimes(int time_range, int p1, int p2, int time_unit) {
 
@@ -14,23 +25,23 @@ void PDStimes(int time_range, int p1, int p2, int time_unit) {
 
         /* change x3/x6/x12 to hours */
 
-        if (time_unit == HOURS3) {
+        if (time_unit == HOURS_3) {
 	    p1 *= 3; p2 *= 3;
 	    time_unit = HOUR;
         }
-        else if (time_unit == HOURS6) {
+        else if (time_unit == HOURS_6) {
 	    p1 *= 6; p2 *= 6;
 	    time_unit = HOUR;
         }
-        else if (time_unit == HOURS12) {
+        else if (time_unit == HOURS_12) {
 	    p1 *= 12; p2 *= 12;
 	    time_unit = HOUR;
         }
-	else if (time_unit == MINUTES30) {
+	else if (time_unit == HALF_HOUR) {
 	    p1 *= 30; p2 *= 30;
 	    time_unit = MINUTE;
         }
-	else if (time_unit == MINUTES15) {
+	else if (time_unit == QUARTER_HOUR) {
 	    p1 *= 15; p2 *= 15;
 	    time_unit = MINUTE;
         }
@@ -259,15 +270,15 @@ int add_time(int *year, int *month, int *day, int *hour, int dtime, int unit) {
 	unit = HOUR;
     }
 
-    if (unit == HOURS3) {
+    if (unit == HOURS_3) {
         dtime *= 3;
         unit = HOUR;
     }
-    else if (unit == HOURS6) {
+    else if (unit == HOURS_6) {
         dtime *= 6;
         unit = HOUR;
     }
-    else if (unit == HOURS12) {
+    else if (unit == HOURS_12) {
         dtime *= 12;
         unit = HOUR;
     }

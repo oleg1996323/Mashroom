@@ -11,24 +11,6 @@
 #include "sections/section_2.h"
 #include "sections/section_3.h"
 #include "aux_code/int_pow.h"
-#include "write.h"
-#include "ensemble.h"
-#include "print.h"
-#include "ecmwf_ext.h"
-#include "error_handle.h"
-#include "read.h"
-#include "seek_grib.h"
-#include "levels.h"
-#include "def.h"
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <limits.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <decode_aux.h>
-#include <png.h>
 
 bool contains(const char* from,long int* count, unsigned long* pos, const Date* date ,const Coord* coord){
     unsigned char *buffer;
