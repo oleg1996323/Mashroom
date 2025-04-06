@@ -9,7 +9,7 @@
 #include "sys/mman.h"
 #include <fcntl.h>
 #include <unistd.h>
-
+#include <errno.h>
 #ifdef __cplusplus
 #include <filesystem>
 #include <string>
@@ -34,37 +34,70 @@ STRUCT_BEG(Message)
                                     section_2_(buffer+sec_0_min_sz+section_1_.section_length()),
                                     section_3_(section_2_.buf_+section_2_.section_length()),
                                     section_4_(section_3_.buf_+section_3_.section_length()){}
+
+    unsigned long message_length() const noexcept{
+        return section_0_.message_length();
+    }
+    float extract_value(int n);
     #endif
 }
 STRUCT_END(Message)
 
-
 STRUCT_BEG(HGrib1)
-{
-    Message msg_ DEF_STRUCT_VAL(nullptr);
-    unsigned char* __f_ptr DEF_STRUCT_VAL(nullptr);
-    unsigned char* current_ptr_ DEF_STRUCT_VAL(nullptr)
-    int fno DEF_STRUCT_VAL(-1);
+{   
     #ifdef __cplusplus
-    HGrib1(const fs::path& filename) try: msg_(nullptr),__f_ptr(nullptr),current_ptr_(nullptr),fno(open(filename.c_str(),O_RDONLY))
-    {
-        if(fno==-1)
-            throw std::runtime_error("Unable to open file "s+filename.c_str());
-        __f_ptr = (unsigned char*)mmap(NULL,lseek(fno,0,SEEK_END),PROT_READ,MAP_FILE|MAP_SHARED,fno,0);
-        current_ptr_ = __f_ptr;
-        msg_ = Message(__f_ptr);
-    }
-    catch(const std::runtime_error& err){
-
-    }
-
+    private:
+    #endif
+    Message msg_ DEF_STRUCT_VAL(nullptr)
+    unsigned char* __f_ptr DEF_STRUCT_VAL(nullptr)
+    unsigned char* current_ptr_ DEF_STRUCT_VAL(nullptr)
+    unsigned long sz_ DEF_STRUCT_VAL(0)
+    FILE* file DEF_STRUCT_VAL(nullptr);
+    #ifdef __cplusplus
+    public:
+    HGrib1(const fs::path& filename):msg_(nullptr){open_grib(filename);}
+    HGrib1() = default;
     ~HGrib1(){
         if(__f_ptr)
-            munmap(__f_ptr,lseek(fno,0,SEEK_END));
+            munmap(__f_ptr,lseek(fileno(file),0,SEEK_END));
     }
-
+    Message& message(){
+        return msg_;
+    }
     void next_message(){
         
+    }
+    unsigned long file_size() const noexcept{
+        return sz_;
+    }
+    bool is_correct_format() const noexcept{
+        if(sz_>=sec_0_min_sz)
+            if(msg_.section_0_.buf_[0]=='G' && msg_.section_0_.buf_[1]=='R' && msg_.section_0_.buf_[2]=='I' && msg_.section_0_.buf_[3]=='B')
+                return true;
+        return false;
+    }
+    unsigned char grib_version() const noexcept{
+        if(is_correct_format())
+            return msg_.section_0_.grib_version();
+    }
+    bool open_grib(const fs::path& filename){
+        msg_ = nullptr;
+        __f_ptr = nullptr;
+        current_ptr_ = nullptr;
+        sz_ = 0;
+        if(file)
+            fclose(file);
+        file = fopen(filename.c_str(),O_RDONLY);
+        if(!file)
+            throw std::runtime_error("Cannot open file");
+        fseek(file, 0, SEEK_END);
+        sz_ = ftell(file);
+        fseek(file,0,SEEK_SET);
+        __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_FILE|MAP_SHARED,fileno(file),0);
+        if(!__f_ptr)
+            throw std::runtime_error("Reading error");
+        current_ptr_ = __f_ptr;
+        msg_ = Message(__f_ptr);
     }
     #endif
 }

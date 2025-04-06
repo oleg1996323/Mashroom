@@ -1,5 +1,4 @@
 #pragma once
-#include <decode.h>
 //#include <grib1/include/capitalize.h>
 // #include <extract.h>
 // #include <interpolation.h>

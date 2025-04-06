@@ -13,3 +13,5 @@ STRUCT_END(Coord)
 #ifndef __cplusplus
 #define Coord(...) ((Coord) { .lat_ = -999, .lon_ = -999},##__VA_ARGS__)
 #endif
+
+extern bool is_correct_pos(const Coord* pos);

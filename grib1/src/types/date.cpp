@@ -21,12 +21,34 @@ int days_in_month(int year, int month) {
     return 31;
 }
 
+long long get_epoch_time_by_args(int year, int month, int day,int hour){
+    Date date{year,month,day,hour};
+    // Проверка корректности даты
+    if (!is_correct_date(&date))
+        return -1;
+
+    // Количество дней с начала эпохи до начала текущего года
+    long long days_since_epoch = 0;
+    for (int y = 1970; y < date.year; ++y) {
+        days_since_epoch += is_leap_year(y) ? 366 : 365;
+    }
+
+    // Количество дней с начала текущего года до начала текущего месяца
+    for (int m = 1; m < date.month; ++m) {
+        days_since_epoch += days_in_month(date.year, m);
+    }
+
+    // Количество дней с начала текущего месяца до текущего дня
+    days_since_epoch += date.day - 1;
+
+    // Общее количество секунд
+    long long seconds_since_epoch = days_since_epoch * 86400 + date.hour * 3600;
+
+    return seconds_since_epoch;
+}
+
 // Функция для получения времени в секундах с начала эпохи
 long long get_epoch_time(const Date* date) {
-    int year = date->year;
-    int month = date->month;
-    int day = date->day;
-    int hour = date->hour;
 
     // Проверка корректности даты
     if (!is_correct_date(date))
@@ -34,20 +56,20 @@ long long get_epoch_time(const Date* date) {
 
     // Количество дней с начала эпохи до начала текущего года
     long long days_since_epoch = 0;
-    for (int y = 1970; y < year; ++y) {
+    for (int y = 1970; y < date->year; ++y) {
         days_since_epoch += is_leap_year(y) ? 366 : 365;
     }
 
     // Количество дней с начала текущего года до начала текущего месяца
-    for (int m = 1; m < month; ++m) {
-        days_since_epoch += days_in_month(year, m);
+    for (int m = 1; m < date->month; ++m) {
+        days_since_epoch += days_in_month(date->year, m);
     }
 
     // Количество дней с начала текущего месяца до текущего дня
-    days_since_epoch += day - 1;
+    days_since_epoch += date->day - 1;
 
     // Общее количество секунд
-    long long seconds_since_epoch = days_since_epoch * 86400 + hour * 3600;
+    long long seconds_since_epoch = days_since_epoch * 86400 + date->hour * 3600;
 
     return seconds_since_epoch;
 }

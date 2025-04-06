@@ -126,6 +126,7 @@ STRUCT_BEG(GridInfo)
     RepresentationType rep_type DEF_STRUCT_VAL((RepresentationType)-1)
     #ifdef __cplusplus
         GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
+        GridInfo() = default;
     #endif
 }
 STRUCT_END(GridInfo)

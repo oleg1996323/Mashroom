@@ -11,29 +11,11 @@
 struct IndicatorSection{
     unsigned char* buf_;
 
-    IndicatorSection(unsigned char* buffer)
-    try:buf_(std::invoke([buffer]()
-    {
-        if(!buffer){
-            throw std::invalid_argument("");
-        }
-        else
-            if(!((char*)buffer=="GRIB")){
-                return buffer;
-            }
-            else
-                throw std::invalid_argument("Not Grib 1");
-    }
-    ))
-    {}
-    catch(const std::exception& err){
-        
-    }
+    IndicatorSection(unsigned char* buffer):buf_(buffer){}
 
     unsigned char grib_version() const noexcept{
         return buf_[8];
     }
-
     unsigned long message_length() const noexcept{
         read_bytes<3>(buf_[5],buf_[6],buf_[7]);
     }

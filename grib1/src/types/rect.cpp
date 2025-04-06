@@ -65,11 +65,6 @@ bool is_correct_rect(const Rect* rect){
 		return true;
 	else return false;
 }
-bool is_correct_pos(const Coord* pos){
-	if(pos->lon_>=0 && pos->lon_<=180 && pos->lat_<=90 && pos->lat_>=-90)
-		return true;
-	else return false;
-}
 //by left-top corner
 Rect merge_rect(const Rect* r_1,const Rect* r_2){
 	Rect res = Rect();

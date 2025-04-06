@@ -25,46 +25,9 @@
 STRUCT_BEG(ProductDefinitionSection)
 {
 	unsigned char* buffer_;
-	unsigned section1Length_;
-	unsigned table2Version_;
-	Organization centre_;
-	uint8_t generatingProcessIdentifier_;
-	uint8_t gridDefinition_;
-	Section2_3_flag section1Flags_;
-	ParameterGrib1 IndicatorOfParameter_;
-	LevelsTags IndicatorOfTypeOfLevel_;
-	uint16_t level_data_;
-	uint8_t yearOfCentury_;
-	uint8_t month_;
-	uint8_t day_;
-	uint8_t hour_;
-	uint8_t minute_;
-	TimeFrame unitOfTimeRange_;
-	uint8_t P1_;
-	uint8_t P2_;
-	TimeRange timeRangeIndicator_;
-	uint16_t numberIncludedInAverage_;
-	uint8_t numberMissingFromAveragesOrAccumulations_;
-	uint8_t centuryOfReferenceTimeOfData_;
-	uint8_t subCentre_;
-	int16_t decimalScaleFactor_;
-	char reserved[12];
-	char* additional_;
-	bool defined DEF_STRUCT_VAL(false)
 
 	#ifdef __cplusplus
-	ProductDefinitionSection(unsigned char* buffer):buffer_(buffer){
-		// if(buffer.size()<sec_0_min_sz+sec_1_min_sz){
-		// 	defined = false;
-		// 	return;
-		// }
-		// unsigned length = read_bytes<3>(buffer_[0],buffer_[1],buffer_[2]);
-		// if(length<sec_1_min_sz){
-		// 	defined = false;
-		// 	return;
-		// }
-		unsigned char tab_version = buffer_[3];
-	}
+	ProductDefinitionSection(unsigned char* buffer):buffer_(buffer){}
 	unsigned section_length() const noexcept{
 		return read_bytes<3>(buffer_[0],buffer_[1],buffer_[2]);
 	}
@@ -107,8 +70,23 @@ STRUCT_BEG(ProductDefinitionSection)
 	unsigned char hour() const noexcept{
 		return PDS_Hour(buffer_);
 	}
+	unsigned char minute() const noexcept{
+		return PDS_Minute(buffer_);
+	}
+	TimeFrame unit_time_range() const noexcept{
+		return (TimeFrame)PDS_ForecastTimeUnit(buffer_);
+	}
+	unsigned char year_of_century() const noexcept{
+		return PDS_Year(buffer_);
+	}
 	unsigned char century() const noexcept{
 		return PDS_Century(buffer_);
+	}
+	unsigned short year() const noexcept{
+		return PDS_Year4(buffer_);
+	}
+	unsigned short decimal_scale_factor() const noexcept{
+		return PDS_DecimalScale(buffer_);
 	}
 	unsigned numberMissingFromAveragesOrAccumulations() const noexcept{
 		return PDS_NumMissing(buffer_);

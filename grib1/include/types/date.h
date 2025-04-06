@@ -23,6 +23,7 @@ extern int days_in_month(int year, int month);
 
 // Функция для получения времени в секундах с начала эпохи
 extern long long get_epoch_time(const Date* date);
+extern long long get_epoch_time_by_args(int year, int month, int day,int hour);
 
 extern bool date_less(const Date* lhs, const Date* rhs);
 extern bool date_equal(const Date* lhs, const Date* rhs);

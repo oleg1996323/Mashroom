@@ -6,30 +6,73 @@
 #include <string.h>
 #include <math.h>
 #include "extract.h"
-#include "write.h"
-#include "ensemble.h"
-#include "func.h"
-#include "print.h"
-#include "ecmwf_ext.h"
-#include "error_handle.h"
-#include "read.h"
-#include "seek_grib.h"
-#include "levels.h"
-#include "data/Parm_Table.h"
 #include "def.h"
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <limits.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <decode_aux.h>
-#include "sections/section_1.h"
-#include "sections/section_2.h"
-#include "sys/mman.h"
-#include <fcntl.h>
-#include <sys/stat.h>
+#include "message.h"
+#include "types/grib_data_info.h"
+#include "aux_code/int_pow.h"
+
+#ifdef __cplusplus
+#include <iostream>
+GribDataInfo extract(const Date& dfrom, const Date& dto,const Coord& coord,const char* ffrom){
+    GribDataInfo result;
+    HGrib1 grib;
+    try{
+        grib.open_grib(ffrom);
+    }
+    catch(const std::runtime_error& err){
+        std::cerr<<err.what()<<std::endl;
+        exit(0);
+    }
+    
+    if(grib.file_size()==0){
+        result.err = ErrorCodeData::DATA_EMPTY;
+        return result;
+    }
+    for (;;) {
+        if(grib.message().message_length()==0){
+            result.err = ErrorCodeData::MISS_GRIB_REC;
+            grib.next_message();
+        }
+
+		//ReturnVal result_date;
+        
+		result.grid_data = grib.message().section_2_.define_grid();
+
+        long long from_time = get_epoch_time(&dfrom);
+        long long to_time = get_epoch_time(&dto);
+        long long tmp = get_epoch_time_by_args( grib.message().section_1_.year(),
+                                                grib.message().section_1_.month(),
+                                                grib.message().section_1_.day(),
+                                                grib.message().section_1_.minute());
+        
+        if(tmp>to_time || tmp<from_time){
+            grib.next_message();
+            continue;
+        }
+
+        /* decode numeric data */
+        double temp = int_power(10.0, - grib.message().section_1_.decimal_scale_factor());
+        switch (result.grid_data.rep_type)
+        {
+        case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+            int y_offset = (coord.lat_-result.grid_data.data.latlon.y2)/result.grid_data.data.latlon.dy;
+            int x_offset = (coord.lon_-result.grid_data.data.latlon.x1)/result.grid_data.data.latlon.dx;
+            float tmp_val;
+            tmp_val = BDS_unpack_val(bds, grib.message().section_3_.data(), grib.message().section_4_.bit_per_value(), 
+            (int)(x_offset+result.grid_data.data.latlon.nx*y_offset),
+                temp*grib.message().section_4_.ref_value(),temp*int_power(2.0, grib.message().section_4_.scale_factor()));
+            break;
+        
+        default:
+            break;
+        }
+        
+        
+        
+    }
+    return result;
+}
+#else
 
 GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long int* count, long unsigned* pos){
     float *array;
@@ -49,18 +92,13 @@ GridData extract(ExtractData* data, const char* from, ValueByCoord** values,long
     char open_parm[3];
     int return_code = 0;
 	char* fmt;
-
-	if ((input_id = open(from,O_RDONLY)) == NULL) {
-        fprintf(stderr,"could not open file: %s\n", from);
-        exit(7);
-    }
+    
+    HGrib1 grib(from);
 
     for (;;) {
-        struct stat st;
-        fstat(input_id,&st);
-        st.st_size
-        void* buffer = (unsigned char*)mmap(NULL,BUFF_ALLOC0,PROT_READ,MAP_FILE|MAP_PRIVATE,input_id,pos);
-	msg = seek_grib(input, pos, &len_grib, buffer, MSEEK);
+        if(grib.message().message_length()==0){
+            grid_.
+        }
 	if (msg == NULL) {
 	    // if (mode == INVENTORY || mode == DUMP_ALL) break;
 	    fprintf(stderr,"missing GRIB record(s)\n");
@@ -782,3 +820,4 @@ fail:
 	free(fmt);
     return values;
 }
+#endif

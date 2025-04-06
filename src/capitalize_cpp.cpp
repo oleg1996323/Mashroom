@@ -28,8 +28,8 @@ void capitalize_cpp(const std::filesystem::path& from,const std::filesystem::pat
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
             std::cout<<entry.path()<<std::endl;
-            std::vector<CapitalizeData> cap_data = capitalize(entry.path().c_str(),root.c_str(),hier.c_str(),order.fmt);
-            for(const CapitalizeData& c_d:cap_data){
+            std::vector<GribDataInfo> cap_data = capitalize(entry.path().c_str(),root.c_str(),hier.c_str(),order.fmt);
+            for(const GribDataInfo& c_d:cap_data){
                 if(c_d.err==ErrorCodeData::NONE_ERR){
                     if(is_correct_date(&c_d.from)){
                         if(!is_correct_date(&data.data_.from) || get_epoch_time(&c_d.from)<get_epoch_time(&data.data_.from))

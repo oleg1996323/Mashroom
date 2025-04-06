@@ -1,8 +1,8 @@
 #include "decode_aux.h"
 
 
-
-bool check(char ch, struct VALID_CAP_FMT* valid){
+#ifdef __cplusplus
+bool check(char ch, const ValidCapitalizeFmt& valid){
 	switch (ch)
 	{
 	case 'C':
@@ -41,3 +41,44 @@ bool check(char ch, struct VALID_CAP_FMT* valid){
 		break;
 	}
 }
+#else
+bool check(char ch, ValidCapitalizeFmt* valid){
+	switch (ch)
+	{
+	case 'C':
+		if(!valid->COORD){
+			valid->COORD=true;
+			return true;
+		}
+		break;
+	case 'D':
+		if(!valid->DAY){
+			valid->DAY=true;
+			return true;
+		}
+		break;
+	case 'M':
+		if(!valid->MONTH){
+			valid->MONTH=true;
+			return true;
+		}
+		break;
+	case 'H':
+		if(!valid->HOUR){
+			valid->MONTH=true;
+			return true;
+		}
+		break;
+	case 'Y':
+		if(!valid->YEAR){
+			valid->YEAR=true;
+			return true;
+		}
+		else
+		break;
+	default:
+		return false;
+		break;
+	}
+}
+#endif

@@ -6,6 +6,7 @@
 #include "sections/grid/grid.h"
 #include "sections/binary/def.h"
 #include "code_tables/table_11.h"
+#include "types/coord.h"
 
 #ifdef __cplusplus
 #include <cstdint>
@@ -40,6 +41,7 @@ STRUCT_BEG(BinaryDataSection)
 	uint8_t bit_per_value(){
 		return BDS_NumBits(buf_);
 	}
+	float extract_value(int n);
 	#endif
 }
 STRUCT_END(BinaryDataSection)

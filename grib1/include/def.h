@@ -37,7 +37,7 @@ static const char* err_code_data[11]={
     "End section missed"
 };
 
-typedef enum DATA_FORMAT{
+typedef enum{
     NONE,
     BINARY,
     TEXT, 

@@ -11,9 +11,96 @@
 #include <errno.h>
 #include "capitalize.h"
 #include "aux_code/directories.h"
+#include "def.h"
+#include "message.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
+#endif
+
+#include "decode_aux.h"
+
+
+#ifdef __cplusplus
+bool check(char ch, ValidCapitalizeFmt& valid){
+	switch (ch)
+	{
+	case 'C':
+		if(!valid.COORD){
+			valid.COORD=true;
+			return true;
+		}
+		break;
+	case 'D':
+		if(!valid.DAY){
+			valid.DAY=true;
+			return true;
+		}
+		break;
+	case 'M':
+		if(!valid.MONTH){
+			valid.MONTH=true;
+			return true;
+		}
+		break;
+	case 'H':
+		if(!valid.HOUR){
+			valid.MONTH=true;
+			return true;
+		}
+		break;
+	case 'Y':
+		if(!valid.YEAR){
+			valid.YEAR=true;
+			return true;
+		}
+		else
+		break;
+	default:
+		return false;
+		break;
+	}
+}
+#else
+bool check(char ch, ValidCapitalizeFmt* valid){
+	switch (ch)
+	{
+	case 'C':
+		if(!valid->COORD){
+			valid->COORD=true;
+			return true;
+		}
+		break;
+	case 'D':
+		if(!valid->DAY){
+			valid->DAY=true;
+			return true;
+		}
+		break;
+	case 'M':
+		if(!valid->MONTH){
+			valid->MONTH=true;
+			return true;
+		}
+		break;
+	case 'H':
+		if(!valid->HOUR){
+			valid->MONTH=true;
+			return true;
+		}
+		break;
+	case 'Y':
+		if(!valid->YEAR){
+			valid->YEAR=true;
+			return true;
+		}
+		else
+		break;
+	default:
+		return false;
+		break;
+	}
+}
 #endif
 
 typedef enum COORD_DEPEND{
@@ -148,7 +235,7 @@ int __write_grib__(unsigned char* msg,
 		memset(dump_file_name,0,51);
 }
 
-int __capitalize_write__(GridData* grid,
+int __capitalize_write__(HGri* grid,
 						const char* root_cap_dir_name,
 						Date* date,
 						unsigned char *pds,
@@ -341,222 +428,26 @@ int __capitalize_write__(GridData* grid,
 	}
 	fflush(dump_file);
 }
-#include "def.h"
-CapitalizeData capitalize(const char* in,
-                        const char* root_cap_dir_name,
+
+
+namespace fs = std::filesystem;
+
+GribDataInfo capitalize(const fs::path& in,
+						const fs::path& root_cap_dir_name,
                         const char* fmt_cap,
-                        enum DATA_FORMAT output_type) {
+                        DataFormat output_type) {
 	if(!change_directory(root_cap_dir_name)){
 		fprintf(stderr,"Cannot change or create directory");
 		exit(1);
 	}
-    unsigned char *buffer = NULL;
-    float *array = NULL;
-    double temp = 0;
-    int i = 0, nx = 0, ny = 0;
-	long int len_grib = 0, nxny = 0, buffer_size = 0;
-    long unsigned pos = 0;
-    unsigned char *msg = NULL, *pds = NULL, *gds = NULL, *bms = NULL, *bds = NULL, *pointer = NULL, *end_msg = NULL;
-    FILE *input = NULL;
-	CapitalizeData data_info = CapitalizeData();
-    long int dump = -1;
-	char* fmt = NULL;
-
-	if ((input = fopen(in,"rb")) == NULL) {
-        //fprintf(stderr,"could not open file: %s\n", in);
-		data_info.err = OPEN_ERROR;
-        return data_info;
-    }
-    if(strlen(fmt_cap)!=0){
-		fmt = (char*)malloc(strlen(fmt_cap));
-		strcpy(fmt,fmt_cap);
+    HGrib1 grib;
+	GribDataInfo result;
+	if(!grib.open_grib(in)){
+		result.err = ErrorCodeData::OPEN_ERROR;
+		return result;
 	}
-	else{
-		fmt = (char*)malloc(3);
-		fmt = "YM";
-	}
-
-    if ((buffer = (unsigned char *) malloc(BUFF_ALLOC0)) == NULL) {
-		fprintf(stderr,"not enough memory\n");
-		data_info.err = MEMORY_ERROR;
-        return data_info;
-    }
-    buffer_size = BUFF_ALLOC0;
 
     for (;;) {
-fail:
-	msg = seek_grib(input, &pos, &len_grib, buffer, MSEEK);
-	if (msg == NULL) {
-		if(len_grib==0){
-			data_info.err = NONE_ERR;
-			return data_info;
-		}
-	    fprintf(stderr,"missing GRIB record(s)\n");
-	    data_info.err = MISS_GRIB_REC;
-        return data_info;
-	}
-
-        /* read all whole grib record */
-        if (len_grib + msg - buffer > buffer_size) {
-            buffer_size = len_grib + msg - buffer + 1000;
-            buffer = (unsigned char *) realloc((void *) buffer, buffer_size);
-            if (buffer == NULL) {
-                fprintf(stderr,"ran out of memory\n");
-				data_info.err = RUN_OUT;
-				return data_info;
-            }
-        }
-        if (read_grib(input, pos, len_grib, buffer) == 0) {
-			fprintf(stderr,"error, could not read to end of record %ld\n",data_info.sections);
-			data_info.err = READ_END_ERR;
-			return data_info;
-		}
-
-	/* parse grib message */
-
-	msg = buffer;
-	end_msg = msg + len_grib - 1;
-
-	/* check if last 4 bytes are '7777' */
-
-//	simple check is for last 4 bytes == '7777'
-//    	better check to see if pointers don't go past end_msg
-     if (end_msg[0] != 0x37 || end_msg[-1] != 0x37 || end_msg[-2] != 0x37 || end_msg[-3] != 0x37) {
-	    fprintf(stderr,"Skipping illegal grib1 message: error expected ending 7777\n");
-	    pos++;
-	    goto fail;
-	}
-
-	if (msg + 8 + 27 > end_msg) {
-	    pos++;
-	    goto fail;
-	}
-
-        pds = (msg + 8);
-        pointer = pds + PDS_LEN(pds);
-
-	if (pointer > end_msg) {
-	    pos++;
-	    goto fail;
-	}
-
-	if (PDS_HAS_GDS(pds)) {
-		gds = pointer;
-		pointer += GDS_LEN(gds);
-	if (pointer > end_msg) {
-		pos++;
-		goto fail;
-	}
-	}
-	else {
-		gds = NULL;
-	}
-
-	if (PDS_HAS_BMS(pds)) {
-		bms = pointer;
-		pointer += BMS_LEN(bms);
-	}
-	else {
-		bms = NULL;
-	}
-
-	if (pointer+10 > end_msg) {
-	    pos++;
-	    goto fail;
-	}
-
-	bds = pointer;
-	pointer += BDS_LEN(bds);
-
-	if (pointer-msg+4 != len_grib) {
-	    fprintf(stderr,"Len of grib message is inconsistent.\n");
-		exit(1);
-	}
-
-        /* end section - "7777" in ascii */
-        if (pointer[0] != 0x37 || pointer[1] != 0x37 ||
-            pointer[2] != 0x37 || pointer[3] != 0x37) {
-            fprintf(stderr,"\n\n    missing end section\n");
-            fprintf(stderr, "%2x %2x %2x %2x\n", pointer[0], pointer[1], 
-		pointer[2], pointer[3]);
-#ifdef DEBUG
-	    printf("ignoring missing end section\n");
-#else
-	    exit(1);
-#endif
-        }
-
-	/* figure out size of array */
-	if (gds != NULL) {
-	    GDS_grid(gds, bds, &nx, &ny, &nxny);
-	}
-	else if (bms != NULL) {
-	    nxny = nx = BMS_nxny(bms);
-	    ny = 1;
-	}
-	else {
-	    if (BDS_NumBits(bds) == 0) {
-                nxny = nx = 1;
-                fprintf(stderr,"Missing GDS, constant record .. cannot "
-                    "determine number of data points\n");
-	    }
-	    else {
-	        nxny = nx = BDS_NValues(bds);
-	    }
-	    ny = 1;
-	}
-#ifdef CHECK_GRIB
-	if (gds && ! GDS_Harmonic(gds)) {
-	/* this grib check only works for simple packing */
-	/* turn off if harmonic */
-	    if (BDS_NumBits(bds) != 0) {
-	        i = BDS_NValues(bds);
-	        if (bms != NULL) {
-	            i += missing_points(BMS_bitmap(bms),nxny);
-	        }
-	        if (i != nxny) {
-		    nxny = nx = i;
-		    ny = 1;
-	        }
-	    }
- 
-        }
-#endif
-		GridData grid_;
-		Date date_;
-		
-		grid_.bound.y1 = 0.001*GDS_LatLon_La1(gds);
-		grid_.bound.y2 = 0.001*GDS_LatLon_La2(gds);
-		grid_.dy = 0.001*GDS_LatLon_dy(gds);
-		grid_.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
-		grid_.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
-		grid_.dx = 0.001*GDS_LatLon_dx(gds);
-		grid_.nx = nx;
-		grid_.ny = ny;
-		grid_.nxny = nxny;
-		
-		/*
-		data_info.grid_data.bound.y1 = 0.001*GDS_LatLon_La1(gds);
-		data_info.grid_data.bound.y2 = 0.001*GDS_LatLon_La2(gds);
-		data_info.grid_data.dy = 0.001*GDS_LatLon_dy(gds);
-		data_info.grid_data.bound.x1 = 0.001*GDS_LatLon_Lo1(gds);
-		data_info.grid_data.bound.x2 = 0.001*GDS_LatLon_Lo2(gds);
-		data_info.grid_data.dx = 0.001*GDS_LatLon_dx(gds);
-		data_info.grid_data.nx = nx;
-		data_info.grid_data.ny = ny;
-		data_info.grid_data.nxny = nxny;
-		*/
-
-		date_.year = PDS_Year4(pds);
-		date_.month = PDS_Month(pds);
-		date_.day  = PDS_Day(pds);
-		date_.hour = PDS_Hour(pds);
-		if(!is_correct_date(&data_info.from) || get_epoch_time(&date_)<get_epoch_time(&data_info.from))
-			data_info.from=date_;
-		if(!is_correct_date(&data_info.to) || get_epoch_time(&date_)>get_epoch_time(&data_info.to))
-			data_info.to=date_;
-
-		data_info.grid_data=grid_;
 		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	

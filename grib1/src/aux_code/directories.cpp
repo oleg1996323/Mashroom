@@ -19,3 +19,15 @@ bool change_directory(const char* dir){
 	//else printf("Directory changed: %s\n",dir);
 	return true;
 }
+
+#ifdef __cplusplus
+bool change_directory(const fs::path& dir){
+	return change_directory(dir.c_str());
+}
+bool change_directory(const std::string& dir){
+	return change_directory(dir.c_str());
+}
+bool change_directory(std::string_view dir){
+	return change_directory(dir.data());
+}
+#endif

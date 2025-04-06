@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "data/PDSdate.h"
-#include "verf.h"
 #include "sections/section_1.h"
 #include "types/date.h"
 
@@ -24,8 +23,8 @@ int PDS_date(unsigned char *pds, int option, int v_time) {
     }
     else {
         if (verf_time(pds, &date_.year, &date_.month, &date_.day, &date_.hour) != 0) {
-	    if (msg_count++ < 5) fprintf(stderr, "PDS_date: problem\n");
-	}
+            if (msg_count++ < 5) fprintf(stderr, "PDS_date: problem\n");
+        }
     }
     min =  PDS_Minute(pds);
 

@@ -17,11 +17,9 @@ STRUCT_END(Rect)
 #endif
 
 extern bool rect_equal(const Rect* lhs,const Rect* rhs);
-
 extern bool intersect_rect(const Rect* rect1, const Rect* rect2);
 extern Rect intersection_rect(const Rect* rect1, const Rect* rect2);
 extern bool point_in_rect(const Rect* rect, const Coord point);
 extern bool correct_rect(Rect* rect);
 extern bool is_correct_rect(const Rect* rect);
-extern bool is_correct_pos(const Coord* pos);
 extern Rect merge_rect(const Rect* r_1,const Rect* r_2);

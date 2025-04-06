@@ -4,15 +4,6 @@
 #include "generated/code_tables/include/eccodes_tables.h"
 #include "code_tables/table_4.h"
 
-char *k5toa(ProductDefinitionSection* pds) {
-    return (ParmTable(pds->buffer_) + PDS_PARAM(pds))->name;
-}
-
-char *k5_comments(unsigned char *pds) {
-
-    return (Parm_Table(pds) + PDS_PARAM(pds))->comment;
-}
-
 void PDStimes(int time_range, int p1, int p2, int time_unit) {
 
 	const char *unit;
@@ -247,18 +238,18 @@ int add_time(int *year, int *month, int *day, int *hour, int dtime, int unit) {
            y -= i;
            dtime += (i * 12);
         }
-	dtime += (m - 1);
-	*year =  y = y + (dtime / 12);
-	*month = m = 1 + (dtime % 12);
+		dtime += (m - 1);
+		*year =  y = y + (dtime / 12);
+		*month = m = 1 + (dtime % 12);
 
-        /* check if date code if valid */
-	days_in_month = monthjday[m] - monthjday[m-1];
-	if (m == 2 && leap(y)) {
-	    days_in_month++;
-	}
-	if (days_in_month < d) *day = days_in_month;
+			/* check if date code if valid */
+		days_in_month = monthjday[m] - monthjday[m-1];
+		if (m == 2 && leap(y)) {
+			days_in_month++;
+		}
+		if (days_in_month < d) *day = days_in_month;
 
-	return 0;
+		return 0;
     }
 
     if (unit == SECOND) {
@@ -355,3 +346,78 @@ int verf_time(unsigned char *pds, int *year, int *month, int *day, int *hour) {
 
     return add_time(year, month, day, hour, dtime, unit);
 }
+
+#ifdef __cplusplus
+unsigned ProductDefinitionSection::section_length() const noexcept{
+	return read_bytes<3>(buffer_[0],buffer_[1],buffer_[2]);
+}
+unsigned char ProductDefinitionSection::table_version() const noexcept{
+	return PDS_Vsn(buffer_);
+}
+Organization ProductDefinitionSection::center() const noexcept{
+	return (Organization)PDS_Center(buffer_);
+}
+unsigned char ProductDefinitionSection::generatingProcessIdentifier() const noexcept{
+	return PDS_Model(buffer_);
+}
+unsigned char ProductDefinitionSection::grid_definition() const noexcept{
+	return PDS_Grid(buffer_);
+}
+Section2_3_flag ProductDefinitionSection::section1Flags() const noexcept{
+	return {PDS_HAS_GDS(buffer_),PDS_HAS_BMS(buffer_)};
+}
+unsigned char ProductDefinitionSection::IndicatorOfParameter() const noexcept{
+	return PDS_PARAM(buffer_);
+}
+LevelsTags ProductDefinitionSection::level() const noexcept{
+	return (LevelsTags)PDS_L_TYPE(buffer_);
+}
+unsigned char ProductDefinitionSection::level1_data() const noexcept{
+	return PDS_LEVEL1(buffer_);
+}
+unsigned char ProductDefinitionSection::level2_data() const noexcept{
+	return PDS_LEVEL2(buffer_);
+}
+unsigned char ProductDefinitionSection::subcenter() const noexcept{
+	return PDS_Subcenter(buffer_);
+}
+unsigned char ProductDefinitionSection::month() const noexcept{
+	return PDS_Month(buffer_);
+}
+unsigned char ProductDefinitionSection::day() const noexcept{
+	return PDS_Day(buffer_);
+}
+unsigned char ProductDefinitionSection::hour() const noexcept{
+	return PDS_Hour(buffer_);
+}
+unsigned char ProductDefinitionSection::minute() const noexcept{
+	return PDS_Minute(buffer_);
+}
+TimeFrame ProductDefinitionSection::unit_time_range() const noexcept{
+	return (TimeFrame)PDS_ForecastTimeUnit(buffer_);
+}
+unsigned char ProductDefinitionSection::year_of_century() const noexcept{
+	return PDS_Year(buffer_);
+}
+unsigned char ProductDefinitionSection::century() const noexcept{
+	return PDS_Century(buffer_);
+}
+unsigned short ProductDefinitionSection::year() const noexcept{
+	return PDS_Year4(buffer_);
+}
+unsigned short ProductDefinitionSection::decimal_scale_factor() const noexcept{
+	return PDS_DecimalScale(buffer_);
+}
+unsigned ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() const noexcept{
+	return PDS_NumMissing(buffer_);
+}
+unsigned char ProductDefinitionSection::numberIncludedInAverage() const noexcept{
+	return PDS_NumAve(buffer_);
+}
+const char* ProductDefinitionSection::parameter() const noexcept{
+	return parameter_table(center(),subcenter(),IndicatorOfParameter())->name;
+}
+const char* ProductDefinitionSection::param_comment() const noexcept{
+	return parameter_table(center(),subcenter(),IndicatorOfParameter())->comment;
+}
+#endif

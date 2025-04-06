@@ -3,7 +3,9 @@
 #include <cstdint>
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
-#include "def.h"
+#include "sections/grid/def.h"
+#include "types/coord.h"
+#include "grib1/include/def.h"
 
 #ifdef __cplusplus
 #include <span>
@@ -34,6 +36,11 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
         dy = GDS_LatLon_dy(buffer);
         dx = GDS_LatLon_dx(buffer);
         scan_mode = (ScanMode)GDS_LatLon_mode(buffer);
+    }
+    int value_by_raw(const Coord& pos) const noexcept{
+        if(is_correct_pos(&pos))
+            return (pos.lon_-x1)/dx+nx*(pos.lat_-y2)/dy;
+        else return UNDEFINED;
     }
 };
 

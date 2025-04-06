@@ -44,9 +44,6 @@ extern int ec_large_grib;
 #define BDS_P1(bds)		(bds[16] * 256 + bds[17])
 #define BDS_P2(bds)		(bds[18] * 256 + bds[19])
 
-/* undefined value -- if bitmap */
-#define UNDEFINED		9.999e20
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

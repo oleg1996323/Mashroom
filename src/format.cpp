@@ -26,7 +26,7 @@ FormatBinData read(const fs::path& path){
             break;
         case FormatTokens::Capitalize_data:
             file.read(str,to_read);
-            format.data_ = *reinterpret_cast<CapitalizeData*>(str);
+            format.data_ = *reinterpret_cast<GribDataInfo*>(str);
             break;
         default:
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Corrupted file \'"s+format_filename+"\'",AT_ERROR_ACTION::ABORT);
@@ -42,7 +42,7 @@ FormatBinData read(const fs::path& path){
     return format;
 }
 
-void write(const fs::path& dir,const OrderItems& order,const CapitalizeData& data){
+void write(const fs::path& dir,const OrderItems& order,const GribDataInfo& data){
     if(!fs::is_directory(dir))
         ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());
     std::ofstream file(dir/format_filename,std::ios::binary);
@@ -52,9 +52,9 @@ void write(const fs::path& dir,const OrderItems& order,const CapitalizeData& dat
     int size = sizeof(OrderItems);
     int token = (int)FormatTokens::Capitalize_format;
     file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&order),sizeof(OrderItems));
-    size = sizeof(CapitalizeData);
+    size = sizeof(GribDataInfo);
     token = (int)FormatTokens::Capitalize_data;
-    file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&data),sizeof(CapitalizeData));
+    file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&data),sizeof(GribDataInfo));
     file.close();
 }
 
@@ -68,9 +68,9 @@ void write(const fs::path& dir,const FormatBinData& data){
     int size = sizeof(OrderItems);
     int token = (int)FormatTokens::Capitalize_format;
     file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&data.order_),sizeof(OrderItems));
-    size = sizeof(CapitalizeData);
+    size = sizeof(GribDataInfo);
     token = (int)FormatTokens::Capitalize_data;
-    file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&data.data_),sizeof(CapitalizeData));
+    file.write((const char*)&size,sizeof(int)).write((const char*)&token,sizeof(int)).write((const char*)(&data.data_),sizeof(GribDataInfo));
     file.close();
 }
 }
