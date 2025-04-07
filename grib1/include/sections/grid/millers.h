@@ -24,7 +24,7 @@ struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
     uint16_t dx;
     ScanMode scan_mode;
     uint8_t reserved[3];
-    GridDefinition(unsigned char* buffer){
+    GridDefinition(unsigned char* buffer):resolutionAndComponentFlags(GDS_Lambert_mode(buffer)),scan_mode(GDS_Lambert_scan(buffer)){
         throw std::invalid_argument("Unable to use Millers coordinate-system");
     }
 };

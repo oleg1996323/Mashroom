@@ -99,3 +99,73 @@ bool correct_date_interval(Date* from, Date* to){
         return false;
     return get_epoch_time(from)<=get_epoch_time(to);
 }
+#include <stdexcept>
+unsigned long hours_to_days(unsigned int hour){
+    return hour/24;
+}
+Date date_increment(TimeRange t_unit, uint8_t time_inc){
+    Date inc{0,0,0,0};
+    switch (t_unit)
+    {
+    case MINUTE:
+    case SECOND:
+    case HALF_HOUR:
+    case QUARTER_HOUR:
+        throw std::runtime_error("Still not supported");
+        break;
+    case HOUR:
+        inc.hour = time_inc;
+        break;
+    case DAY:
+        inc.day = time_inc;
+        break;
+    case MONTH:
+        inc.month = time_inc;
+        break;
+    case YEAR:
+        inc.year = time_inc;
+        break;
+    case HOURS_12:
+        inc.hour = time_inc*12;
+        break;
+    case HOURS_3:
+        inc.hour = time_inc*3;
+        break;
+    case HOURS_6:
+        inc.hour = time_inc*6;
+    case TimeFrame::DECADE:
+        inc.year = time_inc*10;
+        break;
+    case TimeFrame::CENTURY:
+        inc.year = time_inc*100;
+        break;
+    default:
+        throw std::invalid_argument("Invalid time unit");
+        break;
+    }
+    return inc;
+}
+bool is_date_interval(const Date* from, const Date* to, TimeRange t_unit, uint8_t time_inc){
+    Date inc = date_increment(t_unit,time_inc);
+    return std::abs(get_epoch_time(from)-std::abs(get_epoch_time(to))==get_epoch_time(&inc));
+}
+#ifdef __cplusplus
+bool Date::operator<(const Date& other){
+    return date_less(this,&other);
+}
+bool Date::operator<=(const Date& other){
+    return date_less_equal(this,&other);
+}
+bool Date::operator>(const Date& other){
+    return date_bigger(this,&other);
+}
+bool Date::operator>=(const Date& other){
+    return date_bigger_equal(this,&other);
+}
+bool Date::operator==(const Date& other){
+    return date_equal(this,&other);
+}
+bool Date::operator!=(const Date& other){
+    return !(*this==other);
+}
+#endif

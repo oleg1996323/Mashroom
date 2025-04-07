@@ -120,6 +120,8 @@ UNION_BEG(GridDataType){
 }
 UNION_END(GridDataType)
 
+
+#include "types/rect.h"
 STRUCT_BEG(GridInfo)
 {
     GridDataType data DEF_STRUCT_VAL({})
@@ -127,6 +129,49 @@ STRUCT_BEG(GridInfo)
     #ifdef __cplusplus
         GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
         GridInfo() = default;
+        bool extendable_by(const GridInfo& other) const noexcept{
+            if(rep_type != other.rep_type)
+                return false;
+            switch (other.rep_type)
+            {
+            case LAT_LON_GRID_EQUIDIST_CYLINDR:
+                if(data.latlon.dx!=other.data.latlon.dx ||
+                    data.latlon.dy!=other.data.latlon.dy)
+                    return false;
+                return !(data.latlon.x1 > other.data.latlon.x2 ||
+                    data.latlon.x2 < other.data.latlon.x1 || 
+                    data.latlon.y1 > other.data.latlon.y2||
+                    data.latlon.y2 < other.data.latlon.y1);
+                break;
+            default:
+                std::runtime_error("Still not available");
+                break;
+            }
+        }
+
+        bool extend(const GridInfo& grid){
+            if(!extendable_by(grid))
+                return false;
+            switch (grid.rep_type)
+            {
+            case LAT_LON_GRID_EQUIDIST_CYLINDR :
+                if(grid.data.latlon.x1<data.latlon.x1)
+                    data.latlon.x1 = grid.data.latlon.x1;
+                if(grid.data.latlon.y2<data.latlon.y2)
+                    data.latlon.y2 = grid.data.latlon.y2;
+                if(grid.data.latlon.x2>data.latlon.x2)
+                    data.latlon.x2 = grid.data.latlon.x2;
+                if(grid.data.latlon.y1>data.latlon.y1)
+                    data.latlon.y1 = grid.data.latlon.y1;
+                return true;
+                break;
+            default:
+                throw std::runtime_error("Still not available");
+                break;
+            }
+        }
+        bool operator==(const GridInfo& other);
+        bool operator!=(const GridInfo& other);
     #endif
 }
 STRUCT_END(GridInfo)

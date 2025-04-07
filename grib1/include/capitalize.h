@@ -33,8 +33,8 @@ extern GribDataInfo capitalize(const char* in,
 #else
 #include <filesystem>
 namespace fs = std::filesystem;
-extern GribDataInfo capitalize(const char* in,
-    const fs::path& root_cap_dir_name,
-    const std::string& fmt_cap,
-    enum DATA_FORMAT output_type);
+GribDataInfo capitalize(    const fs::path& in,
+                            const fs::path& root_cap_dir_name,
+                            const char* fmt_cap,
+                            DataFormat output_type);
 #endif

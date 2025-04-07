@@ -73,6 +73,9 @@ STRUCT_BEG(ProductDefinitionSection)
 	unsigned char minute() const noexcept{
 		return PDS_Minute(buffer_);
 	}
+	Date date() const noexcept{
+		return Date{year(),month(),day(),hour()};
+	}
 	TimeFrame unit_time_range() const noexcept{
 		return (TimeFrame)PDS_ForecastTimeUnit(buffer_);
 	}

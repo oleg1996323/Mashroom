@@ -8,6 +8,7 @@
 #endif
 
 #define UNDEF_GRID_VALUE -99999999
+[[deprecated]]
 STRUCT_BEG(GridData)
 {
 	Rect bound DEF_STRUCT_VAL(Rect())

@@ -451,10 +451,10 @@ GribDataInfo capitalize(const fs::path& in,
 		if ((output_type != GRIB)) {
 			/* decode numeric data */
 	
-			if ((array = (float *) malloc(sizeof(float) * nxny)) == NULL) {
-				fprintf(stderr,"memory problems\n");
-				exit(8);
-			}	
+			result.add_info(grib.message().section_2_.define_grid(),
+							grib.message().section_1_.date(),
+							grib.message().section_1_.unit_time_range(),
+							grib.message().section_1_.)
 			temp = int_power(10.0, - PDS_DecimalScale(pds));
 			BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
 				temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
