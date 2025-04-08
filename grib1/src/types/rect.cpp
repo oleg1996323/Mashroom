@@ -5,6 +5,10 @@
 #include "types/grid.h"
 #include "math.h"
 
+bool operator==(const Rect& lhs,const Rect& rhs){
+    return rect_equal(&lhs,&rhs);
+}
+
 bool intersect_rect(const Rect* rect1, const Rect* rect2) {
 	if(rect1 && rect2)
 		return !(rect2->x1 > rect1->x2 ||

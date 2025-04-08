@@ -1,6 +1,7 @@
 #pragma once
 #include "aux_code/def.h"
 #include "types/coord.h"
+#include <hash_map>
 
 #define RECT_TYPE
 #define UNDEF_RECT_VALUE -99999999
@@ -23,3 +24,14 @@ extern bool point_in_rect(const Rect* rect, const Coord point);
 extern bool correct_rect(Rect* rect);
 extern bool is_correct_rect(const Rect* rect);
 extern Rect merge_rect(const Rect* r_1,const Rect* r_2);
+
+template<>
+struct std::hash<Rect>{
+    size_t operator()(const Rect& rect) const noexcept{
+        return ((size_t)rect.x1<<48)+((size_t)rect.y1<<32)+((size_t)rect.x2<<16)+(size_t)rect.y2;
+    }
+    size_t operator[](const Rect& rect){
+        return ((size_t)rect.x1<<48)+((size_t)rect.y1<<32)+((size_t)rect.x2<<16)+(size_t)rect.y2;
+    }
+};
+bool operator==(const Rect& lhs,const Rect& rhs);

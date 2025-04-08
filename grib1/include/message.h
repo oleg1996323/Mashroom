@@ -39,6 +39,7 @@ STRUCT_BEG(Message)
         return section_0_.message_length();
     }
     float extract_value(int n);
+    std::vector<float> extract_all();
     #endif
 }
 STRUCT_END(Message)
@@ -64,8 +65,12 @@ STRUCT_BEG(HGrib1)
     Message& message(){
         return msg_;
     }
-    void next_message(){
-        
+    bool next_message(){
+        if((current_ptr_-__f_ptr)+msg_.section_0_.message_length()<sz_){
+            current_ptr_+=msg_.section_0_.message_length();
+            return true;
+        }
+        return false;
     }
     unsigned long file_size() const noexcept{
         return sz_;

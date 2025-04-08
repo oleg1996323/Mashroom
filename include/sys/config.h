@@ -4,9 +4,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "sys/error_print.h"
 #include "sys/error_code.h"
-#include <sys/data_info.h>
 
 namespace fs = std::filesystem;
 constexpr const char* config_mashroom_dir = CONFIG_MASHROOM_DIR;
@@ -21,9 +21,9 @@ class Config{
         cmd_file.close();
     }
 
-    DataInfo get_config_data_info() const{
-        return DataInfo();//TODO
-    }
+    // DataInfo get_config_data_info() const{
+    //     return DataInfo();//TODO
+    // }
     bool add_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool add_user_config(const std::string& name,const std::vector<std::string>& commands);
     void change_user_config(std::string_view name,const std::vector<std::string_view>& commands);

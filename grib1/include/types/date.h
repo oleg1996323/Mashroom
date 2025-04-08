@@ -9,12 +9,12 @@ STRUCT_BEG(Date)
     int day DEF_STRUCT_VAL(-1)
     int hour DEF_STRUCT_VAL(-1)
     #ifdef __cplusplus
-    bool operator<(const Date& other);
-    bool operator<=(const Date& other);
-    bool operator>(const Date& other);
-    bool operator>=(const Date& other);
-    bool operator==(const Date& other);
-    bool operator!=(const Date& other);
+    bool operator<(const Date& other) const noexcept;
+    bool operator<=(const Date& other) const noexcept;
+    bool operator>(const Date& other) const noexcept;
+    bool operator>=(const Date& other) const noexcept;
+    bool operator==(const Date& other) const noexcept;
+    bool operator!=(const Date& other) const noexcept;
     #endif
 }
 STRUCT_END(Date)
@@ -40,6 +40,7 @@ extern bool date_less_equal(const Date* lhs, const Date* rhs);
 extern bool date_bigger_equal(const Date* lhs, const Date* rhs);
 extern bool is_correct_date(const Date* date);
 extern bool correct_date_interval(Date* from, Date* to);
-extern bool is_date_interval(const Date* from, const Date* to, TimeRange t_unit, uint8_t time_inc);
+#include "code_tables/table_4.h"
+extern bool is_date_interval(const Date* from, const Date* to, TimeFrame t_unit, uint8_t time_inc);
 extern unsigned long hours_to_days(unsigned int hour);
-extern Date date_increment(TimeRange t_unit, uint8_t time_inc);
+extern Date date_increment(TimeFrame t_unit, uint8_t time_inc);

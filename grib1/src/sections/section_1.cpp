@@ -414,7 +414,7 @@ unsigned ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() co
 unsigned char ProductDefinitionSection::numberIncludedInAverage() const noexcept{
 	return PDS_NumAve(buffer_);
 }
-const char* ProductDefinitionSection::parameter() const noexcept{
+const char* ProductDefinitionSection::parameter_name() const noexcept{
 	return parameter_table(center(),subcenter(),IndicatorOfParameter())->name;
 }
 const char* ProductDefinitionSection::param_comment() const noexcept{

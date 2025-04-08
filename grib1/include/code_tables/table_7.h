@@ -11,5 +11,10 @@ STRUCT_BEG(ResolutionComponentFlags)
     earth_spheroidal(buf&0b00000010),
     grid_direction_uv_comp(buf&0b00010000){}
     #endif
+    bool operator==(const ResolutionComponentFlags& other){
+        return  given_direction == other.given_direction &&
+                earth_spheroidal == other.earth_spheroidal &&
+                grid_direction_uv_comp == other.grid_direction_uv_comp;
+    }
 }
 STRUCT_END(ResolutionComponentFlags)

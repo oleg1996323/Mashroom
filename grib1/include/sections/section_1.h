@@ -97,7 +97,7 @@ STRUCT_BEG(ProductDefinitionSection)
 	unsigned char numberIncludedInAverage() const noexcept{
 		return PDS_NumAve(buffer_);
 	}
-	const char* parameter() const noexcept{
+	const char* parameter_name() const noexcept{
 		return parameter_table(center(),subcenter(),IndicatorOfParameter())->name;
 	}
 	const char* param_comment() const noexcept{

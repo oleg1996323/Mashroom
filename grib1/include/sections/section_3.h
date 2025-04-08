@@ -25,8 +25,3 @@ STRUCT_BEG(BitMapSection)
 	#endif
 }
 STRUCT_END(BitMapSection)
-
-#ifndef __cplusplus
-#include <stdint.h>
-extern bool define_GDS(BitMapSection* gds,char* buffer,size_t file_size);
-#endif

@@ -145,27 +145,23 @@ Date date_increment(TimeRange t_unit, uint8_t time_inc){
     }
     return inc;
 }
-bool is_date_interval(const Date* from, const Date* to, TimeRange t_unit, uint8_t time_inc){
-    Date inc = date_increment(t_unit,time_inc);
-    return std::abs(get_epoch_time(from)-std::abs(get_epoch_time(to))==get_epoch_time(&inc));
-}
 #ifdef __cplusplus
-bool Date::operator<(const Date& other){
+bool Date::operator<(const Date& other) const noexcept{
     return date_less(this,&other);
 }
-bool Date::operator<=(const Date& other){
+bool Date::operator<=(const Date& other) const noexcept{
     return date_less_equal(this,&other);
 }
-bool Date::operator>(const Date& other){
+bool Date::operator>(const Date& other) const noexcept{
     return date_bigger(this,&other);
 }
-bool Date::operator>=(const Date& other){
+bool Date::operator>=(const Date& other) const noexcept{
     return date_bigger_equal(this,&other);
 }
-bool Date::operator==(const Date& other){
+bool Date::operator==(const Date& other) const noexcept{
     return date_equal(this,&other);
 }
-bool Date::operator!=(const Date& other){
+bool Date::operator!=(const Date& other) const noexcept{
     return !(*this==other);
 }
 #endif

@@ -103,18 +103,18 @@ bool check(char ch, ValidCapitalizeFmt* valid){
 }
 #endif
 
-typedef enum COORD_DEPEND{
+typedef enum{
 	NOT_LL_DEPEND = 0x00,
 	LAT_DEPEND = 1L <<0,
 	LON_DEPEND = 1L <<1
 }CoordDepend;
 
-int __write_grib__(unsigned char* msg,
-					long len_grib,
+CoordDepend operator|(CoordDepend lhs,CoordDepend rhs){
+	return static_cast<CoordDepend>(lhs|rhs);
+}
+
+int __write_grib__(const Message& msg,
 					const char* root_cap_dir_name,
-					GridData* grid,
-					Date* date,
-					unsigned char* pds,
 					const char* fmt
 					)
 {
@@ -156,12 +156,12 @@ int __write_grib__(unsigned char* msg,
 			case 'D':{
 				char str[2];
 				memset(&str,0,2);
-				sprintf(str, "%.d", date->day);
+				sprintf(str, "%.d", msg.section_1_.day());
 				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
 				if(fmt_c<strlen(fmt))
 					change_directory(cur_path);
 				if (fmt_c==strlen(fmt)-1){
-					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,msg.section_1_.parameter_name());
 					strcat(dump_file_name,".grib");
 				}
 				break;
@@ -170,12 +170,12 @@ int __write_grib__(unsigned char* msg,
 			case 'M':{
 				char str[2];
 				memset(&str,0,2);
-				sprintf(str, "%.d", date->month);
+				sprintf(str, "%.d", msg.section_1_.month());
 				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
 				if(fmt_c<strlen(fmt))
 					change_directory(cur_path);
 				if (fmt_c==strlen(fmt)-1){
-					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,msg.section_1_.parameter_name());
 					strcat(dump_file_name,".grib");
 				}
 				break;
@@ -184,12 +184,12 @@ int __write_grib__(unsigned char* msg,
 			case 'H':{
 				char str[2];
 				memset(&str,0,2);
-				sprintf(str, "%.d", date->hour);
+				sprintf(str, "%.d", msg.section_1_.hour());
 				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
 				if(fmt_c<strlen(fmt))
 					change_directory(cur_path);
 				if (fmt_c==strlen(fmt)-1){
-					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,msg.section_1_.parameter_name());
 					strcat(dump_file_name,".grib");
 				}
 				break;
@@ -198,12 +198,12 @@ int __write_grib__(unsigned char* msg,
 			case 'Y':{
 				char str[4];
 				memset(&str,0,4);
-				sprintf(str, "%.d", date->year);
+				sprintf(str, "%.d", msg.section_1_.year());
 				strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
 				if(fmt_c<strlen(fmt))
 					change_directory(cur_path);
 				if (fmt_c==strlen(fmt)-1){
-					strcat(dump_file_name,k5toa(pds));
+					strcat(dump_file_name,msg.section_1_.parameter_name());
 					strcat(dump_file_name,".grib");						
 				}
 				break;
@@ -235,19 +235,15 @@ int __write_grib__(unsigned char* msg,
 		memset(dump_file_name,0,51);
 }
 
-int __capitalize_write__(HGri* grid,
-						const char* root_cap_dir_name,
-						Date* date,
-						unsigned char *pds,
+namespace fs = std::filesystem;
+
+int __capitalize_write__(const GribMsgDataInfo& msg,
+						const fs::path& root_cap_dir_name,
 						const char* fmt, 
-						enum DATA_FORMAT d_fmt,
-						float *array)
+						DataFormat d_fmt)
 	{
-	char cur_path[strlen(root_cap_dir_name)+PATH_MAX];
-	strcpy(cur_path,root_cap_dir_name);
-	char dump_file_name[51];
+	std::string cur_path(root_cap_dir_name);
 	FILE* dump_file = NULL;
-	memset(dump_file_name,0,51);
 	CoordDepend is_lat_lon_dependent;
 	{
 		u_int8_t fmt_c=0;
@@ -450,24 +446,23 @@ GribDataInfo capitalize(const fs::path& in,
     for (;;) {
 		if ((output_type != GRIB)) {
 			/* decode numeric data */
-	
-			result.add_info(grib.message().section_2_.define_grid(),
-							grib.message().section_1_.date(),
-							grib.message().section_1_.unit_time_range(),
-							grib.message().section_1_.)
-			temp = int_power(10.0, - PDS_DecimalScale(pds));
-			BDS_unpack(array, bds, BMS_bitmap(bms), BDS_NumBits(bds), nxny,
-				temp*BDS_RefValue(bds),temp*int_power(2.0, BDS_BinScale(bds)));
+			
+			GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
+									std::move(grib.message().section_1_.date()),
+									grib.message().section_1_.IndicatorOfParameter(),
+									grib.message().section_1_.unit_time_range(),
+									grib.message().section_1_.center(),
+									grib.message().section_1_.subcenter());
+			
 			/* dump code */
 			if (output_type == BINARY) {
-				__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,BINARY,array);
+				__capitalize_write__(info,root_cap_dir_name,fmt_cap,BINARY);
 			}
 			else if (output_type == TEXT) {
 			/* number of points in grid */
-				__capitalize_write__(&grid_,root_cap_dir_name,&date_,pds,fmt,TEXT,array);
+				__capitalize_write__(info,root_cap_dir_name,fmt_cap,TEXT);
 			}
-			free(array);
-			array = NULL;
+			result.add_info(info);
 		}
 		else{
 			__write_grib__(msg,len_grib,root_cap_dir_name,&grid_,&date_,pds,fmt);

@@ -33,8 +33,22 @@ struct GridDefinition<RepresentationType::GAUSSIAN>{
         y2(0.001*GDS_LatLon_La2(buffer)),
         x2(0.001*GDS_LatLon_Lo2(buffer)),
         scan_mode(ScanMode(GDS_LatLon_scan(buffer))){}
+
+    bool operator==(const GridDefinition<RepresentationType::GAUSSIAN>& other){
+        return y1 == other.y1 &&
+        x1 == other.x1 &&
+        y2 == other.y2 &&
+        x2 == other.x2 &&
+        ny == other.ny &&
+        nx == other.nx &&
+        scan_mode == other.scan_mode &&
+        resolutionAndComponentFlags == other.resolutionAndComponentFlags &&
+        N == other.N &&
+        directionIncrement == other.directionIncrement;
+    }
 };
 
+#include <cassert>
 template<>
 struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
     float y1;
@@ -59,6 +73,11 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
         dy(GDS_LatLon_dy(buffer)),
         dx(GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_mode(buffer))){}
+
+    bool operator==(const GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>& other){
+        assert(false);
+        return false;
+    }
 };
 
 template<>

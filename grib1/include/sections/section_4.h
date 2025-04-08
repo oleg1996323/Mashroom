@@ -41,21 +41,6 @@ STRUCT_BEG(BinaryDataSection)
 	uint8_t bit_per_value(){
 		return BDS_NumBits(buf_);
 	}
-	float extract_value(int n);
 	#endif
 }
 STRUCT_END(BinaryDataSection)
-
-#ifndef __cplusplus
-extern bool define_GDS(BinaryDataSection* gds,char* buffer,size_t file_size);
-#endif
-
-#ifdef __cplusplus
-
-
-
-#else
-#include <stdint.h>
-
-extern void define_GDS()
-#endif

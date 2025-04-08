@@ -57,3 +57,63 @@ float Message::extract_value(int n){
 		}
 	}
 }
+
+std::vector<float> Message::extract_all(){
+    Flag flags = section_4_.get_data_flag();
+    std::vector<float> result;
+	if(!flags.complex_pack){
+		if(!flags.spherical_harm_coefs){
+			if(section_4_.bit_per_value()==0)
+				return {section_4_.ref_value()};
+			else{
+                if(section_1_.section1Flags().sec3_inc){
+                    int t_bits=0,mask_idx;
+                    unsigned int tbits=0,jmask,bbits;
+                    /* check bitmap */
+                    unsigned char* bitmap = section_3_.buf_;
+                    unsigned char* bds_bits = section_4_.buf_;
+                    result.resize(section_2_.number_values());
+                    for(long i = 0;i<section_2_.number_values();++i){
+                        bitmap+=i-1;
+                        /* check bitmap */
+                        mask_idx = i & 7; //indicate the checking bit in the sequence of n bytes by 1
+                        if (mask_idx == 0) bbits = *bitmap++; //if i=0, simply copy bitmap byte
+                        //static unsigned int mask[] = {0,1,3,7,15,31,63,127,255};
+                        //static unsigned int map_masks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
+                        //static double shift[9] = {1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0};
+                        if ((bbits & map_masks[mask_idx]) == 0) { //if bitmap bit is 0, then in BDS value not presented and UNDEFINED must be returned
+                            result[i]=UNDEFINED;
+                            continue;
+                        }
+                        while (t_bits < section_4_.bit_per_value()) { //else do while all bytes not read in reserved bits for value in BDS
+                            tbits = (tbits * 256) + *bds_bits++; //2^8 + byte value, then next byte of bds
+                            t_bits += 8; //increment by byte
+                        }
+                        t_bits -= section_4_.bit_per_value();
+                        result[i] = section_4_.ref_value() + section_4_.scale_factor()*((tbits >> t_bits) & jmask);
+                    }
+                }
+				else{
+                    int t_bits = 0;
+                    unsigned int tbits = 0, jmask = (1 << section_4_.bit_per_value()) - 1; //get filling by 1 in all bit per value field
+                    unsigned char *bits = section_4_.buf_;
+                    for(long i = 0;i<section_2_.number_values();++i){
+                        if (section_4_.bit_per_value()-t_bits>8) {
+                            tbits = (tbits << 16) | (bits[0] << 8) | (bits[1]); //guaranteed (even) initialization of bits
+                            bits += 2; //offset by 2 (bits read above)
+                            t_bits += 16; //number read bits
+                        }
+                        while (t_bits<section_4_.bit_per_value()) { //if number of read bits is less than number of bits per value
+                            tbits = (tbits * 256) + *bits++; //2^8 + next byte value
+                            t_bits += 8; //increment by byte
+                        }
+                        t_bits -= section_4_.bit_per_value(); //rest of not read bytes
+                        result[i] = section_4_.ref_value() + section_4_.scale_factor()*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
+                    }
+                }
+                
+			}
+		}
+	}
+    return result;
+}

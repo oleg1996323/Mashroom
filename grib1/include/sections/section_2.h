@@ -43,6 +43,7 @@ STRUCT_BEG(GridDescriptionSection)
 	unsigned long get_number_vertical_coord_values();
 	unsigned long get_PV();
 	unsigned long get_PL();
+	unsigned long number_values();
 	#endif
 }
 STRUCT_END(GridDescriptionSection)
