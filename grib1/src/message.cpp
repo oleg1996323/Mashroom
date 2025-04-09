@@ -1,4 +1,5 @@
 #include "message.h"
+#include "aux_code/int_pow.h"
 
 //Bit 3 is set to 1 to indicate that the original data were integers; when this is the case any non-zero reference values should be rounded to an integer value prior to placing in the GRIB BDS
 //Bit 4 is set to 1 to indicate that bits 5 to 12 are contained in octet 14 of the data section.
@@ -6,6 +7,7 @@
 //When secondary bit maps are present in the data (used in association with second order packing) this is indicated by setting bit 7 to 1.
 //When octet 14 contains the extended flag information octets 12 and 13 will also contain "special" information; the actual data will begin in a subsequent octet. See above.
 float Message::extract_value(int n){
+    double scale = int_power(10.0, - section_1_.decimal_scale_factor())*int_power(2.0, section_4_.scale_factor());
 	Flag flags = section_4_.get_data_flag();
 	if(!flags.complex_pack){
 		if(!flags.spherical_harm_coefs){
@@ -34,7 +36,7 @@ float Message::extract_value(int n){
                         t_bits += 8; //increment by byte
                     }
                     t_bits -= section_4_.bit_per_value();
-                    return section_4_.ref_value() + section_4_.scale_factor()*((tbits >> t_bits) & jmask);
+                    return section_4_.ref_value() + scale*((tbits >> t_bits) & jmask);
                 }
 				else{
                     int t_bits = 0;
@@ -51,7 +53,7 @@ float Message::extract_value(int n){
                         t_bits += 8; //increment by byte
                     }
                     t_bits -= section_4_.bit_per_value(); //rest of not read bytes
-                    return section_4_.ref_value() + section_4_.scale_factor()*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
+                    return section_4_.ref_value() + scale*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
                 }
 			}
 		}
@@ -72,8 +74,8 @@ std::vector<float> Message::extract_all(){
                     /* check bitmap */
                     unsigned char* bitmap = section_3_.buf_;
                     unsigned char* bds_bits = section_4_.buf_;
-                    result.resize(section_2_.number_values());
-                    for(long i = 0;i<section_2_.number_values();++i){
+                    result.resize(section_2_.nxny());
+                    for(long i = 0;i<section_2_.nxny();++i){
                         bitmap+=i-1;
                         /* check bitmap */
                         mask_idx = i & 7; //indicate the checking bit in the sequence of n bytes by 1
@@ -97,7 +99,7 @@ std::vector<float> Message::extract_all(){
                     int t_bits = 0;
                     unsigned int tbits = 0, jmask = (1 << section_4_.bit_per_value()) - 1; //get filling by 1 in all bit per value field
                     unsigned char *bits = section_4_.buf_;
-                    for(long i = 0;i<section_2_.number_values();++i){
+                    for(long i = 0;i<section_2_.nxny();++i){
                         if (section_4_.bit_per_value()-t_bits>8) {
                             tbits = (tbits << 16) | (bits[0] << 8) | (bits[1]); //guaranteed (even) initialization of bits
                             bits += 2; //offset by 2 (bits read above)

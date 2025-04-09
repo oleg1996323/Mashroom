@@ -113,6 +113,7 @@ CoordDepend operator|(CoordDepend lhs,CoordDepend rhs){
 	return static_cast<CoordDepend>(lhs|rhs);
 }
 
+/*
 int __write_grib__(const Message& msg,
 					const char* root_cap_dir_name,
 					const char* fmt
@@ -234,15 +235,17 @@ int __write_grib__(const Message& msg,
 		fclose(dump_file);
 		memset(dump_file_name,0,51);
 }
-
+*/
 namespace fs = std::filesystem;
+using namespace std::string_literals;
 
-int __capitalize_write__(const GribMsgDataInfo& msg,
+int __capitalize_write__(const Message& msg,
+						const GribMsgDataInfo& msg_info,
 						const fs::path& root_cap_dir_name,
 						const char* fmt, 
 						DataFormat d_fmt)
 	{
-	std::string cur_path(root_cap_dir_name);
+	fs::path cur_path(root_cap_dir_name);
 	FILE* dump_file = NULL;
 	CoordDepend is_lat_lon_dependent;
 	{
@@ -261,168 +264,66 @@ int __capitalize_write__(const GribMsgDataInfo& msg,
 			++fmt_c;
 		}
 	}
-	for(int i = 0; i < grid->ny; ++i){
-		for(int j = 0; j< grid->nx; ++j){
-			u_int8_t fmt_c=0;
-			while((!dump_file || !(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)) && fmt_c<strlen(fmt)){
-				switch (fmt[fmt_c])
-				{
-				case 'c':
-				case 'C':{
-					char str[40];
-					memset(&str,0,40);
-					sprintf(str, "lat%.2f_lon%.2f", grid->bound.y1 - grid->dy*(double)i,grid->bound.x1 + grid->dx*(double)j);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'o':
-				case 'O':{
-					char str[40];
-					memset(&str,0,40);
-					sprintf(str, "lon%.2f", grid->bound.y1 - grid->dy*(double)i,grid->bound.x1 + grid->dx*(double)j);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'l':
-				case 'L':{
-					char str[40];
-					memset(&str,0,40);
-					sprintf(str, "lat%.2f", grid->bound.y1 - grid->dy*(double)i,grid->bound.x1 + grid->dx*(double)j);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'd':
-				case 'D':{
-					char str[2];
-					memset(&str,0,2);
-					sprintf(str, "%.d", date->day);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'm':
-				case 'M':{
-					char str[2];
-					memset(&str,0,2);
-					sprintf(str, "%.d", date->month);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'h':
-				case 'H':{
-					char str[2];
-					memset(&str,0,2);
-					sprintf(str, "%.d", date->hour);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");
-					}
-					break;
-				}
-				case 'y':
-				case 'Y':{
-					char str[4];
-					memset(&str,0,4);
-					sprintf(str, "%.d", date->year);
-					strcpy(cur_path,strcat(strcat(cur_path,"/"),str));
-					if(fmt_c<strlen(fmt))
-						change_directory(cur_path);
-					if (fmt_c==strlen(fmt)-1){
-						strcat(dump_file_name,k5toa(pds));
-						strcat(dump_file_name,".omdb");						
-					}
-					break;
-				}
-				default:
-					fprintf(stderr,"Error reading format");
-					exit(1);
-					break;
-				}
-				++fmt_c;
-			}
-			dump_file = fopen(dump_file_name,"a");
-			change_directory(root_cap_dir_name);
-			assert(dump_file);
-			getcwd(cur_path,strlen(cur_path));
-			//may be usefull to separate in a unique function for C++ use
-			//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
-			if(is_lat_lon_dependent&LON_DEPEND || is_lat_lon_dependent&LAT_DEPEND){
-				if(d_fmt==TEXT){
-					double cur_lat = grid->bound.y1 + grid->dy*(double)i;
-					double cur_lon = grid->bound.x1 + grid->dx*(double)j;
-					fprintf(dump_file, "%d %d %d %d %g\n",date->year,date->month,date->day,date->hour,array[i*j]);
-				}
-				else{
-					//add lat_lon write additionally
-					fwrite((void*)&array[i*j], sizeof(float), 1, dump_file);
-						
-				}
-				if (ferror(dump_file)) {
-					fprintf(stderr,"error writing %s\n",dump_file_name);
-					exit(1);
-				}
-				fclose(dump_file);
-				memset(dump_file_name,0,51);
-			}
-			else break;
-		}
-		if(!(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)){
+	u_int8_t fmt_c=0;
+	while(!dump_file && fmt_c<strlen(fmt)){
+		switch (fmt[fmt_c])
+		{
+		case 'd':
+		case 'D':{
+			std::string str = std::to_string(msg_info.date.day);
+			cur_path/=str;
+			if(fmt_c<strlen(fmt))
+				change_directory(cur_path);
+			if (fmt_c==strlen(fmt)-1)
+				cur_path/=msg.section_1_.parameter_name()+".grib"s;
 			break;
 		}
-	}
-	if(!(is_lat_lon_dependent&LON_DEPEND) || !(is_lat_lon_dependent&LAT_DEPEND)){
-		fwrite((void*)&date->year, sizeof(date->year), 1, dump_file);
-		fwrite((void*)&date->month, sizeof(date->month), 1, dump_file);
-		fwrite((void*)&date->day, sizeof(date->day), 1, dump_file);
-		fwrite((void*)&grid->bound.x1, sizeof(grid->bound.x1), 1, dump_file);
-		fwrite((void*)&grid->bound.x2, sizeof(grid->bound.x2), 1, dump_file);
-		fwrite((void*)&grid->bound.y1, sizeof(grid->bound.y1), 1, dump_file);
-		fwrite((void*)&grid->bound.y2, sizeof(grid->bound.y2), 1, dump_file);
-		fwrite((void*)&grid->nx, sizeof(grid->nx), 1, dump_file);
-		fwrite((void*)&grid->ny, sizeof(grid->ny), 1, dump_file);
-		//add lat_lon write additionally
-		fwrite((void*)array, sizeof(float), grid->nx*grid->ny, dump_file);
-		if (ferror(dump_file)) {
-			fprintf(stderr,"error writing %s\n",dump_file_name);
-			exit(1);
+		case 'm':
+		case 'M':{
+			std::string str = std::to_string(msg_info.date.month);
+			cur_path/=str;
+			if(fmt_c<strlen(fmt))
+				change_directory(cur_path);
+			if (fmt_c==strlen(fmt)-1)
+				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+			break;
 		}
-		fclose(dump_file);
-		memset(dump_file_name,0,51);
-		dump_file = NULL;
+		case 'h':
+		case 'H':{
+			std::string str = std::to_string(msg_info.date.hour);
+			cur_path/=str;
+			if(fmt_c<strlen(fmt))
+				change_directory(cur_path);
+			if (fmt_c==strlen(fmt)-1)
+				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+			break;
+			}
+		case 'y':
+		case 'Y':{
+			std::string str = std::to_string(msg_info.date.year);
+			cur_path/=str;
+			if(fmt_c<strlen(fmt))
+				change_directory(cur_path);
+			if (fmt_c==strlen(fmt)-1)
+				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+			break;
+		}
+		default:
+			fprintf(stderr,"Error reading format");
+			exit(1);
+			break;
+		}
+		++fmt_c;
 	}
-	fflush(dump_file);
+		dump_file = fopen(cur_path.c_str(),"a");
+		change_directory(root_cap_dir_name);
+		assert(dump_file);
+		//may be usefull to separate in a unique function for C++ use
+		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
+	
+	fwrite(msg.section_0_.buf_,sizeof(unsigned char),msg.message_length(),dump_file);
+	fclose(dump_file);
+	dump_file = NULL;
 }
 
 
@@ -432,10 +333,11 @@ GribDataInfo capitalize(const fs::path& in,
 						const fs::path& root_cap_dir_name,
                         const char* fmt_cap,
                         DataFormat output_type) {
-	if(!change_directory(root_cap_dir_name)){
-		fprintf(stderr,"Cannot change or create directory");
-		exit(1);
-	}
+	if(!fs::exists(root_cap_dir_name))
+		if(!change_directory(root_cap_dir_name)){
+			fprintf(stderr,"Cannot change or create directory");
+			exit(1);
+		}
     HGrib1 grib;
 	GribDataInfo result;
 	if(!grib.open_grib(in)){
@@ -443,37 +345,15 @@ GribDataInfo capitalize(const fs::path& in,
 		return result;
 	}
 
-    for (;;) {
-		if ((output_type != GRIB)) {
-			/* decode numeric data */
-			
-			GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
+    do{
+		GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
 									std::move(grib.message().section_1_.date()),
 									grib.message().section_1_.IndicatorOfParameter(),
 									grib.message().section_1_.unit_time_range(),
 									grib.message().section_1_.center(),
 									grib.message().section_1_.subcenter());
-			
-			/* dump code */
-			if (output_type == BINARY) {
-				__capitalize_write__(info,root_cap_dir_name,fmt_cap,BINARY);
-			}
-			else if (output_type == TEXT) {
-			/* number of points in grid */
-				__capitalize_write__(info,root_cap_dir_name,fmt_cap,TEXT);
-			}
-			result.add_info(info);
-		}
-		else{
-			__write_grib__(msg,len_grib,root_cap_dir_name,&grid_,&date_,pds,fmt);
-		}
-			fflush(stdout);
-			
-			pos += len_grib;
-			data_info.sections++;
-	}
-    fclose(input);
-	free(fmt);
-	data_info.err = ErrorCodeData::NONE_ERR;
-	return data_info;
+		__capitalize_write__(grib.message(),info,root_cap_dir_name,fmt_cap,GRIB); //TODO
+		result.add_info(info);
+	}while(grib.next_message());
+	return result;
 }

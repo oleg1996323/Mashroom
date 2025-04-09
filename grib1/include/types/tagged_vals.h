@@ -15,15 +15,3 @@
 #ifdef __cplusplus
 #include <vector>
 #endif
-
-typedef struct{
-    Date date;
-    Rect bound;
-    const char* data_name;
-}ExtractData;
-
-typedef struct{
-    Date date;
-    Coord coord;
-    const char* data_name;
-}ExtractDataCoord;

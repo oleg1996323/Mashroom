@@ -176,3 +176,5 @@ STRUCT_BEG(GridInfo)
 }
 STRUCT_END(GridInfo)
 
+bool pos_in_grid(const Coord& pos, const GridInfo& grid) noexcept;
+int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept;

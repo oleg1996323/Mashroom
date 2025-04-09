@@ -37,12 +37,6 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
         dx(GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_scan(buffer))){}
 
-    int value_by_raw(const Coord& pos) const noexcept{
-        if(is_correct_pos(&pos))
-            return (pos.lon_-x1)/dx+nx*(pos.lat_-y2)/dy;
-        else return UNDEFINED;
-    }
-
     bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) {
         return y1 == other.y1 &&
         x1 == other.x1 &&

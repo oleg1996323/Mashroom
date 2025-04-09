@@ -27,7 +27,7 @@ STRUCT_END(CenterSubcenter)
 template<>
 struct std::hash<CenterSubcenter>{
     size_t operator()(CenterSubcenter cs) const{
-        return std::hash<size_t>{}(cs.center<<16+cs.subcenter<<8+cs.fcst_unit);
+        return std::hash<size_t>{}(static_cast<size_t>(cs.center)<<16+static_cast<size_t>(cs.subcenter)<<8+cs.fcst_unit);
     }
 };
 

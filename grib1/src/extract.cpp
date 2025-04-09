@@ -8,13 +8,13 @@
 #include "extract.h"
 #include "def.h"
 #include "message.h"
-#include "types/grib_data_info.h"
 #include "aux_code/int_pow.h"
 
 #ifdef __cplusplus
 #include <iostream>
-GribDataInfo extract(const Date& dfrom, const Date& dto,const Coord& coord,const char* ffrom){
-    GribDataInfo result;
+namespace fs = std::filesystem;
+std::vector<ExtractedData> extract(const Date& dfrom, const Date& dto,const Coord& coord,const fs::path& ffrom){
+    std::vector<ExtractedData> result;
     HGrib1 grib;
     try{
         grib.open_grib(ffrom);
@@ -28,15 +28,19 @@ GribDataInfo extract(const Date& dfrom, const Date& dto,const Coord& coord,const
         result.err = ErrorCodeData::DATA_EMPTY;
         return result;
     }
-    for (;;) {
+    do{
         if(grib.message().message_length()==0){
             result.err = ErrorCodeData::MISS_GRIB_REC;
             grib.next_message();
         }
 
 		//ReturnVal result_date;
-        
-		result.grid_data = grib.message().section_2_.define_grid();
+        GribMsgDataInfo msg_info(   grib.message().section_2_.define_grid(),
+                                    grib.message().section_1_.date(),
+                                    grib.message().section_1_.IndicatorOfParameter(),
+                                    grib.message().section_1_.unit_time_range(),
+                                    grib.message().section_1_.center(),
+                                    grib.message().section_1_.subcenter());
 
         long long from_time = get_epoch_time(&dfrom);
         long long to_time = get_epoch_time(&dto);
@@ -45,31 +49,16 @@ GribDataInfo extract(const Date& dfrom, const Date& dto,const Coord& coord,const
                                                 grib.message().section_1_.day(),
                                                 grib.message().section_1_.minute());
         
-        if(tmp>to_time || tmp<from_time){
-            grib.next_message();
+        if(tmp>to_time || tmp<from_time)
             continue;
-        }
+
+        if(!pos_in_grid(coord,msg_info.grid_data))
+            continue;
 
         /* decode numeric data */
-        double temp = int_power(10.0, - grib.message().section_1_.decimal_scale_factor());
-        switch (result.grid_data.rep_type)
-        {
-        case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
-            int y_offset = (coord.lat_-result.grid_data.data.latlon.y2)/result.grid_data.data.latlon.dy;
-            int x_offset = (coord.lon_-result.grid_data.data.latlon.x1)/result.grid_data.data.latlon.dx;
-            float tmp_val;
-            tmp_val = BDS_unpack_val(bds, grib.message().section_3_.data(), grib.message().section_4_.bit_per_value(), 
-            (int)(x_offset+result.grid_data.data.latlon.nx*y_offset),
-                temp*grib.message().section_4_.ref_value(),temp*int_power(2.0, grib.message().section_4_.scale_factor()));
-            break;
-        
-        default:
-            break;
-        }
-        
-        
-        
+        grib.message().extract_value(value_by_raw(coord,msg_info.grid_data));
     }
+    while(grib.next_message());
     return result;
 }
 #else

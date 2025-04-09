@@ -30,3 +30,91 @@ bool GridInfo::operator==(const GridInfo& other){
 bool GridInfo::operator!=(const GridInfo& other){
 	return !(*this==other);
 }
+
+#include <cmath>
+bool pos_in_grid(const Coord& pos, const GridInfo& grid){
+	switch (grid.rep_type)
+        {
+        case RepresentationType::ALBERS_EQUAL_AREA :
+		case RepresentationType::ROTATED_GAUSSIAN_LAT_LON :
+		case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON :
+		case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON :
+        case RepresentationType::ROTATED_LAT_LON:
+        case RepresentationType::STRETCHED_LAT_LON :
+        case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON :
+        case RepresentationType::LAMBERT :
+        case RepresentationType::MERCATOR :
+        case RepresentationType::MILLERS_CYLINDR :
+        case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL :
+        case RepresentationType::POLAR_STEREOGRAPH_PROJ :
+        case RepresentationType::SIMPLE_POLYCONIC :
+        case RepresentationType::GNOMONIC :
+        case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        case RepresentationType::UTM :
+        case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        case RepresentationType::SPACE_VIEW :
+		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
+			throw std::runtime_error("Still not available");
+            break;
+		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+        case RepresentationType::GAUSSIAN :{
+			if(pos.lat_<grid.data.gauss.y2 || pos.lat_>grid.data.gauss.y1 || pos.lon_<grid.data.gauss.x1 || pos.lon_>grid.data.gauss.x2)
+				return false;
+			if(fmod((double)(grid.data.gauss.y1-pos.lat_)/
+						((grid.data.gauss.y1-grid.data.gauss.y2)/
+						grid.data.gauss.ny),1)!=0 || 
+						fmod((double)(grid.data.gauss.x2-pos.lon_)/
+						((grid.data.gauss.x2-grid.data.gauss.x1)/
+						grid.data.gauss.nx),1)!=0)
+				return false;
+			else return true;
+            break;
+		}
+		/*
+		return GDS_Triangular_nd(buf_) * 
+				(GDS_Triangular_ni(buf_) + 1) * (GDS_Triangular_ni(buf_) + 1);
+			break;
+		*/
+        default:
+			throw std::runtime_error("Still not available");
+            break;
+        }
+}
+
+int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
+    if(is_correct_pos(&pos))
+    switch (grid.rep_type)
+        {
+        case RepresentationType::ALBERS_EQUAL_AREA :
+		case RepresentationType::ROTATED_GAUSSIAN_LAT_LON :
+		case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON :
+		case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON :
+        case RepresentationType::ROTATED_LAT_LON:
+        case RepresentationType::STRETCHED_LAT_LON :
+        case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON :
+        case RepresentationType::LAMBERT :
+        case RepresentationType::MERCATOR :
+        case RepresentationType::MILLERS_CYLINDR :
+        case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL :
+        case RepresentationType::POLAR_STEREOGRAPH_PROJ :
+        case RepresentationType::SIMPLE_POLYCONIC :
+        case RepresentationType::GNOMONIC :
+        case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        case RepresentationType::UTM :
+        case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        case RepresentationType::SPACE_VIEW :
+		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
+        case RepresentationType::GAUSSIAN :
+			return UNDEFINED;
+            break;
+		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+            return (pos.lon_-grid.data.gauss.x1)/grid.data.latlon.dx+grid.data.gauss.nx*(pos.lat_-grid.data.gauss.y2)/grid.data.latlon.dy;
+            break;
+        default:
+			return UNDEFINED;
+            break;
+    }
+    else return UNDEFINED;
+}
