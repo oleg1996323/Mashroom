@@ -9,12 +9,14 @@
 #include "def.h"
 #include "message.h"
 #include "aux_code/int_pow.h"
+#include "types/data_info.h"
 
 #ifdef __cplusplus
 #include <iostream>
 namespace fs = std::filesystem;
-std::vector<ExtractedData> extract(const Date& dfrom, const Date& dto,const Coord& coord,const fs::path& ffrom){
-    std::vector<ExtractedData> result;
+std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> extract(const Date& dfrom, const Date& dto,const Coord& coord,const fs::path& ffrom,
+                                                                            std::optional<TimeFrame> fcst_unit,std::optional<Organization> center, std::optional<uint8_t> subcenter){
+    std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> result;
     HGrib1 grib;
     try{
         grib.open_grib(ffrom);
@@ -24,13 +26,10 @@ std::vector<ExtractedData> extract(const Date& dfrom, const Date& dto,const Coor
         exit(0);
     }
     
-    if(grib.file_size()==0){
-        result.err = ErrorCodeData::DATA_EMPTY;
+    if(grib.file_size()==0)
         return result;
-    }
     do{
         if(grib.message().message_length()==0){
-            result.err = ErrorCodeData::MISS_GRIB_REC;
             grib.next_message();
         }
 
@@ -42,13 +41,20 @@ std::vector<ExtractedData> extract(const Date& dfrom, const Date& dto,const Coor
                                     grib.message().section_1_.center(),
                                     grib.message().section_1_.subcenter());
 
-        long long from_time = get_epoch_time(&dfrom);
-        long long to_time = get_epoch_time(&dto);
-        long long tmp = get_epoch_time_by_args( grib.message().section_1_.year(),
+        if(center.has_value() && msg_info.center!=center.value())
+            continue;
+        if(subcenter.has_value() && msg_info.subcenter!=subcenter.value())
+            continue;
+        if(fcst_unit.has_value() && msg_info.t_unit!=fcst_unit.value())
+            continue;
+
+        int32_t from_time = get_epoch_time(&dfrom);
+        int32_t to_time = get_epoch_time(&dto);
+        int32_t tmp = get_epoch_time_by_args( grib.message().section_1_.year(),
                                                 grib.message().section_1_.month(),
                                                 grib.message().section_1_.day(),
                                                 grib.message().section_1_.minute());
-        
+                           
         if(tmp>to_time || tmp<from_time)
             continue;
 
@@ -56,7 +62,63 @@ std::vector<ExtractedData> extract(const Date& dfrom, const Date& dto,const Coor
             continue;
 
         /* decode numeric data */
-        grib.message().extract_value(value_by_raw(coord,msg_info.grid_data));
+        result[CommonDataProperties(msg_info.center,msg_info.subcenter,msg_info.t_unit,msg_info.parameter)].push_back(ExtractedValue{tmp,grib.message().extract_value(value_by_raw(coord,msg_info.grid_data))});
+    }
+    while(grib.next_message());
+    return result;
+}
+
+std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> extract(const Date& dfrom, const Date& dto,const Coord& coord,const fs::path& ffrom,
+    Organization center, uint8_t subcenter, uint8_t parameter,std::optional<TimeFrame> fcst_unit={}){
+    std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> result;
+    HGrib1 grib;
+    try{
+        grib.open_grib(ffrom);
+    }
+    catch(const std::runtime_error& err){
+        std::cerr<<err.what()<<std::endl;
+        exit(0);
+    }
+
+    if(grib.file_size()==0)
+        return result;
+    do{
+        if(grib.message().message_length()==0){
+            grib.next_message();
+        }
+
+        //ReturnVal result_date;
+        GribMsgDataInfo msg_info(   grib.message().section_2_.define_grid(),
+        grib.message().section_1_.date(),
+        grib.message().section_1_.IndicatorOfParameter(),
+        grib.message().section_1_.unit_time_range(),
+        grib.message().section_1_.center(),
+        grib.message().section_1_.subcenter());
+
+        if(msg_info.center!=center)
+            continue;
+        if(msg_info.subcenter!=subcenter)
+            continue;
+        if(msg_info.parameter!=parameter)
+            continue;
+        if(fcst_unit.has_value() && msg_info.t_unit!=fcst_unit.value())
+            continue;
+
+        int32_t from_time = get_epoch_time(&dfrom);
+        int32_t to_time = get_epoch_time(&dto);
+        int32_t tmp = get_epoch_time_by_args( grib.message().section_1_.year(),
+        grib.message().section_1_.month(),
+        grib.message().section_1_.day(),
+        grib.message().section_1_.minute());
+
+        if(tmp>to_time || tmp<from_time)
+            continue;
+
+        if(!pos_in_grid(coord,msg_info.grid_data))
+            continue;
+
+        /* decode numeric data */
+        result[CommonDataProperties(msg_info.center,msg_info.subcenter,msg_info.t_unit,msg_info.parameter)].push_back(ExtractedValue{tmp,grib.message().extract_value(value_by_raw(coord,msg_info.grid_data))});
     }
     while(grib.next_message());
     return result;

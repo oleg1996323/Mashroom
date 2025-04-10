@@ -4,11 +4,9 @@
 #include "aux_code/def.h"
 #include "types/date.h"
 #include "types/grid.h"
-#include "types/data_suite.h"
-#include "code_tables/table_0.h"
 #include "sections/grid/grid.h"
 #include "def.h"
-#include "code_tables/table_4.h"
+#include "data_common.h"
 
 STRUCT_BEG(ValuesGrid)
 {

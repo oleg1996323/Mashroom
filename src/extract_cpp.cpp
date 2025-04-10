@@ -150,12 +150,12 @@ namespace cpp{
             }
             switch (format.order_.fmt)
             {
-                case DATA_FORMAT::GRIB:
+                case DataFormat::GRIB:
                     str_reg = str_reg+R"((/([^/\\]+).grib))";
                     f_format.insert(".grib");
                     f_format.insert(".grb");
                     break;
-                case DATA_FORMAT::BINARY:
+                case DataFormat::BINARY:
                     str_reg = str_reg+R"(/*.omdb)";
                     f_format.insert(".omdb");
                     break;
@@ -169,14 +169,14 @@ namespace cpp{
             reg = str_reg;
         }
         time_point<system_clock> beg = system_clock::now();
-        std::map<std::string,StampVal*> tags;
+        std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> summary_result;
         {
             bool skip_increment = false;
             auto iterator=fs::recursive_directory_iterator(root_path);
             auto end=fs::end(iterator);
             while(iterator!=end){
                 std::smatch m;
-                TaggedValues result;
+                std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> result;
                 const std::string& p = iterator->path().string();
                 std::cout<<p<<std::endl;
                 if(!std::regex_match(p,m,reg)){
@@ -233,9 +233,9 @@ namespace cpp{
                             skip_increment=true;
                             if(f_format.contains(iterator->path().extension().string())){
                                 std::cout<<"Extracting from "<<iterator->path()<<std::endl;
-                                result = extract_val_by_coord_grib(from,to,coord,iterator->path().c_str(),0,0);
-                                for(int i=0;i<result.sz;++i)
-                                    tags[result.vals[i].tag]=result.vals[i].values;
+                                result = extract(from,to,coord,iterator->path());
+                                for(const auto& [cmn_data,values]:result)
+                                    summary_result[cmn_data].append_range(values);
                             }
                             ++iterator;
                         }
@@ -259,10 +259,10 @@ namespace cpp{
                             out<<"Mashroom extractor v=0.01\nData formats: ECMWF\nSource: https://cds.climate.copernicus.eu/\nDistributor: Oster Industries LLC\n";
                             //print header
                             //print data to file
-                            
                             out<<std::left<<std::setw(18)<<"Time"<<"\t";
-                            for(auto& [tag,values]:tags)
-                                out<<std::left<<std::setw(10)<<tag<<'\t';
+                            for(auto& [cmn_data,values]:summary_result)
+                                //TODO:sort values
+                                out<<std::left<<std::setw(10)<<parameter_table(cmn_data.center_,cmn_data.subcenter_,cmn_data.parameter_)->name<<'\t';
                             out<<std::endl;
                             int row=0;
                             while(row<result.vals->sz){

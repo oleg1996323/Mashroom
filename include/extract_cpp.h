@@ -83,13 +83,13 @@ struct mapping_vals<true,false>{
 
 using namespace std::chrono;
 
-bool operator<(const StampVal& lhs,const StampVal& rhs);
+// bool operator<(const StampVal& lhs,const StampVal& rhs);
 
-struct ExtractDataComparator{
-    bool operator()(const StampVal& lhs,const StampVal& rhs) const{
-        return lhs<rhs;
-    }
-};
+// struct ExtractDataComparator{
+//     bool operator()(const StampVal& lhs,const StampVal& rhs) const{
+//         return lhs<rhs;
+//     }
+// };
 
 ErrorCode extract_cpp_pos(const std::filesystem::path& root_path,
                 const std::filesystem::path& destination,
