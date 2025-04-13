@@ -29,9 +29,12 @@ extern int is_leap_year(int year);
 // Функция для получения количества дней в месяце
 extern int days_in_month(int year, int month);
 
+extern int days_in_year(int year);
+
 // Функция для получения времени в секундах с начала эпохи
 extern long long get_epoch_time(const Date* date);
 extern long long get_epoch_time_by_args(int year, int month, int day,int hour);
+extern Date date_from_epoque(long long int_time);
 
 extern bool date_less(const Date* lhs, const Date* rhs);
 extern bool date_equal(const Date* lhs, const Date* rhs);

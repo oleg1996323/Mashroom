@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "levels.h"
 #include "sections/section_1.h"
 
 void levels(int kpds6, int kpds7, int center, int verbose) {

@@ -15,25 +15,13 @@
 #include "sections/def.h"
 #include "sections/grid/def.h"
 #include "sections/grid/grid.h"
-
-#ifdef __cplusplus
 #include <cstdint>
 #include <fstream>
 #include <vector>
-#else
-#include <stdint.h>
-#endif
 
 STRUCT_BEG(GridDescriptionSection)
 {
 	unsigned char* buf_;
-	// GridDataType data;
-	// uint32_t section2Length DEF_STRUCT_VAL(0)
-	// uint8_t numberOfVerticalCoordinateValues DEF_STRUCT_VAL(0)
-	// uint8_t pvLocation DEF_STRUCT_VAL(0)
-	// RepresentationType dataRepresentationType DEF_STRUCT_VAL(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR)
-	// uint32_t PV DEF_STRUCT_VAL(0)
-	//bool defined DEF_STRUCT_VAL(false)
 	#ifdef __cplusplus
 	GridDescriptionSection(unsigned char* buffer):buf_(buffer){}
 

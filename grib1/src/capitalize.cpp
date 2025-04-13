@@ -18,99 +18,11 @@
 #define PATH_MAX UCHAR_MAX*8
 #endif
 
-#include "decode_aux.h"
-
-
-#ifdef __cplusplus
-bool check(char ch, ValidCapitalizeFmt& valid){
-	switch (ch)
+bool Capitalize::check_format(std::string_view fmt){
+	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
 	{
-	case 'C':
-		if(!valid.COORD){
-			valid.COORD=true;
-			return true;
-		}
-		break;
-	case 'D':
-		if(!valid.DAY){
-			valid.DAY=true;
-			return true;
-		}
-		break;
-	case 'M':
-		if(!valid.MONTH){
-			valid.MONTH=true;
-			return true;
-		}
-		break;
-	case 'H':
-		if(!valid.HOUR){
-			valid.MONTH=true;
-			return true;
-		}
-		break;
-	case 'Y':
-		if(!valid.YEAR){
-			valid.YEAR=true;
-			return true;
-		}
-		else
-		break;
-	default:
-		return false;
-		break;
-	}
-}
-#else
-bool check(char ch, ValidCapitalizeFmt* valid){
-	switch (ch)
-	{
-	case 'C':
-		if(!valid->COORD){
-			valid->COORD=true;
-			return true;
-		}
-		break;
-	case 'D':
-		if(!valid->DAY){
-			valid->DAY=true;
-			return true;
-		}
-		break;
-	case 'M':
-		if(!valid->MONTH){
-			valid->MONTH=true;
-			return true;
-		}
-		break;
-	case 'H':
-		if(!valid->HOUR){
-			valid->MONTH=true;
-			return true;
-		}
-		break;
-	case 'Y':
-		if(!valid->YEAR){
-			valid->YEAR=true;
-			return true;
-		}
-		else
-		break;
-	default:
-		return false;
-		break;
-	}
-}
-#endif
-
-typedef enum{
-	NOT_LL_DEPEND = 0x00,
-	LAT_DEPEND = 1L <<0,
-	LON_DEPEND = 1L <<1
-}CoordDepend;
-
-CoordDepend operator|(CoordDepend lhs,CoordDepend rhs){
-	return static_cast<CoordDepend>(lhs|rhs);
+		return std::count(fmt.begin(),fmt.end(),ch)<=1;
+	});
 }
 
 /*
@@ -239,88 +151,47 @@ int __write_grib__(const Message& msg,
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
-int __capitalize_write__(const Message& msg,
-						const GribMsgDataInfo& msg_info,
-						const fs::path& root_cap_dir_name,
-						const char* fmt, 
-						DataFormat d_fmt)
+void Capitalize::__write__(const Message& msg,
+						const GribMsgDataInfo& msg_info)
 	{
-	fs::path cur_path(root_cap_dir_name);
+	fs::path cur_path(dest_directory_);
 	FILE* dump_file = NULL;
-	CoordDepend is_lat_lon_dependent;
-	{
-		u_int8_t fmt_c=0;
-		while(fmt_c<strlen(fmt)){
-			if(fmt[fmt_c]=='C' || fmt[fmt_c]=='c'){
-				is_lat_lon_dependent = LAT_DEPEND|LON_DEPEND;
-				break;
-			}
-			else if(fmt[fmt_c]=='L' || fmt[fmt_c]=='l'){
-				is_lat_lon_dependent = is_lat_lon_dependent | LAT_DEPEND;
-			}
-			else if(fmt[fmt_c]=='O' || fmt[fmt_c]=='o'){
-				is_lat_lon_dependent = is_lat_lon_dependent | LON_DEPEND;
-			}
-			++fmt_c;
-		}
-	}
-	u_int8_t fmt_c=0;
-	while(!dump_file && fmt_c<strlen(fmt)){
-		switch (fmt[fmt_c])
+	for(char ch:format_output_){
+		switch (ch)
 		{
 		case 'd':
-		case 'D':{
-			std::string str = std::to_string(msg_info.date.day);
-			cur_path/=str;
-			if(fmt_c<strlen(fmt))
-				change_directory(cur_path);
-			if (fmt_c==strlen(fmt)-1)
-				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+		case 'D':
+			cur_path/=std::to_string(msg_info.date.day);		
 			break;
-		}
 		case 'm':
-		case 'M':{
-			std::string str = std::to_string(msg_info.date.month);
-			cur_path/=str;
-			if(fmt_c<strlen(fmt))
-				change_directory(cur_path);
-			if (fmt_c==strlen(fmt)-1)
-				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+		case 'M':
+			cur_path/=std::to_string(msg_info.date.month);
 			break;
-		}
 		case 'h':
-		case 'H':{
-			std::string str = std::to_string(msg_info.date.hour);
-			cur_path/=str;
-			if(fmt_c<strlen(fmt))
-				change_directory(cur_path);
-			if (fmt_c==strlen(fmt)-1)
-				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+		case 'H':
+			cur_path/=std::to_string(msg_info.date.hour);
 			break;
-			}
 		case 'y':
-		case 'Y':{
-			std::string str = std::to_string(msg_info.date.year);
-			cur_path/=str;
-			if(fmt_c<strlen(fmt))
-				change_directory(cur_path);
-			if (fmt_c==strlen(fmt)-1)
-				cur_path/=msg.section_1_.parameter_name()+".grib"s;
+		case 'Y':
+			cur_path/=std::to_string(msg_info.date.year);
 			break;
-		}
+		case 'g':
+		case 'G':
+			cur_path/=to_abbr_representation_type(msg_info.grid_data.rep_type);
 		default:
 			fprintf(stderr,"Error reading format");
 			exit(1);
 			break;
 		}
-		++fmt_c;
 	}
-		dump_file = fopen(cur_path.c_str(),"a");
-		change_directory(root_cap_dir_name);
-		assert(dump_file);
-		//may be usefull to separate in a unique function for C++ use
-		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
-	
+	if(!fs::exists(cur_path) && !fs::create_directories(cur_path))
+		throw std::runtime_error("Unable to create path "s+cur_path.c_str());
+	cur_path/=msg.section_1_.parameter_name()+".grib"s;
+	dump_file = fopen(cur_path.c_str(),"a");
+	if(!dump_file)
+		throw std::runtime_error("Unable to open file "s+cur_path.c_str());
+	//may be usefull to separate in a unique function for C++ use
+	//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
 	fwrite(msg.section_0_.buf_,sizeof(unsigned char),msg.message_length(),dump_file);
 	fclose(dump_file);
 	dump_file = NULL;
@@ -329,30 +200,22 @@ int __capitalize_write__(const Message& msg,
 
 namespace fs = std::filesystem;
 
-GribDataInfo capitalize(const fs::path& in,
-						const fs::path& root_cap_dir_name,
-                        const char* fmt_cap,
-                        DataFormat output_type) {
-	if(!fs::exists(root_cap_dir_name))
-		if(!change_directory(root_cap_dir_name)){
-			fprintf(stderr,"Cannot change or create directory");
-			exit(1);
-		}
+const GribDataInfo& Capitalize::execute(){
     HGrib1 grib;
-	GribDataInfo result;
-	if(!grib.open_grib(in)){
+	if(!grib.open_grib(from_file_)){
 		result.err = ErrorCodeData::OPEN_ERROR;
 		return result;
 	}
-
     do{
 		GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
 									std::move(grib.message().section_1_.date()),
+									grib.current_message_position(),
+									grib.current_message_length(),
 									grib.message().section_1_.IndicatorOfParameter(),
 									grib.message().section_1_.unit_time_range(),
 									grib.message().section_1_.center(),
 									grib.message().section_1_.subcenter());
-		__capitalize_write__(grib.message(),info,root_cap_dir_name,fmt_cap,GRIB); //TODO
+		__write__(grib.message(),info); //TODO
 		result.add_info(info);
 	}while(grib.next_message());
 	return result;

@@ -1,11 +1,7 @@
 #include "images/png_out.h"
 #include <algorithm>
 #include <iostream>
-#ifdef __cplusplus
-extern "C"{
-    #include "interpolation.h"
-}
-#endif
+#include "functional/interpolation.h"
 
 void PngOutGray(std::string name,const float* values, const Size& sz){
     uint32_t w = sz.width();

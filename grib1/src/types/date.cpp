@@ -3,11 +3,17 @@
 #include <stdlib.h>
 #include "sections/section_1.h"
 
+constexpr unsigned not_leap_year_hours = 365;
+
 // Функция для проверки високосного года
 int is_leap_year(int year) {
     if (year % 4 != 0) return 0;
     if (year % 100 != 0) return 1;
     return (year % 400 == 0);
+}
+
+int days_in_year(int year){
+    return is_leap_year(year)?366:365;
 }
     
 // Функция для получения количества дней в месяце
@@ -72,6 +78,33 @@ long long get_epoch_time(const Date* date) {
     long long seconds_since_epoch = days_since_epoch * 86400 + date->hour * 3600;
 
     return seconds_since_epoch;
+}
+
+Date date_from_epoque(long long int_time){
+    Date result;
+    int_time/=3600;
+    result.hour = int_time%24;
+    int_time=(int_time-result.hour)/24; //in days
+    result.year = 1970;
+    {
+        result.day = days_in_year(result.year);
+        while(int_time>=result.day){
+            ++result.year;
+            int_time-=result.day;
+            result.day = days_in_year(result.year);
+        }
+    }
+    result.month = 1;
+    result.day = days_in_month(result.year,result.month);
+    while(int_time>result.day){
+        ++result.month;
+        int_time-=result.day;
+        result.day = days_in_month(result.year,result.month);
+    }
+    if(int_time>0)
+        result.day = int_time;
+    else throw std::invalid_argument("Incorrect date");
+    return result;
 }
 
 bool date_less(const Date* lhs, const Date* rhs){

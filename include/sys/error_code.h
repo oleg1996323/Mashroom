@@ -14,7 +14,8 @@ enum class ErrorCodeLog : uint{
     INVALID_PATH_OF_DIRECTORIES_X1,
     X1_IS_NOT_DIRECTORY,
     X1_IS_NOT_FILE,
-    FORMAT_FILE_CORRUPTED
+    FORMAT_FILE_CORRUPTED,
+    CAPITALIZE_ERR_X1_FILE_X2_POS
 };
 
 enum class ErrorCode : uint8_t{

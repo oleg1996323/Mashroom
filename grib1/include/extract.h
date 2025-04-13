@@ -6,10 +6,14 @@
 #include <unordered_map>
 #include "types/data_common.h"
 
-typedef struct{
+struct ExtractedValue{
     int32_t time_date = -1; //in epoque
     float value = UNDEFINED;
-}ExtractedValue;
+
+    bool operator<(const ExtractedValue& other) const{
+        return time_date<other.time_date;
+    }
+};
 
 template<>
 class std::hash<ExtractedValue>{

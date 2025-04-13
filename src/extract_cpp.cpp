@@ -39,29 +39,6 @@ namespace cpp{
         if (lhs.day != rhs.day) return lhs.day < rhs.day;
         return lhs.hour < rhs.hour;
     }
-    
-    bool operator<(const StampVal& lhs,const StampVal& rhs){
-        if(lhs.time.year==-1?0:lhs.time.year<rhs.time.year==-1?0:rhs.time.year)
-            return true;
-        else if(lhs.time.year==-1?0:lhs.time.year>rhs.time.year==-1?0:rhs.time.year)
-            return true;
-        
-        if(lhs.time.month==-1?0:lhs.time.month<rhs.time.month==-1?0:rhs.time.month)
-            return true;
-        else if(lhs.time.month==-1?0:lhs.time.month>rhs.time.month==-1?0:rhs.time.month)
-            return false;
-    
-        if(lhs.time.day==-1?0:lhs.time.day<rhs.time.day==-1?0:rhs.time.day)
-            return true;
-        else if(lhs.time.day==-1?0:lhs.time.day>rhs.time.day==-1?0:rhs.time.day)
-            return false;
-    
-        if(lhs.time.hour==-1?0:lhs.time.hour<rhs.time.hour==-1?0:rhs.time.hour)
-            return true;
-        else if(lhs.time.hour==-1?0:lhs.time.hour>rhs.time.hour==-1?0:rhs.time.hour)
-            return false;
-        return false;
-    }
 
     std::ostream& operator<<(std::ostream& stream,Date date){
         std::ostringstream oss;
@@ -80,7 +57,11 @@ namespace cpp{
         Date to,
         Coord coord,
         DATA_OUT fmt_out,
-        float* progress)
+        float* progress = nullptr,
+        std::optional<TimeFrame> fcst_unit={},
+        std::optional<Organization> center={},
+        std::optional<uint8_t> subcenter={}
+        )
     {
         std::map<char,int> fmt_pos;
         std::regex reg;
@@ -95,14 +76,33 @@ namespace cpp{
                 log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
-            FormatBinData format = format::read(root_path/format_filename);
-            if(correct_date_interval(&from,&to) && (get_epoch_time(&format.data_.from)>get_epoch_time(&to) || get_epoch_time(&format.data_.to)<get_epoch_time(&from))){
-                ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
-                return ErrorCode::INCORRECT_DATE;
-            }
-            else if(!point_in_grid(&format.data_.grid_data,coord)){
-                ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
-                return ErrorCode::INCORRECT_COORD;
+            BinaryGribInfo format = format::read(root_path/format_filename);
+            {
+                if(!correct_date_interval(&from,&to)){
+                    ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::INCORRECT_DATE;
+                }
+                if(!is_correct_pos(&coord)){
+                    ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::INCORRECT_COORD;
+                }
+                bool found = false;
+                for(auto& d:format.data_.info_){
+                    if(fcst_unit.has_value() && fcst_unit.value()!=d.first.fcst_unit_)
+                        continue;
+                    if(center.has_value() && center.value()!=d.first.center_)
+                        continue;
+                    if(subcenter.has_value() && subcenter.value()!=d.first.subcenter_)
+                        continue;
+                    for(const auto& spec_data:d.second){
+                        if(get_epoch_time(&spec_data.from)>get_epoch_time(&to) || get_epoch_time(&spec_data.to)<get_epoch_time(&from))
+                            continue;
+                        else if(!pos_in_grid(coord,spec_data.grid_data))
+                            continue;
+                    }
+                }
+                if(!found)
+                    return ErrorCode::NONE;
             }
                 
             std::string fmt = functions::capitalize::get_txt_order(format.order_);
@@ -260,55 +260,65 @@ namespace cpp{
                             //print header
                             //print data to file
                             out<<std::left<<std::setw(18)<<"Time"<<"\t";
-                            for(auto& [cmn_data,values]:summary_result)
-                                //TODO:sort values
+                            std::vector<decltype(summary_result)::node_type::mapped_type*> col_vals_;
+                            size_t max_length = 0;
+                            for(auto& [cmn_data,values]:summary_result){
+                                std::sort(values.begin(),values.end());
+                                max_length = std::max(values.size(),max_length);
                                 out<<std::left<<std::setw(10)<<parameter_table(cmn_data.center_,cmn_data.subcenter_,cmn_data.parameter_)->name<<'\t';
+                                col_vals_.push_back(&values);
+                            }
                             out<<std::endl;
                             int row=0;
-                            while(row<result.vals->sz){
-                                out<<result.vals->values[row].time<<'\t';
-                                for(auto& [tag,vals]:tags){
-                                    out<<std::left<<std::setw(10)<<vals[row].val<<'\t';
+                            while(row<max_length){
+                                int32_t min_time = INT32_MAX;
+                                for(const auto item:col_vals_)
+                                    min_time = std::min((*item)[row].time_date,min_time);
+                                if(min_time>0)
+                                    out<<date_from_epoque(min_time)<<'\t';
+                                for(auto val:col_vals_){
+                                    if((*val)[row].time_date==min_time)
+                                        out<<std::left<<std::setw(10)<<(*val)[row].value<<'\t';
+                                    else out<<std::left<<std::setw(10)<<"NaN"<<'\t';
                                 }
                                 out<<std::endl;
                                 ++row;
                             }
-                            delete_values(result);
-                            tags.clear();
+                            summary_result.clear();
                             out.close();
                         }
-                        else if(fmt_out&DATA_OUT::BIN_F){
-                            std::string out_f_name = (destination/(std::to_string(year)+'_'+std::to_string(month)+".omdb")).string();
-                            std::ofstream out(out_f_name,std::ios::trunc|std::ios::binary);
-                            if(!out.is_open()){
-                                log().record_log(ErrorCodeLog::CANNOT_OPEN_FILE_X1,"",out_f_name);
-                                return ErrorCode::INTERNAL_ERROR;
-                            }
-                            else
-                                std::cout<<"Openned "<<out_f_name<<std::endl;
+                        // else if(fmt_out&DATA_OUT::BIN_F){
+                        //     std::string out_f_name = (destination/(std::to_string(year)+'_'+std::to_string(month)+".omdb")).string();
+                        //     std::ofstream out(out_f_name,std::ios::trunc|std::ios::binary);
+                        //     if(!out.is_open()){
+                        //         log().record_log(ErrorCodeLog::CANNOT_OPEN_FILE_X1,"",out_f_name);
+                        //         return ErrorCode::INTERNAL_ERROR;
+                        //     }
+                        //     else
+                        //         std::cout<<"Openned "<<out_f_name<<std::endl;
                             
-                            out<<"Mashroom extractor v=0.01\nData formats: ECMWF\nSource: https://cds.climate.copernicus.eu/\nDistributor: Oster Industries LLC\n";
-                            //print header
-                            //print data to file
+                        //     out<<"Mashroom extractor v=0.01\nData formats: ECMWF\nSource: https://cds.climate.copernicus.eu/\nDistributor: Oster Industries LLC\n";
+                        //     //print header
+                        //     //print data to file
                             
-                            for(auto& [tag,values]:tags){
-                                out.write((char*)tag.size(),sizeof(tag.size()));
-                                out.write(tag.c_str(),tag.size());
-                            }
-                            out<<std::endl;
-                            int row=0;
-                            while(row<result.vals->sz){
-                                out<<result.vals->values[row].time<<'\t';
-                                for(auto& [tag,vals]:tags){
-                                    out.write((char*)&vals[row].val,sizeof(vals[row].val));
-                                }
-                                out<<std::endl;
-                                ++row;
-                            }
-                            delete_values(result);
-                            tags.clear();
-                            out.close();
-                        }
+                        //     for(auto& [tag,values]:tags){
+                        //         out.write((char*)tag.size(),sizeof(tag.size()));
+                        //         out.write(tag.c_str(),tag.size());
+                        //     }
+                        //     out<<std::endl;
+                        //     int row=0;
+                        //     while(row<result.vals->sz){
+                        //         out<<result.vals->values[row].time<<'\t';
+                        //         for(auto& [tag,vals]:tags){
+                        //             out.write((char*)&vals[row].val,sizeof(vals[row].val));
+                        //         }
+                        //         out<<std::endl;
+                        //         ++row;
+                        //     }
+                        //     delete_values(result);
+                        //     tags.clear();
+                        //     out.close();
+                        // }
                         
                     }
                     //output<<result.time.day<<"/"<<result.time.month<<"/"<<result.time.year<<" "<<result.time.hour<<":"<<result.val<<std::endl;

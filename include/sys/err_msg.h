@@ -2,7 +2,7 @@
 #include <array>
 #include "sys/format_def.h"
 
-constexpr std::array<const char*,11> err_msg_log = {
+constexpr std::array<const char*,12> err_msg_log = {
     "Directory \"{0}\" creation denied.",
     "Missing " EXPAND(FORMAT_FILENAME)" file in destination directory \"{0}\".",
     "File \"{0}\" access denied by permissions.",
@@ -13,7 +13,8 @@ constexpr std::array<const char*,11> err_msg_log = {
     "Invalid path of directories \"{0}\".",
     "\"{0}\" is not a directory.",
     "\"{0}\" is not a file.",
-    "Format file {0} is corrupted."
+    "Format file {0} is corrupted.",
+    "Error at capitalization: file {0}, position {1}"
 };
 
 constexpr std::array<const char*,21> err_msg={

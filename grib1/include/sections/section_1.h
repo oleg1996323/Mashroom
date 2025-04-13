@@ -13,6 +13,7 @@
 #include "code_tables/table_5.h"
 #include "sections/product/def.h"
 #include "generated/code_tables/include/eccodes_tables.h"
+#include "types/date.h"
 
 #ifdef __cplusplus
 #include <span>

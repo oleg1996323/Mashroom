@@ -3,29 +3,19 @@
 #include "types/coord.h"
 #include "extract.h"
 #include "sections/section_1.h"
-
-#include <stdio.h>
-#ifndef __cplusplus
-typedef struct Result_s
-{
-    ExtractData data;
-    ErrorCodeData code;
-}Result;
-#else
-struct Result
-{
-    ExtractData data;
-    ErrorCodeData code;
-};
-#endif
-bool contains(const char* from,unsigned long* count, unsigned long* pos, const Date* date , const Coord* coord);
-Result get_from_pos(const char* from,long int* count,long unsigned* pos);
-const char* get_file_error_text(ErrorCodeData err);
-
-#ifdef __cplusplus
+#include "code_tables/table_6.h"
+#include "types/data_common.h"
 #include <filesystem>
 namespace fs = std::filesystem;
-bool contains(const fs::path& from,unsigned long& count, unsigned long& pos, const Date& date ,const Coord& coord);
-Result get_from_pos(const fs::path& from,long int& count,long unsigned& pos);
-const char* get_file_error_text(ErrorCodeData err);
-#endif
+
+bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+    std::optional<RepresentationType> grid_type = {},
+    std::optional<Organization> center = {},
+    std::optional<uint8_t> subcenter = {},
+    std::optional<TimeFrame> fcst = {});
+
+bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+    const CommonDataProperties& data,std::optional<RepresentationType> grid_type = {});
+
+bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+    Organization center, uint8_t subcenter, uint8_t parameter,std::optional<RepresentationType> grid_type = {});

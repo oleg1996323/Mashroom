@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sections/section_1.h"
-#include "ensemble.h"
 #include "def.h"
 
 
@@ -77,21 +76,5 @@ void ensemble(unsigned char *pds, int mode) {
 	}
 
 	/* NCEP probability limits */
-
-	if ((PDS_PARAM(pds) == 191 || PDS_PARAM(pds) == 192) && pdslen >= 47) {
-	    ctmp = PDS_PARAM(pds);
-	    PDS_PARAM(pds) = pds[45];
-	    if (pds[46] == 1 && pdslen >= 51) {
-		printf("prob(%s<%f)%c", k5toa(pds), ibm2flt(pds+47),char_end);
-	    }
-	    else if (pds[46] == 2 && pdslen >= 54) {
-		printf("prob(%s>%f)%c", k5toa(pds), ibm2flt(pds+51), char_end);
-	    }
-	    else if (pds[46] == 3 && pdslen >= 54) {
-		printf("prob(%f<%s<%f)%c", ibm2flt(pds+47), k5toa(pds), 
-			ibm2flt(pds+51), char_end);
-	    }
-            PDS_PARAM(pds) = ctmp;
-	}
     }
 }

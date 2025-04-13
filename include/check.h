@@ -19,8 +19,7 @@
 #include "sys/log_err.h"
 #include "contains.h"
 
-static constexpr const char* miss_files_filename = "missing_files.txt";
-static constexpr const char* errorness_files_filename = "corrupted_files.txt";
+
 
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;
@@ -41,7 +40,5 @@ struct ProcessResult{
 };
 
 ProcessResult process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr);
-
-
 bool missing_files(fs::path in_dir,fs::path out_dir, unsigned int cpus=std::thread::hardware_concurrency(), std::chrono::year_month_day from=1d/1/1991, 
 std::chrono::year_month_day to = std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));

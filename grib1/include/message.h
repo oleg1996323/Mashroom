@@ -65,6 +65,12 @@ STRUCT_BEG(HGrib1)
     Message& message(){
         return msg_;
     }
+    ptrdiff_t current_message_position() const noexcept{
+        return static_cast<ptrdiff_t>(current_ptr_-__f_ptr);
+    }
+    unsigned long current_message_length() const noexcept{
+        return msg_.section_0_.message_length();
+    }
     bool next_message(){
         if((current_ptr_-__f_ptr)+msg_.section_0_.message_length()<sz_){
             current_ptr_+=msg_.section_0_.message_length();

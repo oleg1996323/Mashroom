@@ -1,11 +1,12 @@
-#include "func.h"
-#include "write.h"
+#include "stdlib.h"
+#include "stdio.h"
+#include "aux_code/floattoieee.h"
 
 int wrtieee(float *array, int n, int header, FILE *output) {
 
 	unsigned long int l;
 	int i, nbuf;
-	unsigned char buff[BSIZ];
+	unsigned char buff[BUFSIZ];
 	unsigned char h4[4];
 
 	nbuf = 0;
@@ -22,16 +23,16 @@ int wrtieee(float *array, int n, int header, FILE *output) {
 		buff[nbuf++] = h4[0];
 	}
 	for (i = 0; i < n; i++) {
-		if (nbuf >= BSIZ) {
-		    fwrite(buff, 1, BSIZ, output);
+		if (nbuf >= BUFSIZ) {
+		    fwrite(buff, 1, BUFSIZ, output);
 		    nbuf = 0;
 		}
 		flt2ieee(array[i], buff + nbuf);
 		nbuf += 4;
 	}
 	if (header) {
-		if (nbuf == BSIZ) {
-		    fwrite(buff, 1, BSIZ, output);
+		if (nbuf == BUFSIZ) {
+		    fwrite(buff, 1, BUFSIZ, output);
 		    nbuf = 0;
 		}
 		buff[nbuf++] = h4[3];

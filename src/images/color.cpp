@@ -4,7 +4,7 @@
 #include <iostream>
 #include <numeric>
 #include <cmath>
-#include "interpolation.h"
+#include "functional/interpolation.h"
 
 
 bool HSV::operator<(const HSV& other) const{

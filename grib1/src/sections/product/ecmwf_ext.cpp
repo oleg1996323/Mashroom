@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include "ecmwf_ext.h"
 #include "sections/section_1.h"
 
 void EC_ext(unsigned char *pds, char *prefix, char *suffix, int verbose) {
