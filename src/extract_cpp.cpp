@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <decode_aux.h>
 #include <set>
 #include "application.h"
 #include "extract_cpp.h"

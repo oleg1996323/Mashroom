@@ -1,10 +1,5 @@
 #include "functions.h"
-#include "sys/base.h"
-#ifdef __cplusplus
-extern "C"{
-    #include "sections/section_1.h"
-}
-#endif
+#include "sections/section_1.h"
 
 using namespace std::string_literals;
 

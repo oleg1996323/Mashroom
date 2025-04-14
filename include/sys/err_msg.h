@@ -17,7 +17,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at capitalization: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,21> err_msg={
+constexpr std::array<const char*,22> err_msg={
     "Process successed.",
     "Internal error.",
     "Incorrect argument: date interval.",
@@ -38,5 +38,6 @@ constexpr std::array<const char*,21> err_msg={
     "\"{0}\" is not a directory.",
     "\"{0}\" is not a file.",
     "Ignoring argument \"{0}\".",
-    "Already existing configuration name."
+    "Already existing configuration name.",
+    "Directory \"{0}\" don't exists.",
 };
