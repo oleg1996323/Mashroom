@@ -18,7 +18,6 @@ using namespace translate::token;
 
 void config_parse(const std::vector<std::string_view>& input){
     std::vector<std::string_view> commands_saved;
-    OrderItems order = OrderItems();
     ConfigAction action = ConfigAction::UNDEF;
     std::string_view config_name;
     if(input.size()<4)

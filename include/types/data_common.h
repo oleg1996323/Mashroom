@@ -6,9 +6,9 @@
 
 STRUCT_BEG(CommonDataProperties)
 {
+    std::optional<TimeFrame> fcst_unit_ ={};
     Organization center_ = WMO;
     uint8_t subcenter_ = 0;
-    TimeFrame fcst_unit_ = MINUTE;
     uint8_t parameter_ = 0;
 
     CommonDataProperties(Organization center,uint8_t subcenter,TimeFrame fcst_unit,uint8_t parameter):
@@ -23,6 +23,7 @@ STRUCT_END(CommonDataProperties)
 template<>
 struct std::hash<CommonDataProperties>{
     size_t operator()(const CommonDataProperties& cs) const{
-        return std::hash<size_t>{}(static_cast<size_t>(cs.center_)<<24+static_cast<size_t>(cs.subcenter_)<<16+static_cast<size_t>(cs.fcst_unit_)<<8+cs.parameter_);
+        return std::hash<size_t>{}(static_cast<size_t>(cs.center_)<<24+static_cast<size_t>(cs.subcenter_)<<16+
+        static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8+cs.parameter_);
     }
 };

@@ -23,6 +23,8 @@ STRUCT_END(Date)
 #define Date(...) ((Date){ .year = -1, .month = -1, .day = -1, .hour = -1, ##__VA_ARGS__ })
 #endif
 
+#ifdef DEPRECATED
+
 // Функция для проверки високосного года
 extern int is_leap_year(int year);
     
@@ -47,3 +49,9 @@ extern bool correct_date_interval(Date* from, Date* to);
 extern bool is_date_interval(const Date* from, const Date* to, TimeFrame t_unit, uint8_t time_inc);
 extern unsigned long hours_to_days(unsigned int hour);
 extern Date date_increment(TimeFrame t_unit, uint8_t time_inc);
+
+#endif
+
+bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to){
+    return duration_cast<MinTimeRange>(to-from).count()<0;
+}

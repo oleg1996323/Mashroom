@@ -5,7 +5,7 @@
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
-#include "capitalize_cpp.h"
+#include "capitalize.h"
 #include "cmd_parse/functions.h"
 #include "capitalize.h"
 
@@ -13,56 +13,44 @@ namespace fs = std::filesystem;
 
 void capitalize_parse(const std::vector<std::string_view>& input){
     using namespace translate::token;
+    Capitalize hCapitalize;
     unsigned int cpus = std::thread::hardware_concurrency();
     fs::path in = fs::current_path();
     fs::path out = fs::current_path();
-    OrderItems order = OrderItems();
     for(size_t i=0;i<input.size();++i){
         switch(translate_from_txt<Command>(input[i++])){
-            case Command::THREADS:{
-                long tmp = from_chars<long>(input[i]);
-                if(tmp>=1 & tmp<=std::thread::hardware_concurrency())
-                    cpus = tmp;
+            case Command::THREADS:
+                hCapitalize.set_using_processor_cores(from_chars<long>(input[i]));
                 break;
-            }
-            case Command::IN_PATH:{
-                in = input[i];
-                if(!fs::is_directory(in))
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,in.c_str());
+            case Command::IN_PATH:
+                hCapitalize.set_from_path(input[i]);
                 break;
-            }
             case Command::OUT_PATH:{
                 std::vector<std::string_view> tokens = split(input[i],":");
                 if(tokens.size()!=2)
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::ABORT,input[i]);
-                if(tokens.at(0)=="dir"){
-                    out = tokens.at(1);
-                    if(!fs::is_directory(out)){
-                        if(!fs::create_directory(out))
-                            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,out.c_str());
-                    }
-                }
+                if(tokens.at(0)=="dir")
+                    hCapitalize.set_dest_dir(tokens.at(1));
                 else if(tokens.at(0)=="ip")
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use capitalize mode by IP",AT_ERROR_ACTION::ABORT,tokens[0]);
                 else
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::ABORT,input[i]);
                 break;
             }
-            case Command::CAPITALIZE_HIERARCHY:{
-                order = functions::capitalize::get_item_orders(input[i]);
+            case Command::CAPITALIZE_HIERARCHY:
+                hCapitalize.set_output_order(input[i]);
                 break;
-            }
-            case Command::CAPITALIZE_FORMAT:{
-                if(order.fmt==NONE){
+            case Command::CAPITALIZE_FORMAT:
+                if(hCapitalize.output_format()==DataFormat::NONE){
                     switch(translate_from_txt<FileFormat>(input[i])){
                         case FileFormat::BIN:
-                            order.fmt = BINARY;
+                            hCapitalize.set_output_type(DataFormat::BINARY);
                             break;
                         case FileFormat::GRIB:
-                            order.fmt = GRIB;
+                            hCapitalize.set_output_type(DataFormat::GRIB);
                             break;
                         case FileFormat::TXT:
-                            order.fmt = TEXT;
+                            hCapitalize.set_output_type(DataFormat::TEXT);
                             break;
                         default:
                             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
@@ -72,21 +60,21 @@ void capitalize_parse(const std::vector<std::string_view>& input){
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Already choosen other capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
                 }
                 break;
-            }
             default:{
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::ABORT,input[i]);
             }
         }
     }
-    if(order.fmt==NONE)
+    if(hCapitalize.output_format()==DataFormat::NONE)
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Not defined output format for capitalize mode",AT_ERROR_ACTION::ABORT);
-    capitalize_cpp(in,out,order);
+    hCapitalize.execute();
 }
 
 std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<std::string_view>& input){
     using namespace translate::token;
     std::vector<std::string_view> commands;
-    OrderItems order = OrderItems();
+    std::string order;
+    DataFormat fmt = DataFormat::NONE;
     for(size_t i=0;i<input.size();++i){
         switch(translate_from_txt<Command>(input[i++])){
             case Command::THREADS:{
@@ -96,6 +84,7 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
             case Command::IN_PATH:{
                 if(!fs::is_directory(input[i]))
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,input[i]);
+                else commands.push_back(input.at(i));
                 break;
             }
             case Command::OUT_PATH:{
@@ -116,21 +105,23 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
                 break;
             }
             case Command::CAPITALIZE_HIERARCHY:{
-                order = functions::capitalize::get_item_orders(input[i]);
-                commands.push_back(input[i]);
+                if(Capitalize::check_format(input[i]))
+                    commands.push_back(input[i]);
+                else ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                    "invalid capitalize order",AT_ERROR_ACTION::ABORT,input[i]);
                 break;
             }
             case Command::CAPITALIZE_FORMAT:{
-                if(order.fmt==NONE){
+                if(fmt==DataFormat::NONE){
                     switch(translate_from_txt<FileFormat>(input[++i])){
                         case FileFormat::BIN:
-                            order.fmt = BINARY;
+                            fmt = DataFormat::BINARY;
                             break;
                         case FileFormat::GRIB:
-                            order.fmt = GRIB;
+                            fmt = DataFormat::GRIB;
                             break;
                         case FileFormat::TXT:
-                            order.fmt = TEXT;
+                            fmt = DataFormat::TEXT;
                             break;
                         default:
                             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize format",AT_ERROR_ACTION::ABORT,input[i]);
@@ -146,7 +137,7 @@ std::vector<std::string_view> commands_from_capitalize_parse(const std::vector<s
             }
         }
     }
-    if(order.fmt==NONE)
+    if(fmt==DataFormat::NONE)
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Not defined output format for capitalize mode",AT_ERROR_ACTION::ABORT);
     if(commands.empty())
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero args for capitalize mode",AT_ERROR_ACTION::ABORT);

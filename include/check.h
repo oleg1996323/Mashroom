@@ -3,8 +3,10 @@
 #include <filesystem>
 #include <vector>
 #include <thread>
+#include "sys/error_print.h"
 #include "types/data_info.h"
 #include "message.h"
+#include "def.h"
 
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;
@@ -20,7 +22,7 @@ struct ErrorFiles{
 };
 
 struct ProcessResult{
-    std::set<long long> found;
+    std::set<int64_t> found;
     std::vector<ErrorFiles> err_files;
 };
 
@@ -29,31 +31,16 @@ using namespace std::string_literals;
 static constexpr const char* miss_files_filename = "missing_files.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 class Check{
-    public:
-    enum class TimeSeparation{
-        HOUR,
-        DAY,
-        MONTH,
-        YEAR
-    };
-    struct Properties{
-        std::optional<CommonDataProperties> common_;
-        std::optional<long long> from_date_;
-        std::optional<long long> to_date_;
-        std::optional<TimeSeparation> t_sep_;
-        std::optional<RepresentationType> grid_type_;
-        std::optional<Coord> position_;
-    };
     private:
     Properties props_;
-    GribDataInfo result;
+    GribDataInfo data_;
     fs::path root_directory_; //input root directory
     fs::path dest_directory_; //output log directory
     int cpus = 1;
-    bool missing_files();
+    ProcessResult process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr);
     public:
     static bool check_format(std::string_view fmt);
-    const GribDataInfo& execute();
+    bool execute();
     void set_checking_directory(std::string_view dir){
         if(!fs::exists(dir))
             ErrorPrint::print_error(ErrorCode::DIRECTORY_X1_DONT_EXISTS,"",AT_ERROR_ACTION::ABORT,dir.data());
@@ -63,12 +50,16 @@ class Check{
     }
     void set_destination_directory(std::string_view dir){
         if(!fs::exists(dir) && !fs::create_directories(dir))
-            throw std::invalid_argument("Unable tot create directory "s + dir.data());
+            ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,dir);
+        else{
+            if(!fs::is_directory(dir))
+                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir);
+        }
         dest_directory_=dir;
     }
     void set_properties(std::optional<CommonDataProperties> common = {},
-                        std::optional<long long> from_date = {},
-                        std::optional<long long> to_date = {},
+                        std::optional<std::chrono::system_clock::time_point> from_date = {},
+                        std::optional<std::chrono::system_clock::time_point> to_date = {},
                         std::optional<TimeSeparation> t_sep= {},
                         std::optional<RepresentationType> grid_type = {},
                         std::optional<Coord> position = {}){
@@ -101,15 +92,15 @@ class Check{
             cpus=cores;
         else cpus = 1;
     }
-    const GribDataInfo& get_result() const{
-        return result;
+    const GribDataInfo& data() const{
+        return data_;
     }
     void clear_result(){
-        result.info_.clear();
-        result.err = ErrorCodeData::NONE_ERR;
+        data_.info_.clear();
+        data_.err = ErrorCodeData::NONE_ERR;
     }
     GribDataInfo&& release_result() noexcept{
-        GribDataInfo res(std::move(result));
+        GribDataInfo res(std::move(data_));
         return res;
     }
 };

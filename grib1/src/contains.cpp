@@ -1,27 +1,16 @@
 #include "contains.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <float.h>
-#include <assert.h>
-#include <string.h>
-#include <math.h>
-#include "extract.h"
 #include "types/data_msg.h"
 #include "message.h"
 #include "aux_code/int_pow.h"
 
-bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
                 std::optional<RepresentationType> grid_type,
                 std::optional<Organization> center,
                 std::optional<uint8_t> subcenter,
                 std::optional<TimeFrame> fcst){
     HGrib1 grib;
-    if(!is_correct_date(&date))
-        throw std::invalid_argument("Invalid date"s);
     if(!is_correct_pos(&coord))
         throw std::invalid_argument("Invalid position");
-    long long int_time = get_epoch_time(&date);
 	if(!grib.open_grib(from))
         throw std::runtime_error("Unable to open file "s+from.c_str());
     do{
@@ -41,21 +30,18 @@ bool contains(const fs::path& from,const Date& date ,const Coord& coord,
         continue;
     if(fcst.has_value() && fcst.value()!=info.t_unit)
         continue;
-    if(int_time!=get_epoch_time(&info.date))
+    if(date!=info.date)
         continue;
     if(!pos_in_grid(coord,info.grid_data))
         continue;
 	}while(grib.next_message());
 }
 
-bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
     const CommonDataProperties& data,std::optional<RepresentationType> grid_type){
     HGrib1 grib;
-    if(!is_correct_date(&date))
-        throw std::invalid_argument("Invalid date"s);
     if(!is_correct_pos(&coord))
         throw std::invalid_argument("Invalid position");
-    long long int_time = get_epoch_time(&date);
     if(!grib.open_grib(from))
         throw std::runtime_error("Unable to open file "s+from.c_str());
     do{
@@ -79,21 +65,18 @@ bool contains(const fs::path& from,const Date& date ,const Coord& coord,
         continue;
     if(grid_type.has_value() && grid_type.value()!=info.grid_data.rep_type)
         continue;
-    if(int_time!=get_epoch_time(&info.date))
+    if(date!=info.date)
         continue;
     if(!pos_in_grid(coord,info.grid_data))
         continue;
     }while(grib.next_message());
 }
 
-bool contains(const fs::path& from,const Date& date ,const Coord& coord,
+bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
     Organization center, uint8_t subcenter, uint8_t parameter,std::optional<RepresentationType> grid_type){
     HGrib1 grib;
-    if(!is_correct_date(&date))
-        throw std::invalid_argument("Invalid date"s);
     if(!is_correct_pos(&coord))
         throw std::invalid_argument("Invalid position");
-    long long int_time = get_epoch_time(&date);
     if(!grib.open_grib(from))
         throw std::runtime_error("Unable to open file "s+from.c_str());
     do{
@@ -113,7 +96,7 @@ bool contains(const fs::path& from,const Date& date ,const Coord& coord,
         continue;
     if(grid_type.has_value() && grid_type.value()!=info.grid_data.rep_type)
         continue;
-    if(int_time!=get_epoch_time(&info.date))
+    if(date!=info.date)
         continue;
     if(!pos_in_grid(coord,info.grid_data))
         continue;

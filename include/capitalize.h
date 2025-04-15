@@ -1,8 +1,8 @@
 #pragma once
-#include <stdio.h>
-#include <string>
 #include <filesystem>
-#include <vector>
+#include <string>
+#include <thread>
+#include "def.h"
 #include "types/data_info.h"
 #include "message.h"
 
@@ -13,14 +13,16 @@ private:
 GribDataInfo result;
 std::string_view from_file_;
 std::string_view dest_directory_;
-std::string_view format_output_;
-DataFormat output_type_;
+std::string_view output_order_="ym"sv;
+int cpus = 1;
+DataFormat output_format_ = DataFormat::NONE;
 void __write__(const Message& msg,
     const GribMsgDataInfo& msg_info);
+const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
-
 static bool check_format(std::string_view fmt);
 const GribDataInfo& execute();
+
 void set_from_path(std::string_view from_file){
     if(!fs::exists(from_file))
         throw std::invalid_argument("File doesn't exists "s + from_file.data());
@@ -31,20 +33,28 @@ void set_dest_dir(std::string_view dest_directory){
         throw std::invalid_argument("Unable to create capitalize destination path "s + dest_directory.data());
     dest_directory_=dest_directory;
 }
-void set_output_format(std::string_view format){
-    if(!check_format(format))
+void set_output_order(std::string_view order){
+    if(!check_format(order))
         throw std::invalid_argument("Invalid capitalize format");
-    format_output_ = format;
+    output_order_ = order;
 }
-void set_output_type(DataFormat type){
-    output_type_ = type;
+void set_output_type(DataFormat format){
+    output_format_ = format;
 }
 const GribDataInfo& get_result() const{
     return result;
 }
+DataFormat output_format() const{
+    return output_format_;
+}
 void clear_result(){
     result.info_.clear();
     result.err = ErrorCodeData::NONE_ERR;
+}
+void set_using_processor_cores(int cores){
+    if(cores>0 && cores<std::thread::hardware_concurrency())
+        cpus=cores;
+    else cpus = 1;
 }
 GribDataInfo&& release_result() noexcept{
     GribDataInfo res(std::move(result));

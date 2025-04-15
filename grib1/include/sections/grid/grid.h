@@ -272,6 +272,7 @@ constexpr std::string_view to_abbr_representation_type(RepresentationType rep_t)
 }
 
 #include "types/rect.h"
+#ifndef GRID_INFO
 struct GridInfo{
     GridDataType data DEF_STRUCT_VAL({})
     RepresentationType rep_type DEF_STRUCT_VAL((RepresentationType)-1)
@@ -323,6 +324,7 @@ struct GridInfo{
         bool operator!=(const GridInfo& other);
     #endif
 };
+#endif
 
 bool pos_in_grid(const Coord& pos, const GridInfo& grid) noexcept;
 int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept;

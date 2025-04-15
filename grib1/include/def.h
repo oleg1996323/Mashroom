@@ -8,6 +8,8 @@
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
 #endif
+#include <chrono>
+using MinTimeRange = std::chrono::duration<int64_t, std::ratio<3600L>>;
 
 typedef enum {
     NONE_ERR,
@@ -37,14 +39,14 @@ static const char* err_code_data[11]={
     "End section missed"
 };
 
-typedef enum{
+enum class DataFormat{
     NONE,
     BINARY,
     TEXT, 
     IEEE, 
     GRIB,
     REF //add ref on message position with data in concrete file
-}DataFormat;
+};
 
 typedef struct VALUE_BY_COORD{
     float value;

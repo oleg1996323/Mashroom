@@ -5,136 +5,37 @@
 #include <vector>
 #include <ranges>
 #include <algorithm>
-#include "sys/error_print.h"
-
-const GribDataInfo& Check::execute(){
-    // HGrib1 grib;
-	// if(!grib.open_grib(from_file_)){
-	// 	result.err = ErrorCodeData::OPEN_ERROR;
-	// 	return result;
-	// }
-    // do{
-	// 	GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
-	// 								std::move(grib.message().section_1_.date()),
-	// 								grib.current_message_position(),
-	// 								grib.current_message_length(),
-	// 								grib.message().section_1_.IndicatorOfParameter(),
-	// 								grib.message().section_1_.unit_time_range(),
-	// 								grib.message().section_1_.center(),
-	// 								grib.message().section_1_.subcenter());
-	// 	result.add_info(info);
-	// }while(grib.next_message());
-	// return result;
-}
-
-ProcessResult process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) {
-    ProcessResult result;
-    Check check_handler;
-    for (const fs::directory_entry& entry : entries) {
-        if (entry.is_regular_file() && entry.path().has_extension() && 
-            (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
-            check_handler.set_from_path(entry.path().c_str());
-
-            // int p_line;
-            // pBar bar;
-            {
-                if (mute_at_print){
-                    std::lock_guard<std::mutex> locked(*mute_at_print);
-                    p_line = progress_line++;
-                    bar.setline(p_line);
-                    std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
-                    bar.update(0);
-                    bar.print();
-                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                }
-                else{
-                    p_line = progress_line++;
-                    bar.setline(p_line);
-                    std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
-                    bar.update(0);
-                    bar.print();
-                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                }
-            }
-                
-            check_handler.set_from_path(entry.path().c_str());
-            check_handler.execute();
-            check_handler.get_result().sublime();
-            for(const auto& [cmn,info]:check_handler.get_result().data()){
-                for(const auto& info_el:info){
-                    info_el.
-                    if(data.code==0)
-                        result.found.insert(std::chrono::sys_days(std::chrono::year_month_day(
-                            std::chrono::year(data.data.date.year),
-                            std::chrono::month(data.data.date.month),
-                            std::chrono::day(data.data.date.day))));
-                    else{
-                        if (mute_at_print){
-                            std::lock_guard<std::mutex> locked(*mute_at_print);
-                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
-                            break;
-                        }
-                        else {
-                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
-                            break;
-                        }
-                    }
-
-                    // {
-                    //     if (mute_at_print){
-                    //         std::lock_guard<std::mutex> locked(*mute_at_print);
-                    //         bar.update((double)pos/(double)max_pos*100);
-                    //         bar.print();
-                    //         std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                    //     }
-                    //     else {
-                    //         bar.update((double)pos/(double)max_pos*100);
-                    //         bar.print();
-                    //         std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                    //     }
-                    // }
-                }
-            }
-            check_handler.clear_result();
-        }
-        
-    }
-    return result;
-}
 #include <ctime>
 #include <chrono>
-bool Check::missing_files(){
-    using namespace std::chrono;
+#include <mutex>
+#include <ranges>
+#include <numeric>
+#include "sys/error_print.h"
+
+using namespace std::chrono;
+
+bool Check::execute(){
+
     bool result = false;
-    std::set<long long> found;
-    Date from = props_.from_date_.has_value()?date_from_epoque(props_.from_date_.value()):Date({1970,1,1,0});
-    Date to;
-    {
-        // Берём текущее время с максимальной точностью
-        auto now = utc_clock::now();
-        // Округляем до секунд (можно до milliseconds, microseconds и т. д.)
-        auto now_hours = floor<hours>(clock_cast<system_clock>(now));
-        // Разбиваем на дни и время внутри дня
-        auto days_part = floor<days>(clock_cast<system_clock>(now_hours));  // Дни (для даты)
-        auto time_part = now_hours - days_part;   // Оставшееся время (для часов, минут, секунд)
-        // Получаем дату (год, месяц, день)
-        year_month_day ymd{days_part};
-        hh_mm_ss hours(now_hours);
-        to = props_.to_date_.has_value()?date_from_epoque(props_.to_date_.value()):Date{(int)(ymd.year()),(int)(unsigned)(ymd.month()),(int)(unsigned)ymd.day(),(int)hours.hours().count()};
-    }
-    std::ranges::iota_view<long long, long long> time_range;
+    std::set<int64_t> found;
+    system_clock::time_point from = props_.from_date_.has_value()?props_.from_date_.value():system_clock::time_point();
+    system_clock::time_point to = props_.to_date_.has_value()?props_.to_date_.value():system_clock::now();
+    std::ranges::iota_view<int64_t,int64_t> time_range;
     if(props_.t_sep_.has_value()){
         if(props_.t_sep_.value()==TimeSeparation::HOUR)
-            time_range = std::views::iota((long long)get_epoch_time(&from)/3600,(long long)get_epoch_time(&to)/3600);
+            time_range = std::views::iota(  floor<hours>(from).time_since_epoch().count(),
+                                            floor<hours>(to).time_since_epoch().count());
         else if(props_.t_sep_.value()==TimeSeparation::DAY)
-            time_range = std::views::iota((long long)(get_epoch_time(&from)/3600/24),(long long)get_epoch_time(&to)/3600/24);
+            time_range = std::views::iota(  floor<days>(from).time_since_epoch().count(),
+                                            floor<days>(to).time_since_epoch().count());
         else if(props_.t_sep_.value()==TimeSeparation::MONTH)
-            time_range = std::views::iota((long long)(from.year*12+from.month),(long long)(to.year*12+to.month));
+            time_range = std::views::iota(  floor<months>(from).time_since_epoch().count(),
+                                            floor<months>(to).time_since_epoch().count());
         else if(props_.t_sep_.value()==TimeSeparation::YEAR)
-            time_range = std::views::iota((long long)from.year,(long long)to.year);
-        else time_range = std::views::iota((long long)get_epoch_time(&from)/3600,(long long)get_epoch_time(&to)/3600);
+            time_range = std::views::iota(  floor<years>(from).time_since_epoch().count(),
+                                            floor<years>(to).time_since_epoch().count());
+        else time_range = std::views::iota( floor<days>(from).time_since_epoch().count(),
+                                            floor<days>(to).time_since_epoch().count());
     }
     std::ofstream missing_log(dest_directory_/miss_files_filename,std::ios::out);
     if(!missing_log.is_open()){
@@ -158,7 +59,7 @@ bool Check::missing_files(){
                                                                                     );
                 std::mutex mute_at_print;
                 std::promise<ProcessResult>* prom = &threads_results.at(cpu);
-                threads.at(cpu) = std::move(std::thread([r,prom,&mute_at_print]() mutable{
+                threads.at(cpu) = std::move(std::thread([r,prom,&mute_at_print,this]() mutable{
                                     prom->set_value(process_core(std::move(r),&mute_at_print));
                                 }));
             }
@@ -210,162 +111,105 @@ bool Check::missing_files(){
     return result;
 }
 
-// using namespace std::chrono_literals;
-// namespace fs = std::filesystem;
+ProcessResult Check::process_core(std::vector<fs::directory_entry> entries, std::mutex* mute_at_print = nullptr) {
+    ProcessResult result;
+    for (const fs::directory_entry& entry : entries) {
+        if (entry.is_regular_file() && entry.path().has_extension() && 
+            (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 
-// ProcessResult process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) {
-//     ProcessResult result;
-//     Check check_handler;
-//     for (const fs::directory_entry& entry : entries) {
-//         if (entry.is_regular_file() && entry.path().has_extension() && 
-//             (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
-//             check_handler.set_from_path(entry.path().c_str());
+            // int p_line;
+            // pBar bar;
+            {
+                if (mute_at_print){
+                    std::lock_guard<std::mutex> locked(*mute_at_print);
+                    //p_line = progress_line++;
+                    //bar.setline(p_line);
+                    //std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
+                    //bar.update(0);
+                    //bar.print();
+                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                }
+                else{
+                    // p_line = progress_line++;
+                    // bar.setline(p_line);
+                    // std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
+                    // bar.update(0);
+                    // bar.print();
+                    std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                }
+            }
 
-//             // int p_line;
-//             // pBar bar;
-//             {
-//                 if (mute_at_print){
-//                     std::lock_guard<std::mutex> locked(*mute_at_print);
-//                     p_line = progress_line++;
-//                     bar.setline(p_line);
-//                     std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
-//                     bar.update(0);
-//                     bar.print();
-//                     std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                 }
-//                 else{
-//                     p_line = progress_line++;
-//                     bar.setline(p_line);
-//                     std::cout << "\033[" << p_line<< ";0H"; // Переместить курсор на нужную строку
-//                     bar.update(0);
-//                     bar.print();
-//                     std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                 }
-//             }
-                
-//             check_handler.set_from_path(entry.path().c_str());
-//             check_handler.execute();
-//             check_handler.get_result().sublime();
-//             for(const auto& [cmn,info]:check_handler.get_result().data()){
-//                 for(const auto& info_el:info){
-//                     info_el.
-//                     if(data.code==0)
-//                         result.found.insert(std::chrono::sys_days(std::chrono::year_month_day(
-//                             std::chrono::year(data.data.date.year),
-//                             std::chrono::month(data.data.date.month),
-//                             std::chrono::day(data.data.date.day))));
-//                     else{
-//                         if (mute_at_print){
-//                             std::lock_guard<std::mutex> locked(*mute_at_print);
-//                             std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                             result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
-//                             break;
-//                         }
-//                         else {
-//                             std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                             result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
-//                             break;
-//                         }
-//                     }
+            HGrib1 grib;
+            if(!grib.open_grib(entry.path())){
+                result.err_files.push_back({entry.path(),ErrorCodeData::OPEN_ERROR});
+                return result;
+            }
+            do{
+                GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
+                                            std::move(grib.message().section_1_.date()),
+                                            grib.current_message_position(),
+                                            grib.current_message_length(),
+                                            grib.message().section_1_.IndicatorOfParameter(),
+                                            grib.message().section_1_.unit_time_range(),
+                                            grib.message().section_1_.center(),
+                                            grib.message().section_1_.subcenter());
+                if(props_.common_.has_value()){
+                    const CommonDataProperties& common = props_.common_.value();
+                    if(common.center_!=info.center || 
+                        common.subcenter_!=info.subcenter || 
+                        common.parameter_!=info.parameter || 
+                        (common.fcst_unit_!=TimeFrame::INDIFFERENT && common.fcst_unit_!=info.parameter))
+                        continue;
+                }
+                if(props_.position_.has_value() && !pos_in_grid(props_.position_.value(),info.grid_data))
+                    continue;
+                if(props_.grid_type_.has_value() && info.grid_data.rep_type!=props_.grid_type_.value())
+                    continue;
+                if(props_.from_date_.has_value() && props_.from_date_.value()<)
+                result.add_info(info);
+            }while(grib.next_message());
+            
+            for(const auto& [cmn,info]:data_.data()){
+                for(const auto& info_el:info){
+                    if(info_el.err==ErrorCodeData::NONE_ERR){
+                        std::chrono::system_clock::time_point date = date_from_epoque(info_el.from);
+                        result.found.insert(std::chrono::sys_days(std::chrono::year_month_day(
+                            std::chrono::year(date.year),
+                            std::chrono::month(date.month),
+                            std::chrono::day(date.day))));
+                    }
+                    else{
+                        if (mute_at_print){
+                            std::lock_guard<std::mutex> locked(*mute_at_print);
+                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                            break;
+                        }
+                        else {
+                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                            break;
+                        }
+                    }
 
-//                     // {
-//                     //     if (mute_at_print){
-//                     //         std::lock_guard<std::mutex> locked(*mute_at_print);
-//                     //         bar.update((double)pos/(double)max_pos*100);
-//                     //         bar.print();
-//                     //         std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                     //     }
-//                     //     else {
-//                     //         bar.update((double)pos/(double)max_pos*100);
-//                     //         bar.print();
-//                     //         std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-//                     //     }
-//                     // }
-//                 }
-//             }
-//             check_handler.clear_result();
-//         }
+                    {
+                        if (mute_at_print){
+                            std::lock_guard<std::mutex> locked(*mute_at_print);
+                            // bar.update((double)pos/(double)max_pos*100);
+                            // bar.print();
+                            std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                        }
+                        else {
+                            // bar.update((double)pos/(double)max_pos*100);
+                            // bar.print();
+                            std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                        }
+                    }
+                }
+            }
+            check_handler.clear_result();
+        }
         
-//     }
-//     return result;
-// }
-
-// bool missing_files(fs::path in_dir,fs::path out_dir, unsigned int cpus, std::chrono::year_month_day from, std::chrono::year_month_day to){
-//     bool result = false;
-//     std::set<std::chrono::sys_days> found;
-//     auto begin_days = std::chrono::sys_days(from);
-//     auto end_days = std::chrono::sys_days(to)+std::chrono::days(1);
-//     auto days_range = std::views::iota(begin_days,end_days);
-//     std::ofstream missing_log(out_dir/miss_files_filename,std::ios::out);
-//     if(!missing_log.is_open()){
-//         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(out_dir/miss_files_filename).c_str());
-//         exit((uint)ErrorCode::CANNOT_OPEN_FILE_X1);
-//     }
-//     auto initial = from;
-//     std::vector<fs::directory_entry> entries;
-//     for(const fs::directory_entry& entry: fs::directory_iterator(in_dir))
-//         entries.push_back(entry);
-//     {
-//         if(entries.size()/cpus>1){
-//             std::vector<std::thread> threads(cpus);
-//             std::vector<std::promise<ProcessResult>> threads_results(cpus);
-
-//             for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
-//                 auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
-//                                                                                     entries.begin()+(cpu+1)*entries.size()/cpus<entries.end()?
-//                                                                                     entries.begin()+(cpu+1)*entries.size()/cpus:
-//                                                                                     entries.end()
-//                                                                                     );
-//                 std::mutex mute_at_print;
-//                 std::promise<ProcessResult>* prom = &threads_results.at(cpu);
-//                 threads.at(cpu) = std::move(std::thread([r,prom,&mute_at_print]() mutable{
-//                                     prom->set_value(process_core(std::move(r),&mute_at_print));
-//                                 }));
-//             }
-//             for(int i = 0;i<cpus;++i){
-//                 ProcessResult res = std::move(threads_results.at(i).get_future().get());
-//                 if(!res.err_files.empty()){
-//                     std::ofstream corr_files(out_dir/errorness_files_filename,std::ios::trunc);
-//                     if(corr_files.is_open())
-//                         for(ErrorFiles& err_f:res.err_files){
-//                             corr_files<<err_f.name<<". Error code: "<<err_f.code<<std::endl;
-//                         }
-//                     else
-//                         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(out_dir/errorness_files_filename).c_str());
-//                 }
-//                 found.merge(res.found);
-//                 threads.at(i).join();
-//             }
-//             threads.clear();
-//             threads_results.clear();
-//         }
-//         else{
-//             ProcessResult res = process_core(entries);
-//             if(!res.err_files.empty()){
-//                 std::ofstream err_log(out_dir/errorness_files_filename,std::ios::trunc);
-//                 if(err_log.is_open())
-//                     for(ErrorFiles& err_f:res.err_files){
-//                         err_log<<err_f.name<<". Error code: "<<err_f.code<<std::endl;
-//                     }
-//                 else
-//                     ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(out_dir/errorness_files_filename).c_str());
-//             }
-//             found = res.found;
-//         }
-//     }
-    
-//     std::vector<std::chrono::sys_days> miss_data;
-//     std::ranges::set_difference(days_range,found,std::back_inserter(miss_data), std::ranges::less());
-//     if(!miss_data.empty()){
-//         std::set<std::chrono::year_month> by_months;
-//         std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_months,by_months.begin()),[](const std::chrono::sys_days& date){
-//             std::chrono::year_month_day tmp(date);
-//             return std::chrono::year_month(tmp.year(),tmp.month());
-//             });
-//         result = true;
-//         for(auto date:by_months)
-//             missing_log<<"("<<date.year()<<","<<date.month()<<")"<<std::endl;
-//     }
-//     missing_log.close();
-//     return result;
-// }
+    }
+    return result;
+}

@@ -1,4 +1,4 @@
-#include "format.h"
+#include "types/data_binary.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -21,7 +21,7 @@ BinaryGribInfo BinaryGribInfo::read(const fs::path& path){
             file.read(format.order_.data(),order_sz);
             break;
         }
-        case FormatTokens::Capitalize_data:
+        case FormatTokens::Capitalize_data:{
             size_t number_elements = 0;
             file.read((char*)(&number_elements),sizeof(number_elements));
             for(int i=0;i<number_elements;++i){
@@ -33,6 +33,7 @@ BinaryGribInfo BinaryGribInfo::read(const fs::path& path){
                 format.data_.add_info(*(CommonDataProperties*)str.data(),std::move(data_read));
             }
             break;
+        }
         default:
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Corrupted file \'"s+format_filename+"\'",AT_ERROR_ACTION::ABORT);
             break;
@@ -40,7 +41,7 @@ BinaryGribInfo BinaryGribInfo::read(const fs::path& path){
     }
     return format;
 }
-
+#include "cmd_parse/cmd_translator.h"
 void BinaryGribInfo::write(const fs::path& dir,BinaryGribInfoType bin_info_type){
     if(!fs::is_directory(dir))
         ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());

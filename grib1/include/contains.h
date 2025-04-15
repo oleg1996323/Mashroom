@@ -1,7 +1,6 @@
 #pragma once
 #include "def.h"
 #include "types/coord.h"
-#include "extract.h"
 #include "sections/section_1.h"
 #include "code_tables/table_6.h"
 #include "types/data_common.h"

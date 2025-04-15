@@ -6,31 +6,141 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <set>
-#include "application.h"
-#include "extract_cpp.h"
+#include <map>
+#include <regex>
 #include "extract.h"
-#include "format.h"
 #include "compressor.h"
+#include <iostream>
+#include "extract.h"
+#include "def.h"
+#include "message.h"
+#include "aux_code/int_pow.h"
+#include "types/data_info.h"
+#include "types/data_binary.h"
+
+Extract::ExtractFormat operator|(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
+    return (Extract::ExtractFormat)((int)lhs|(int)(rhs));
+}
+Extract::ExtractFormat operator&(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
+    return (Extract::ExtractFormat)((int)lhs&(int)(rhs));
+}
+Extract::ExtractFormat& operator|=(Extract::ExtractFormat& lhs,Extract::ExtractFormat rhs){
+    return lhs=lhs|rhs;
+}
+Extract::ExtractFormat& operator&=(Extract::ExtractFormat& lhs,Extract::ExtractFormat rhs){
+    return lhs=lhs&rhs;
+}
+Extract::ExtractFormat operator^(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
+    return (Extract::ExtractFormat)((int)lhs^(int)(rhs));
+}
+
+namespace fs = std::filesystem;
+using namespace std::chrono;
+std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> extract(const system_clock::time_point& dfrom, const system_clock::time_point& dto,const Coord& coord,const fs::path& ffrom,
+                                                                            std::optional<TimeFrame> fcst_unit,std::optional<Organization> center, std::optional<uint8_t> subcenter){
+    std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> result;
+    HGrib1 grib;
+    try{
+        grib.open_grib(ffrom);
+    }
+    catch(const std::runtime_error& err){
+        std::cerr<<err.what()<<std::endl;
+        exit(0);
+    }
+    
+    if(grib.file_size()==0)
+        return result;
+    do{
+        if(grib.message().message_length()==0){
+            grib.next_message();
+        }
+
+		//ReturnVal result_date;
+        GribMsgDataInfo msg_info(   grib.message().section_2_.define_grid(),
+                                    grib.message().section_1_.date(),
+                                    grib.current_message_position(),
+                                    grib.current_message_length(),
+                                    grib.message().section_1_.IndicatorOfParameter(),
+                                    grib.message().section_1_.unit_time_range(),
+                                    grib.message().section_1_.center(),
+                                    grib.message().section_1_.subcenter());
+
+        if(center.has_value() && msg_info.center!=center.value())
+            continue;
+        if(subcenter.has_value() && msg_info.subcenter!=subcenter.value())
+            continue;
+        if(fcst_unit.has_value() && msg_info.t_unit!=fcst_unit.value())
+            continue;
+                           
+        if(msg_info.date>dto || msg_info.date<dfrom)
+            continue;
+
+        if(!pos_in_grid(coord,msg_info.grid_data))
+            continue;
+
+        /* decode numeric data */
+        result[CommonDataProperties(msg_info.center,msg_info.subcenter,msg_info.t_unit,msg_info.parameter)].push_back(ExtractedValue{msg_info.date,grib.message().extract_value(value_by_raw(coord,msg_info.grid_data))});
+    }
+    while(grib.next_message());
+    return result;
+}
+
+std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> extract(const system_clock::time_point& dfrom, const system_clock::time_point& dto,const Coord& coord,const fs::path& ffrom,
+    Organization center, uint8_t subcenter, uint8_t parameter,std::optional<TimeFrame> fcst_unit={}){
+    std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> result;
+    HGrib1 grib;
+    try{
+        grib.open_grib(ffrom);
+    }
+    catch(const std::runtime_error& err){
+        std::cerr<<err.what()<<std::endl;
+        exit(0);
+    }
+
+    if(grib.file_size()==0)
+        return result;
+    do{
+        if(grib.message().message_length()==0){
+            grib.next_message();
+        }
+
+        //ReturnVal result_date;
+        GribMsgDataInfo msg_info(   grib.message().section_2_.define_grid(),
+        grib.message().section_1_.date(),
+        grib.current_message_position(),
+        grib.current_message_length(),
+        grib.message().section_1_.IndicatorOfParameter(),
+        grib.message().section_1_.unit_time_range(),
+        grib.message().section_1_.center(),
+        grib.message().section_1_.subcenter());
+
+        if(msg_info.center!=center)
+            continue;
+        if(msg_info.subcenter!=subcenter)
+            continue;
+        if(msg_info.parameter!=parameter)
+            continue;
+        if(fcst_unit.has_value() && msg_info.t_unit!=fcst_unit.value())
+            continue;
+        
+        if(msg_info.date>dto || msg_info.date<dfrom)
+            continue;
+
+        if(!pos_in_grid(coord,msg_info.grid_data))
+            continue;
+
+        /* decode numeric data */
+        result[CommonDataProperties(msg_info.center,msg_info.subcenter,msg_info.t_unit,msg_info.parameter)].push_back(ExtractedValue{msg_info.date,grib.message().extract_value(value_by_raw(coord,msg_info.grid_data))});
+    }
+    while(grib.next_message());
+    return result;
+}
+
+
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 namespace cpp{
-
-    DATA_OUT operator|(DATA_OUT lhs,DATA_OUT rhs){
-        return (DATA_OUT)((int)lhs|(int)(rhs));
-    }
-    DATA_OUT operator&(DATA_OUT lhs,DATA_OUT rhs){
-        return (DATA_OUT)((int)lhs&(int)(rhs));
-    }
-    DATA_OUT& operator|=(DATA_OUT& lhs,DATA_OUT rhs){
-        return lhs=lhs|rhs;
-    }
-    DATA_OUT& operator&=(DATA_OUT& lhs,DATA_OUT rhs){
-        return lhs=lhs&rhs;
-    }
-    DATA_OUT operator^(DATA_OUT lhs,DATA_OUT rhs){
-        return (DATA_OUT)((int)lhs^(int)(rhs));
-    }
 
     bool operator<(const Date& lhs,const Date& rhs){
         if (lhs.year != rhs.year) return lhs.year < rhs.year;
@@ -52,10 +162,10 @@ namespace cpp{
 
     ErrorCode extract_cpp_pos(const std::filesystem::path& root_path,
         const std::filesystem::path& destination,
-        Date from, 
-        Date to,
+        std::chrono::system_clock::time_point from, 
+        std::chrono::system_clock::time_point to,
         Coord coord,
-        DATA_OUT fmt_out,
+        Extract::ExtractFormat fmt_out,
         float* progress = nullptr,
         std::optional<TimeFrame> fcst_unit={},
         std::optional<Organization> center={},
@@ -75,7 +185,7 @@ namespace cpp{
                 log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",root_path.c_str());
                 return ErrorCode::INTERNAL_ERROR;
             }
-            BinaryGribInfo format = format::read(root_path/format_filename);
+            BinaryGribInfo format = BinaryGribInfo::read(root_path/format_filename);
             {
                 if(!correct_date_interval(&from,&to)){
                     ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
@@ -86,7 +196,7 @@ namespace cpp{
                     return ErrorCode::INCORRECT_COORD;
                 }
                 bool found = false;
-                for(auto& d:format.data_.info_){
+                for(auto& d:format.data().data()){
                     if(fcst_unit.has_value() && fcst_unit.value()!=d.first.fcst_unit_)
                         continue;
                     if(center.has_value() && center.value()!=d.first.center_)
@@ -94,7 +204,7 @@ namespace cpp{
                     if(subcenter.has_value() && subcenter.value()!=d.first.subcenter_)
                         continue;
                     for(const auto& spec_data:d.second){
-                        if(get_epoch_time(&spec_data.from)>get_epoch_time(&to) || get_epoch_time(&spec_data.to)<get_epoch_time(&from))
+                        if(spec_data.from>get_epoch_time(&to) || spec_data.to<get_epoch_time(&from))
                             continue;
                         else if(!pos_in_grid(coord,spec_data.grid_data))
                             continue;
@@ -104,7 +214,7 @@ namespace cpp{
                     return ErrorCode::NONE;
             }
                 
-            std::string fmt = functions::capitalize::get_txt_order(format.order_);
+            std::string fmt = format.order();
             std::string str_reg("^"s+root_path.string());
             for(int i = 0;i<fmt.size();++i){
                 switch(fmt[i]){
@@ -147,26 +257,33 @@ namespace cpp{
                         break;
                 }
             }
-            switch (format.order_.fmt)
-            {
-                case DataFormat::GRIB:
-                    str_reg = str_reg+R"((/([^/\\]+).grib))";
-                    f_format.insert(".grib");
-                    f_format.insert(".grb");
-                    break;
-                case DataFormat::BINARY:
-                    str_reg = str_reg+R"(/*.omdb)";
-                    f_format.insert(".omdb");
-                    break;
-                default:
-                    LogError::message(ErrorCodeLog::FORMAT_FILE_CORRUPTED,"");
-                    return ErrorCode::INTERNAL_ERROR;
-                    break;
-            }
+            str_reg = str_reg+R"((/([^/\\]+).grib))";
+            f_format.insert(".grib");
+            f_format.insert(".grb");
+            // switch (format.order())
+            // {
+            //     case DataFormat::GRIB:
+            //         str_reg = str_reg+R"((/([^/\\]+).grib))";
+            //         f_format.insert(".grib");
+            //         f_format.insert(".grb");
+            //         break;
+            //     case DataFormat::BINARY:
+            //         str_reg = str_reg+R"(/*.omdb)";
+            //         f_format.insert(".omdb");
+            //         break;
+            //     default:
+            //         LogError::message(ErrorCodeLog::FORMAT_FILE_CORRUPTED,"");
+            //         return ErrorCode::INTERNAL_ERROR;
+            //         break;
+            // }
             str_reg.append("$");
             std::cout<<str_reg<<std::endl;
             reg = str_reg;
         }
+        year_month_day ymd_from(floor<days>(from));
+        year_month_day ymd_to(floor<days>(to));
+        hh_mm_ss hms_from(floor<hours>(from));
+        hh_mm_ss hms_to(floor<hours>(to));
         time_point<system_clock> beg = system_clock::now();
         std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> summary_result;
         {
@@ -184,34 +301,34 @@ namespace cpp{
                     continue;
                 }
                 else{
-                    int year;
-                    int month;
-                    int day = 0;
-                    int hour = 0;
+                    int year_;
+                    int month_;
+                    int day_ = 0;
+                    int hour_ = 0;
                     assert(fmt_pos.contains('Y'));
                     if(fmt_pos.contains('Y')){
                         std::ssub_match year_m = m[fmt_pos.at('Y')];
-                        year = std::stoi(year_m);
-                        if(from.year>year ||
-                            to.year<year){
+                        year_ = std::stoi(year_m);
+                        if((int)ymd_from.year()>year_ ||
+                            (int)ymd_to.year()<year_){
                             ++iterator;
                             continue;
                         }
                     }
                     if(fmt_pos.contains('M')){
                         std::ssub_match month_m = m[fmt_pos.at('M')];
-                        month = std::stoi(month_m);
-                        if(from.month>month ||
-                            to.month<month){
+                        month_ = std::stoi(month_m);
+                        if((unsigned)ymd_from.month()>month_ ||
+                            (unsigned)ymd_to.month()<month_){
                             ++iterator;
                             continue;
                         }
                     }
                     if(fmt_pos.contains('D')){
                         std::ssub_match day_m = m[fmt_pos.at('D')];
-                        day = std::stoi(day_m);
-                        if(from.day>day ||
-                            to.day<day){
+                        day_ = std::stoi(day_m);
+                        if((unsigned)ymd_from.day()>day_ ||
+                            (unsigned)ymd_to.day()<day_){
                             ++iterator;
                             continue;
                         }
@@ -238,8 +355,8 @@ namespace cpp{
                             }
                             ++iterator;
                         }
-                        if(fmt_out&DATA_OUT::TXT_F || fmt_out&DATA_OUT::DEFAULT){
-                            fs::path out_f_name = (destination/std::to_string(year)/std::to_string(month)).string()+std::string(".txt");
+                        if(fmt_out&Extract::ExtractFormat::TXT_F || fmt_out&Extract::ExtractFormat::DEFAULT){
+                            fs::path out_f_name = (destination/std::to_string(year_)/std::to_string(month_)).string()+std::string(".txt");
                             if(!fs::exists(out_f_name.parent_path()))
                                 if(!fs::create_directories(out_f_name.parent_path())){
                                     log().record_log(ErrorCodeLog::CANNOT_ACCESS_PATH_X1,"",out_f_name.relative_path().c_str());
@@ -286,7 +403,7 @@ namespace cpp{
                             summary_result.clear();
                             out.close();
                         }
-                        // else if(fmt_out&DATA_OUT::BIN_F){
+                        // else if(fmt_out&Extract::ExtractFormat::BIN_F){
                         //     std::string out_f_name = (destination/(std::to_string(year)+'_'+std::to_string(month)+".omdb")).string();
                         //     std::ofstream out(out_f_name,std::ios::trunc|std::ios::binary);
                         //     if(!out.is_open()){
@@ -324,7 +441,7 @@ namespace cpp{
                 }
                 skip_increment?iterator:++iterator,skip_increment=false;
             }
-            if(fmt_out&DATA_OUT::ARCHIVED){
+            if(fmt_out&Extract::ExtractFormat::ARCHIVED){
                 cpp::zip_ns::Compressor cmprs(destination,"any.zip"); //TODO: change name from typevals (ERA5,Merra2) and time interval
                 for(fs::directory_entry entry:fs::recursive_directory_iterator(destination)){
                     if(!entry.is_regular_file())
@@ -337,9 +454,9 @@ namespace cpp{
     }
 
     ErrorCode extract_cpp_rect(const std::filesystem::path& root_path,
-        Date from, 
-        Date to,
+        std::chrono::system_clock::time_point from, 
+        std::chrono::system_clock::time_point to,
         Rect rect,
-        DATA_OUT out_fmt,
+        Extract::ExtractFormat out_fmt,
         float* progress){return ErrorCode::INTERNAL_ERROR;} //unused method
 }

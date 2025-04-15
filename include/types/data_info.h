@@ -6,22 +6,20 @@
 #include <list>
 #include "aux_code/def.h"
 #include "types/date.h"
-#include "types/grid.h"
 #include "data_common.h"
 #include "sections/grid/grid.h"
 #include "def.h"
-#include "types/data_msg.h"
+#include "data_msg.h"
 
-STRUCT_BEG(GribCapitalizeDataInfo)
+struct GribCapitalizeDataInfo
 {
     GridInfo grid_data;
     ptrdiff_t buf_pos_;
-    uint32_t from = UINT32_MAX;
-    uint32_t to = 0;
-    uint32_t discret = 0;
+    std::chrono::system_clock::time_point from = std::chrono::system_clock::time_point::max();
+    std::chrono::system_clock::time_point to = std::chrono::system_clock::time_point::min();
+    std::chrono::system_clock::duration discret = std::chrono::system_clock::duration(0);
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
-}
-STRUCT_END(GribCapitalizeDataInfo)
+};
 
 class GribDataInfo{
     public:
@@ -31,6 +29,7 @@ class GribDataInfo{
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
     friend class Capitalize;
     friend class Check;
+    friend class Extract;
     public:
     GribDataInfo() =default;
     GribDataInfo(const data_t& info):
@@ -62,8 +61,8 @@ class GribDataInfo{
             if(!data_seq.empty())
                 current = &tmp[cmn_d].emplace_back(data_seq.front());
             for(int i=1;i<data_seq.size();++i){
-                if(current->discret!=0){
-                    if(data_seq[i].discret==0)
+                if(current->discret!=std::chrono::system_clock::duration(0)){
+                    if(data_seq[i].discret==std::chrono::system_clock::duration(0))
                         if(data_seq[i].from==current->to+current->discret)
                             current->to=data_seq[i].to;
                         else
@@ -76,7 +75,7 @@ class GribDataInfo{
                     }
                 }
                 else{
-                    if(data_seq[i].discret==0){
+                    if(data_seq[i].discret==std::chrono::system_clock::duration(0)){
                         current->to = data_seq[i].to;
                         current->discret = current->to-current->from;
                     }

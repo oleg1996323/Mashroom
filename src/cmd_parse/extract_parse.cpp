@@ -1,22 +1,21 @@
 #include "extract_parse.h"
 #include <thread>
-#include "extract_cpp.h"
 #include "cmd_def.h"
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
 #include "functions.h"
-#include "format.h"
+#include "types/data_binary.h"
+#include "extract.h"
 
 namespace fs = std::filesystem;
 
-cpp::DATA_OUT get_extract_format(std::string_view input){
+Extract::ExtractFormat get_extract_format(std::string_view input){
+    Extract hExtract;
     std::vector<std::string_view> tokens = split(input,":");
     if(tokens.empty())
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input at extract format definition",AT_ERROR_ACTION::ABORT,input);
     else{
-        cpp::DATA_OUT result;
-        result = cpp::DATA_OUT::UNDEF;
         for(std::string_view token:tokens){
             if(token.empty())
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input at extract format definition",AT_ERROR_ACTION::ABORT,input);
@@ -24,37 +23,37 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                 switch (translate_from_txt<translate::token::FileFormat>(token))
                 {
                 case translate::token::FileFormat::ARCHIVED:{
-                    if(result&cpp::DATA_OUT::ARCHIVED)
+                    if(result&Extract::ExtractFormat::ARCHIVED)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Archive format already defined",AT_ERROR_ACTION::CONTINUE,token);
                     else
-                        result|=cpp::DATA_OUT::ARCHIVED;
+                        result|=Extract::ExtractFormat::ARCHIVED;
                     break;
                 }
                 case translate::token::FileFormat::BIN:{
-                    cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
-                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
-                        result|=cpp::DATA_OUT::BIN_F;
-                    else if(cur==cpp::DATA_OUT::BIN_F)
+                    Extract::ExtractFormat cur = result^Extract::ExtractFormat::ARCHIVED;
+                    if(cur&(Extract::ExtractFormat::DEFAULT|Extract::ExtractFormat::UNDEF))
+                        result|=Extract::ExtractFormat::BIN_F;
+                    else if(cur==Extract::ExtractFormat::BIN_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Binary format already defined",AT_ERROR_ACTION::CONTINUE,token);
                     else
                         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use two different extraction format (except archiving)",AT_ERROR_ACTION::ABORT,input);
                     break;
                 }
                 case translate::token::FileFormat::GRIB:{
-                    cpp::DATA_OUT cur = result^cpp::DATA_OUT::ARCHIVED;
-                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
-                        result|=cpp::DATA_OUT::GRIB_F;
-                    else if(cur==cpp::DATA_OUT::GRIB_F)
+                    Extract::ExtractFormat cur = result^Extract::ExtractFormat::ARCHIVED;
+                    if(cur&(Extract::ExtractFormat::DEFAULT|Extract::ExtractFormat::UNDEF))
+                        result|=Extract::ExtractFormat::GRIB_F;
+                    else if(cur==Extract::ExtractFormat::GRIB_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Grib format already defined",AT_ERROR_ACTION::CONTINUE,token);
                     else
                         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use two different extraction format (except archiving)",AT_ERROR_ACTION::ABORT,input);
                     break;
                 }
                 case translate::token::FileFormat::TXT:{
-                    cpp::DATA_OUT cur = result|cpp::DATA_OUT::ARCHIVED^cpp::DATA_OUT::ARCHIVED;
-                    if(cur&(cpp::DATA_OUT::DEFAULT|cpp::DATA_OUT::UNDEF))
-                        result|=cpp::DATA_OUT::TXT_F;
-                    else if(cur==cpp::DATA_OUT::TXT_F)
+                    Extract::ExtractFormat cur = result|Extract::ExtractFormat::ARCHIVED^Extract::ExtractFormat::ARCHIVED;
+                    if(cur&(Extract::ExtractFormat::DEFAULT|Extract::ExtractFormat::UNDEF))
+                        result|=Extract::ExtractFormat::TXT_F;
+                    else if(cur==Extract::ExtractFormat::TXT_F)
                         ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Text format already defined",AT_ERROR_ACTION::CONTINUE,token);
                     else
                         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use two different extraction format (except archiving)",AT_ERROR_ACTION::ABORT,input);
@@ -62,22 +61,21 @@ cpp::DATA_OUT get_extract_format(std::string_view input){
                 }
                 default:
                     ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for extract mode",AT_ERROR_ACTION::ABORT,token);
-                    return (cpp::DATA_OUT)-1;
+                    return (Extract::ExtractFormat)-1;
                 }
         }
         return result;
     }
-    return (cpp::DATA_OUT)-1;
+    return (Extract::ExtractFormat)-1;
 }
 
 void extract_parse(const std::vector<std::string_view>& input){
-    Date date_from = Date();
-    Date date_to = Date();
+    std::chrono::system_clock::time_point date_from;
+    std::chrono::system_clock::time_point date_to;
     std::filesystem::path in;
     std::filesystem::path out;
     DataExtractMode mode_extract = DataExtractMode::UNDEF;
-    cpp::DATA_OUT extract_out_fmt;
-    cpp::DIV_DATA_OUT extract_div_data;
+    Extract::ExtractFormat extract_out_fmt;
     Rect rect = Rect();
     Coord coord = Coord();
     unsigned int cpus = std::thread::hardware_concurrency();
@@ -174,19 +172,19 @@ void extract_parse(const std::vector<std::string_view>& input){
                 /*
                 ++i;
                 if(input[i]=="h")
-                    extract_div_data = cpp::DIV_DATA_OUT::HOUR_T;
+                    extract_div_data = DIV_DATA_OUT::HOUR_T;
                 else if(input[i]=="y")
-                    extract_div_data = cpp::DIV_DATA_OUT::YEAR_T;
+                    extract_div_data = DIV_DATA_OUT::YEAR_T;
                 else if(input[i]=="m")
-                    extract_div_data = cpp::DIV_DATA_OUT::MONTH_T;
+                    extract_div_data = DIV_DATA_OUT::MONTH_T;
                 else if(input[i]=="d")
-                    extract_div_data = cpp::DIV_DATA_OUT::DAY_T;
+                    extract_div_data = DIV_DATA_OUT::DAY_T;
                 else if(input[i]=="lat")
-                    extract_div_data = cpp::DIV_DATA_OUT::LAT;
+                    extract_div_data = DIV_DATA_OUT::LAT;
                 else if(input[i]=="lon")
-                    extract_div_data = cpp::DIV_DATA_OUT::LON;
+                    extract_div_data = DIV_DATA_OUT::LON;
                 else if(input[i]=="latlon")
-                    extract_div_data = (cpp::DIV_DATA_OUT)(cpp::DIV_DATA_OUT::LAT|cpp::DIV_DATA_OUT::LON);
+                    extract_div_data = (DIV_DATA_OUT)(DIV_DATA_OUT::LAT|DIV_DATA_OUT::LON);
                 else{
                     std::cout<<"Unknown token for capitalize mode hierarchy. Abort"<<std::endl;
                     exit(1);
@@ -214,12 +212,12 @@ void extract_parse(const std::vector<std::string_view>& input){
     if(mode_extract==DataExtractMode::POSITION){
         if(!is_correct_pos(&coord)) //actually for WGS84
             ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
-        cpp::extract_cpp_pos(in,out,date_from,date_to,coord,extract_out_fmt);
+        extract_cpp_pos(in,out,date_from,date_to,coord,extract_out_fmt);
     }
     else if(mode_extract==DataExtractMode::RECT){
         if(!correct_rect(&rect))
             ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
-        cpp::extract_cpp_rect(in,date_from,date_to,rect,extract_out_fmt);
+        extract_cpp_rect(in,date_from,date_to,rect,extract_out_fmt);
     }
     else
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
@@ -228,11 +226,10 @@ void extract_parse(const std::vector<std::string_view>& input){
 std::vector<std::string_view> commands_from_extract_parse(const std::vector<std::string_view>& input){
     std::vector<std::string_view> commands;
     commands.push_back(translate_from_token(translate::token::ModeArgs::EXTRACT));
-    Date date_from = Date();
-    Date date_to = Date();
+    std::chrono::system_clock::time_point date_from = std::chrono::system_clock::time_point();
+    std::chrono::system_clock::time_point date_to = std::chrono::system_clock::time_point();
     DataExtractMode mode_extract = DataExtractMode::UNDEF;
-    cpp::DATA_OUT extract_out_fmt;
-    cpp::DIV_DATA_OUT extract_div_data;
+    Extract::ExtractFormat extract_out_fmt;
     Rect rect = Rect();
     Coord coord = Coord();
     unsigned int cpus = std::thread::hardware_concurrency();
@@ -277,20 +274,14 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 date_from = get_date_from_token(input.at(i));
-                if(is_correct_date(&date_from))
-                    commands.push_back(input.at(i));
-                else
-                    ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::ABORT,input.at(i));
+                commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::DATE_TO:{
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
                 date_to = get_date_from_token(input.at(i));
-                if(is_correct_date(&date_to))
-                    commands.push_back(input.at(i));
-                else
-                    ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::ABORT,input.at(i));
+                commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::LAT_TOP:{
@@ -355,19 +346,19 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
                 /*
                 ++i;
                 if(input[i]=="h")
-                    extract_div_data = cpp::DIV_DATA_OUT::HOUR_T;
+                    extract_div_data = DIV_DATA_OUT::HOUR_T;
                 else if(input[i]=="y")
-                    extract_div_data = cpp::DIV_DATA_OUT::YEAR_T;
+                    extract_div_data = DIV_DATA_OUT::YEAR_T;
                 else if(input[i]=="m")
-                    extract_div_data = cpp::DIV_DATA_OUT::MONTH_T;
+                    extract_div_data = DIV_DATA_OUT::MONTH_T;
                 else if(input[i]=="d")
-                    extract_div_data = cpp::DIV_DATA_OUT::DAY_T;
+                    extract_div_data = DIV_DATA_OUT::DAY_T;
                 else if(input[i]=="lat")
-                    extract_div_data = cpp::DIV_DATA_OUT::LAT;
+                    extract_div_data = DIV_DATA_OUT::LAT;
                 else if(input[i]=="lon")
-                    extract_div_data = cpp::DIV_DATA_OUT::LON;
+                    extract_div_data = DIV_DATA_OUT::LON;
                 else if(input[i]=="latlon")
-                    extract_div_data = (cpp::DIV_DATA_OUT)(cpp::DIV_DATA_OUT::LAT|cpp::DIV_DATA_OUT::LON);
+                    extract_div_data = (DIV_DATA_OUT)(DIV_DATA_OUT::LAT|DIV_DATA_OUT::LON);
                 else{
                     std::cout<<"Unknown token for capitalize mode hierarchy. Abort"<<std::endl;
                     exit(1);
@@ -390,10 +381,8 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             }
         }
     }
-    if(!is_correct_date(&date_from))
-        ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date from which make extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
-    if(!is_correct_date(&date_to))
-        ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date to which make extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
+    if(is_correct_interval(date_from,date_to))
+        ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::ABORT);
     
     if(mode_extract==DataExtractMode::POSITION){
         if(!is_correct_pos(&coord)) //actually for WGS84

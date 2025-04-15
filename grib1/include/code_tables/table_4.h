@@ -14,7 +14,8 @@ enum TimeFrame{
     HOURS_12 = 12,
     QUARTER_HOUR = 13,
     HALF_HOUR = 14,
-    SECOND = 254
+    SECOND = 254,
+    INDIFFERENT = 255
 };
 
 #include <stdbool.h>

@@ -13,6 +13,7 @@
 #include "check_parse.h"
 #include "extract_parse.h"
 #include "config_parse.h"
+#include "cmd_parse/cmd_translator.h"
 #include "help.h"
 #include "application.h"
 #include <ranges>

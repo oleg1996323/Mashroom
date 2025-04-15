@@ -14,16 +14,14 @@
 #include "sections/product/def.h"
 #include "generated/code_tables/include/eccodes_tables.h"
 #include "types/date.h"
-
-#ifdef __cplusplus
+#include <chrono>
 #include <span>
-#endif
 
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)
-
-STRUCT_BEG(ProductDefinitionSection)
+using namespace std::chrono;
+struct ProductDefinitionSection
 {
 	unsigned char* buffer_;
 
@@ -74,8 +72,8 @@ STRUCT_BEG(ProductDefinitionSection)
 	unsigned char minute() const noexcept{
 		return PDS_Minute(buffer_);
 	}
-	Date date() const noexcept{
-		return Date{year(),month(),day(),hour()};
+	std::chrono::system_clock::time_point date() const noexcept{
+		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())).to_duration();
 	}
 	TimeFrame unit_time_range() const noexcept{
 		return (TimeFrame)PDS_ForecastTimeUnit(buffer_);
@@ -105,5 +103,4 @@ STRUCT_BEG(ProductDefinitionSection)
 		return parameter_table(center(),subcenter(),IndicatorOfParameter())->comment;
 	}
 	#endif
-}
-STRUCT_END(ProductDefinitionSection)
+};

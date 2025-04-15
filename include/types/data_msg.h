@@ -5,7 +5,6 @@
 #include <algorithm>
 #include "aux_code/def.h"
 #include "types/date.h"
-#include "types/grid.h"
 #include "code_tables/table_0.h"
 #include "sections/grid/grid.h"
 #include "def.h"
@@ -13,7 +12,7 @@
 STRUCT_BEG(GribMsgDataInfo)
 {
     GridInfo grid_data;
-    Date date;
+    std::chrono::system_clock::time_point date;
     ptrdiff_t buf_pos_;
     uint32_t msg_sz_;
     uint8_t parameter;
@@ -23,16 +22,16 @@ STRUCT_BEG(GribMsgDataInfo)
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
 
     GribMsgDataInfo(GridInfo&& grid_data_,
-        Date&& date_,
-        uint8_t parameter_,
-        ptrdiff_t msg_buf,
+        std::chrono::system_clock::time_point&& date_,
+        ptrdiff_t msg_buf_pos,
         uint32_t msg_size,
+        uint8_t parameter_,
         TimeFrame t_unit_,
         Organization center_,
         uint8_t subcenter_):
         grid_data(std::move(grid_data_)),
         date(std::move(date_)),
-        buf_pos_(msg_buf),
+        buf_pos_(msg_buf_pos),
         msg_sz_(msg_size),
         parameter(parameter_),
         t_unit(t_unit_),

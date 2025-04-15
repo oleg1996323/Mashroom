@@ -51,17 +51,6 @@ enum class FileFormat:uint8_t{
     GRIB,
     ARCHIVED
 };
-
-enum class CategoryClassArgs:uint8_t{
-    UNDEF,
-    HOUR,
-    MONTH,
-    YEAR,
-    DAY,
-    LAT,
-    LON,
-    LATLON
-};
 }
 
 template<typename T>
@@ -110,20 +99,6 @@ struct __Token_text__<translate::token::ConfigAction>{
         "set",
         "addset",
         "get"
-    };
-};
-
-template<>
-struct __Token_text__<translate::token::CategoryClassArgs>{
-    static constexpr std::array<const char*,8> txt = {
-        "",
-        "h",
-        "m",
-        "d",
-        "y",
-        "lat",
-        "lon",
-        "latlon"
     };
 };
 
