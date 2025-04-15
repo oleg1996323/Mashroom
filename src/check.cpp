@@ -10,39 +10,34 @@
 #include <mutex>
 #include <ranges>
 #include <numeric>
+#include <format>
 #include "sys/error_print.h"
 
 using namespace std::chrono;
 
 bool Check::execute(){
-
     bool result = false;
     std::set<int64_t> found;
-    system_clock::time_point from = props_.from_date_.has_value()?props_.from_date_.value():system_clock::time_point();
-    system_clock::time_point to = props_.to_date_.has_value()?props_.to_date_.value():system_clock::now();
     std::ranges::iota_view<int64_t,int64_t> time_range;
-    if(props_.t_sep_.has_value()){
-        if(props_.t_sep_.value()==TimeSeparation::HOUR)
-            time_range = std::views::iota(  floor<hours>(from).time_since_epoch().count(),
-                                            floor<hours>(to).time_since_epoch().count());
-        else if(props_.t_sep_.value()==TimeSeparation::DAY)
-            time_range = std::views::iota(  floor<days>(from).time_since_epoch().count(),
-                                            floor<days>(to).time_since_epoch().count());
-        else if(props_.t_sep_.value()==TimeSeparation::MONTH)
-            time_range = std::views::iota(  floor<months>(from).time_since_epoch().count(),
-                                            floor<months>(to).time_since_epoch().count());
-        else if(props_.t_sep_.value()==TimeSeparation::YEAR)
-            time_range = std::views::iota(  floor<years>(from).time_since_epoch().count(),
-                                            floor<years>(to).time_since_epoch().count());
-        else time_range = std::views::iota( floor<days>(from).time_since_epoch().count(),
-                                            floor<days>(to).time_since_epoch().count());
-    }
+    if(props_.t_sep_==TimeSeparation::HOUR)
+        time_range = std::views::iota(  floor<hours>(props_.from_date_).time_since_epoch().count(),
+                                        floor<hours>(props_.to_date_).time_since_epoch().count());
+    else if(props_.t_sep_==TimeSeparation::DAY)
+        time_range = std::views::iota(  floor<days>(props_.from_date_).time_since_epoch().count(),
+                                        floor<days>(props_.to_date_).time_since_epoch().count());
+    else if(props_.t_sep_==TimeSeparation::MONTH)
+        time_range = std::views::iota(  floor<months>(props_.from_date_).time_since_epoch().count(),
+                                        floor<months>(props_.to_date_).time_since_epoch().count());
+    else if(props_.t_sep_==TimeSeparation::YEAR)
+        time_range = std::views::iota(  floor<years>(props_.from_date_).time_since_epoch().count(),
+                                        floor<years>(props_.to_date_).time_since_epoch().count());
+    else time_range = std::views::iota( floor<days>(props_.from_date_).time_since_epoch().count(),
+                                        floor<days>(props_.to_date_).time_since_epoch().count());
     std::ofstream missing_log(dest_directory_/miss_files_filename,std::ios::out);
     if(!missing_log.is_open()){
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(dest_directory_/miss_files_filename).c_str());
         exit((uint)ErrorCode::CANNOT_OPEN_FILE_X1);
     }
-    auto initial = from;
     std::vector<fs::directory_entry> entries;
     for(const fs::directory_entry& entry: fs::directory_iterator(root_directory_))
         entries.push_back(entry);
@@ -59,7 +54,7 @@ bool Check::execute(){
                                                                                     );
                 std::mutex mute_at_print;
                 std::promise<ProcessResult>* prom = &threads_results.at(cpu);
-                threads.at(cpu) = std::move(std::thread([r,prom,&mute_at_print,this]() mutable{
+                threads.at(cpu) = std::move(std::thread([this,r,prom,&mute_at_print]() mutable{
                                     prom->set_value(process_core(std::move(r),&mute_at_print));
                                 }));
             }
@@ -94,24 +89,40 @@ bool Check::execute(){
             found = res.found;
         }
     }
-    
-    std::vector<long long> miss_data;
+    std::vector<int64_t> miss_data;
     std::ranges::set_difference(time_range,found,std::back_inserter(miss_data), std::ranges::less());
     if(!miss_data.empty()){
-        std::set<std::chrono::year_month> by_months;
-        std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_months,by_months.begin()),[](const std::chrono::sys_days& date){
-            std::chrono::year_month_day tmp(date);
-            return std::chrono::year_month(tmp.year(),tmp.month());
-            });
+        std::set<system_clock::time_point> by_separation;
+        std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_separation,by_separation.begin()),[](int64_t date)
+        {            
+            return seconds(date);
+        });
         result = true;
-        for(auto date:by_months)
-            missing_log<<"("<<date.year()<<","<<date.month()<<")"<<std::endl;
+        for(auto date:by_separation){
+            switch (props_.t_sep_)
+            {
+            case TimeSeparation::HOUR:
+                missing_log<<std::format("({:%Y/%m/%d %h})",date);
+                break;
+            case TimeSeparation::DAY:
+            missing_log<<std::format("({:%Y/%m/%d})",date);
+                break;
+            case TimeSeparation::MONTH:
+            missing_log<<std::format("({:%Y/%B})",date);
+                break;
+            case TimeSeparation::YEAR:
+                missing_log<<std::format("({:%Y})",date);
+                break;
+            default:
+                break;
+            }
+        }
     }
     missing_log.close();
     return result;
 }
 
-ProcessResult Check::process_core(std::vector<fs::directory_entry> entries, std::mutex* mute_at_print = nullptr) {
+ProcessResult Check::process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) {
     ProcessResult result;
     for (const fs::directory_entry& entry : entries) {
         if (entry.is_regular_file() && entry.path().has_extension() && 
@@ -165,29 +176,41 @@ ProcessResult Check::process_core(std::vector<fs::directory_entry> entries, std:
                     continue;
                 if(props_.grid_type_.has_value() && info.grid_data.rep_type!=props_.grid_type_.value())
                     continue;
-                if(props_.from_date_.has_value() && props_.from_date_.value()<)
-                result.add_info(info);
+                if(props_.to_date_<info.date || props_.from_date_>info.date)
+                    continue;
             }while(grib.next_message());
             
             for(const auto& [cmn,info]:data_.data()){
                 for(const auto& info_el:info){
                     if(info_el.err==ErrorCodeData::NONE_ERR){
-                        std::chrono::system_clock::time_point date = date_from_epoque(info_el.from);
-                        result.found.insert(std::chrono::sys_days(std::chrono::year_month_day(
-                            std::chrono::year(date.year),
-                            std::chrono::month(date.month),
-                            std::chrono::day(date.day))));
+                        switch (props_.t_sep_)
+                        {
+                        case TimeSeparation::HOUR:
+                            result.found.insert(duration_cast<hours>(info_el.from.time_since_epoch()).count());
+                            break;
+                        case TimeSeparation::DAY:
+                            result.found.insert(duration_cast<days>(info_el.from.time_since_epoch()).count());
+                            break;
+                        case TimeSeparation::MONTH:
+                            result.found.insert(duration_cast<months>(info_el.from.time_since_epoch()).count());
+                            break;
+                        case TimeSeparation::YEAR:
+                            result.found.insert(duration_cast<years>(info_el.from.time_since_epoch()).count());
+                            break;
+                        default:
+                            break;
+                        }
                     }
                     else{
                         if (mute_at_print){
                             std::lock_guard<std::mutex> locked(*mute_at_print);
-                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                            std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
                             break;
                         }
                         else {
-                            std::cout << "Error occured. Code "<<data.code<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),data.code});
+                            std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
                             break;
                         }
                     }
@@ -207,7 +230,6 @@ ProcessResult Check::process_core(std::vector<fs::directory_entry> entries, std:
                     }
                 }
             }
-            check_handler.clear_result();
         }
         
     }

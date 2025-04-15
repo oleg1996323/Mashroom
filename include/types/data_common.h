@@ -13,9 +13,9 @@ STRUCT_BEG(CommonDataProperties)
 
     CommonDataProperties(Organization center,uint8_t subcenter,TimeFrame fcst_unit,uint8_t parameter):
     center_(center),subcenter_(subcenter),fcst_unit_(fcst_unit),parameter_(parameter){}
-
+    CommonDataProperties() = default;
     bool operator==(const CommonDataProperties& other) const{
-        return center_==other.center_ && subcenter_==other.subcenter_ && fcst_unit_==other.fcst_unit_;
+        return center_==other.center_ && subcenter_==other.subcenter_ && fcst_unit_==other.fcst_unit_ && parameter_==other.parameter_;
     }
 }
 STRUCT_END(CommonDataProperties)

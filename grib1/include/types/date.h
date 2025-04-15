@@ -1,7 +1,9 @@
 #pragma once
 #include <stdbool.h>
+#include <chrono>
 #include "aux_code/def.h"
 
+using MinTimeRange = std::chrono::duration<int64_t, std::ratio<3600L>>;
 STRUCT_BEG(Date)
 {
     int year DEF_STRUCT_VAL(-1)

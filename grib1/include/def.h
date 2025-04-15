@@ -8,8 +8,7 @@
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
 #endif
-#include <chrono>
-using MinTimeRange = std::chrono::duration<int64_t, std::ratio<3600L>>;
+
 
 typedef enum {
     NONE_ERR,

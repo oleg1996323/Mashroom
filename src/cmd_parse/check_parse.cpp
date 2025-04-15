@@ -9,8 +9,8 @@ void check_parse(const std::vector<std::string_view>& input){
     Check hCheck;
     fs::path path;
     fs::path out;
-    std::chrono::system_clock from_d;
-    std::chrono::system_clock to_d;
+    std::chrono::system_clock::time_point from_d;
+    std::chrono::system_clock::time_point to_d;
     for(size_t i=0;i<input.size();++i){
         switch(translate_from_txt<Command>(input[i++])){
             case Command::THREADS:

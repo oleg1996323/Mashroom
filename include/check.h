@@ -28,6 +28,7 @@ struct ProcessResult{
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
+using namespace std::chrono_literals;
 static constexpr const char* miss_files_filename = "missing_files.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 class Check{
@@ -57,13 +58,13 @@ class Check{
         }
         dest_directory_=dir;
     }
-    void set_properties(std::optional<CommonDataProperties> common = {},
-                        std::optional<std::chrono::system_clock::time_point> from_date = {},
-                        std::optional<std::chrono::system_clock::time_point> to_date = {},
-                        std::optional<TimeSeparation> t_sep= {},
+    void set_properties(std::optional<CommonDataProperties> common = CommonDataProperties(),
+                        std::chrono::system_clock::time_point from_date = system_clock::time_point(sys_days(1970y/1/1)),
+                        std::chrono::system_clock::time_point to_date = system_clock::now(),
+                        TimeSeparation t_sep= TimeSeparation::DAY,
                         std::optional<RepresentationType> grid_type = {},
                         std::optional<Coord> position = {}){
-        props_ = Properties({common,from_date,to_date,t_sep,grid_type,position});
+        props_ = Properties({common,from_date,to_date,grid_type,position,t_sep});
     }
     template<typename ARG>
     void set_common_data(ARG&& cmn_data){
@@ -71,14 +72,14 @@ class Check{
     }
     template<typename ARG>
     void set_from_date(ARG&& from){
-        props_.from_date_.emplace(std::forward<ARG>(from));
+        props_.from_date_ = std::forward<ARG>(from);
     }
     template<typename ARG>
     void set_to_date(ARG&& to){
-        props_.to_date_.emplace(std::forward<ARG>(to));
+        props_.to_date_ = std::forward<ARG>(to);
     }
     void set_time_separation(TimeSeparation t_sep){
-        props_.t_sep_.emplace(t_sep);
+        props_.t_sep_=t_sep;
     }
     void set_grid_respresentation(RepresentationType grid_type){
         props_.grid_type_.emplace(grid_type);
