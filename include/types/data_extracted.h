@@ -28,9 +28,9 @@ struct DataTimeRange
 {
     std::vector<ValuesTimeRange> values;
     unsigned char center;
-    unsigned char subcenter;
+    unsigned char table_version;
     unsigned char parameter;
-    DataTimeRange():center(0),subcenter(0),parameter(0){}
+    DataTimeRange():center(0),table_version(0),parameter(0){}
 };
 struct TaggedDataTimeRange
 {

@@ -29,7 +29,7 @@ void PngOutGray(std::string name,const float* values, const Size& sz){
         png_destroy_write_struct(&png_ptr, nullptr);
         return;
     }
-
+    
     png_init_io(png_ptr, fp);
     
     png_set_IHDR(png_ptr, png_info, w, h, bit_depth, PNG_COLOR_TYPE_GRAY,

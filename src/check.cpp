@@ -93,9 +93,9 @@ bool Check::execute(){
     std::ranges::set_difference(time_range,found,std::back_inserter(miss_data), std::ranges::less());
     if(!miss_data.empty()){
         std::set<system_clock::time_point> by_separation;
-        std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_separation,by_separation.begin()),[](int64_t date)
+        std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_separation,by_separation.begin()),[](int64_t date)->system_clock::time_point
         {            
-            return seconds(date);
+            return system_clock::time_point(seconds(date));
         });
         result = true;
         for(auto date:by_separation){
@@ -156,26 +156,31 @@ ProcessResult Check::process_core(std::ranges::random_access_range auto&& entrie
                 return result;
             }
             do{
-                GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
-                                            std::move(grib.message().section_1_.date()),
+                const auto& msg = grib.message();
+                if(!msg.has_value())
+                    throw std::runtime_error("Message undefined");
+                GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
+                                            std::move(msg.value().get().section_1_.date()),
                                             grib.current_message_position(),
-                                            grib.current_message_length(),
-                                            grib.message().section_1_.IndicatorOfParameter(),
-                                            grib.message().section_1_.unit_time_range(),
-                                            grib.message().section_1_.center(),
-                                            grib.message().section_1_.subcenter());
+                                            grib.current_message_length().value(),
+                                            msg.value().get().section_1_.IndicatorOfParameter(),
+                                            msg.value().get().section_1_.unit_time_range(),
+                                            msg.value().get().section_1_.center(),
+                                            msg.value().get().section_1_.table_version());
                 if(props_.common_.has_value()){
                     const CommonDataProperties& common = props_.common_.value();
                     if(common.center_!=info.center || 
-                        common.subcenter_!=info.subcenter || 
+                        common.table_version_!=info.table_version || 
                         common.parameter_!=info.parameter || 
                         (common.fcst_unit_!=TimeFrame::INDIFFERENT && common.fcst_unit_!=info.parameter))
                         continue;
                 }
-                if(props_.position_.has_value() && !pos_in_grid(props_.position_.value(),info.grid_data))
-                    continue;
-                if(props_.grid_type_.has_value() && info.grid_data.rep_type!=props_.grid_type_.value())
-                    continue;
+                if(info.grid_data.has_value()){
+                    if(props_.position_.has_value() && !pos_in_grid(props_.position_.value(),info.grid_data.value()))
+                        continue;
+                    if(props_.grid_type_.has_value() && info.grid_data.value().rep_type!=props_.grid_type_.value())
+                        continue;
+                }
                 if(props_.to_date_<info.date || props_.from_date_>info.date)
                     continue;
             }while(grib.next_message());

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include "def.h"
 #include "sections/section_2.h"
 #include "sections/section_1.h"
@@ -13,14 +14,16 @@ extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size
 unsigned long GridDescriptionSection::section_length(){
 	return read_bytes<3>(buf_[0],buf_[1],buf_[2]);
 }
-RepresentationType GridDescriptionSection::get_representation_type() const noexcept{
-	return (RepresentationType)-1;
+uint8_t GridDescriptionSection::get_representation_type() const noexcept{
+	std::cout<<"Representation type "<<(char)buf_[5]<<std::endl;
+	return (uint8_t)buf_[5];
 }
-GridInfo GridDescriptionSection::define_grid() const noexcept{
-    if(!get_representation_type()<256 || !is_representation[get_representation_type()])
-        throw std::invalid_argument("Invalid representation type.");
+std::optional<GridInfo> GridDescriptionSection::define_grid() const noexcept{
+    if(get_representation_type()>255 || !is_representation[get_representation_type()])
+        return std::nullopt;
     else
-        return GridInfo(GridDataType(buf_,get_representation_type()),get_representation_type());
+        return std::optional<GridInfo>(GridInfo({GridDataType(buf_,(RepresentationType)get_representation_type()),
+										(RepresentationType)get_representation_type()}));
 }
 unsigned long GridDescriptionSection::get_number_vertical_coord_values() const noexcept{
 	return GDS_NV(buf_);
@@ -175,7 +178,8 @@ long int GridDescriptionSection::ny() const noexcept{
 			break;
 		*/
         default:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
         }
 }

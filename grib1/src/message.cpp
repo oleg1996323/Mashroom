@@ -58,6 +58,7 @@ float Message::extract_value(int n){
 			}
 		}
 	}
+    return UNDEFINED;
 }
 
 std::vector<float> Message::extract_all(){

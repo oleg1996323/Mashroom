@@ -17,6 +17,7 @@
 #include "aux_code/int_pow.h"
 #include "types/data_info.h"
 #include "types/data_binary.h"
+#include "generated/code_tables/eccodes_tables.h"
 
 Extract::ExtractFormat operator|(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
     return (Extract::ExtractFormat)((int)lhs|(int)(rhs));
@@ -50,38 +51,48 @@ ExtractedData Extract::__extract__(const fs::path& file){
     if(grib.file_size()==0)
         return result;
     do{
-        if(grib.message().message_length()==0){
+        const auto& msg = grib.message();
+        if(!msg.has_value())
+            throw std::runtime_error("Message undefined");
+        if(msg.value().get().message_length()==0){
             grib.next_message();
         }
 
 		//ReturnVal result_date;
-        GribMsgDataInfo msg_info(   grib.message().section_2_.define_grid(),
-                                    grib.message().section_1_.date(),
+        GribMsgDataInfo msg_info(   msg.value().get().section_2_.define_grid(),
+                                    msg.value().get().section_1_.date(),
                                     grib.current_message_position(),
-                                    grib.current_message_length(),
-                                    grib.message().section_1_.IndicatorOfParameter(),
-                                    grib.message().section_1_.unit_time_range(),
-                                    grib.message().section_1_.center(),
-                                    grib.message().section_1_.subcenter());
+                                    grib.current_message_length().value(),
+                                    msg.value().get().section_1_.IndicatorOfParameter(),
+                                    msg.value().get().section_1_.unit_time_range(),
+                                    msg.value().get().section_1_.center(),
+                                    msg.value().get().section_1_.table_version());
         if(props_.common_.has_value()){
             const CommonDataProperties& common_tmp = props_.common_.value();
             if(msg_info.center!=common_tmp.center_)
                 continue;
-            if(msg_info.subcenter!=common_tmp.subcenter_)
+            if(msg_info.table_version!=common_tmp.table_version_)
                 continue;
             if(common_tmp.parameter_!=common_tmp.parameter_)
                 continue;
             if(common_tmp.fcst_unit_.has_value() && msg_info.t_unit!=common_tmp.fcst_unit_.value())
                 continue;
         }
-        if(props_.grid_type_.has_value() && props_.grid_type_.value()!=msg_info.grid_data.rep_type)
-            continue;                  
-        if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_)
-            continue;
-        if(!pos_in_grid(props_.position_.value(),msg_info.grid_data))
-            continue;
+        if(props_.grid_type_.has_value()){
+            if(!msg_info.grid_data.has_value())
+                continue;
+            if(props_.grid_type_.value()!=msg_info.grid_data.value().rep_type)
+                continue;                  
+            if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_)
+                continue;
+            if(!pos_in_grid(props_.position_.value(),msg_info.grid_data.value()))
+                continue;
+        }
         /* decode numeric data */
-        result[CommonDataProperties(msg_info.center,msg_info.subcenter,msg_info.t_unit,msg_info.parameter)].push_back(ExtractedValue{msg_info.date,grib.message().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data))});
+        if(msg_info.grid_data.has_value())
+            result[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].push_back(
+                ExtractedValue{msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data.value()))});
+        else continue; //TODO still not accessible getting data without position
     }
     while(grib.next_message());
     return result;
@@ -143,12 +154,13 @@ ErrorCode Extract::execute(){
                         continue;
                     if(common_tmp.center_!=d.first.center_)
                         continue;
-                    if(common_tmp.subcenter_!=d.first.subcenter_)
+                    if(common_tmp.table_version_!=d.first.table_version_)
                         continue;
                     for(const auto& spec_data:d.second){
                         if(spec_data.from>props_.to_date_ || spec_data.to<props_.from_date_)
                             continue;
-                        else if(!pos_in_grid(props_.position_.value(),spec_data.grid_data))
+                            //TODO without position definition
+                        else if(!spec_data.grid_data.has_value() || !pos_in_grid(props_.position_.value(),spec_data.grid_data.value()))
                             continue;
                     }
                 }
@@ -224,9 +236,8 @@ ErrorCode Extract::execute(){
     }
     year_month_day ymd_from(floor<days>(props_.from_date_));
     year_month_day ymd_to(floor<days>(props_.to_date_));
-    hh_mm_ss hms_from(floor<hours>(props_.from_date_));
-    hh_mm_ss hms_to(floor<hours>(props_.to_date_));
-    time_point<system_clock> beg = system_clock::now();
+    hh_mm_ss hms_from(props_.to_date_- floor<days>(props_.from_date_));
+    hh_mm_ss hms_to(props_.to_date_- floor<days>(props_.to_date_));
     std::unordered_map<CommonDataProperties,std::vector<ExtractedValue>> summary_result;
     {
         bool skip_increment = false;
@@ -326,7 +337,7 @@ ErrorCode Extract::execute(){
                         for(auto& [cmn_data,values]:summary_result){
                             std::sort(values.begin(),values.end());
                             max_length = std::max(values.size(),max_length);
-                            out<<std::left<<std::setw(10)<<parameter_table(cmn_data.center_,cmn_data.subcenter_,cmn_data.parameter_)->name<<'\t';
+                            out<<std::left<<std::setw(10)<<parameter_table(cmn_data.center_,cmn_data.table_version_,cmn_data.parameter_)->name<<'\t';
                             col_vals_.push_back(&values);
                         }
                         out<<std::endl;

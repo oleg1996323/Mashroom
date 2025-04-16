@@ -47,14 +47,14 @@ extern int ec_large_grib;
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-static unsigned int mask[] = {0,1,3,7,15,31,63,127,255};
-static unsigned int map_masks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
-static double shift[9] = {1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0};
+// static unsigned int mask[] = {0,1,3,7,15,31,63,127,255};
+// static unsigned int map_masks[8] = {128, 64, 32, 16, 8, 4, 2, 1};
+// static double shift[9] = {1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0, 128.0, 256.0};
 
-extern void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
-	int n_bits, int n, double ref, double scale);
+// extern void BDS_unpack(float *flt, unsigned char *bds, unsigned char *bitmap,
+// 	int n_bits, int n, double ref, double scale);
 
-extern int BDS_NValues(unsigned char *bds);
+// extern int BDS_NValues(unsigned char *bds);
 
-extern float BDS_unpack_val(unsigned char *bds, unsigned char *bitmap,
-	int n_bits, int n, double ref, double scale);
+// extern float BDS_unpack_val(unsigned char *bds, unsigned char *bitmap,
+// 	int n_bits, int n, double ref, double scale);

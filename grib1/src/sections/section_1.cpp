@@ -1,7 +1,7 @@
 #include "sections/section_1.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "generated/code_tables/include/eccodes_tables.h"
+#include "generated/code_tables/eccodes_tables.h"
 #include "code_tables/table_4.h"
 
 void PDStimes(int time_range, int p1, int p2, int time_unit) {
@@ -415,9 +415,9 @@ unsigned char ProductDefinitionSection::numberIncludedInAverage() const noexcept
 	return PDS_NumAve(buffer_);
 }
 const char* ProductDefinitionSection::parameter_name() const noexcept{
-	return parameter_table(center(),subcenter(),IndicatorOfParameter())->name;
+	return parameter_table(center(),table_version(),IndicatorOfParameter())->name;
 }
 const char* ProductDefinitionSection::param_comment() const noexcept{
-	return parameter_table(center(),subcenter(),IndicatorOfParameter())->comment;
+	return parameter_table(center(),table_version(),IndicatorOfParameter())->comment;
 }
 #endif

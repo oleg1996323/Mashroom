@@ -61,6 +61,7 @@ class Extract{
             return ErrorCode::INTERNAL_ERROR;
         }
         dest_directory_=dest_directory;
+        return ErrorCode::NONE;
     }
     void set_output_format(ExtractFormat format){
         output_format_ = format;

@@ -9,7 +9,7 @@
 #include <vector>
 
 #ifndef GRID_INFO
-typedef struct GridInfo;
+struct GridInfo;
 #endif
 
 struct GridDescriptionSection{
@@ -18,8 +18,8 @@ struct GridDescriptionSection{
 	GridDescriptionSection(unsigned char* buffer):buf_(buffer){}
 
 	unsigned long section_length();
-	RepresentationType get_representation_type() const noexcept;
-	GridInfo define_grid() const noexcept;
+	uint8_t get_representation_type() const noexcept;
+	std::optional<GridInfo> define_grid() const noexcept;
 	unsigned long get_number_vertical_coord_values() const noexcept;
 	unsigned long get_PV() const noexcept;
 	unsigned long get_PL() const noexcept;

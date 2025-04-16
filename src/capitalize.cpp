@@ -45,7 +45,10 @@ void Capitalize::__write__(const Message& msg,
 			break;
 		case 'g':
 		case 'G':
-			cur_path/=to_abbr_representation_type(msg_info.grid_data.rep_type);
+			if(msg_info.grid_data.has_value())
+				cur_path/=to_abbr_representation_type(msg_info.grid_data.value().rep_type);
+			else
+				cur_path/="NON_GRID";
 		default:
 			fprintf(stderr,"Error reading format");
 			exit(1);
@@ -70,26 +73,30 @@ namespace fs = std::filesystem;
 
 const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 	HGrib1 grib;
-	if(!grib.open_grib(file)){
+	if(grib.open_grib(file)!=ErrorCodeData::NONE_ERR){
 		result.err = ErrorCodeData::OPEN_ERROR;
 		return result;
 	}
     do{
-		GribMsgDataInfo info(	std::move(grib.message().section_2_.define_grid()),
-									std::move(grib.message().section_1_.date()),
-									grib.current_message_position(),
-									grib.current_message_length(),
-									grib.message().section_1_.IndicatorOfParameter(),
-									grib.message().section_1_.unit_time_range(),
-									grib.message().section_1_.center(),
-									grib.message().section_1_.subcenter());
-		__write__(grib.message(),info); //TODO
-		result.add_info(info);
+		auto msg = grib.message();
+		if(msg.has_value()){
+			GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
+										std::move(msg.value().get().section_1_.date()),
+										grib.current_message_position(),
+										grib.current_message_length().value(),
+										msg.value().get().section_1_.IndicatorOfParameter(),
+										msg.value().get().section_1_.unit_time_range(),
+										msg.value().get().section_1_.center(),
+										msg.value().get().section_1_.table_version());
+			std::cout<<info.date<<std::endl;
+			__write__(msg.value().get(),info); //TODO
+			result.add_info(info);
+		}
 	}while(grib.next_message());
 	return result;
 }
 
-const GribDataInfo& Capitalize::execute(){
+void Capitalize::execute(){
     for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from_file_)){
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {

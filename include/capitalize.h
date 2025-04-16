@@ -3,6 +3,7 @@
 #include <string>
 #include <thread>
 #include "def.h"
+#include "sys/error_code.h"
 #include "types/data_info.h"
 #include "message.h"
 
@@ -11,8 +12,8 @@ using namespace std::string_literals;
 class Capitalize{
 private:
 GribDataInfo result;
-std::string_view from_file_;
-std::string_view dest_directory_;
+fs::path from_file_;
+fs::path dest_directory_;
 std::string_view output_order_="ym"sv;
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
@@ -21,12 +22,15 @@ void __write__(const Message& msg,
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);
-const GribDataInfo& execute();
+void execute();
 
-void set_from_path(std::string_view from_file){
-    if(!fs::exists(from_file))
-        throw std::invalid_argument("File doesn't exists "s + from_file.data());
-    from_file_=from_file;
+ErrorCode set_from_path(std::string_view root_directory){
+    if(!fs::exists(root_directory))
+        return ErrorCode::DIRECTORY_X1_DONT_EXISTS;
+    if(!fs::is_directory(root_directory))
+        return ErrorCode::X1_IS_NOT_DIRECTORY;
+    from_file_=root_directory;
+    return ErrorCode::NONE;
 }
 void set_dest_dir(std::string_view dest_directory){
     if(!fs::exists(dest_directory) && !fs::create_directories(dest_directory))
@@ -56,7 +60,7 @@ void set_using_processor_cores(int cores){
         cpus=cores;
     else cpus = 1;
 }
-GribDataInfo&& release_result() noexcept{
+GribDataInfo release_result() noexcept{
     GribDataInfo res(std::move(result));
     return res;
 }

@@ -100,7 +100,7 @@ class Check{
         data_.info_.clear();
         data_.err = ErrorCodeData::NONE_ERR;
     }
-    GribDataInfo&& release_result() noexcept{
+    GribDataInfo release_result() noexcept{
         GribDataInfo res(std::move(data_));
         return res;
     }

@@ -3,7 +3,7 @@ project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX)
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
 set(CMAKE_CXX_STANDARD 23)
-add_compile_options("-w")
+add_compile_options("-O0")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 include(loadCodeTables)
 
@@ -11,7 +11,7 @@ message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables"
 execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 load_eccode_header(
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes/definitions/grib1"
-	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables"
+	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grib1"
 )
 
 option(LOG_ON OFF)
@@ -54,14 +54,14 @@ target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/incl
                                         ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
 
 target_link_libraries(Mashroom_lib PRIVATE ${PNG_LIBRARIES})
-target_include_directories(Mashroom_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib/include
-                                        ${CMAKE_CURRENT_LIST_DIR}/grib/src
+target_include_directories(Mashroom_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/include
+                                        ${CMAKE_CURRENT_LIST_DIR}/grib1/src
                                         ${CMAKE_CURRENT_LIST_DIR}/include
                                         ${CMAKE_CURRENT_LIST_DIR}/src
                                         ${PNG_INCLUDE_DIRS}
                                         ${CMAKE_CURRENT_LIST_DIR}/include/sys
                                         ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
-
+target_link_libraries(Mashroom PRIVATE Mashroom_lib ${PNG_LIBRARIES})
 message(STATUS ${PNG_INCLUDE_DIRS})
 
 set_target_properties(Mashroom Mashroom_lib

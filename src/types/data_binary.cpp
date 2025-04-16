@@ -1,4 +1,5 @@
 #include "types/data_binary.h"
+#include "cmd_parse/cmd_translator.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;

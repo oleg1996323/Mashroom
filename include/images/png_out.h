@@ -1,5 +1,9 @@
 #pragma once
-#include "png.h"
+#ifdef __cplusplus
+extern "C"{
+    #include "png.h"
+}
+#endif
 #include "def.h"
 #include <string>
 #include <vector>

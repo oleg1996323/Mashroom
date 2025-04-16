@@ -77,7 +77,7 @@ void extract_parse(const std::vector<std::string_view>& input){
     std::filesystem::path out;
     DataExtractMode mode_extract = DataExtractMode::UNDEF;
     Extract::ExtractFormat extract_out_fmt;
-    Rect rect = Rect();
+    
     Coord coord = Coord();
     unsigned int cpus = std::thread::hardware_concurrency();
 
@@ -208,12 +208,9 @@ void extract_parse(const std::vector<std::string_view>& input){
 std::vector<std::string_view> commands_from_extract_parse(const std::vector<std::string_view>& input){
     std::vector<std::string_view> commands;
     commands.push_back(translate_from_token(translate::token::ModeArgs::EXTRACT));
-    std::chrono::system_clock::time_point date_from = std::chrono::system_clock::time_point();
-    std::chrono::system_clock::time_point date_to = std::chrono::system_clock::time_point();
+    Properties props;
     DataExtractMode mode_extract = DataExtractMode::UNDEF;
-    Extract::ExtractFormat extract_out_fmt;
-    Rect rect = Rect();
-    Coord coord = Coord();
+    Extract::ExtractFormat output_format;
     unsigned int cpus = std::thread::hardware_concurrency();
 
     for(size_t i=0;i<input.size();++i){
@@ -255,69 +252,69 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             case translate::token::Command::DATE_FROM:{
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                date_from = get_date_from_token(input.at(i));
+                props.from_date_ = get_date_from_token(input.at(i));
                 commands.push_back(input.at(i));
                 break;
             }
             case translate::token::Command::DATE_TO:{
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                date_to = get_date_from_token(input.at(i));
+                props.to_date_ = get_date_from_token(input.at(i));
                 commands.push_back(input.at(i));
                 break;
             }
-            case translate::token::Command::LAT_TOP:{
-                if(i>=input.size())
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                try{
-                    rect.y1 = get_coord_from_token<double>(input[i],mode_extract);
-                    commands.push_back(input.at(i));
-                }
-                catch(const std::invalid_argument& err){
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
-                }
-                break;
-            }
-            case translate::token::Command::LAT_BOT:{
-                if(i>=input.size())
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                try{
-                    rect.y2 = get_coord_from_token<double>(input[i],mode_extract);
-                    commands.push_back(input.at(i));
-                }
-                catch(const std::invalid_argument& err){
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
-                }
-                break;
-            }
-            case translate::token::Command::LON_LEFT:{
-                if(i>=input.size())
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                try{
-                    rect.x1 = get_coord_from_token<double>(input[i],mode_extract);
-                    commands.push_back(input.at(i));
-                }
-                catch(const std::invalid_argument& err){
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
-                }
-                break;
-            }
-            case translate::token::Command::LON_RIG:{
-                if(i>=input.size())
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                try{
-                    rect.x2 = get_coord_from_token<double>(input[i],mode_extract);
-                    commands.push_back(input.at(i));
-                }
-                catch(const std::invalid_argument& err){
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
-                }
-                break;
-            }
+            // case translate::token::Command::LAT_TOP:{
+            //     if(i>=input.size())
+            //         ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
+            //     try{
+            //         rect.y1 = get_coord_from_token<double>(input[i],mode_extract);
+            //         commands.push_back(input.at(i));
+            //     }
+            //     catch(const std::invalid_argument& err){
+            //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
+            //     }
+            //     break;
+            // }
+            // case translate::token::Command::LAT_BOT:{
+            //     if(i>=input.size())
+            //         ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
+            //     try{
+            //         rect.y2 = get_coord_from_token<double>(input[i],mode_extract);
+            //         commands.push_back(input.at(i));
+            //     }
+            //     catch(const std::invalid_argument& err){
+            //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
+            //     }
+            //     break;
+            // }
+            // case translate::token::Command::LON_LEFT:{
+            //     if(i>=input.size())
+            //         ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
+            //     try{
+            //         rect.x1 = get_coord_from_token<double>(input[i],mode_extract);
+            //         commands.push_back(input.at(i));
+            //     }
+            //     catch(const std::invalid_argument& err){
+            //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
+            //     }
+            //     break;
+            // }
+            // case translate::token::Command::LON_RIG:{
+            //     if(i>=input.size())
+            //         ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
+            //     try{
+            //         rect.x2 = get_coord_from_token<double>(input[i],mode_extract);
+            //         commands.push_back(input.at(i));
+            //     }
+            //     catch(const std::invalid_argument& err){
+            //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,input[i]);
+            //     }
+            //     break;
+            // }
             case translate::token::Command::EXTRACT_FORMAT:{
                 if(i>=input.size())
                     ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::ABORT);
-                extract_out_fmt = get_extract_format(input[i]);
+                output_format = get_extract_format(input[i]);
                 commands.push_back(input.at(i));
                 break;
             }
@@ -353,7 +350,7 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             // }
                 break;
             case translate::token::Command::POSITION:{
-                coord = get_coord_from_token<Coord>(input[i],mode_extract);
+                props.position_ = get_coord_from_token<Coord>(input[i],mode_extract);
                 commands.push_back(input.at(i));
                 break;        
             }
@@ -363,19 +360,21 @@ std::vector<std::string_view> commands_from_extract_parse(const std::vector<std:
             }
         }
     }
-    if(is_correct_interval(date_from,date_to))
+    if(is_correct_interval(props.from_date_,props.to_date_))
         ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::ABORT);
     
     if(mode_extract==DataExtractMode::POSITION){
-        if(!is_correct_pos(&coord)) //actually for WGS84
-            ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
+        if(!props.position_.has_value())
+            ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"Not defined",AT_ERROR_ACTION::ABORT);
+        if(!is_correct_pos(&props.position_.value())) //actually for WGS84
+            ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::ABORT);
         return commands;
     }
-    else if(mode_extract==DataExtractMode::RECT){
-        if(!correct_rect(&rect))
-            ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
-        return commands;
-    }
+    // else if(mode_extract==DataExtractMode::RECT){
+    //     if(!correct_rect(&rect))
+    //         ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
+    //     return commands;
+    // }
     else
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::ABORT);
     return commands;

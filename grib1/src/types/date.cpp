@@ -3,7 +3,11 @@
 #include <stdlib.h>
 #include "sections/section_1.h"
 
-#ifdef DEPRECATED
+bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to){
+    return duration_cast<MinTimeRange>(to-from).count()<0;
+}
+
+#ifdef DEPR
 constexpr unsigned not_leap_year_hours = 365;
 
 // Функция для проверки високосного года
@@ -111,27 +115,27 @@ Date date_from_epoque(long long int_time){
 }
 
 
-[[deprecated]] bool date_less(const Date* lhs, const Date* rhs){
+bool date_less(const Date* lhs, const Date* rhs){
     return get_epoch_time(lhs)<get_epoch_time(rhs);
 }
-[[deprecated]] bool date_equal(const Date* lhs, const Date* rhs){
+bool date_equal(const Date* lhs, const Date* rhs){
     return get_epoch_time(lhs)==get_epoch_time(rhs);
 }
-[[deprecated]] bool date_bigger(const Date* lhs, const Date* rhs){
+bool date_bigger(const Date* lhs, const Date* rhs){
     return get_epoch_time(lhs)>get_epoch_time(rhs);
 }
-[[deprecated]] bool date_less_equal(const Date* lhs, const Date* rhs){
+bool date_less_equal(const Date* lhs, const Date* rhs){
     return get_epoch_time(lhs)<=get_epoch_time(rhs);
 }
-[[deprecated]] bool date_bigger_equal(const Date* lhs, const Date* rhs){
+bool date_bigger_equal(const Date* lhs, const Date* rhs){
     return get_epoch_time(lhs)>=get_epoch_time(rhs);
 }
-[[deprecated]] bool is_correct_date(const Date* date){
+bool is_correct_date(const Date* date){
     if (date->year < 1970 || date->month < 1 || date->month > 12 || date->day < 1 || date->day > days_in_month(date->year, date->month))
         return false;
     return true;
 }
-[[deprecated]] bool correct_date_interval(Date* from, Date* to){
+bool correct_date_interval(Date* from, Date* to){
     if(!(is_correct_date(from) && is_correct_date(to)))
         return false;
     return get_epoch_time(from)<=get_epoch_time(to);
@@ -140,7 +144,7 @@ Date date_from_epoque(long long int_time){
 unsigned long hours_to_days(unsigned int hour){
     return hour/24;
 }
-[[deprecated]] Date date_increment(TimeRange t_unit, uint8_t time_inc){
+Date date_increment(TimeRange t_unit, uint8_t time_inc){
     Date inc{0,0,0,0};
     switch (t_unit)
     {

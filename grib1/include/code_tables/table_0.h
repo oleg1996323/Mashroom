@@ -236,4 +236,4 @@ typedef enum DATA_ORGANIZATIONS{
 typedef enum{
     ERA_INTERIM = 128,
     ERA5 = 228
-}ECMWFsubcenter;
+}ECMWFtable_version;

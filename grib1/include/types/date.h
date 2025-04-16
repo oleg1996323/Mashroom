@@ -54,6 +54,4 @@ extern Date date_increment(TimeFrame t_unit, uint8_t time_inc);
 
 #endif
 
-bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to){
-    return duration_cast<MinTimeRange>(to-from).count()<0;
-}
+bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to);

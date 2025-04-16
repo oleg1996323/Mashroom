@@ -11,24 +11,24 @@
 
 STRUCT_BEG(GribMsgDataInfo)
 {
-    GridInfo grid_data;
+    std::optional<GridInfo> grid_data;
     std::chrono::system_clock::time_point date;
     ptrdiff_t buf_pos_;
     uint32_t msg_sz_;
     uint8_t parameter;
     TimeFrame t_unit;
     Organization center;
-    uint8_t subcenter;
+    uint8_t table_version;
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
 
-    GribMsgDataInfo(GridInfo&& grid_data_,
+    GribMsgDataInfo(std::optional<GridInfo>&& grid_data_,
         std::chrono::system_clock::time_point&& date_,
         ptrdiff_t msg_buf_pos,
         uint32_t msg_size,
         uint8_t parameter_,
         TimeFrame t_unit_,
         Organization center_,
-        uint8_t subcenter_):
+        uint8_t table_version_):
         grid_data(std::move(grid_data_)),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
@@ -36,6 +36,6 @@ STRUCT_BEG(GribMsgDataInfo)
         parameter(parameter_),
         t_unit(t_unit_),
         center(center_),
-        subcenter(subcenter_){}
+        table_version(table_version_){}
 }
 STRUCT_END(GribMsgDataInfo)

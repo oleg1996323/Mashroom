@@ -17,13 +17,16 @@ void capitalize_parse(const std::vector<std::string_view>& input){
     unsigned int cpus = std::thread::hardware_concurrency();
     fs::path in = fs::current_path();
     fs::path out = fs::current_path();
+    ErrorCode err;
     for(size_t i=0;i<input.size();++i){
         switch(translate_from_txt<Command>(input[i++])){
             case Command::THREADS:
                 hCapitalize.set_using_processor_cores(from_chars<long>(input[i]));
                 break;
             case Command::IN_PATH:
-                hCapitalize.set_from_path(input[i]);
+                err = hCapitalize.set_from_path(input[i]);
+                if(err!=ErrorCode::NONE)
+                    ErrorPrint::print_error(err,"",AT_ERROR_ACTION::ABORT,input[i]);
                 break;
             case Command::OUT_PATH:{
                 std::vector<std::string_view> tokens = split(input[i],":");

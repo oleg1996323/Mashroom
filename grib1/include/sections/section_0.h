@@ -17,7 +17,7 @@ struct IndicatorSection{
         return buf_[8];
     }
     unsigned long message_length() const noexcept{
-        read_bytes<3>(buf_[5],buf_[6],buf_[7]);
+        return read_bytes<3>(buf_[5],buf_[6],buf_[7]);
     }
 };
 #else

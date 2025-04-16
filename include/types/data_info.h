@@ -13,7 +13,7 @@
 
 struct GribCapitalizeDataInfo
 {
-    GridInfo grid_data;
+    std::optional<GridInfo> grid_data;
     ptrdiff_t buf_pos_;
     std::chrono::system_clock::time_point from = std::chrono::system_clock::time_point::max();
     std::chrono::system_clock::time_point to = std::chrono::system_clock::time_point::min();
@@ -36,10 +36,13 @@ class GribDataInfo{
     info_(info){}
     GribDataInfo(data_t&& info):
     info_(std::move(info)){}
-    void add_info(const CommonDataProperties& cmn,const GribCapitalizeDataInfo& cap_info);
-    void add_info(const CommonDataProperties& cmn,const std::vector<GribCapitalizeDataInfo>& cap_info);
-    void add_info(CommonDataProperties&& cmn,GribCapitalizeDataInfo&& cap_info);
-    void add_info(CommonDataProperties&& cmn,std::vector<GribCapitalizeDataInfo>&& cap_info);
+    template<typename CDP = CommonDataProperties, typename GCDI = GribCapitalizeDataInfo>
+    void add_info(CDP&& cmn,GCDI&& cap_info){
+        if constexpr(std::is_same_v<std::vector<GribCapitalizeDataInfo>,std::decay_t<GCDI>>)
+            info_[std::forward<CDP>(cmn)].append_range(std::forward<GCDI>(cap_info));
+        else
+            info_[std::forward<CDP>(cmn)].push_back(std::forward<GCDI>(cap_info));
+    }
     void add_info(const GribMsgDataInfo& msg_info) noexcept;
     ErrorCodeData error() const{
         return err;
