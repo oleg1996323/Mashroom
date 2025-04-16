@@ -8,10 +8,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 include(loadCodeTables)
 
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables")
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes")
 execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
+endif()
 load_eccode_header(
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes/definitions/grib1"
 	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grib1"
+    PYTHON_AUTOGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external"
 )
 
 option(LOG_ON OFF)
@@ -21,9 +24,8 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY
 add_compile_options(-fPIC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
 
-file(GLOB_RECURSE GRIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.cpp)
-file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
-
+file(GLOB_RECURSE GRIB_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/grib1/src/**.cpp)
+file(GLOB_RECURSE Mashroom_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 
 find_package(PNG REQUIRED)
 find_package(ZLIB REQUIRED)

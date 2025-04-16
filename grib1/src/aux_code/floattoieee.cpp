@@ -1,4 +1,3 @@
-#pragma once
 #include "aux_code/floattoieee.h"
 #include "math.h"
 #include "float.h"

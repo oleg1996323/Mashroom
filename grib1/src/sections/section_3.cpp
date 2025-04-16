@@ -6,7 +6,7 @@
 #include <vector>
 
 unsigned long BitMapSection::section_length(){
-	return read_bytes<3>(buf_[0],buf_[1],buf_[2]);
+	return read_bytes(buf_[2],buf_[1],buf_[0]);
 }
 unsigned long BitMapSection::unused_bits(){
 	return BMS_UnusedBits(buf_);

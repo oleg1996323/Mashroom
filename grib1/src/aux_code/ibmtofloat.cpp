@@ -1,4 +1,3 @@
-#pragma once
 #include <float.h>
 #include "aux_code/ibmtofloat.h"
 

@@ -57,7 +57,7 @@ void Capitalize::__write__(const Message& msg,
 	}
 	if(!fs::exists(cur_path) && !fs::create_directories(cur_path))
 		throw std::runtime_error("Unable to create path "s+cur_path.c_str());
-	cur_path/=msg.section_1_.parameter_name()+".grib"s;
+	cur_path/=msg.section_1_.parameter_name().data()+".grib"s;
 	dump_file = fopen(cur_path.c_str(),"a");
 	if(!dump_file)
 		throw std::runtime_error("Unable to open file "s+cur_path.c_str());
@@ -89,8 +89,11 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
 			std::cout<<info.date<<std::endl;
-			__write__(msg.value().get(),info); //TODO
-			result.add_info(info);
+			// if(info.grid_data.has_value())
+			// 	std::cout<<to_abbr_representation_type(info.grid_data.value().rep_type)<<std::endl;
+			std::cout<<parameter_table(info.center,info.table_version,info.parameter)->name<<std::endl;
+			// __write__(msg.value().get(),info); //TODO
+			// result.add_info(info);
 		}
 	}while(grib.next_message());
 	return result;

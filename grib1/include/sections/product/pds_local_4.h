@@ -8,7 +8,7 @@ struct PDSLocal<ECMWF>::Definition<4>{
     //50-51, if stream = 1090; 50, otherwise 51, unless stream = 1090
     static unsigned short perturb_number(const PDSLocal<ECMWF>& pds) noexcept{
         if(pds.get_stream()==1090)
-            return read_bytes<2>(pds.buf_[49],pds.buf_[50]);
+            return read_bytes(pds.buf_[49],pds.buf_[50]);
         else return pds.buf_[50];
     }
     //1 (a flag showing a post-auxiliary array is in use)
@@ -88,11 +88,11 @@ struct PDSLocal<ECMWF>::Definition<4>{
     }
     //Position of level 1
     static int coord1_start(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[62],pds.buf_[63],pds.buf_[64],pds.buf_[65]);
+        return read_bytes(pds.buf_[62],pds.buf_[63],pds.buf_[64],pds.buf_[65]);
     }
     //Position of level 2 (or zero if not used)
     static int coord1_end(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[66],pds.buf_[67],pds.buf_[68],pds.buf_[69]);
+        return read_bytes(pds.buf_[66],pds.buf_[67],pds.buf_[68],pds.buf_[69]);
     }
     //Coordinate 2 flag (usually z-coordinate).
     static unsigned char coord2_flag(const PDSLocal<ECMWF>& pds) noexcept{
@@ -107,11 +107,11 @@ struct PDSLocal<ECMWF>::Definition<4>{
     }
     //Position of level 1
     static int coord2_start(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[72],pds.buf_[73],pds.buf_[74],pds.buf_[75]);
+        return read_bytes(pds.buf_[72],pds.buf_[73],pds.buf_[74],pds.buf_[75]);
     }
     //Position of level 2 (or zero if not used)
     static int coord2_end(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[76],pds.buf_[77],pds.buf_[78],pds.buf_[79]);
+        return read_bytes(pds.buf_[76],pds.buf_[77],pds.buf_[78],pds.buf_[79]);
     }
     //Coordinate 3 flag (x-axis, usually longitude).
     static unsigned char coord3_flag(const PDSLocal<ECMWF>& pds) noexcept{
@@ -123,27 +123,27 @@ struct PDSLocal<ECMWF>::Definition<4>{
     }
     //Coordinate 4 of first grid point
     static int coord4_first_grid_point(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[82],pds.buf_[83],pds.buf_[84],pds.buf_[85]);
+        return read_bytes(pds.buf_[82],pds.buf_[83],pds.buf_[84],pds.buf_[85]);
     }
     //Coordinate 3 of first grid point
     static int coord3_first_grid_point(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[86],pds.buf_[87],pds.buf_[88],pds.buf_[89]);
+        return read_bytes(pds.buf_[86],pds.buf_[87],pds.buf_[88],pds.buf_[89]);
     }
     //Coordinate 4 of last grid point
     static int coord4_last_grid_point(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[90],pds.buf_[91],pds.buf_[92],pds.buf_[93]);
+        return read_bytes(pds.buf_[90],pds.buf_[91],pds.buf_[92],pds.buf_[93]);
     }
     //Coordinate 3 of last grid point
     static int coord3_last_grid_point(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[94],pds.buf_[95],pds.buf_[96],pds.buf_[97]);
+        return read_bytes(pds.buf_[94],pds.buf_[95],pds.buf_[96],pds.buf_[97]);
     }
     //i-increment
     static int i_increment(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[98],pds.buf_[99],pds.buf_[100],pds.buf_[101]);
+        return read_bytes(pds.buf_[98],pds.buf_[99],pds.buf_[100],pds.buf_[101]);
     }
     //j-increment
     static int j_increment(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<4>(pds.buf_[102],pds.buf_[103],pds.buf_[104],pds.buf_[105]);
+        return read_bytes(pds.buf_[102],pds.buf_[103],pds.buf_[104],pds.buf_[105]);
     }
     //Flag for irregular grid coordinate list:
     //0 = none
@@ -171,15 +171,15 @@ struct PDSLocal<ECMWF>::Definition<4>{
     }
     //Number of entries in mixed coordinate definition
     static unsigned short number_in_mixed_coord_def(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<2>(pds.buf_[110],pds.buf_[111]);
+        return read_bytes(pds.buf_[110],pds.buf_[111]);
     }
     //Number of entries in the grid coordinate list
     static unsigned short number_in_grid_coord_list(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<2>(pds.buf_[112],pds.buf_[113]);
+        return read_bytes(pds.buf_[112],pds.buf_[113]);
     }
     //Number of entries in the auxiliary array
     static unsigned short number_in_aux_array(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<2>(pds.buf_[114],pds.buf_[115]);
+        return read_bytes(pds.buf_[114],pds.buf_[115]);
     }
     //TODO: add:
     // horizontalCoordinateSupplement

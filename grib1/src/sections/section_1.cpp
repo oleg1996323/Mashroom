@@ -349,7 +349,7 @@ int verf_time(unsigned char *pds, int *year, int *month, int *day, int *hour) {
 
 #ifdef __cplusplus
 unsigned ProductDefinitionSection::section_length() const noexcept{
-	return read_bytes<3>(buffer_[0],buffer_[1],buffer_[2]);
+	return read_bytes(buffer_[2],buffer_[1],buffer_[0]);
 }
 unsigned char ProductDefinitionSection::table_version() const noexcept{
 	return PDS_Vsn(buffer_);
@@ -414,10 +414,10 @@ unsigned ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() co
 unsigned char ProductDefinitionSection::numberIncludedInAverage() const noexcept{
 	return PDS_NumAve(buffer_);
 }
-const char* ProductDefinitionSection::parameter_name() const noexcept{
+std::string_view ProductDefinitionSection::parameter_name() const noexcept{
 	return parameter_table(center(),table_version(),IndicatorOfParameter())->name;
 }
-const char* ProductDefinitionSection::param_comment() const noexcept{
+std::string_view ProductDefinitionSection::param_comment() const noexcept{
 	return parameter_table(center(),table_version(),IndicatorOfParameter())->comment;
 }
 #endif

@@ -52,7 +52,7 @@ struct ProductDefinitionSection
 	unsigned short decimal_scale_factor() const noexcept;
 	unsigned numberMissingFromAveragesOrAccumulations() const noexcept;
 	unsigned char numberIncludedInAverage() const noexcept;
-	const char* parameter_name() const noexcept;
-	const char* param_comment() const noexcept;
+	std::string_view parameter_name() const noexcept;
+	std::string_view param_comment() const noexcept;
 	#endif
 };

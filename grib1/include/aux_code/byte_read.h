@@ -1,10 +1,10 @@
 #pragma once
 
 #ifdef __cplusplus
-template<unsigned BYTES,typename... ARGS>
+template<typename... ARGS>
 unsigned read_bytes(ARGS&&... args){
     unsigned shift = 0;
-    return ((static_cast<unsigned>(args)<<(shift++*8*BYTES))+...);
+    return ((static_cast<unsigned>(args)<<(shift++*8))+...);
 }
 #endif
 #ifndef INT2

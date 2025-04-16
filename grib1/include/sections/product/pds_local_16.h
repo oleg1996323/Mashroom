@@ -32,7 +32,7 @@ struct PDSLocal<ECMWF>::Definition<16>{
     }
     //Number of forecasts in ensemble
     static unsigned short number_forecast_ensemble(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes<2>(pds.buf_[62],pds.buf_[63]);
+        return read_bytes(pds.buf_[62],pds.buf_[63]);
     }
 };
 #else
@@ -64,6 +64,6 @@ struct PDSLocal<ECMWF>::Definition<16>{
     }
     //Number of forecasts in ensemble
     static unsigned short number_forecast_ensemble(const PDSLocal<ECMWF>& pds){
-        return read_bytes<2>(pds.buf_[62],pds.buf_[63]);
+        return read_bytes(pds.buf_[62],pds.buf_[63]);
     }
 #endif

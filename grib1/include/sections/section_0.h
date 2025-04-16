@@ -13,12 +13,8 @@ struct IndicatorSection{
 
     IndicatorSection(unsigned char* buffer):buf_(buffer){}
 
-    unsigned char grib_version() const noexcept{
-        return buf_[8];
-    }
-    unsigned long message_length() const noexcept{
-        return read_bytes<3>(buf_[5],buf_[6],buf_[7]);
-    }
+    unsigned char grib_version() const noexcept;
+    unsigned long message_length() const noexcept;
 };
 #else
 #include <stdint.h>
