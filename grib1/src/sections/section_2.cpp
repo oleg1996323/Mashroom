@@ -15,7 +15,6 @@ unsigned long GridDescriptionSection::section_length(){
 	return read_bytes(buf_[2],buf_[1],buf_[0]);
 }
 uint8_t GridDescriptionSection::get_representation_type() const noexcept{
-	std::cout<<"Representation type "<<(char)buf_[5]<<std::endl;
 	return (uint8_t)buf_[5];
 }
 std::optional<GridInfo> GridDescriptionSection::define_grid() const noexcept{

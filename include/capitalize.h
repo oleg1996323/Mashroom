@@ -17,8 +17,8 @@ fs::path dest_directory_;
 std::string_view output_order_="ym"sv;
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
-void __write__(const Message& msg,
-    const GribMsgDataInfo& msg_info);
+void __write__(const CommonDataProperties& cmn,
+    const std::vector<GribMsgDataInfo>& data);
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);

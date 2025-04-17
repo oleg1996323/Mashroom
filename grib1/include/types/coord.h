@@ -1,7 +1,7 @@
 #pragma once
 #include "aux_code/def.h"
-typedef double Lat;
-typedef double Lon;
+typedef float Lat;
+typedef float Lon;
 
 STRUCT_BEG(Coord)
 {

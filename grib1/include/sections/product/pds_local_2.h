@@ -14,10 +14,10 @@ struct PDSLocal<ECMWF>::Definition<2>{
         return pds.buf_[52];
     }
     static unsigned short start_time_step(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes(pds.buf_[53],pds.buf_[54]);
+        return read_bytes(pds.buf_[54],pds.buf_[53]);
     }
     static unsigned short end_time_step(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes(pds.buf_[55],pds.buf_[56]);
+        return read_bytes(pds.buf_[56],pds.buf_[55]);
     }
     static unsigned char north_lat_of_domain(const PDSLocal<ECMWF>& pds) noexcept{
         return read_bytes(pds.buf_[59],pds.buf_[58],pds.buf_[57]);

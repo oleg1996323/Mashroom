@@ -138,6 +138,7 @@ bool HGrib1::next_message(){
     if(msg_){
         if((current_ptr_-__f_ptr)+msg_->section_0_.message_length()<sz_){
             current_ptr_+=msg_->section_0_.message_length();
+            msg_ = std::make_unique<Message>(current_ptr_);
             return true;
         }
         return false;

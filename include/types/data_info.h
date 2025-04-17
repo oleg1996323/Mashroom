@@ -13,12 +13,13 @@
 
 struct GribCapitalizeDataInfo
 {
-    std::optional<GridInfo> grid_data;
+    std::vector<Coord> polygone_;
     ptrdiff_t buf_pos_;
-    std::chrono::system_clock::time_point from = std::chrono::system_clock::time_point::max();
-    std::chrono::system_clock::time_point to = std::chrono::system_clock::time_point::min();
-    std::chrono::system_clock::duration discret = std::chrono::system_clock::duration(0);
-    ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
+    //TODO: make sorted by date-time vector with buf_pos and date-time
+    //erase discret and to. Make representation_type instead of GridInfo (very hard)
+    std::chrono::system_clock::time_point date_time = std::chrono::system_clock::time_point::max();
+    RepresentationType rep_t;
+    ErrorCodeData err=NONE_ERR;
 };
 
 class GribDataInfo{
