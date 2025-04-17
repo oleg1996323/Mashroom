@@ -19,6 +19,7 @@ bool Capitalize::check_format(std::string_view fmt){
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
+//must return the names of created files
 void Capitalize::__write__(const CommonDataProperties& cmn_,
 						const std::vector<GribCapitalizeDataInfo>& data_){
 	for(const GribCapitalizeDataInfo& msg_info:data_){
@@ -96,7 +97,7 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 			if(info.grid_data.has_value())
 			 	std::cout<<to_abbr_representation_type(info.grid_data.value().rep_type)<<std::endl;
 			std::cout<<parameter_table(info.center,info.table_version,info.parameter)->name<<std::endl;
-			__write__(msg.value().get(),info); //TODO
+			__write__(file,info); //TODO
 			result.add_info(info);
 		}
 	}while(grib.next_message());

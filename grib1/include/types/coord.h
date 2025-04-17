@@ -10,6 +10,13 @@ STRUCT_BEG(Coord)
 }
 STRUCT_END(Coord)
 
+STRUCT_BEG(RawCoord)
+{
+    uint32_t lat_ DEF_STRUCT_VAL(-999);
+    uint32_t lon_ DEF_STRUCT_VAL(-999);
+}
+STRUCT_END(RawCoord)
+
 #ifndef __cplusplus
 #define Coord(...) ((Coord) { .lat_ = -999, .lon_ = -999},##__VA_ARGS__)
 #endif

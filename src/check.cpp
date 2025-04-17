@@ -184,53 +184,54 @@ ProcessResult Check::process_core(std::ranges::random_access_range auto&& entrie
                 if(props_.to_date_<info.date || props_.from_date_>info.date)
                     continue;
             }while(grib.next_message());
-            
-            for(const auto& [cmn,info]:data_.data()){
-                for(const auto& info_el:info){
-                    if(info_el.err==ErrorCodeData::NONE_ERR){
-                        switch (props_.t_sep_)
-                        {
-                        case TimeSeparation::HOUR:
-                            result.found.insert(duration_cast<hours>(info_el.from.time_since_epoch()).count());
-                            break;
-                        case TimeSeparation::DAY:
-                            result.found.insert(duration_cast<days>(info_el.from.time_since_epoch()).count());
-                            break;
-                        case TimeSeparation::MONTH:
-                            result.found.insert(duration_cast<months>(info_el.from.time_since_epoch()).count());
-                            break;
-                        case TimeSeparation::YEAR:
-                            result.found.insert(duration_cast<years>(info_el.from.time_since_epoch()).count());
-                            break;
-                        default:
-                            break;
+            for(const auto& [file_name,file_data]:data_.data()){
+                for(const auto& [cmn,info]:file_data){
+                    for(const auto& info_el:info){
+                        if(info_el.err==ErrorCodeData::NONE_ERR){
+                            switch (props_.t_sep_)
+                            {
+                            case TimeSeparation::HOUR:
+                                result.found.insert(duration_cast<hours>(info_el.from.time_since_epoch()).count());
+                                break;
+                            case TimeSeparation::DAY:
+                                result.found.insert(duration_cast<days>(info_el.from.time_since_epoch()).count());
+                                break;
+                            case TimeSeparation::MONTH:
+                                result.found.insert(duration_cast<months>(info_el.from.time_since_epoch()).count());
+                                break;
+                            case TimeSeparation::YEAR:
+                                result.found.insert(duration_cast<years>(info_el.from.time_since_epoch()).count());
+                                break;
+                            default:
+                                break;
+                            }
                         }
-                    }
-                    else{
-                        if (mute_at_print){
-                            std::lock_guard<std::mutex> locked(*mute_at_print);
-                            std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
-                            break;
+                        else{
+                            if (mute_at_print){
+                                std::lock_guard<std::mutex> locked(*mute_at_print);
+                                std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                                result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
+                                break;
+                            }
+                            else {
+                                std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                                result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
+                                break;
+                            }
                         }
-                        else {
-                            std::cout << "Error occured. Code "<<info_el.err<< ". Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                            result.err_files.emplace_back(ErrorFiles{entry.path(),info_el.err});
-                            break;
-                        }
-                    }
 
-                    {
-                        if (mute_at_print){
-                            std::lock_guard<std::mutex> locked(*mute_at_print);
-                            // bar.update((double)pos/(double)max_pos*100);
-                            // bar.print();
-                            std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
-                        }
-                        else {
-                            // bar.update((double)pos/(double)max_pos*100);
-                            // bar.print();
-                            std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                        {
+                            if (mute_at_print){
+                                std::lock_guard<std::mutex> locked(*mute_at_print);
+                                // bar.update((double)pos/(double)max_pos*100);
+                                // bar.print();
+                                std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            }
+                            else {
+                                // bar.update((double)pos/(double)max_pos*100);
+                                // bar.print();
+                                std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
+                            }
                         }
                     }
                 }

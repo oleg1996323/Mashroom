@@ -1,7 +1,8 @@
 #include "types/data_info.h"
 
-void GribDataInfo::add_info(const GribMsgDataInfo& msg_info) noexcept{
-    std::vector<GribCapitalizeDataInfo>& grib_data = info_[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)];
+namespace fs = std::filesystem;
+void GribDataInfo::add_info(const fs::path& file_name, const GribMsgDataInfo& msg_info) noexcept{
+    std::vector<GribCapitalizeDataInfo>& grib_data = info_[file_name][CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)];
     // int32_t int_time = get_epoch_time(&msg_info.date);
     // if(int_time<0)
     //     return;
@@ -40,7 +41,7 @@ void GribDataInfo::add_info(const GribMsgDataInfo& msg_info) noexcept{
     //     else continue;
     // }
     GribCapitalizeDataInfo data;
-    data.to = data.from = msg_info.date;
+    data.date_time = msg_info.date;
     data.buf_pos_ = msg_info.buf_pos_;
     data.grid_data = msg_info.grid_data;
     grib_data.push_back(std::move(data));
