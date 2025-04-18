@@ -191,16 +191,16 @@ ProcessResult Check::process_core(std::ranges::random_access_range auto&& entrie
                             switch (props_.t_sep_)
                             {
                             case TimeSeparation::HOUR:
-                                result.found.insert(duration_cast<hours>(info_el.from.time_since_epoch()).count());
+                                result.found.insert(duration_cast<hours>(info_el.date_time.time_since_epoch()).count());
                                 break;
                             case TimeSeparation::DAY:
-                                result.found.insert(duration_cast<days>(info_el.from.time_since_epoch()).count());
+                                result.found.insert(duration_cast<days>(info_el.date_time.time_since_epoch()).count());
                                 break;
                             case TimeSeparation::MONTH:
-                                result.found.insert(duration_cast<months>(info_el.from.time_since_epoch()).count());
+                                result.found.insert(duration_cast<months>(info_el.date_time.time_since_epoch()).count());
                                 break;
                             case TimeSeparation::YEAR:
-                                result.found.insert(duration_cast<years>(info_el.from.time_since_epoch()).count());
+                                result.found.insert(duration_cast<years>(info_el.date_time.time_since_epoch()).count());
                                 break;
                             default:
                                 break;

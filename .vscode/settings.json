@@ -108,7 +108,8 @@
         "cfenv": "cpp",
         "grid.h": "c",
         "table_6.h": "c",
-        "hash_map": "cpp"
+        "hash_map": "cpp",
+        "hash_set": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

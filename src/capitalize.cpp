@@ -20,9 +20,9 @@ namespace fs = std::filesystem;
 using namespace std::string_literals;
 
 //must return the names of created files
-void Capitalize::__write__(const CommonDataProperties& cmn_,
-						const std::vector<GribCapitalizeDataInfo>& data_){
-	for(const GribCapitalizeDataInfo& msg_info:data_){
+std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const std::vector<GribMsgDataInfo>& data_){
+	std::vector<std::pair<fs::path, GribMsgDataInfo>> result;
+	for(const GribMsgDataInfo& msg_info:data_){
 		fs::path cur_path(dest_directory_);
 		FILE* dump_file = NULL;
 		for(char ch:output_order_){
@@ -69,8 +69,10 @@ void Capitalize::__write__(const CommonDataProperties& cmn_,
 		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
 		fwrite(&msg_info.buf_pos_,sizeof(msg_info.buf_pos_),msg_info.msg_sz_,dump_file);
 		fclose(dump_file);
+		result.push_back({cur_path,msg_info});
 		dump_file = NULL;
 	}
+	return result;
 }
 
 
@@ -82,10 +84,38 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 		result.err = ErrorCodeData::OPEN_ERROR;
 		return result;
 	}
-    do{
-		auto msg = grib.message();
-		if(msg.has_value()){
-			GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
+	if(!output_order_.empty()){
+		std::vector<std::pair<fs::path, GribMsgDataInfo>> write_res;
+		{
+			std::vector<GribMsgDataInfo> grib_msgs;
+			do{
+				auto msg = grib.message();
+				if(msg.has_value()){
+					GribMsgDataInfo& info = grib_msgs.emplace_back(	std::move(msg.value().get().section_2_.define_grid()),
+												std::move(msg.value().get().section_1_.date()),
+												grib.current_message_position(),
+												grib.current_message_length().value(),
+												msg.value().get().section_1_.IndicatorOfParameter(),
+												msg.value().get().section_1_.unit_time_range(),
+												msg.value().get().section_1_.center(),
+												msg.value().get().section_1_.table_version());
+					std::cout<<info.date<<std::endl;
+					if(info.grid_data.has_value())
+						std::cout<<to_abbr_representation_type(info.grid_data.value().rep_type)<<std::endl;
+					std::cout<<parameter_table(info.center,info.table_version,info.parameter)->name<<std::endl;
+				}
+			}while(grib.next_message());
+			write_res= std::move(__write__(grib_msgs));
+		}
+		for(const auto& [filename,msg]:write_res)
+			result.add_info(filename,msg);
+		return result;
+	}
+	else{ //only refer (do not overwrite initial files)
+		do{
+			auto msg = grib.message();
+			if(msg.has_value()){
+				GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
 										std::move(msg.value().get().section_1_.date()),
 										grib.current_message_position(),
 										grib.current_message_length().value(),
@@ -93,17 +123,11 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 										msg.value().get().section_1_.unit_time_range(),
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
-			std::cout<<info.date<<std::endl;
-			if(info.grid_data.has_value())
-			 	std::cout<<to_abbr_representation_type(info.grid_data.value().rep_type)<<std::endl;
-			std::cout<<parameter_table(info.center,info.table_version,info.parameter)->name<<std::endl;
-			__write__(file,info); //TODO
-			result.add_info(info);
-		}
-	}while(grib.next_message());
-	for(auto& [cmn,data]:result.data())
-		__write__(cmn,data);
-	return result;
+				result.add_info(file,info);
+			}
+		}while(grib.next_message());
+		return result;
+	}
 }
 
 void Capitalize::execute(){
@@ -112,16 +136,11 @@ void Capitalize::execute(){
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
             std::cout<<entry.path()<<std::endl;
             const GribDataInfo& cap_data = __capitalize_file__(entry.path());
-            for(const auto& [common,grib_data]:cap_data.data())
-                for(const GribCapitalizeDataInfo& c_d:grib_data){
-                    if(c_d.err!=ErrorCodeData::NONE_ERR)
-                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Capitalize mode error",AT_ERROR_ACTION::ABORT,entry.path().c_str(),c_d.buf_pos_);
-                }
         }
         else continue;
     }
     auto tmp_res = std::move(release_result());
     tmp_res.sublime();
     BinaryGribInfo data(std::move(tmp_res),std::string(output_order_));
-    data.write(fs::path(dest_directory_)/"binfmt.bin",BinaryGribInfoType::FULL_DATA);
+    data.write(fs::path(dest_directory_)/"binfmt.bin");
 }

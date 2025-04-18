@@ -14,11 +14,10 @@ private:
 GribDataInfo result;
 fs::path from_file_;
 fs::path dest_directory_;
-std::string_view output_order_="ym"sv;
+std::string_view output_order_;
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
-void __write__(const CommonDataProperties& cmn,
-    const std::vector<GribMsgDataInfo>& data);
+std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);

@@ -130,7 +130,8 @@ ErrorCode Extract::execute(){
             log().record_log(ErrorCodeLog::BIN_FMT_FILE_MISS_IN_DIR_X1,"",dest_directory_.c_str());
             return ErrorCode::INTERNAL_ERROR;
         }
-        BinaryGribInfo format = BinaryGribInfo::read(dest_directory_/format_filename);
+        BinaryGribInfo::sublimed_data_t sublimed_data = BinaryGribInfo::read(dest_directory_/format_filename).sublime();
+        std::vector<std::pair<std::string_view,ptrdiff_t>> file_pos;
         {
             if(!is_correct_interval(props_.from_date_,props_.to_date_)){
                 ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
@@ -149,7 +150,7 @@ ErrorCode Extract::execute(){
             bool found = false;
             if(props_.common_.has_value()){
                 const CommonDataProperties& common_tmp = props_.common_.value();
-                for(auto& d:format.data().data()){
+                for(const auto& [filename,file_data]:sublimed_data){
                     if(common_tmp.fcst_unit_.value()!=d.first.fcst_unit_)
                         continue;
                     if(common_tmp.center_!=d.first.center_)

@@ -1,6 +1,6 @@
 #include "sections/grid/grid.h"
 
-bool GridInfo::operator==(const GridInfo& other){
+bool GridInfo::operator==(const GridInfo& other) const{
     if(rep_type!=other.rep_type)
         return false;
     else{
@@ -27,7 +27,7 @@ bool GridInfo::operator==(const GridInfo& other){
         }
     }
 }
-bool GridInfo::operator!=(const GridInfo& other){
+bool GridInfo::operator!=(const GridInfo& other) const{
 	return !(*this==other);
 }
 

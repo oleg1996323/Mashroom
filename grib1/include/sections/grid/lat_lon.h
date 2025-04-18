@@ -37,7 +37,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
         dx(GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_scan(buffer))){}
 
-    bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) {
+    bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
         return y1 == other.y1 &&
         x1 == other.x1 &&
         y2 == other.y2 &&
@@ -50,6 +50,18 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
         resolutionAndComponentFlags == other.resolutionAndComponentFlags;
     }
 };
+
+// struct std::hash<GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+//     uint64_t operator()(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& grid){
+//         return std::hash<uint64_t>{}((uint64_t)grid.x1<<60+(uint64_t)grid.y1<<56+(uint64_t)grid.x2<<52+(uint64_t)grid.y2<<48+
+//                                     (uint64_t)grid.nx<<46+(uint64_t)grid.ny<<44+(uint64_t)grid.dx<<40+(uint64_t)grid.dy<<36+
+//                                     (uint64_t)grid.scan_mode.adj_points_j_dir<<35+(uint64_t)grid.scan_mode.points_sub_i_dir<<34+
+//                                     (uint64_t)grid.scan_mode.points_sub_j_dir<<33+
+//                                     (uint64_t)grid.resolutionAndComponentFlags.earth_spheroidal<<32+
+//                                     (uint64_t)grid.resolutionAndComponentFlags.given_direction<<31+
+//                                     (uint64_t)grid.resolutionAndComponentFlags.grid_direction_uv_comp<<30);
+//     }
+// };
 
 #include "aux_code/ibmtofloat.h"
 template<>
@@ -82,7 +94,7 @@ struct GridDefinition<RepresentationType::ROTATED_LAT_LON>{
         angle_rotation(GDS_RotLL_RotAng(buffer)),
         latitude_south_pole(GDS_RotLL_LaSP(buffer)),
         longitude_south_pole(GDS_RotLL_LoSP(buffer)){}
-    bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) {
+    bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
         return y1 == other.y1 &&
         x1 == other.x1 &&
         y2 == other.y2 &&
@@ -130,7 +142,7 @@ struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>{
         latitude_stretch_pole(GDS_StrLL_LaStrP(buffer)),
         longitude_stretch_pole(GDS_StrLL_LoStrP(buffer)){}
 
-    bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other){
+    bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const{
         return y1 == other.y1 &&
         x1 == other.x1 &&
         y2 == other.y2 &&
@@ -183,7 +195,7 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>{
         latitude_stretch_pole(GDS_StrLL_LaStrP((&buffer[43-33]))),
         longitude_stretch_pole(GDS_StrLL_LoStrP((&buffer[43-33]))){}
 
-    bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other){
+    bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const{
         return y1 == other.y1 &&
         x1 == other.x1 &&
         y2 == other.y2 &&

@@ -320,11 +320,30 @@ struct GridInfo{
                 break;
             }
         }
-        bool operator==(const GridInfo& other);
-        bool operator!=(const GridInfo& other);
+        bool operator==(const GridInfo& other) const;
+        bool operator!=(const GridInfo& other) const;
     #endif
 };
 #endif
+
+#include <optional>
+
+template<>
+struct std::hash<GridInfo>{
+    size_t operator()(const GridInfo& data) const{
+        return std::hash<uint64_t>{}((uint64_t)data.rep_type<<(sizeof(size_t)-sizeof(data.rep_type)))^
+        (std::hash<std::string_view>{}(reinterpret_cast<const char*>(&data.data))>>sizeof(data.rep_type));
+    }
+};
+
+template<>
+struct std::hash<std::optional<GridInfo>>{
+    size_t operator()(const std::optional<GridInfo>& data) const{
+        if(data.has_value())
+            return std::hash<GridInfo>{}(data.value());
+        else return 0;
+    }
+};
 
 bool pos_in_grid(const Coord& pos, const GridInfo& grid) noexcept;
 int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept;

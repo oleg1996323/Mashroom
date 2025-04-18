@@ -18,31 +18,23 @@ enum class FormatTokens{
     Capitalize_data,
     Capitalize_format
 };
-enum class BinaryGribInfoType{
-    REF = 0,
-    FULL_DATA
-};
 
 using namespace std::string_literals;
-class BinaryGribInfo{
-    GribDataInfo data_ = GribDataInfo();
-    std::string order_;
-    DataFormat fmt_;
-    BinaryGribInfo() = default;
+class BinaryGribInfo:public GribDataInfo{
+        std::string order_;
+        DataFormat fmt_;
+        BinaryGribInfo() = default;
     public:
-    BinaryGribInfo(GribDataInfo&& data, const std::string& order):
-    data_(std::move(data)),order_(order){}
-    BinaryGribInfo(const fs::path& path);
-    static BinaryGribInfo read(const fs::path& path);
-    // void write(OrderItems order,const Date& from, const Date& to, Coord pos);
-    void write(const fs::path& dir, BinaryGribInfoType bin_info_type);
-    const GribDataInfo& data() const{
-        return data_;
-    }
-    const std::string& order() const{
-        return order_;
-    }
-    DataFormat format() const{
-        return fmt_;
-    }
+        BinaryGribInfo(GribDataInfo&& data, const std::string& order):
+        GribDataInfo(std::move(data)),order_(order){}
+        BinaryGribInfo(const fs::path& path);
+        static BinaryGribInfo read(const fs::path& path);
+        // void write(OrderItems order,const Date& from, const Date& to, Coord pos);
+        void write(const fs::path& dir);
+        const std::string& order() const{
+            return order_;
+        }
+        DataFormat format() const{
+            return fmt_;
+        }
 };
