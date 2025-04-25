@@ -4,10 +4,11 @@
 #include <vector>
 #include "cmd_parse/functions.h"
 #include "sys/application.h"
-#include "types/data_binary.h"
+#include "data/info.h"
 #include "aux_code/directories.h"
 #include "def.h"
 #include "message.h"
+#include "program/mashroom.h"
 
 #include <format>
 bool Capitalize::check_format(std::string_view fmt){
@@ -47,7 +48,7 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const st
 			case 'g':
 			case 'G':
 				if(msg_info.grid_data.has_value())
-					cur_path/=to_abbr_representation_type(msg_info.grid_data.value().rep_type);
+					cur_path/=grid_to_abbr(msg_info.grid_data.value().rep_type);
 				else
 					cur_path/="NON_GRID";
 			default:
@@ -99,10 +100,6 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 												msg.value().get().section_1_.unit_time_range(),
 												msg.value().get().section_1_.center(),
 												msg.value().get().section_1_.table_version());
-					std::cout<<info.date<<std::endl;
-					if(info.grid_data.has_value())
-						std::cout<<to_abbr_representation_type(info.grid_data.value().rep_type)<<std::endl;
-					std::cout<<parameter_table(info.center,info.table_version,info.parameter)->name<<std::endl;
 				}
 			}while(grib.next_message());
 			write_res= std::move(__write__(grib_msgs));
@@ -131,6 +128,8 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 }
 
 void Capitalize::execute(){
+	if(!hProgram)
+		hProgram= std::make_unique<Mashroom>(Mashroom());
     for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from_file_)){
         if(entry.is_regular_file() && entry.path().has_extension() && 
         (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -139,8 +138,5 @@ void Capitalize::execute(){
         }
         else continue;
     }
-    auto tmp_res = std::move(release_result());
-    tmp_res.sublime();
-    BinaryGribInfo data(std::move(tmp_res),std::string(output_order_));
-    data.write(fs::path(dest_directory_)/"binfmt.bin");
+	hProgram->add_data(result);
 }

@@ -92,10 +92,10 @@ bool Check::execute(){
     std::vector<int64_t> miss_data;
     std::ranges::set_difference(time_range,found,std::back_inserter(miss_data), std::ranges::less());
     if(!miss_data.empty()){
-        std::set<system_clock::time_point> by_separation;
+        std::set<utc_tp> by_separation;
         std::transform(miss_data.begin(),miss_data.end(),std::inserter(by_separation,by_separation.begin()),[](int64_t date)->system_clock::time_point
         {            
-            return system_clock::time_point(seconds(date));
+            return system_clock::time_point(std::chrono::seconds(date));
         });
         result = true;
         for(auto date:by_separation){
@@ -122,6 +122,7 @@ bool Check::execute(){
     return result;
 }
 
+#include "./include/def.h"
 ProcessResult Check::process_core(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) {
     ProcessResult result;
     for (const fs::directory_entry& entry : entries) {
@@ -167,14 +168,10 @@ ProcessResult Check::process_core(std::ranges::random_access_range auto&& entrie
                                             msg.value().get().section_1_.unit_time_range(),
                                             msg.value().get().section_1_.center(),
                                             msg.value().get().section_1_.table_version());
-                if(props_.common_.has_value()){
-                    const CommonDataProperties& common = props_.common_.value();
-                    if(common.center_!=info.center || 
-                        common.table_version_!=info.table_version || 
-                        common.parameter_!=info.parameter || 
-                        (common.fcst_unit_!=TimeFrame::INDIFFERENT && common.fcst_unit_!=info.parameter))
-                        continue;
-                }
+                if(props_.center_!=info.center || 
+                    !props_.parameters_.contains(SearchParamTableVersion{.param_=info.parameter,.t_ver_=info.table_version}) || 
+                    props_.fcst_unit_!=TimeFrame::INDIFFERENT)
+                    continue;
                 if(info.grid_data.has_value()){
                     if(props_.position_.has_value() && !pos_in_grid(props_.position_.value(),info.grid_data.value()))
                         continue;

@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sections/section_2.h"
-#include "types/date.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8
@@ -48,14 +47,3 @@ enum class DataFormat{
     GRIB,
     REF //add ref on message position with data in concrete file
 };
-
-typedef struct VALUE_BY_COORD{
-    float value;
-    double lat;
-    double lon;
-}ValueByCoord;
-
-typedef struct VALUES{
-    Date date;
-    ValueByCoord* values_by_coord;
-}Values;

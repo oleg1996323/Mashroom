@@ -52,5 +52,4 @@ extern const ParmTable ParmTable_2_98_132[256];
 extern const ParmTable ParmTable_2_82_131[256];
 extern const ParmTable ParmTable_2_98_131[256];
 extern const ParmTable ParmTable_2_98_215[256];
-extern const ParmTable ParmTable_2_128[256];
 extern const ParmTable* parameter_table(unsigned char center, unsigned char table_version, unsigned char param_num);

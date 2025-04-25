@@ -37,6 +37,8 @@ typedef struct {{
         if file.suffix == '.table' and file.name.startswith('2.') and file.name != '2.table':
             table_name = file.stem.removesuffix('.table')
             name_parts = table_name.split('.')
+            if(len(name_parts)<3):
+                continue
             # if len(name_parts)==2:
             #     table_name = file.stem.split('.')[1]
             # elif len(name_parts)==3:
@@ -156,7 +158,7 @@ typedef struct {{
         
     generated_files = [header, source]  # Ваша логика генерации
     return generated_files
-    
+
 
 def main(argv):
     return generate_header(Path(argv.src), argv.out)

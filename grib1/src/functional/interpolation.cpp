@@ -225,4 +225,5 @@ Array_1D linear_interpolation(const Array_1D& data, float discretion){
                         (float)((i*data.size())/result.size()+1)*data.diff,
                         (float)i*result.diff);
     }
+    return result;
 }

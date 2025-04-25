@@ -32,11 +32,9 @@ STRUCT_BEG(Message)
                                     section_2_(section_1_.section1Flags().sec2_inc?section_1_.buffer_+section_1_.section_length():nullptr),
                                     section_3_(section_1_.section1Flags().sec3_inc?nullptr:(section_1_.section1Flags().sec2_inc?
                                             section_2_.buf_+section_2_.section_length():section_1_.buffer_+section_1_.section_length())),
-                                    section_4_(section3().has_value()?section_3_.buf_:
-                                                section2().has_value()?section_2_.buf_:
-                                                section_1_.buffer_
-                                                    +(section3().has_value()?section_3_.section_length():(section2().has_value()?
-                                                            section_2_.section_length():section_1_.section_length()))){}
+                                    section_4_(section3().has_value()?section_3_.buf_+section_3_.section_length():
+                                                section2().has_value()?section_2_.buf_+section_2_.section_length():
+                                                section_1_.buffer_+section_1_.section_length()){}
 
     unsigned long message_length() const noexcept{
         return section_0_.message_length();
@@ -75,15 +73,12 @@ STRUCT_BEG(HGrib1)
     unsigned char* __f_ptr DEF_STRUCT_VAL(nullptr)
     unsigned char* current_ptr_ DEF_STRUCT_VAL(nullptr)
     unsigned long sz_ DEF_STRUCT_VAL(0)
-    FILE* file = nullptr;
+    int file = -1;
     #ifdef __cplusplus
     public:
     HGrib1(const fs::path& filename):msg_(nullptr){open_grib(filename);}
     HGrib1() = default;
-    ~HGrib1(){
-        if(__f_ptr)
-            munmap(__f_ptr,lseek(fileno(file),0,SEEK_END));
-    }
+    ~HGrib1();
     std::optional<std::reference_wrapper<Message>> message() const;
     ptrdiff_t current_message_position() const noexcept;
     std::optional<unsigned long> current_message_length() const noexcept;
@@ -92,6 +87,7 @@ STRUCT_BEG(HGrib1)
     bool is_correct_format() const noexcept;
     std::optional<unsigned char> grib_version() const noexcept;
     ErrorCodeData open_grib(const fs::path& filename);
+    bool set_message(ptrdiff_t pos) noexcept;
     #endif
 }
 STRUCT_END(HGrib1)

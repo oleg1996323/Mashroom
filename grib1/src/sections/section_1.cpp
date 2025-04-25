@@ -372,11 +372,36 @@ unsigned char ProductDefinitionSection::IndicatorOfParameter() const noexcept{
 LevelsTags ProductDefinitionSection::level() const noexcept{
 	return (LevelsTags)PDS_L_TYPE(buffer_);
 }
-unsigned char ProductDefinitionSection::level1_data() const noexcept{
+int16_t ProductDefinitionSection::level1_data() const noexcept{
 	return PDS_LEVEL1(buffer_);
 }
-unsigned char ProductDefinitionSection::level2_data() const noexcept{
+int16_t ProductDefinitionSection::level2_data() const noexcept{
 	return PDS_LEVEL2(buffer_);
+}
+std::optional<Level> ProductDefinitionSection::level_data() const noexcept{
+	Level result{.octet_11=std::monostate(),.octet_12=std::monostate(),.level_type_=level()};
+	switch(levels_11_octets[result.level_type_]){
+		case 0:
+			return result;
+			break;
+		case 1:
+			if(levels_12_octets[result.level_type_]==1){
+				result.octet_11=convert_level<11>(result.level_type_,level1_data());
+				result.octet_12=convert_level<12>(result.level_type_,level2_data());
+			}
+			else{
+				result.octet_11=convert_level<11>(result.level_type_,level1_data());
+			}
+			return result;
+			break;
+		case 2:
+			result.octet_11 = convert_level<11>(result.level_type_,read_bytes(buffer_[11],buffer_[10]));
+			return result;
+			break;
+		default:
+			return std::nullopt;
+	}
+	return std::nullopt;
 }
 unsigned char ProductDefinitionSection::subcenter() const noexcept{
 	return PDS_Subcenter(buffer_);
@@ -421,3 +446,7 @@ std::string_view ProductDefinitionSection::param_comment() const noexcept{
 	return parameter_table(center(),table_version(),IndicatorOfParameter())->comment;
 }
 #endif
+
+const ParmTable* parameter_table(Organization center, unsigned char table_version, unsigned char param_num){
+	return parameter_table((unsigned char)center,table_version,param_num);
+}

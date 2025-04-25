@@ -44,37 +44,133 @@ std::vector<std::string_view> split(std::string_view str, const char* delimiter)
     return result;
 }
 
-std::chrono::system_clock::time_point get_date_from_token(std::string_view input){
+std::optional<TimeOffset> get_time_offset_from_token(std::string_view input){
+    TimeOffset result;
+    std::vector<std::string_view> tokens = split(std::string_view(input),":");
+    if(!tokens.empty()){
+        for(std::string_view token:tokens){
+            auto tmp(from_chars<int>(token.substr(1)));
+            if(!tmp.has_value())
+                return std::nullopt;
+            else{
+                if(tmp.value()<0){
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid interval token input",AT_ERROR_ACTION::CONTINUE,token);
+                    return std::nullopt;
+                }
+                else if(tmp.value()==0){
+                    ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,token);
+                    continue;
+                }
+            }
+            if(token.size()>0){
+                if(token.starts_with("h"))
+                    result.hours_ = hours(tmp.value());
+                else if(token.starts_with("y"))
+                    result.years_ = years(tmp.value());
+                else if(token.starts_with("m"))
+                    result.months_ = months(tmp.value());
+                else if(token.starts_with("d"))
+                    result.days_ = days(tmp.value());
+                else{
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown token for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,token);
+                    return std::nullopt;
+                }
+            }
+            else{
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed token for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,input);
+                return std::nullopt;
+            }
+        }
+        return result;
+    }
+    else{
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed tokens for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,input);
+        return std::nullopt;
+    }
+}
+
+std::optional<utc_tp> get_date_from_token(std::string_view input){
     std::chrono::system_clock::time_point result = std::chrono::system_clock::time_point();
     std::chrono::year year_;
     std::chrono::month month_;
     std::chrono::day day_;
     std::vector<std::string_view> tokens = split(std::string_view(input),":");
-    if(!tokens.empty())
+    if(!tokens.empty()){
         for(std::string_view token:tokens){
+            auto tmp(from_chars<int>(token.substr(1)));
+            if(!tmp.has_value())
+                return std::nullopt;
             if(token.size()>0){
                 if(token.starts_with("h")){
-                    result += hh_mm_ss(hours(from_chars<int>(token.substr(1)))).to_duration();
+                    if(tmp.value()<0){
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid year input",AT_ERROR_ACTION::CONTINUE,token);
+                        return std::nullopt;
+                    }
+                    result += hh_mm_ss(hours(tmp.value())).to_duration();
                 }
                 else if(token.starts_with("y")){
-                    year_ = std::chrono::year(from_chars<int>(token.substr(1)));
+                    if(tmp.value()<0){
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid year input",AT_ERROR_ACTION::CONTINUE,token);
+                        return std::nullopt;
+                    }
+                    year_ = std::chrono::year(tmp.value());
                 }
                 else if(token.starts_with("m")){
-                    month_ = std::chrono::month(from_chars<int>(token.substr(1)));
+                    if(tmp.value()<=0){
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid month input",AT_ERROR_ACTION::CONTINUE,token);
+                        return std::nullopt;
+                    }
+                    month_ = std::chrono::month(tmp.value());
                 }
                 else if(token.starts_with("d")){
-                    day_ = std::chrono::day(from_chars<int>(token.substr(1)));
+                    if(tmp.value()<=0){
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid day input",AT_ERROR_ACTION::CONTINUE,token);
+                        return std::nullopt;
+                    }
+                    day_ = std::chrono::day(tmp.value());
                 }
-                else
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown token for extraction mode hierarchy",AT_ERROR_ACTION::ABORT,token);
+                else{
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown token for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,token);
+                    return std::nullopt;
+                }
             }
-            else
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed token for extraction mode hierarchy",AT_ERROR_ACTION::ABORT,input);
+            else{
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed token for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,input);
+                return std::nullopt;
+            }
         }
-    else
-        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed tokens for extraction mode hierarchy",AT_ERROR_ACTION::ABORT,input);
+    }
+    else{
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missed tokens for extraction mode hierarchy",AT_ERROR_ACTION::CONTINUE,input);
+        return std::nullopt;
+    }
     year_month_day ymd(year_/month_/day_);
-    if(!ymd.ok())
-        ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::ABORT,input);
-    return sys_days();
+    if(!ymd.ok()){
+        ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE,input);
+        return std::nullopt;
+    }
+    return sys_days(ymd).time_since_epoch()+result;
+}
+
+std::vector<SearchParamTableVersion> post_parsing_parameters_aliases_def(Organization center,const std::vector<std::pair<uint8_t,std::string_view>>& alias_params_by_tab_ver,std::set<int>& error_pos){
+    std::vector<SearchParamTableVersion> result;
+    for(int i;i<alias_params_by_tab_ver.size();++i)
+        error_pos.insert(i);
+
+    int pos = 0;
+    for(const auto& [table_version,parameter_alias]:alias_params_by_tab_ver){
+        for(int i=0;i<256;++i){
+            auto tab_ptr = parameter_table(center,table_version,(uint8_t)i);
+            if(!tab_ptr)
+                break;
+            if(parameter_alias==tab_ptr->name){
+                result.push_back({(uint8_t)i,table_version});
+                error_pos.erase(pos);
+                break;
+            }
+            else continue;
+        }
+        ++pos;
+    }
+    return result;
 }

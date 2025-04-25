@@ -151,6 +151,16 @@ std::optional<unsigned long> HGrib1::file_size() const noexcept{
     }
     return std::nullopt;
 }
+HGrib1::~HGrib1(){
+    if(__f_ptr){
+        assert(munmap(__f_ptr,sz_)==0);
+        __f_ptr = nullptr;
+    }
+    if(file!=-1){
+        close(file);
+        file = -1;
+    }
+}
 bool HGrib1::is_correct_format() const noexcept{
     if(msg_ && sz_>=sec_0_min_sz)
         if(memcmp(msg_->section_0_.buf_,"GRIB",4))
@@ -160,21 +170,29 @@ bool HGrib1::is_correct_format() const noexcept{
 std::optional<unsigned char> HGrib1::grib_version() const noexcept{
     if(is_correct_format())
         return msg_->section_0_.grib_version();
+    else return std::nullopt;
 }
 ErrorCodeData HGrib1::open_grib(const fs::path& filename){
     msg_ = nullptr;
     __f_ptr = nullptr;
     current_ptr_ = nullptr;
     sz_ = 0;
-    if(file)
-        fclose(file);
-    file = fopen(filename.string().c_str(),"rb");
-    if(!file)
+    if(file!=-1){
+        close(file);
+        file = -1;
+    }
+    file = open(filename.string().c_str(),O_RDONLY | O_DIRECT);
+    if(file==-1)
         return ErrorCodeData::OPEN_ERROR;
-    fseek(file, 0, SEEK_END);
-    sz_ = ftell(file);
-    fseek(file,0,SEEK_SET);
-    __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_FILE|MAP_SHARED,fileno(file),0);
+    sz_=lseek(file,0,SEEK_END);
+    lseek(file,0,SEEK_SET);
+    __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_PRIVATE|MAP_LOCKED,file,0);
+    //TODO for SSD/HDD
+    //bool is_rotational = (ioctl(fd, BLKROTATIONAL, &rot) == 0 && rot;
+    //__builtin_prefetch(data + offset);
+    //#pragma omp parallel for schedule(dynamic, 256*1024)
+    //posix_memalign(&buffer, 4096, 1 << 20);
+    madvise(__f_ptr, sz_, MADV_SEQUENTIAL);
     if(!__f_ptr)
         return ErrorCodeData::READ_POS;
     current_ptr_ = __f_ptr;
@@ -182,7 +200,6 @@ ErrorCodeData HGrib1::open_grib(const fs::path& filename){
     try{
         const auto tmp = current_message_length();
         if(tmp.has_value()){
-            std::cout<<current_message_length().value()<<std::endl;
             if(!memcmp(__f_ptr+current_message_length().value()-5,"7777",4))
                 return ErrorCodeData::MISS_END_SECTION;
         }
@@ -192,4 +209,13 @@ ErrorCodeData HGrib1::open_grib(const fs::path& filename){
         return ErrorCodeData::BAD_FILE;
     }
     return ErrorCodeData::NONE_ERR;
+}
+bool HGrib1::set_message(ptrdiff_t pos) noexcept{
+    if(pos>=sz_)
+        return false;
+    else {
+        current_ptr_ = __f_ptr + pos;
+        msg_ = std::make_unique<Message>(current_ptr_);
+    }
+    return true;
 }

@@ -1,209 +1,32 @@
-#include "types/date.h"
+#include "types/time_interval.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "sections/section_1.h"
 
 bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to){
-    return duration_cast<MinTimeRange>(to-from).count()<0;
+    return (to-from).count()>0;
 }
-
-#ifdef DEPR
-constexpr unsigned not_leap_year_hours = 365;
-
-// Функция для проверки високосного года
-int is_leap_year(int year) {
-    if (year % 4 != 0) return 0;
-    if (year % 100 != 0) return 1;
-    return (year % 400 == 0);
+bool intervals_intersect(const TimeInterval& lhs, const TimeInterval& rhs){
+    return !(lhs.from_>rhs.to_  || lhs.to_<rhs.from_);
 }
-
-int days_in_year(int year){
-    return is_leap_year(year)?366:365;
+bool intervals_intersect(const utc_tp& from_1, const utc_tp& to_1,const utc_tp& from_2, const utc_tp& to_2){
+    return !(from_1>to_2  || to_1<from_2);
 }
-    
-// Функция для получения количества дней в месяце
-int days_in_month(int year, int month) {
-    if (month == 2) {
-        return is_leap_year(year) ? 29 : 28;
+#include <iostream>
+std::pair<uint16_t,uint16_t> interval_intersection_pos(const TimeInterval& to_seek, const TimeInterval& initial, const utc_diff& discret) noexcept{
+    std::pair<uint16_t,uint16_t> result{0,0};
+    if(discret.count()==0)
+        return result;
+    if(to_seek.from_<=initial.from_)
+        result.first = 0;
+    else
+        result.first = (to_seek.from_.time_since_epoch()-initial.from_.time_since_epoch())/discret+1;
+
+    if(to_seek.to_>=initial.to_)
+        result.second = (initial.to_.time_since_epoch()-initial.from_.time_since_epoch())/discret+1;
+    else{
+        result.second = (initial.to_.time_since_epoch()-to_seek.to_.time_since_epoch())/discret+1;
     }
-    if (month == 4 || month == 6 || month == 9 || month == 11) {
-        return 30;
-    }
-    return 31;
-}
-
-long long get_epoch_time_by_args(int year, int month, int day,int hour){
-    Date date{year,month,day,hour};
-    // Проверка корректности даты
-    if (!is_correct_date(&date))
-        return -1;
-
-    // Количество дней с начала эпохи до начала текущего года
-    long long days_since_epoch = 0;
-    for (int y = 1970; y < date.year; ++y) {
-        days_since_epoch += is_leap_year(y) ? 366 : 365;
-    }
-
-    // Количество дней с начала текущего года до начала текущего месяца
-    for (int m = 1; m < date.month; ++m) {
-        days_since_epoch += days_in_month(date.year, m);
-    }
-
-    // Количество дней с начала текущего месяца до текущего дня
-    days_since_epoch += date.day - 1;
-
-    // Общее количество секунд
-    long long seconds_since_epoch = days_since_epoch * 86400 + date.hour * 3600;
-
-    return seconds_since_epoch;
-}
-
-
-
-// Функция для получения времени в секундах с начала эпохи
-long long get_epoch_time(const Date* date) {
-
-    // Проверка корректности даты
-    if (!is_correct_date(date))
-        return -1;
-
-    // Количество дней с начала эпохи до начала текущего года
-    long long days_since_epoch = 0;
-    for (int y = 1970; y < date->year; ++y) {
-        days_since_epoch += is_leap_year(y) ? 366 : 365;
-    }
-
-    // Количество дней с начала текущего года до начала текущего месяца
-    for (int m = 1; m < date->month; ++m) {
-        days_since_epoch += days_in_month(date->year, m);
-    }
-
-    // Количество дней с начала текущего месяца до текущего дня
-    days_since_epoch += date->day - 1;
-
-    // Общее количество секунд
-    long long seconds_since_epoch = days_since_epoch * 86400 + date->hour * 3600;
-
-    return seconds_since_epoch;
-}
-
-Date date_from_epoque(long long int_time){
-    Date result;
-    int_time/=3600;
-    result.hour = int_time%24;
-    int_time=(int_time-result.hour)/24; //in days
-    result.year = 1970;
-    {
-        result.day = days_in_year(result.year);
-        while(int_time>=result.day){
-            ++result.year;
-            int_time-=result.day;
-            result.day = days_in_year(result.year);
-        }
-    }
-    result.month = 1;
-    result.day = days_in_month(result.year,result.month);
-    while(int_time>result.day){
-        ++result.month;
-        int_time-=result.day;
-        result.day = days_in_month(result.year,result.month);
-    }
-    if(int_time>0)
-        result.day = int_time;
-    else throw std::invalid_argument("Incorrect date");
+    //result.first = to_seek.from_<=initial.from_?0:(to_seek.from_-initial.from_)/discret;
     return result;
 }
-
-
-bool date_less(const Date* lhs, const Date* rhs){
-    return get_epoch_time(lhs)<get_epoch_time(rhs);
-}
-bool date_equal(const Date* lhs, const Date* rhs){
-    return get_epoch_time(lhs)==get_epoch_time(rhs);
-}
-bool date_bigger(const Date* lhs, const Date* rhs){
-    return get_epoch_time(lhs)>get_epoch_time(rhs);
-}
-bool date_less_equal(const Date* lhs, const Date* rhs){
-    return get_epoch_time(lhs)<=get_epoch_time(rhs);
-}
-bool date_bigger_equal(const Date* lhs, const Date* rhs){
-    return get_epoch_time(lhs)>=get_epoch_time(rhs);
-}
-bool is_correct_date(const Date* date){
-    if (date->year < 1970 || date->month < 1 || date->month > 12 || date->day < 1 || date->day > days_in_month(date->year, date->month))
-        return false;
-    return true;
-}
-bool correct_date_interval(Date* from, Date* to){
-    if(!(is_correct_date(from) && is_correct_date(to)))
-        return false;
-    return get_epoch_time(from)<=get_epoch_time(to);
-}
-#include <stdexcept>
-unsigned long hours_to_days(unsigned int hour){
-    return hour/24;
-}
-Date date_increment(TimeRange t_unit, uint8_t time_inc){
-    Date inc{0,0,0,0};
-    switch (t_unit)
-    {
-    case MINUTE:
-    case SECOND:
-    case HALF_HOUR:
-    case QUARTER_HOUR:
-        throw std::runtime_error("Still not supported");
-        break;
-    case HOUR:
-        inc.hour = time_inc;
-        break;
-    case DAY:
-        inc.day = time_inc;
-        break;
-    case MONTH:
-        inc.month = time_inc;
-        break;
-    case YEAR:
-        inc.year = time_inc;
-        break;
-    case HOURS_12:
-        inc.hour = time_inc*12;
-        break;
-    case HOURS_3:
-        inc.hour = time_inc*3;
-        break;
-    case HOURS_6:
-        inc.hour = time_inc*6;
-    case TimeFrame::DECADE:
-        inc.year = time_inc*10;
-        break;
-    case TimeFrame::CENTURY:
-        inc.year = time_inc*100;
-        break;
-    default:
-        throw std::invalid_argument("Invalid time unit");
-        break;
-    }
-    return inc;
-}
-#ifdef __cplusplus
-bool Date::operator<(const Date& other) const noexcept{
-    return date_less(this,&other);
-}
-bool Date::operator<=(const Date& other) const noexcept{
-    return date_less_equal(this,&other);
-}
-bool Date::operator>(const Date& other) const noexcept{
-    return date_bigger(this,&other);
-}
-bool Date::operator>=(const Date& other) const noexcept{
-    return date_bigger_equal(this,&other);
-}
-bool Date::operator==(const Date& other) const noexcept{
-    return date_equal(this,&other);
-}
-bool Date::operator!=(const Date& other) const noexcept{
-    return !(*this==other);
-}
-#endif
-#endif

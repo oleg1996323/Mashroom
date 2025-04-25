@@ -8,7 +8,8 @@ enum class MODE{
     CAPITALIZE,
     EXTRACT,
     CONFIG,
-    HELP
+    HELP,
+    EXIT
 };
 #endif
 

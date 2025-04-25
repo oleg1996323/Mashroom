@@ -319,3 +319,353 @@ static_assert(levels_12_octets[ISOTHERMAL_LEVEL]==0);
 static_assert(levels_12_octets[ENTIRE_ATMOSPHERE]==0);
 static_assert(levels_12_octets[ENTIRE_OCEAN]==0);
 static_assert(levels_12_octets[ISOBARIC_SURFACE_HP]==0);
+
+
+
+#include <optional>
+#include <variant>
+#include <iostream>
+
+#include <boost/units/systems/si/length.hpp>
+#include <boost/units/systems/si/pressure.hpp>
+#include <boost/units/systems/si/temperature.hpp>
+#include <boost/units/systems/si/mass.hpp>
+#include <boost/units/systems/si/time.hpp>
+#include <boost/units/systems/si/io.hpp>
+
+
+using namespace boost::units;
+using namespace boost::units::si;
+
+using vorticity_t = decltype(kelvin/second*meter*meter/kilogram);
+
+
+BOOST_UNITS_STATIC_CONSTANT(vorticity,vorticity_t);
+
+using level_value_t = std::variant<std::monostate,
+                                    int16_t,
+                                    float,
+                                    quantity<si::length>,
+                                    quantity<si::pressure>,
+                                    quantity<si::temperature>,
+                                    quantity<vorticity_t>>;
+
+inline std::ostream& operator<<(std::ostream& stream,const level_value_t& val){
+    switch (val.index())
+    {
+    case 0:
+        return stream<<"NaN";
+        break;
+    case 1:
+        stream<<std::get<1>(val);
+        break;
+    case 2:
+        stream<<std::get<2>(val);
+        break;
+    case 3:
+        stream<<std::get<3>(val);
+        break;
+    case 4:
+        stream<<std::get<4>(val);
+        break;
+    case 5:
+        stream<<std::get<5>(val);
+        break;
+    case 6:
+        stream<<std::get<6>(val);
+        break;
+    default:
+        break;
+    }
+    
+    return stream;
+}
+
+template<uint8_t>
+inline level_value_t convert_level(LevelsTags octet_10,int16_t octet_value);
+
+template<>
+inline level_value_t convert_level<11>(LevelsTags octet_10,int16_t octet_value){
+    switch(octet_10){
+        case GROUND_OR_WATER_SURFACE:
+        case CLOUD_BASE_LEVEL:
+        case LEVEL_OF_CLOUD_TOPS:
+        case LEVEL_OF_0C_ISOTHERM:
+        case LEVEL_OF_ADIABATIC_CONDENSATION_LIFTED_FROM_SURFACE:
+        case MAXIMUM_WIND_LEVEL:
+        case TROPOPAUSE:
+        case NOMINAL_TOP_OF_ATMOSPHERE:
+        case SEA_BOTTOM:{
+            return std::monostate();
+            break;
+        }
+        case ISOBARIC_SURFACE:{
+            return quantity<si::pressure>((float)octet_value*100*pascal);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES:{
+            return quantity<si::pressure>((float)octet_value*1000*pascal);
+            break;
+        }
+        case MEAN_SEA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case SPECIFIED_ALTITUDE_ABOVE_MEAN_SEA_LEVEL:{
+            return quantity<si::length>((float)octet_value*meter);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SPECIFIED_ALTITUDES:{
+            return quantity<si::length>((float)octet_value*100*meter);
+            break;
+        }
+        case SPECIFIED_HEIGHT_LEVEL_ABOVE_GROUND:{
+            return quantity<si::length>((float)octet_value*meter);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SPECIFIED_HEIGHT_LEVELS:{
+            return quantity<si::length>((float)octet_value*100*meter);
+            break;
+        }
+        /*
+        Sigma height level is the vertical model level of the height-based 
+        terrain-following coordinate (Gal-Chen and Somerville, 1975).
+        The value of the level = 
+        (height of the level - height of the terrain) / 
+        (height of the top level - height of the terrain)
+        , which is >= 0 and <= 1.
+        */
+        case SIGMA_LEVEL:{
+            return 10000.f*octet_value;
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SIGMA_LEVELS:{
+            return 100.f*octet_value;
+            break;
+        }
+        case HYBRID_LEVEL:
+        case LAYER_BETWEEN_TWO_HYBRID_LEVELS:{
+            return octet_value;
+            break;
+        }
+        case DEPTH_BELOW_LAND_SURFACE:{
+            return quantity<si::length>((float)octet_value*0.01*meter);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_DEPTHS_BELOW_LAND:{
+            return quantity<si::length>((float)octet_value*0.01*meter);
+            break;
+        }
+        case ISENTROPIC_THETA_LEVEL:{
+            return quantity<si::temperature>((float)octet_value*kelvin);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISENTROPIC_LEVELS:{
+            float val = (float)octet_value;
+            return quantity<si::temperature>((475.f-(float)octet_value)*kelvin);
+            break;
+        }
+        case LEVEL_AT_SPECIFIED_PRESSURE_DIFFERENCE:{
+            return quantity<si::pressure>((float)octet_value*100*pascal);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_LEVELS_AT_SPECIFIED_PRESSURE_DIF_FROM_GROUND_TO_LEVEL:{
+            return quantity<si::pressure>((float)octet_value*100*pascal);
+            break;
+        }
+        //Potential vorticity surface 10-9 K m2 kg-1 s-1
+        case POTENTIAL_VORTICITY_SURFACE:{
+            return quantity<vorticity_t>(0.000000001*vorticity);
+            break;
+        }
+        case ETA_LEVEL:{
+            return 10000.f*octet_value;
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ETA_LEVELS:{
+            return 100.f*octet_value;
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES_HP:{
+            return quantity<si::pressure>((1100.f-(float)octet_value)*100*pascal);
+            break;
+        }
+        case SPECIFIED_HEIGHT_LEVEL_ABOVE_GROUND_HP:{
+            return quantity<si::length>((float)octet_value*0.01*meter);
+            break;
+        }
+        case SATELLITE_SPECTRAL_BAND:{
+            return (float)octet_value;
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SIGMA_LEVELS_HP:{
+            return 1000.f*(1.1f-octet_value);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES_MP:{
+            return quantity<si::pressure>(1000.f*(float)octet_value*pascal);
+            break;
+        }
+        case DEPTH_BELOW_SEA_LEVEL:{
+            return quantity<si::length>((float)octet_value*meter);
+            break;
+        }
+        case ISOTHERMAL_LEVEL:{
+            float val = (float)octet_value;
+            return quantity<si::temperature>(100.f*(float)octet_value*kelvin);
+            break;
+        }
+        case ENTIRE_ATMOSPHERE:
+        case ENTIRE_OCEAN:{
+            return std::monostate();
+            break;
+        }
+        case ISOBARIC_SURFACE_HP:{
+            return quantity<si::pressure>((float)octet_value*pascal);
+            break;
+        }
+        default:{
+            return std::monostate();
+            break;
+        }
+    }
+}
+
+template<>
+inline level_value_t convert_level<12>(LevelsTags octet_10,int16_t octet_value){
+    switch(octet_10){
+        case GROUND_OR_WATER_SURFACE:
+        case CLOUD_BASE_LEVEL:
+        case LEVEL_OF_CLOUD_TOPS:
+        case LEVEL_OF_0C_ISOTHERM:
+        case LEVEL_OF_ADIABATIC_CONDENSATION_LIFTED_FROM_SURFACE:
+        case MAXIMUM_WIND_LEVEL:
+        case TROPOPAUSE:
+        case NOMINAL_TOP_OF_ATMOSPHERE:
+        case SEA_BOTTOM:
+        case ISOBARIC_SURFACE:
+            return std::monostate();
+            break;
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES:{
+            float val = (float)octet_value;
+            return quantity<si::pressure>((float)octet_value*1000*pascal);
+            break;
+        }
+        case MEAN_SEA_LEVEL:
+        case SPECIFIED_ALTITUDE_ABOVE_MEAN_SEA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SPECIFIED_ALTITUDES:{
+            return quantity<si::length>((float)octet_value*100*meter);
+            break;
+        }
+        case SPECIFIED_HEIGHT_LEVEL_ABOVE_GROUND:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SPECIFIED_HEIGHT_LEVELS:{
+            return quantity<si::length>((float)octet_value*100*meter);
+            break;
+        }
+        case SIGMA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SIGMA_LEVELS:{
+            return 100.f*octet_value;
+            break;
+        }
+        case HYBRID_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_HYBRID_LEVELS:{
+            return octet_value;
+            break;
+        }
+        case DEPTH_BELOW_LAND_SURFACE:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_DEPTHS_BELOW_LAND:{
+            return quantity<si::length>((float)octet_value*0.01*meter);
+            break;
+        }
+        case ISENTROPIC_THETA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISENTROPIC_LEVELS:{
+            return quantity<si::temperature>((475.f-(float)octet_value)*kelvin);
+            break;
+        }
+        case LEVEL_AT_SPECIFIED_PRESSURE_DIFFERENCE:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_LEVELS_AT_SPECIFIED_PRESSURE_DIF_FROM_GROUND_TO_LEVEL:{
+            return quantity<si::pressure>((float)octet_value*100*pascal);
+            break;
+        }
+        case POTENTIAL_VORTICITY_SURFACE:{
+            return std::monostate();
+            break;
+        }
+        case ETA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ETA_LEVELS:{
+            return 100.f*octet_value;
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES_HP:{
+            return quantity<si::pressure>((1100.f-(float)octet_value)*100*pascal);
+            break;
+        }
+        case SPECIFIED_HEIGHT_LEVEL_ABOVE_GROUND_HP:{
+            return std::monostate();
+            break;
+        }
+        case SATELLITE_SPECTRAL_BAND:{
+            return std::monostate();
+            break;
+        }
+        case LAYER_BETWEEN_TWO_SIGMA_LEVELS_HP:{
+            float val = (float)octet_value;
+            return 1000.f*(1.1f-octet_value);
+            break;
+        }
+        case LAYER_BETWEEN_TWO_ISOBARIC_SURFACES_MP:{
+            return quantity<si::pressure>((1100.f-(float)octet_value)*100*pascal);
+            break;
+        }
+        case DEPTH_BELOW_SEA_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case ISOTHERMAL_LEVEL:{
+            return std::monostate();
+            break;
+        }
+        case ENTIRE_ATMOSPHERE:
+        case ENTIRE_OCEAN:
+        case ISOBARIC_SURFACE_HP:{
+            return std::monostate();
+            break;
+        }
+        default:{
+            return std::monostate();
+            break;
+        }
+    }
+}
+
+
+
+struct Level{
+    level_value_t octet_11;
+    level_value_t octet_12;
+    LevelsTags level_type_;
+};

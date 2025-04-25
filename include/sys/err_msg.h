@@ -1,10 +1,9 @@
 #pragma once
 #include <array>
-#include "sys/format_def.h"
 
 constexpr std::array<const char*,12> err_msg_log = {
     "Directory \"{0}\" creation denied.",
-    "Missing " EXPAND(FORMAT_FILENAME)" file in destination directory \"{0}\".",
+    "Missing \"data{0}\" file in destination directory \"{1}\".",
     "File \"{0}\" access denied by permissions.",
     "Trying to open a not-file \"{0}\".",
     "Cannot access path: \"{0}\".",
@@ -17,7 +16,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at capitalization: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,22> err_msg={
+constexpr std::array<const char*,25> err_msg={
     "Process successed.",
     "Internal error.",
     "Incorrect argument: date interval.",
@@ -40,4 +39,7 @@ constexpr std::array<const char*,22> err_msg={
     "Ignoring argument \"{0}\".",
     "Already existing configuration name.",
     "Directory \"{0}\" don't exists.",
+    "Unknown format \"{0}\"",
+    "Undefined file format",
+    "Undefined value"
 };

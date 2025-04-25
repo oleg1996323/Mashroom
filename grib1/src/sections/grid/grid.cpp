@@ -32,7 +32,8 @@ bool GridInfo::operator!=(const GridInfo& other) const{
 }
 
 #include <cmath>
-bool pos_in_grid(const Coord& pos, const GridInfo& grid){
+#include <iostream>
+bool pos_in_grid(const Coord& pos, const GridInfo& grid) noexcept{
 	switch (grid.rep_type)
         {
         case RepresentationType::ALBERS_EQUAL_AREA :
@@ -55,12 +56,15 @@ bool pos_in_grid(const Coord& pos, const GridInfo& grid){
         case RepresentationType::SPACE_VIEW :
 		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
 		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+            exit(1);
             break;
 		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+            if(pos.lat_<grid.data.latlon.y2 || pos.lat_>grid.data.latlon.y1 || pos.lon_<grid.data.latlon.x1 || pos.lon_>grid.data.latlon.x2)
+                return false;
+            return true;
+            break;
         case RepresentationType::GAUSSIAN :{
-			if(pos.lat_<grid.data.gauss.y2 || pos.lat_>grid.data.gauss.y1 || pos.lon_<grid.data.gauss.x1 || pos.lon_>grid.data.gauss.x2)
-				return false;
 			if(fmod((double)(grid.data.gauss.y1-pos.lat_)/
 						((grid.data.gauss.y1-grid.data.gauss.y2)/
 						grid.data.gauss.ny),1)!=0 || 
@@ -77,7 +81,8 @@ bool pos_in_grid(const Coord& pos, const GridInfo& grid){
 			break;
 		*/
         default:
-			throw std::runtime_error("Still not available");
+            std::cerr<<"Still not available"<<std::endl;
+            exit(1);
             break;
         }
 }
@@ -110,7 +115,7 @@ int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
 			return UNDEFINED;
             break;
 		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
-            return (pos.lon_-grid.data.gauss.x1)/grid.data.latlon.dx+grid.data.gauss.nx*(pos.lat_-grid.data.gauss.y2)/grid.data.latlon.dy;
+            return (pos.lon_-grid.data.latlon.x1)/grid.data.latlon.dx+grid.data.latlon.nx*(pos.lat_-grid.data.latlon.y2)/grid.data.latlon.dy;
             break;
         default:
 			return UNDEFINED;

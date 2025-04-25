@@ -123,7 +123,7 @@ UNION_END(GridDataType)
 #include <array>
 #include <string_view>
 
-constexpr std::string_view to_string_representation_type(RepresentationType rep_t){
+constexpr std::string_view grid_to_text(RepresentationType rep_t){
     switch(rep_t){
         case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
             return "WGS";
@@ -197,7 +197,7 @@ constexpr std::string_view to_string_representation_type(RepresentationType rep_
     }
 }
 
-constexpr std::string_view to_abbr_representation_type(RepresentationType rep_t){
+constexpr std::string_view grid_to_abbr(RepresentationType rep_t){
     switch(rep_t){
         case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
             return "WGS";

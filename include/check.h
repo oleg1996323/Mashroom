@@ -4,7 +4,7 @@
 #include <vector>
 #include <thread>
 #include "sys/error_print.h"
-#include "types/data_info.h"
+#include "data/info.h"
 #include "message.h"
 #include "def.h"
 
@@ -33,7 +33,7 @@ static constexpr const char* miss_files_filename = "missing_files.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 class Check{
     private:
-    Properties props_;
+    SearchProperties props_;
     GribDataInfo data_;
     fs::path root_directory_; //input root directory
     fs::path dest_directory_; //output log directory
@@ -42,33 +42,53 @@ class Check{
     public:
     static bool check_format(std::string_view fmt);
     bool execute();
-    void set_checking_directory(std::string_view dir){
-        if(!fs::exists(dir))
-            ErrorPrint::print_error(ErrorCode::DIRECTORY_X1_DONT_EXISTS,"",AT_ERROR_ACTION::ABORT,dir.data());
-        if(!fs::is_directory(dir))
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::ABORT,dir.data());
+    ErrorCode set_checking_directory(std::string_view dir){
+        if(!fs::exists(dir)){
+            ErrorPrint::print_error(ErrorCode::DIRECTORY_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,dir.data());
+            return ErrorCode::DIRECTORY_X1_DONT_EXISTS;
+        }
+        if(!fs::is_directory(dir)){
+            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"not directory",AT_ERROR_ACTION::CONTINUE,dir.data());
+            return ErrorCode::COMMAND_INPUT_X1_ERROR;
+        }
         root_directory_=dir;
+        return ErrorCode::NONE;
     }
-    void set_destination_directory(std::string_view dir){
-        if(!fs::exists(dir) && !fs::create_directories(dir))
-            ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,dir);
+    ErrorCode set_destination_directory(std::string_view dir){
+        if(fs::path(dir).has_extension()){
+            ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dir);
+            return ErrorCode::X1_IS_NOT_DIRECTORY;
+        }
+        if(!fs::exists(dir) && !fs::create_directories(dir)){
+            ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dir);
+            return ErrorCode::CREATE_DIR_X1_DENIED;
+        }
         else{
-            if(!fs::is_directory(dir))
-                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir);
+            if(!fs::is_directory(dir)){
+                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dir);
+                return ErrorCode::X1_IS_NOT_DIRECTORY;
+            }
         }
         dest_directory_=dir;
+        return ErrorCode::NONE;
     }
-    void set_properties(std::optional<CommonDataProperties> common = CommonDataProperties(),
+    void set_properties(std::optional<Organization> center,
+                        std::optional<TimeFrame> time_fcst,
+                        std::unordered_set<SearchParamTableVersion> parameters,
                         std::chrono::system_clock::time_point from_date = system_clock::time_point(sys_days(1970y/1/1)),
                         std::chrono::system_clock::time_point to_date = system_clock::now(),
                         TimeSeparation t_sep= TimeSeparation::DAY,
                         std::optional<RepresentationType> grid_type = {},
                         std::optional<Coord> position = {}){
-        props_ = Properties({common,from_date,to_date,grid_type,position,t_sep});
-    }
-    template<typename ARG>
-    void set_common_data(ARG&& cmn_data){
-        props_.common_.emplace(std::forward<ARG>(cmn_data));
+        props_ = SearchProperties{
+            .parameters_ = std::move(parameters),
+            .fcst_unit_ = time_fcst,
+            .center_ = center,
+            .from_date_ = from_date,
+            .to_date_ = to_date,
+            .grid_type_ = grid_type,
+            .position_ = position,
+            .t_sep_ = t_sep};
     }
     template<typename ARG>
     void set_from_date(ARG&& from){

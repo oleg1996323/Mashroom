@@ -20,9 +20,15 @@ enum class Command:uint16_t{
     LON_RIG,
     THREADS,
     EXTRACT_FORMAT,
-    EXTRACTION_DIV,
+    EXTRACTION_TIME_INTERVAL,
     CAPITALIZE_HIERARCHY,
-    CAPITALIZE_FORMAT
+    CAPITALIZE_FORMAT,
+    CENTER,
+    PARAMETERS,
+    TABLE_VERSION,
+    COLLECTION,
+    TIME_FCST,
+    GRID_TYPE
 };
 
 enum class ModeArgs:uint8_t{
@@ -31,7 +37,9 @@ enum class ModeArgs:uint8_t{
     CAPITALIZE,
     CHECK,
     CONFIG,
-    HELP
+    HELP,
+    SAVE,
+    EXIT
 };
 
 enum class ConfigAction:uint8_t{
@@ -58,7 +66,7 @@ struct __Token_text__;
 
 template<>
 struct __Token_text__<translate::token::Command>{
-    static constexpr std::array<const char*,15> txt = {
+    static constexpr std::array<const char*,21> txt = {
         "",
         "-outp",
         "-inp",
@@ -70,22 +78,30 @@ struct __Token_text__<translate::token::Command>{
         "-lonleft",
         "-lonrig",
         "-j",
-        "-extfmt",
-        "-divby",
-        "-hier",
-        "-format"
+        "-extoutfmt",
+        "-extti",
+        "-caporder",
+        "-capfmt",
+        "-center",
+        "-params",
+        "-tablev",
+        "-collect",
+        "-time_fcst",
+        "-grid"
     };
 };
 
 template<>
 struct __Token_text__<translate::token::ModeArgs>{
-    static constexpr std::array<const char*,6> txt = {
+    static constexpr std::array<const char*,8> txt = {
         "",
         "-ext",
         "-cap",
         "-check",
         "-config",
-        "-help"
+        "-help",
+        "-save",
+        "exit()"
     };
 };
 

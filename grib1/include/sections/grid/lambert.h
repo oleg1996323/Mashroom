@@ -31,12 +31,12 @@ struct GridDefinition<RepresentationType::LAMBERT>{
     GridDefinition(unsigned char* buffer):
         nx(GDS_Lambert_nx(buffer)),
         ny(GDS_Lambert_ny(buffer)),
-        y1(GDS_Lambert_La1(buffer)),
-        x1(GDS_Lambert_Lo1(buffer)),
+        y1(0.001*GDS_Lambert_La1(buffer)),
+        x1(0.001*GDS_Lambert_Lo1(buffer)),
         resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Lambert_mode(buffer))),
         LoV(GDS_Lambert_Lov(buffer)),
-        dy(GDS_Lambert_dy(buffer)),
-        dx(GDS_Lambert_dx(buffer)),
+        dy(0.001*GDS_Lambert_dy(buffer)),
+        dx(0.001*GDS_Lambert_dx(buffer)),
         is_south_pole((buffer[26]&0b10000000)==0), //GDS_Lambert_NP
         is_bipolar((buffer[26]&0b01000000)==1),
         scan_mode(ScanMode(GDS_Lambert_scan(buffer))),

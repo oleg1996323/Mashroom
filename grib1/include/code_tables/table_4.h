@@ -73,6 +73,15 @@ const bool is_time[255]={
     0,0,0,0,1
 };
 
+constexpr size_t get_time_frame_number(){
+    size_t res = 0;
+    for (int i = 0; i < sizeof(is_time); i++)
+        res+=is_time[i];
+    return res;
+}
+
+constexpr size_t time_frame_number = get_time_frame_number();
+
 static const char *units[] = {
 	"min", "hr", "d", "mon", "yr",
 	"decade", "normal", "century", "??", "??", " x3 hours", " x6 hours",

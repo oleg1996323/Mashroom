@@ -13,7 +13,6 @@
 #include "code_tables/table_5.h"
 #include "sections/product/def.h"
 #include "generated/code_tables/eccodes_tables.h"
-#include "types/date.h"
 #include <chrono>
 #include <span>
 
@@ -35,15 +34,16 @@ struct ProductDefinitionSection
 	Section2_3_flag section1Flags() const noexcept;
 	unsigned char IndicatorOfParameter() const noexcept;
 	LevelsTags level() const noexcept;
-	unsigned char level1_data() const noexcept;
-	unsigned char level2_data() const noexcept;
+	int16_t level1_data() const noexcept;
+	int16_t level2_data() const noexcept;
+	std::optional<Level> level_data() const noexcept;
 	unsigned char subcenter() const noexcept;
 	unsigned char month() const noexcept;
 	unsigned char day() const noexcept;
 	unsigned char hour() const noexcept;
 	unsigned char minute() const noexcept;
 	std::chrono::system_clock::time_point date() const noexcept{
-		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())).to_duration();
+		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration();
 	}
 	TimeFrame unit_time_range() const noexcept;
 	unsigned char year_of_century() const noexcept;
@@ -56,3 +56,5 @@ struct ProductDefinitionSection
 	std::string_view param_comment() const noexcept;
 	#endif
 };
+
+const ParmTable* parameter_table(Organization center, unsigned char table_version, unsigned char param_num);

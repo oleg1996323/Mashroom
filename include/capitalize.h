@@ -4,7 +4,7 @@
 #include <thread>
 #include "def.h"
 #include "sys/error_code.h"
-#include "types/data_info.h"
+#include "data/info.h"
 #include "message.h"
 
 namespace fs = std::filesystem;

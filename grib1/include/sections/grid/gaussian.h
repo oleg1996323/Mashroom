@@ -65,13 +65,13 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
     GridDefinition(unsigned char* buffer):
         nx(GDS_LatLon_nx(buffer)),
         ny(GDS_LatLon_ny(buffer)),
-        y1(GDS_LatLon_La1(buffer)),
-        x1(GDS_LatLon_Lo1(buffer)),
+        y1(0.001*GDS_LatLon_La1(buffer)),
+        x1(0.001*GDS_LatLon_Lo1(buffer)),
         resolutionAndComponentFlags(ResolutionComponentFlags(GDS_LatLon_mode(buffer))),
-        y2(GDS_LatLon_La2(buffer)),
-        x2(GDS_LatLon_Lo2(buffer)),
-        dy(GDS_LatLon_dy(buffer)),
-        dx(GDS_LatLon_dx(buffer)),
+        y2(0.001*GDS_LatLon_La2(buffer)),
+        x2(0.001*GDS_LatLon_Lo2(buffer)),
+        dy(0.001*GDS_LatLon_dy(buffer)),
+        dx(0.001*GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_mode(buffer))){}
 
     bool operator==(const GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>& other) const{
@@ -96,13 +96,13 @@ struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>{
     GridDefinition(unsigned char* buffer):
         nx(GDS_LatLon_nx(buffer)),
         ny(GDS_LatLon_ny(buffer)),
-        y1(GDS_LatLon_La1(buffer)),
-        x1(GDS_LatLon_Lo1(buffer)),
+        y1(0.001*GDS_LatLon_La1(buffer)),
+        x1(0.001*GDS_LatLon_Lo1(buffer)),
         resolutionAndComponentFlags(ResolutionComponentFlags(GDS_LatLon_mode(buffer))),
-        y2(GDS_LatLon_La2(buffer)),
-        x2(GDS_LatLon_Lo2(buffer)),
-        dy(GDS_LatLon_dy(buffer)),
-        dx(GDS_LatLon_dx(buffer)),
+        y2(0.001*GDS_LatLon_La2(buffer)),
+        x2(0.001*GDS_LatLon_Lo2(buffer)),
+        dy(0.001*GDS_LatLon_dy(buffer)),
+        dx(0.001*GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_mode(buffer))){}
 };
 
@@ -122,13 +122,13 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>{
     GridDefinition(unsigned char* buffer):
         nx(GDS_LatLon_nx(buffer)),
         ny(GDS_LatLon_ny(buffer)),
-        y1(GDS_LatLon_La1(buffer)),
-        x1(GDS_LatLon_Lo1(buffer)),
+        y1(0.001*GDS_LatLon_La1(buffer)),
+        x1(0.001*GDS_LatLon_Lo1(buffer)),
         resolutionAndComponentFlags(ResolutionComponentFlags(GDS_LatLon_mode(buffer))),
-        y2(GDS_LatLon_La2(buffer)),
-        x2(GDS_LatLon_Lo2(buffer)),
-        dy(GDS_LatLon_dy(buffer)),
-        dx(GDS_LatLon_dx(buffer)),
+        y2(0.001*GDS_LatLon_La2(buffer)),
+        x2(0.001*GDS_LatLon_Lo2(buffer)),
+        dy(0.001*GDS_LatLon_dy(buffer)),
+        dx(0.001*GDS_LatLon_dx(buffer)),
         scan_mode(ScanMode(GDS_LatLon_mode(buffer))){}
 };
 #endif

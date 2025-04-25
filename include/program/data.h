@@ -1,0 +1,111 @@
+#pragma once
+#include "data/info.h"
+#include <filesystem>
+#include <chrono>
+#include <algorithm>
+#include <numeric>
+#include <ranges>
+#include <unordered_set>
+#include <map>
+#include <set>
+#include "data/def.h"
+#include "data/info.h"
+#include "sys/error_print.h"
+#include "types/time_interval.h"
+#include "cmd_parse/cmd_translator.h"
+#include "./include/def.h"
+
+using namespace std::chrono;
+using namespace std::string_literals;
+
+namespace fs = std::filesystem;
+class Data{
+    public:
+        using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<std::string_view>>;
+        using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<std::string_view>>;
+        using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<std::string_view>>;
+        
+    private:
+    struct GribData{
+        SublimedGribDataInfo grib_data_;
+        sublimed_data_by_common_data by_common_data_;
+        sublimed_data_by_date_time by_date_;
+        sublimed_data_by_grid by_grid_;
+        GribData() = default;
+        GribData(const GribData&) = delete;
+        GribData(GribData&& other):
+        grib_data_(std::move(other.grib_data_)),
+        by_common_data_(std::move(other.by_common_data_)),
+        by_date_(std::move(other.by_date_)),
+        by_grid_(std::move(other.by_grid_)){}
+    };
+    GribData grib_;
+    std::set<DataTypeInfo> unsaved_;
+    std::unordered_set<fs::path> files_;
+    fs::path data_directory_;
+
+    template<DataTypeInfo>
+    void __read__(const fs::path& filename);
+    template<DataTypeInfo>
+    void __write__(const fs::path& filename);
+
+    template <size_t I=0>
+    void __write_all__(){
+        if constexpr (I < data_types.size()) {
+            if(unsaved_.contains((DataTypeInfo)(I+1))){
+                __write__<data_types[I]>(data_directory_);
+                unsaved_.erase((DataTypeInfo)(I+1));
+            }
+            __write_all__<I + 1>();
+        }
+    }
+    public:
+        void save(){
+            __write_all__<0>();
+        }
+        Data():data_directory_(fs::path(get_current_dir_name())/"data"/"bin"){}
+        Data(const fs::path& data_dir):data_directory_(data_dir){}
+        Data(Data&& other):
+        grib_(std::move(other.grib_)),
+        unsaved_(std::move(other.unsaved_)),
+        files_(std::move(other.files_)),
+        data_directory_(std::move(other.data_directory_)){}
+        ~Data(){
+            save();
+        }
+        void read(const fs::path& filename);
+        bool write(const fs::path& filename);
+        void add_data(GribDataInfo& grib_data);
+        void add_data(SublimedGribDataInfo& grib_data);
+        void add_data(SublimedGribDataInfo&& grib_data);
+        bool unsaved() const{
+            return !unsaved_.empty();
+        }
+        const std::unordered_set<std::string> paths() const{
+            return grib_.grib_data_.paths();
+        }
+        auto data() const{
+            return grib_.grib_data_.data();
+        }
+        const std::unordered_set<fs::path>& written_files() const{
+            return files_;
+        }
+        const SublimedGribDataInfo& sublimed_data() const{
+            return grib_.grib_data_;
+        }
+        std::unordered_map<std::string_view,SublimedDataInfo> match(
+            Organization center,
+            uint8_t table_version,
+            TimeInterval time_interval,
+            RepresentationType rep_t,
+            Coord pos
+        ) const;
+        std::unordered_map<std::string_view,SublimedDataInfo> match(
+            Organization center,
+            std::optional<TimeFrame> time_fcst,
+            const std::unordered_set<SearchParamTableVersion>& parameters,
+            TimeInterval time_interval,
+            RepresentationType rep_t,
+            Coord pos
+        ) const;
+};

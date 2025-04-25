@@ -58,7 +58,8 @@ long int GridDescriptionSection::nxny() const noexcept{
         case RepresentationType::SPACE_VIEW :
 		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
 		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
 		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
         case RepresentationType::GAUSSIAN :{
@@ -72,17 +73,21 @@ long int GridDescriptionSection::nxny() const noexcept{
 			/* thin grid */
 		
 			if (GDS_Gaussian(buf_) || GDS_LatLon(buf_)) {
-			if (ix == 65535) {
-				ix = -1;
-				/* reduced grid */
-				isum = 0;
-				pl = GDS_PL(buf_);
-				for (i = 0; i < iy; i++) {
-					isum += buf_[pl+i*2]*256 + buf_[pl+i*2+1];
+				if (ix == 65535) {
+					ix = -1;
+					/* reduced grid */
+					isum = 0;
+					pl = GDS_PL(buf_);
+					for (i = 0; i < iy; i++) {
+						isum += buf_[pl+i*2]*256 + buf_[pl+i*2+1];
+					}
+					return isum;
 				}
-				return isum;
+				return 0;
 			}
-			return 0;
+			else{
+				std::cerr<<"Internal error"<<std::endl;
+				exit(1);
 			}
             break;
 		}
@@ -92,7 +97,8 @@ long int GridDescriptionSection::nxny() const noexcept{
 			break;
 		*/
         default:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
         }
 }
@@ -122,7 +128,8 @@ long int GridDescriptionSection::nx() const noexcept{
         case RepresentationType::SPACE_VIEW :
 		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
 		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
 		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
         case RepresentationType::GAUSSIAN :{
@@ -135,7 +142,8 @@ long int GridDescriptionSection::nx() const noexcept{
 			break;
 		*/
         default:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
         }
 }
@@ -164,7 +172,8 @@ long int GridDescriptionSection::ny() const noexcept{
         case RepresentationType::SPACE_VIEW :
 		case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
 		case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
-			throw std::runtime_error("Still not available");
+			std::cerr<<"Still not available"<<std::endl;
+			exit(1);
             break;
 		case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
         case RepresentationType::GAUSSIAN :{
