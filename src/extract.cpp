@@ -182,7 +182,7 @@ ErrorCode Extract::execute(){
         utc_tp file_end_time = __get_next_period__(current_time);
         std::ofstream out;
         fs::path out_f_name;
-        cpp::zip_ns::Compressor cmprs(dest_directory_,"any.zip");
+        cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
         for(int row=0;row<max_length;++row){
             //if current_time>file_end_time
             current_time = utc_tp::max();
@@ -194,7 +194,7 @@ ErrorCode Extract::execute(){
                     out.close();
                     if(static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_)&
                     static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::ARCHIVED)){
-                        cmprs.add_file(dest_directory_,out_f_name);              
+                        cmprs.add_file(out_path_,out_f_name);              
                     }
                 }
                 out_f_name/=__generate_directory__(current_time);
@@ -226,7 +226,7 @@ ErrorCode Extract::execute(){
             out.close();
             if(static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_)&
             static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::ARCHIVED)){
-                cmprs.add_file(dest_directory_,out_f_name);              
+                cmprs.add_file(out_path_,out_f_name);              
             }
         }
     }

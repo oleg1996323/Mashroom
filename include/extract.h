@@ -74,7 +74,9 @@ using ExtractedData = std::unordered_map<CommonDataProperties,std::vector<Extrac
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
-class Extract{
+#include <abstractsearchprocess.h>
+#include <abstracttimeseparation.h>
+class Extract:public AbstractSearchProcess,public AbstractTimeSeparation{
     public:
     enum class ExtractFormat:uint{
         DEFAULT = 0,
@@ -85,14 +87,9 @@ class Extract{
     };
     
     private:
-    SearchProperties props_;
-    fs::path file_;
-    fs::path dest_directory_;
     std::string directory_format = std::string("{:%Y")+fs::path::preferred_separator+"%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
     TimeOffset diff_time_interval_ = {years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0)};
-    int cpus = 1;
-    float progress_ = 0;
     ExtractFormat output_format_ = ExtractFormat::DEFAULT;
     void __extract__(const fs::path& file,ExtractedData& ref_data,const SublimedDataInfo& positions);
     ErrorCode __create_dir_for_file__(const fs::path& out_f_name);
@@ -101,139 +98,76 @@ class Extract{
     fs::path __generate_name__(Extract::ExtractFormat format,ARGS&&... args);
     template<typename... ARGS>
     fs::path __generate_directory__(ARGS&&... args);//TODO expand extract division
-    utc_tp __get_next_period__(utc_tp current_time) {
-        using namespace std::chrono;
-        auto ymd = year_month_day(floor<days>(current_time));
-        ymd+=diff_time_interval_.years_;
-        ymd+=diff_time_interval_.months_;
-        auto sd = utc_tp(sys_days(ymd));
-        sd+=diff_time_interval_.days_+diff_time_interval_.hours_;
-        return sd;
-    }
     public:
-    ErrorCode execute();
-    void set_from_path(std::string_view file){
-        if(!fs::exists(file))
-            throw std::invalid_argument("File doesn't exists "s + file.data());
-        file_=file;
-    }
-    ErrorCode set_dest_dir(std::string_view dest_directory){
-        if(!fs::exists(dest_directory) && !fs::create_directories(dest_directory)){
-            log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",dest_directory.data());
-            return ErrorCode::INTERNAL_ERROR;
+    virtual ErrorCode execute() override final;
+    virtual ErrorCode properties_integrity() const override final{
+        if(!in_path_.empty() && !fs::exists(in_path_))
+            return ErrorPrint::print_error(ErrorCode::INVALID_PATH_OF_DIRECTORIES_X1,"",AT_ERROR_ACTION::CONTINUE,in_path_.c_str());
+        if(out_path_.empty())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Output path for extraction mode",AT_ERROR_ACTION::CONTINUE);
+        if(!fs::exists(out_path_)){
+            if(out_path_.has_extension())
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,out_path_.c_str());
+            else if(!fs::create_directories(out_path_))
+                return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,out_path_.c_str());
         }
-        dest_directory_=dest_directory;
+        else{
+            if(!fs::is_directory(out_path_))
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,out_path_.c_str());
+        }
+        if(!is_correct_interval(props_.from_date_,props_.to_date_))
+            return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE,"",AT_ERROR_ACTION::CONTINUE);
+        else if(!props_.position_.has_value())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Not defined",AT_ERROR_ACTION::CONTINUE);
+        else if(!is_correct_pos(props_.position_.value()))
+            return ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
+        else if(!props_.grid_type_.has_value())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Grid type",AT_ERROR_ACTION::CONTINUE);
+        else if(props_.parameters_.empty())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Parameters",AT_ERROR_ACTION::CONTINUE);
+        if(!props_.position_.has_value() || !props_.position_.value().is_correct_pos()) //actually for WGS84
+            return ErrorPrint::print_error(ErrorCode::INCORRECT_RECT,"Rectangle zone in extraction is not defined or is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;
     }
     void set_output_format(ExtractFormat format){
         output_format_ = format;
     }
-    void set_center(Organization center){
-        props_.center_=center;
-    }
-    std::optional<Organization> get_center() const{
-        return props_.center_;
-    }
-    void set_time_fcst(TimeFrame time_fcst){
-        props_.fcst_unit_=time_fcst;
-    }
-    void add_parameter(const SearchParamTableVersion& value){
-        props_.parameters_.insert(value);
-    }
-    void add_parameter(SearchParamTableVersion&& value){
-        props_.parameters_.insert(std::move(value));
-    }
-    const decltype(props_.parameters_)& get_parameters() const{
-        return props_.parameters_;
-    }
-    template<typename ARG>
-    void set_from_date(ARG&& from){
-        props_.from_date_ = std::forward<ARG>(from);
-    }
-    utc_tp date_from() const{
-        return props_.from_date_;
-    }
-    template<typename ARG>
-    void set_to_date(ARG&& to){
-        props_.to_date_ = std::forward<ARG>(to);
-    }
-    utc_tp date_to() const{
-        return props_.to_date_;
-    }
-    void set_time_separation(TimeSeparation t_sep){
-        props_.t_sep_ = t_sep;
-    }
-    void set_grid_respresentation(RepresentationType grid_type){
-        props_.grid_type_.emplace(grid_type);
-    }
-    std::optional<RepresentationType> get_grid_representation() const{
-        return props_.grid_type_;
-    }
-    template<typename ARG>
-    void set_position(ARG&& pos){
-        props_.position_.emplace(std::forward<ARG>(pos));
-    }
     ExtractFormat output_format() const{
         return output_format_;
     }
-    const float& get_progress() const{
-        return progress_;
-    }
-    void set_using_processor_cores(int cores){
-        if(cores>0 && cores<std::thread::hardware_concurrency())
-            cpus=cores;
-        else cpus = 1;
-    }
-    const fs::path& from_file() const{
-        return file_;
-    }
-    ExtractFormat extract_format() const{
-        return output_format_;
-    }
-    std::optional<Coord> get_pos() const{
-        return props_.position_;
-    }
-    void set_offset_time_interval(const TimeOffset& diff){
-        diff_time_interval_ = diff;
+    virtual void __set_offset_time_interval__() override final{
         std::string file_format_tmp;
         std::string dir_format_tmp;
-        if(diff.years_>years(0)){
-            file_format_tmp+="%Y";
-            dir_format_tmp+="%Y";
+        if(diff_time_interval_.hours_>std::chrono::seconds(0)){
+            file_format_tmp+="S%_M%_H%_";
+            dir_format_tmp+="S%"+fs::path::preferred_separator;
+            dir_format_tmp+="M%"+fs::path::preferred_separator;
+            dir_format_tmp+="H%"+fs::path::preferred_separator;
         }
-        if(diff.months_>months(0)){
-            if(file_format_tmp.empty())
-                file_format_tmp+="%m";
-            else {
-                file_format_tmp+="_%m";
-                dir_format_tmp+=fs::path::preferred_separator+"%m";
-            }
+        else if(diff_time_interval_.hours_>minutes(0)){
+            file_format_tmp+="M%_H%_";
+            dir_format_tmp+="M%"+fs::path::preferred_separator;
+            dir_format_tmp+="H%"+fs::path::preferred_separator;
         }
-        if(diff.days_>days(0)){
-            if(file_format_tmp.empty())
-                file_format_tmp+="%d";
-            else{
-                file_format_tmp+="_%d";
-                dir_format_tmp+=fs::path::preferred_separator+"%d";
-            }
+        else if(diff_time_interval_.hours_>hours(0)){
+            file_format_tmp+="H%_";
+            dir_format_tmp+="H%"+fs::path::preferred_separator;
         }
-        if(diff.hours_>hours(0)){
-            if(file_format_tmp.empty())
-                file_format_tmp+="%H";
-            else{
-                file_format_tmp+="_%H";
-                dir_format_tmp+=fs::path::preferred_separator+"%H";
-            }
+        if(diff_time_interval_.days_>days(0)){
+            file_format_tmp+="d%_m%_";
+            dir_format_tmp+="d%"+fs::path::preferred_separator;
+            dir_format_tmp+="m%"+fs::path::preferred_separator;
         }
-        if(!file_format_tmp.empty()){
-            file_format_tmp="_{:"+file_format_tmp+"}";
-            file_format ="{}_{}"+file_format_tmp;
+        else if(diff_time_interval_.months_>months(0)){
+            file_format_tmp+="m%_";
+            dir_format_tmp+="m%"+fs::path::preferred_separator;
         }
-        if(!dir_format_tmp.empty())
-            directory_format="{:"+dir_format_tmp+"}";
-    }
-    const TimeOffset& get_offset_time_interval() const{
-        return diff_time_interval_;
+        file_format_tmp+="Y%";
+        dir_format_tmp+="Y%";
+        std::reverse(file_format_tmp.begin(),file_format_tmp.end());
+        std::reverse(dir_format_tmp.begin(),dir_format_tmp.end());
+        file_format_tmp="{}_{}_{:"+file_format_tmp+"}";
+        directory_format="{:"+dir_format_tmp+"}";
     }
 };
 
@@ -256,5 +190,5 @@ fs::path Extract::__generate_name__(Extract::ExtractFormat format,ARGS&&... args
 }
 template<typename... ARGS>
 fs::path Extract::__generate_directory__(ARGS&&... args){
-    return dest_directory_/std::vformat(directory_format,std::make_format_args(args...));
+    return out_path_/std::vformat(directory_format,std::make_format_args(args...));
 }

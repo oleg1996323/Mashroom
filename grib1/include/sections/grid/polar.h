@@ -5,11 +5,6 @@
 #include "code_tables/table_7.h"
 #include "def.h"
 
-#ifdef __cplusplus
-#include <span>
-template<RepresentationType>
-struct GridDefinition;
-
 template<>
 struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>{
     float y1;
@@ -26,17 +21,6 @@ struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>{
     bool is_south_pole;
     ScanMode scan_mode;
     ResolutionComponentFlags resolutionAndComponentFlags;
-    
-    GridDefinition(unsigned char* buffer):
-        nx(GDS_Polar_nx(buffer)),
-        ny(GDS_Polar_ny(buffer)),
-        y1(0.001*GDS_Polar_La1(buffer)),
-        x1(0.001*GDS_Polar_Lo1(buffer)),
-        resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Polar_mode(buffer))),
-        LoV(0.001*GDS_Polar_Lov(buffer)),
-        Dy(GDS_Polar_Dy(buffer)),
-        Dx(GDS_Polar_Dx(buffer)),
-        is_south_pole(GDS_Polar_pole(buffer)),
-        scan_mode(ScanMode(GDS_Polar_mode(buffer))){}
+    GridDefinition(unsigned char* buffer);
+    const char* print_grid_info() const;
 };
-#endif

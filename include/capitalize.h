@@ -25,21 +25,26 @@ void execute();
 
 ErrorCode set_from_path(std::string_view root_directory){
     if(!fs::exists(root_directory))
-        return ErrorCode::DIRECTORY_X1_DONT_EXISTS;
+        return ErrorPrint::print_error(ErrorCode::DIRECTORY_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,root_directory);
     if(!fs::is_directory(root_directory))
-        return ErrorCode::X1_IS_NOT_DIRECTORY;
+        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,root_directory);
     from_file_=root_directory;
     return ErrorCode::NONE;
 }
-void set_dest_dir(std::string_view dest_directory){
-    if(!fs::exists(dest_directory) && !fs::create_directories(dest_directory))
-        throw std::invalid_argument("Unable to create capitalize destination path "s + dest_directory.data());
+ErrorCode set_dest_dir(std::string_view dest_directory){
+    if(fs::path(dest_directory).has_extension())
+        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+    if(!fs::exists(dest_directory))
+        if(!fs::create_directories(dest_directory))
+            return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
     dest_directory_=dest_directory;
+    return ErrorCode::NONE;
 }
-void set_output_order(std::string_view order){
+ErrorCode set_output_order(std::string_view order){
     if(!check_format(order))
-        throw std::invalid_argument("Invalid capitalize format");
+        return ErrorPrint::print_error(ErrorCode::INVALID_CAPITALIZE_ORDER,"",AT_ERROR_ACTION::CONTINUE,order);
     output_order_ = order;
+    return ErrorCode::NONE;
 }
 void set_output_type(DataFormat format){
     output_format_ = format;

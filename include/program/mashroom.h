@@ -13,7 +13,7 @@
 #include "cmd_parse/functions.h"
 
 #include "capitalize_parse.h"
-#include "check_parse.h"
+#include "integrity_parse.h"
 #include "extract_parse.h"
 #include "config_parse.h"
 #include "cmd_parse/cmd_translator.h"
@@ -54,7 +54,7 @@ class Mashroom{
     ~Mashroom(){
         save();
     }
-    static void read_command(const std::vector<std::string_view>& argv);
+    static ErrorCode read_command(const std::vector<std::string_view>& argv);
     bool read_command(std::istream& stream);
     const Data& data(){
         return data_;

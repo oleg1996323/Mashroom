@@ -8,7 +8,7 @@ STRUCT_BEG(Coord)
     Lat lat_ DEF_STRUCT_VAL(-999);
     Lon lon_ DEF_STRUCT_VAL(-999);
 
-    bool is_correct_pos(){
+    bool is_correct_pos() const{
         if(lon_>=0 && lon_<=180 && lat_<=90 && lat_>=-90)
             return true;
         else return false;

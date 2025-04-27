@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <string_view>
 #include <sstream>
-#include "check.h"
+#include "integrity.h"
 
 using namespace translate::token;
 
@@ -53,14 +53,14 @@ void SplitByColumns(std::string_view left_t,std::string_view right_t, uint left_
     }
 }
 
-void help(){
+ErrorCode help(){
     std::cout<<"Common using:\n"<<\
         "{mode} [option1 arg1 option2 arg2 option3 arg3 ...]\n\n";
 
     std::cout<<"Accessible modes:\n";
 
     SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)," - organize the data by defined hierarchy from unique massive archive.");
-    SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::CHECK)," - check the fullness of data in different date interval and detect the corrupted files of different format.");
+    SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)," - check the integrity of data in different date interval and detect the corrupted files of different format.");
     SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::EXTRACT)," - extract data by rectangle zone or position in date interval from massive data archive with constant complexity.");
     SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::CONFIG)," - add, delete, show accessible user-defined named commands.");
     SplitByColumns(translate_from_token<ModeArgs>(ModeArgs::HELP)," - show help.\n");
@@ -68,19 +68,19 @@ void help(){
     std::cout<<"Accessible options:\n";
     SplitByColumns(translate_from_token<translate::token::Command>(Command::THREADS)+" ( "+\
     translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+' '+\
-    translate_from_token<ModeArgs>(ModeArgs::CHECK)+' '+\
+    translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)+' '+\
     translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",
     " - define the number of threads used for mode-operation execution. (Warning: be care at using with hard disk drive).\n");
 
     SplitByColumns(translate_from_token<Command>(Command::IN_PATH)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+' '+\
-        translate_from_token<ModeArgs>(ModeArgs::CHECK)+' '+\
+        translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)+' '+\
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",\
         " - define the initial path, where is situated the initial data.\n");
         
     SplitByColumns(translate_from_token<Command>(Command::OUT_PATH)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+' '+\
-        translate_from_token<ModeArgs>(ModeArgs::CHECK)+' '+\
+        translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)+' '+\
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",\
         " - define the output path, where will be situated the mode execution result.\n");
 
@@ -103,13 +103,13 @@ void help(){
 
     SplitByColumns(translate_from_token<Command>(Command::DATE_FROM)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+' '+
-        translate_from_token<ModeArgs>(ModeArgs::CHECK)+' '+
+        translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)+' '+
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",\
         " - define the start point-time of time interval.\n");
 
     SplitByColumns(translate_from_token<Command>(Command::DATE_TO)+" ( "+\
         translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)+' '+
-        translate_from_token<ModeArgs>(ModeArgs::CHECK)+' '+
+        translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)+' '+
         translate_from_token<ModeArgs>(ModeArgs::EXTRACT)+" )",\
         " - define the end point-time of time interval.\n");
     
@@ -178,10 +178,11 @@ std::cout<<"Additional info:\n"<<\
 "1. If rectangle zone coordinates are correct, but are uncorrectly mixed up, the correction will be done;\n"<<\
 "2. If the time-points are correct, but are uncorrectly mixed up, the correction will be done.\n"<<std::endl;
         // "For "<<translate_from_token<ModeArgs>(ModeArgs::CAPITALIZE)<<" the result is the catalogued by directories data respectively to the defined hierarchy."<<\
-        // "For "<<translate_from_token<ModeArgs>(ModeArgs::CHECK)<<" the result is the file \""<<miss_files_filename<<"\" with list of missed files in defined interval."<<\
+        // "For "<<translate_from_token<ModeArgs>(ModeArgs::INTEGRITY)<<" the result is the file \""<<miss_files_filename<<"\" with list of missed files in defined interval."<<\
         // "For "<<translate_from_token<ModeArgs>(ModeArgs::EXTRACT)<<" the result is the files of defined format with data extracted from massive data-file."<<\
         // " These files must be catalogued respectively to the defined by called before capitalize-mode's hierarchy\"\"."<<\
         // "";
         
         // " If the interval end value is not defined, it will be defined as now-date. ";
+    return ErrorCode::NONE;
 }

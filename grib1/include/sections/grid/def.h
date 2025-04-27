@@ -211,3 +211,6 @@ static const char *scan_mode[8] = {
 
 
 void GDS_winds(unsigned char *gds, int verbose);
+
+template<RepresentationType>
+struct GridDefinition;

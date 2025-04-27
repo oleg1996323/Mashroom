@@ -10,6 +10,15 @@ void GribDataInfo::add_info(const fs::path& file_name, const GribMsgDataInfo& ms
         ErrorCodeData::NONE_ERR});
 }
 
+void GribDataInfo::add_info(const fs::path& file_name, GribMsgDataInfo&& msg_info) noexcept{
+    info_[file_name][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
+    .emplace_back(GribCapitalizeDataInfo{
+        msg_info.grid_data,
+        msg_info.buf_pos_,
+        msg_info.date,
+        ErrorCodeData::NONE_ERR});
+}
+
 ErrorCodeData GribDataInfo::error() const{
     return err;
 }

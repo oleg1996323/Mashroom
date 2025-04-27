@@ -19,9 +19,10 @@ namespace ErrorPrint{
     std::string message(ErrorCode err,const std::string& prompt_txt);
 
     template<typename... Args>
-    void print_error(ErrorCode err,const std::string& prompt_txt, AT_ERROR_ACTION at_error,  Args&&... args){
+    ErrorCode print_error(ErrorCode err,const std::string& prompt_txt, AT_ERROR_ACTION at_error,  Args&&... args){
         std::cerr<<message(err,prompt_txt,args...)+(at_error==AT_ERROR_ACTION::ABORT?" Abort.":"")<<std::endl;
         if(at_error==AT_ERROR_ACTION::ABORT)
             exit((uint)err);
+        return err;
     }
 }

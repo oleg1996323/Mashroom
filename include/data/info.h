@@ -78,7 +78,7 @@ class GribDataInfo{
     data_t info_;
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
     friend class Capitalize;
-    friend class Check;
+    friend class Integrity;
     friend class Extract;
     public:
     GribDataInfo() =default;
@@ -97,6 +97,7 @@ class GribDataInfo{
             info_[filename][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(cap_info));
     }
     void add_info(const fs::path& file_name, const GribMsgDataInfo& msg_info) noexcept;
+    void add_info(const fs::path& file_name, GribMsgDataInfo&& msg_info) noexcept;
     ErrorCodeData error() const;
     const data_t& data() const;
     void swap(GribDataInfo& other) noexcept;

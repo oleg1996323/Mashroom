@@ -4,12 +4,8 @@
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
 #include "def.h"
-
-#ifdef __cplusplus
 #include <span>
 #include <stdexcept>
-template<RepresentationType>
-struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
@@ -24,8 +20,6 @@ struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
     uint16_t dx;
     ScanMode scan_mode;
     uint8_t reserved[3];
-    GridDefinition(unsigned char* buffer):resolutionAndComponentFlags(GDS_Lambert_mode(buffer)),scan_mode(GDS_Lambert_scan(buffer)){
-        throw std::invalid_argument("Unable to use Millers coordinate-system");
-    }
+    GridDefinition(unsigned char* buffer);
+    const char* print_grid_info() const;
 };
-#endif

@@ -123,3 +123,304 @@ int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
     }
     else return UNDEFINED;
 }
+
+GridDataType::GridDataType(unsigned char* buffer, RepresentationType T){
+    switch (T)
+    {
+    case RepresentationType::ALBERS_EQUAL_AREA :
+        albers = GridDefinition<ALBERS_EQUAL_AREA>(buffer);
+        break;
+    case RepresentationType::GAUSSIAN :
+        gauss = GridDefinition<GAUSSIAN>(buffer);
+        break;
+    case RepresentationType::ROTATED_GAUSSIAN_LAT_LON :
+        rot_gauss = GridDefinition<ROTATED_GAUSSIAN_LAT_LON>(buffer);
+        break;
+    case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON :
+        str_gauss = GridDefinition<STRETCHED_GAUSSIAN_LAT_LON>(buffer);
+        break;
+    case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON :
+        str_rot_gauss = GridDefinition<STRETCHED_ROTATED_GAUSSIAN_LAT_LON>(buffer);
+        break;
+    case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+        latlon = GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>(buffer);
+        break;
+    case RepresentationType::ROTATED_LAT_LON:
+        rot_latlon = GridDefinition<ROTATED_LAT_LON>(buffer);
+        break;
+    case RepresentationType::STRETCHED_LAT_LON :
+        str_latlon = GridDefinition<STRETCHED_LAT_LON>(buffer);
+        break;
+    case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON :
+        str_rot_latlon = GridDefinition<STRETCHED_AND_ROTATED_LAT_LON>(buffer);
+        break;
+    case RepresentationType::LAMBERT :
+        lambert = GridDefinition<LAMBERT>(buffer);
+        break;
+    case RepresentationType::MERCATOR :
+        mercator = GridDefinition<MERCATOR>(buffer);
+        break;
+    case RepresentationType::MILLERS_CYLINDR :
+        millers = GridDefinition<MILLERS_CYLINDR>(buffer);
+        break;
+    case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL :
+        lambert_oblique = GridDefinition<OBLIQUE_LAMBERT_CONFORMAL>(buffer);
+        break;
+    case RepresentationType::POLAR_STEREOGRAPH_PROJ :
+        polar = GridDefinition<POLAR_STEREOGRAPH_PROJ>(buffer);
+        break;
+    case RepresentationType::SIMPLE_POLYCONIC :
+        polyconic = GridDefinition<SIMPLE_POLYCONIC>(buffer);
+        break;
+    case RepresentationType::GNOMONIC :
+        gnomonic = GridDefinition<GNOMONIC>(buffer);
+        break;
+    case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        rot_harmonic = GridDefinition<ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>(buffer);
+        break;
+    case RepresentationType::UTM :
+        utm = GridDefinition<UTM>(buffer);
+        break;
+    case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        str_harmonic = GridDefinition<STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>(buffer);
+        break;
+    case RepresentationType::SPACE_VIEW :
+        space = GridDefinition<SPACE_VIEW>(buffer);
+        break;
+    case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS :
+        harmonic = GridDefinition<SPHERICAL_HARMONIC_COEFFICIENTS>(buffer);
+        break;
+    case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        str_rot_harmonic = GridDefinition<STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>(buffer);
+        break;
+    default:
+        break;
+    }
+}
+
+#include <array>
+#include <string_view>
+
+constexpr std::string_view grid_to_text(RepresentationType rep_t){
+    switch(rep_t){
+        case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
+            return "WGS";
+            break;
+        case RepresentationType::ROTATED_LAT_LON:
+            return "Rotated WGS";
+            break;
+        case RepresentationType::STRETCHED_LAT_LON:
+            return "Stretched WGS";
+            break;
+        case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON:
+            return "Stretched and rotated WGS";
+            break;
+        case RepresentationType::GAUSSIAN:
+            return "Gaussian";
+            break;
+        case RepresentationType::ROTATED_GAUSSIAN_LAT_LON:
+            return "Rotated Gaussian";
+            break;
+        case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON:
+            return "Stretched Gaussian";
+            break;
+        case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON:
+            return "Stretched and rotated Gaussian";
+            break;
+        case RepresentationType::ALBERS_EQUAL_AREA:
+            return "Albers system";
+            break;
+        case RepresentationType::GNOMONIC:
+            return "Gnomonic system";
+            break;
+        case RepresentationType::LAMBERT:
+            return "Lambert system";
+            break;
+        case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL:
+            return "Oblique Lambert conic";
+            break;
+        case RepresentationType::MERCATOR:
+            return "Mercator";
+            break;
+        case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "Spherical harmonic coefficients";
+            break;
+        case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "Rotated spherical harmonic coefficients";
+            break;
+        case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "Stretched spherical harmonic coefficients";
+            break;
+        case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "Stretched and rotated spherical harmonic coefficients";
+            break;
+        case RepresentationType::MILLERS_CYLINDR:
+            return "Millers system";
+            break;
+        case RepresentationType::SIMPLE_POLYCONIC:
+            return "Simple polyconic";
+            break;
+        case RepresentationType::POLAR_STEREOGRAPH_PROJ:
+            return "Polar";
+            break;
+        case RepresentationType::SPACE_VIEW:
+            return "Spatial";
+            break;
+        case RepresentationType::UTM:
+            return "UTM";
+            break;
+        default:{
+            throw std::invalid_argument("Unknown coordinate system");
+        }
+    }
+}
+
+constexpr std::string_view grid_to_abbr(RepresentationType rep_t){
+    switch(rep_t){
+        case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
+            return "WGS";
+            break;
+        case RepresentationType::ROTATED_LAT_LON:
+            return "rWGS";
+            break;
+        case RepresentationType::STRETCHED_LAT_LON:
+            return "sWGS";
+            break;
+        case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON:
+            return "srWGS";
+            break;
+        case RepresentationType::GAUSSIAN:
+            return "Gauss";
+            break;
+        case RepresentationType::ROTATED_GAUSSIAN_LAT_LON:
+            return "rGauss";
+            break;
+        case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON:
+            return "sGauss";
+            break;
+        case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON:
+            return "srGauss";
+            break;
+        case RepresentationType::ALBERS_EQUAL_AREA:
+            return "Albers";
+            break;
+        case RepresentationType::GNOMONIC:
+            return "Gnomonic";
+            break;
+        case RepresentationType::LAMBERT:
+            return "Lambert";
+            break;
+        case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL:
+            return "LambertCon";
+            break;
+        case RepresentationType::MERCATOR:
+            return "Merc";
+            break;
+        case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "SpherHarmCoef";
+            break;
+        case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "rSpherHarmCoef";
+            break;
+        case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "sSpherHarmCoef";
+            break;
+        case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS:
+            return "srSpherHarmCoef";
+            break;
+        case RepresentationType::MILLERS_CYLINDR:
+            return "Millers";
+            break;
+        case RepresentationType::SIMPLE_POLYCONIC:
+            return "SimpPolyCon";
+            break;
+        case RepresentationType::POLAR_STEREOGRAPH_PROJ:
+            return "Polar";
+            break;
+        case RepresentationType::SPACE_VIEW:
+            return "Spatial";
+            break;
+        case RepresentationType::UTM:
+            return "UTM";
+            break;
+        default:{
+            throw std::invalid_argument("Unknown coordinate system");
+        }
+    }
+}
+
+const char* GridInfo::print_grid_info() const{
+    switch(rep_type){
+        case RepresentationType::ALBERS_EQUAL_AREA :
+        return data.albers.print_grid_info();
+        break;
+    case RepresentationType::GAUSSIAN :
+        return data.gauss.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_GAUSSIAN_LAT_LON :
+        return data.rot_gauss.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON :
+        return data.str_gauss.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON :
+        return data.str_rot_gauss.print_grid_info();
+        break;
+    case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+        return data.latlon.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_LAT_LON:
+        return data.rot_latlon.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_LAT_LON :
+        return data.str_latlon.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON :
+        return data.str_rot_latlon.print_grid_info();
+        break;
+    case RepresentationType::LAMBERT :
+        return data.lambert.print_grid_info();
+        break;
+    case RepresentationType::MERCATOR :
+        return data.mercator.print_grid_info();
+        break;
+    case RepresentationType::MILLERS_CYLINDR :
+        return data.millers.print_grid_info();
+        break;
+    case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL :
+        return data.lambert_oblique.print_grid_info();
+        break;
+    case RepresentationType::POLAR_STEREOGRAPH_PROJ :
+        return data.polar.print_grid_info();
+        break;
+    case RepresentationType::SIMPLE_POLYCONIC :
+        return data.polyconic.print_grid_info();
+        break;
+    case RepresentationType::GNOMONIC :
+        return data.gnomonic.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.rot_harmonic.print_grid_info();
+        break;
+    case RepresentationType::UTM :
+        return data.utm.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.str_harmonic.print_grid_info();
+        break;
+    case RepresentationType::SPACE_VIEW :
+        return data.space.print_grid_info();
+        break;
+    case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.harmonic.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.str_rot_harmonic.print_grid_info();
+        break;
+    default:
+        break;
+    }
+}
+std::vector<uint8_t> GridInfo::bin_grid_info() const{
+
+}

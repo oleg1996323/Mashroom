@@ -35,11 +35,12 @@ enum class ModeArgs:uint8_t{
     NONE,
     EXTRACT,
     CAPITALIZE,
-    CHECK,
+    INTEGRITY,
     CONFIG,
     HELP,
     SAVE,
-    EXIT
+    EXIT,
+    CONTAINS
 };
 
 enum class ConfigAction:uint8_t{
@@ -93,15 +94,16 @@ struct __Token_text__<translate::token::Command>{
 
 template<>
 struct __Token_text__<translate::token::ModeArgs>{
-    static constexpr std::array<const char*,8> txt = {
+    static constexpr std::array<const char*,9> txt = {
         "",
         "-ext",
         "-cap",
-        "-check",
+        "-integrity",
         "-config",
         "-help",
         "-save",
-        "exit()"
+        "exit()",
+        "-contains"
     };
 };
 

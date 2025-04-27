@@ -13,8 +13,7 @@ struct GridDefinition;
 
 template<>
 struct GridDefinition<RepresentationType::GNOMONIC>{
-    GridDefinition(unsigned char* buffer){
-        throw std::invalid_argument("Unable to use Gnomonic coordinate-system");
-    }
+    GridDefinition(unsigned char* buffer);
+    const char* print_grid_info() const;
 };
 #endif

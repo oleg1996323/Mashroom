@@ -44,5 +44,4 @@ struct SearchProperties{
     system_clock::time_point to_date_ = system_clock::now();
     std::optional<RepresentationType> grid_type_;
     std::optional<Coord> position_;
-    TimeSeparation t_sep_ = TimeSeparation::DAY;
 };

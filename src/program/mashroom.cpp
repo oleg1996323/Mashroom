@@ -76,145 +76,98 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
 }
 
-void Mashroom::read_command(const std::vector<std::string_view>& argv){
-    std::cout << "Command-line arguments:" << std::endl;
+ErrorCode Mashroom::read_command(const std::vector<std::string_view>& argv){
     if(argv.size()<1){
-        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Zero arguments",AT_ERROR_ACTION::CONTINUE,"");
-        return;
+        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Haven't arguments",AT_ERROR_ACTION::CONTINUE,"");
+        return ErrorCode::COMMAND_INPUT_X1_ERROR;
     }
-
-    for (size_t i = 0;i<argv.size();++i) {
-        std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
-    }
-    MODE mode = MODE::NONE;
-    switch(translate_from_txt<translate::token::ModeArgs>(argv.at(0))){
-        case translate::token::ModeArgs::EXTRACT:
-            mode = MODE::EXTRACT;
-            break;
-        case translate::token::ModeArgs::CAPITALIZE:
-            mode = MODE::CAPITALIZE;
-            break;
-        case translate::token::ModeArgs::CHECK:
-            mode = MODE::CHECK_ALL_IN_PERIOD;
-            break;
-        case translate::token::ModeArgs::CONFIG:
-            mode = MODE::CONFIG;
-            break;
-        case translate::token::ModeArgs::HELP:
-            mode = MODE::HELP;
-            for(int i=1;i<argv.size();++i)
-                ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,argv.at(i));
-            help();
-            return;
-            break;
-        case translate::token::ModeArgs::EXIT:
-            mode = MODE::EXIT;
-            if(argv.size()>1){
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,argv.at(1));
-                return;
-            }
-            exit(0);
-            break;
-        case translate::token::ModeArgs::SAVE:
-            if(!hProgram || !hProgram->save())
-                ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Nothing to save",AT_ERROR_ACTION::CONTINUE,argv.at(0));
-            return;
-            break;
-        default:
-            if(Application::config().has_config_name(argv.at(0))){
-                for(int i=1;i<argv.size();++i)
-                    ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"",AT_ERROR_ACTION::CONTINUE,argv.at(i));
-                return read_command(Application::config().get_user_config(argv.at(0))|std::ranges::views::transform([](auto& str){
-                    return std::string_view(str);
-                })|std::ranges::to<std::vector<std::string_view>>());
-            }
-            else{
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,argv.at(0));
-                return;
-            }
-    }
-    
-    std::vector<std::string_view> args(argv.begin()+1,argv.end());
+    std::vector<std::string_view> arguments;
+    ErrorCode err;
+    if(argv.size()>1)
+        arguments.append_range(std::vector<std::string_view>(argv.begin()+1,argv.end()));
     {
-        switch(mode){
-            case MODE::CAPITALIZE:
-                capitalize_parse(args);
+        switch(translate_from_txt<translate::token::ModeArgs>(argv.at(0))){
+            case translate::token::ModeArgs::CAPITALIZE:
+                if(arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_FEW_ARGUMENTS;
+                }
+                return capitalize_parse(arguments);
                 break;
-            case MODE::EXTRACT:
-                extract_parse(args);
+            case translate::token::ModeArgs::EXTRACT:
+                if(arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_FEW_ARGUMENTS;
+                }
+                return extract_parse(arguments);
                 break;
-            case MODE::CHECK_ALL_IN_PERIOD:
-                check_parse(args);
+            case translate::token::ModeArgs::INTEGRITY:
+                if(arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_FEW_ARGUMENTS;
+                }
+                return integrity_parse(arguments);
                 break;
-            case MODE::CONFIG:
-                config_parse(args);
+            case translate::token::ModeArgs::CONTAINS:
+                if(arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_FEW_ARGUMENTS;
+                }
+                //TODO
                 break;
-            case MODE::HELP:
-                help();
+            case translate::token::ModeArgs::CONFIG:
+                if(arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_FEW_ARGUMENTS;
+                }
+                return config_parse(arguments);
                 break;
-            case MODE::EXIT:
+            case translate::token::ModeArgs::HELP:
+                if(arguments.size()>1){
+                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_MANY_ARGUMENTS;
+                }
+                else if(arguments.size()==1){
+                    //help(*mode*)
+                }
+                else
+                    help();
+                break;
+            case translate::token::ModeArgs::SAVE:
+                if(!arguments.empty()){
+                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                    return ErrorCode::TO_MANY_ARGUMENTS;
+                }
+                if(!hProgram || !hProgram->save()){
+                    ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Nothing to save",AT_ERROR_ACTION::CONTINUE,argv.at(0));
+                    return ErrorCode::IGNORING_VALUE_X1;
+                }
+                break;
+            case translate::token::ModeArgs::EXIT:
+                if(argv.size()>1){
+                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE,argv.at(1));
+                    return ErrorCode::TO_MANY_ARGUMENTS;
+                }
                 exit(0);
                 break;
-            default:
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Missing mode operation 1st argument",AT_ERROR_ACTION::CONTINUE);
-                return;
+            default:{
+                if(Application::config().has_config_name(argv.at(0))){
+                    if(argv.size()>1){
+                        ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE,argv.at(1));
+                        return ErrorCode::TO_MANY_ARGUMENTS;
+                    }
+                    return read_command(Application::config().get_user_config(argv.at(0))|std::ranges::views::transform([](auto& str){
+                        return std::string_view(str);
+                    })|std::ranges::to<std::vector<std::string_view>>());
+                }
+                else{
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,argv.at(0));
+                    return ErrorCode::COMMAND_INPUT_X1_ERROR;
+                }
+            }
         }
-    }
-    //for(int i = 1;i<argv.size();++i){
-        //date from for extraction
-        //input separated by ':' with first tokens ('h','d','m','y'),integer values
-        // else if(strcmp(argv[i],"-coord")==0){
-        //     if(mode_extract == DataExtractMode::RECT){
-        //         std::cout<<"Conflict between arguments. Already choosen extraction mode by zone-rectangle. Abort"<<std::endl;
-        //         exit(1);
-        //     }
-        //     else if(mode_extract == DataExtractMode::POSITION){
-        //         std::cout<<"Ignoring argument: "<<argv[i++]<<std::endl;
-        //         continue;
-        //     }
-        //     else mode_extract=DataExtractMode::POSITION;
-        //     ++i;
-        //     char* str = strtok(argv[i],":");
-        //     coord.lat_ = std::stod(str);
-        //     str = strtok(argv[i],":");
-        //     coord.lon_ = std::stod(str);
-        // }
-        //input integer or float value with '.' separation
-        
-        //input integer or float value with '.' separation
-
-        //input integer or float value with '.' separation
-        
-        
-        
-        // else if(strcmp(argv[i],"-send")==0){
-        //     ++i;
-        //     char* arg = argv[i];
-        //     char* tokens;
-        //     char* type = strtok_r(arg,":",&tokens);
-        //     if(strcmp(type,"dir")==0){
-        //         out = strtok_r(NULL,":",&tokens);
-        //         if(!std::filesystem::is_directory(out)){
-        //             if(!std::filesystem::create_directory(out)){
-        //                 std::cout<<out<<" is not a directory. Abort.";
-        //                 exit(1);
-        //             }
-        //         }
-        //     }
-        //     else if(strcmp(type,"ip")==0 && mode==MODE::EXTRACT){
-        //         out = strtok_r(NULL,":",&tokens);
-        //     }
-        //     else{
-        //         std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
-        //         exit(1);
-        //     }
-        // }
-        // else{
-        //     std::cout<<"Invalid argument: argv["<<argv[i]<<"]"<<std::endl;
-        //     exit(1);
-        // }
-    //}    
-    return;
+    }  
+    return ErrorCode::NONE;
 }
 
 bool Mashroom::read_command(std::istream& stream){

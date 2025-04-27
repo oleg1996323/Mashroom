@@ -8,8 +8,9 @@
 #include "code_tables/table_0.h"
 #include "sections/grid/grid.h"
 #include "def.h"
+#include "types/time_interval.h"
 
-STRUCT_BEG(GribMsgDataInfo)
+struct GribMsgDataInfo
 {
     std::optional<GridInfo> grid_data;
     utc_tp date;
@@ -19,7 +20,7 @@ STRUCT_BEG(GribMsgDataInfo)
     TimeFrame t_unit;
     Organization center;
     uint8_t table_version;
-    ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
+    ErrorCodeData err = NONE_ERR;
 
     GribMsgDataInfo(std::optional<GridInfo>&& grid_data_,
         utc_tp&& date_,
@@ -37,5 +38,5 @@ STRUCT_BEG(GribMsgDataInfo)
         t_unit(t_unit_),
         center(center_),
         table_version(table_version_){}
-}
-STRUCT_END(GribMsgDataInfo)
+    GribMsgDataInfo() = default;
+};
