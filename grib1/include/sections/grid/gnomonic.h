@@ -6,14 +6,8 @@
 #include "def.h"
 #include "stdexcept"
 
-#ifdef __cplusplus
-#include <span>
-template<RepresentationType>
-struct GridDefinition;
-
 template<>
 struct GridDefinition<RepresentationType::GNOMONIC>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
 };
-#endif

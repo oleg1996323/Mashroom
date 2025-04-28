@@ -1,5 +1,6 @@
-#pragma once
 #include <sections/grid/harmonic.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <cassert>
 #include <stdexcept>
 

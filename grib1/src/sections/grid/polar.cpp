@@ -1,4 +1,6 @@
 #include <sections/grid/polar.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <cassert>
 
 GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>::GridDefinition(unsigned char* buffer):

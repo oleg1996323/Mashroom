@@ -1,4 +1,6 @@
 #include <sections/grid/mercator.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <cassert>
 
 GridDefinition<RepresentationType::MERCATOR>::GridDefinition(unsigned char* buffer):

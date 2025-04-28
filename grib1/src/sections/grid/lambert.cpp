@@ -1,5 +1,6 @@
-#pragma once
 #include <sections/grid/lambert.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <stdexcept>
 #include <cassert>
 

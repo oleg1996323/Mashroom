@@ -34,11 +34,7 @@ struct ContainOutputFilter{
 
 class Contains:public AbstractSearchProcess{
     std::vector<FoundDataInfo> data_; //make_templated further
-    std::string common_format_ = "File {}\ncenter {}({}) table version {} parameter {}({}) forecast-time {}";
-    std::string grid_format_ = "{}";
-    std::string time_interval_format_ = "from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}";
     ContainOutputFilter filter_;
-    void __make_formats_from_filter__();
     public:
     virtual ErrorCode execute() override final{
         if(     !props_.center_.has_value() && 
@@ -46,20 +42,38 @@ class Contains:public AbstractSearchProcess{
                 props_.from_date_==utc_tp() && 
                 time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
                 !props_.grid_type_.has_value() &&
-                !props_.parameters_.empty())
+                !props_.parameters_.empty()){
             for(auto& [file,file_data]:hProgram->data().data()){
                 for(auto& [common,info_seq]:file_data)
                     for(auto& info:info_seq){
-                        std::cout<<std::vformat(common_format_,std::make_format_args(filter_.file?file:(filter_.center?center:(filter_.table_version?))));
-                        std::cout<<std::vformat(found_output_,std::make_format_args(file.data(),(int)common->center_.value(),center_to_abbr(common->center_.value()),(int)common->table_version_.value(),(int)common->parameter_.value(),
-                        parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name,(int)common->fcst_unit_.value(),
-                        (int)info.grid_data.value().rep_type,grid_to_abbr(info.grid_data.value().rep_type).data(),info.grid_data.value().print_grid_info(),info.from,info.to));
+                        if(filter_.file)
+                            std::cout<<"File "<<file<<std::endl;
+                        if(filter_.center)
+                            std::cout<<"center "<<(int)common->center_.value()<<"("<<center_to_abbr(common->center_.value())<<") "<<std::flush;
+                        if(filter_.table_version)
+                            std::cout<<"table version "<<(int)common->table_version_.value()<<" "<<std::flush;
+                        if(filter_.parameter)
+                            std::cout<<"parameter "<<(int)common->parameter_.value()<<"("<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name
+                            <<") "<<std::flush;
+                        if(filter_.forecast_time)
+                            std::cout<<"forecast-time "<<(int)common->fcst_unit_.value()<<std::endl;
+                        if(filter_.grid_info)
+                            std::cout<<info.grid_data->print_grid_info()<<std::endl;
+                        if(filter_.time_interval)
+                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.from,info.to)<<std::endl;
                     }
             }
-
+        }
+        else{
+            
+        }
+        return ErrorCode::NONE;
     }
+    
     virtual ErrorCode properties_integrity() const override final{
-        
+        if(out_path_.empty())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);
+        return ErrorCode::NONE;
     }
 };
 

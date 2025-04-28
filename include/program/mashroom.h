@@ -5,6 +5,7 @@
 #include <thread>
 #include <mutex>
 #include <filesystem>
+#include <cctype>
 #include <ranges>
 #include <fstream>
 #include "error_code.h"
@@ -64,8 +65,20 @@ class Mashroom{
     }
     bool save(){
         if(data_.unsaved()){
-            data_.save();
-            __write_initial_data_file__();
+            std::cout<<"Save changes? (yes/no)\n>>";
+            std::string buffer;
+            std::getline(std::cin,buffer);
+
+            if(buffer=="yes"){
+                data_.save();
+                __write_initial_data_file__();
+                return true;
+            }
+            else if(buffer=="no")
+                return false;
+            else{
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"please write \"yes\" if you want to save changes; else write \"no\"",AT_ERROR_ACTION::CONTINUE,buffer);
+            }
             return true;
         }
         else return false;

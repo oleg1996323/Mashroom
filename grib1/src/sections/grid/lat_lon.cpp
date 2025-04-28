@@ -1,6 +1,6 @@
-#pragma once
 #include <sections/grid/lat_lon.h>
-
+#include <sections/grid/grid.h>
+#include <format>
 GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>::GridDefinition(unsigned char* buffer):
     nx(GDS_LatLon_nx(buffer)),
     ny(GDS_LatLon_ny(buffer)),

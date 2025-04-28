@@ -7,8 +7,9 @@
 #include "aux_code/def.h"
 #include "code_tables/table_0.h"
 #include "sections/grid/grid.h"
-#include "def.h"
+#include <def.h>
 #include "types/time_interval.h"
+#include <grib1/include/def.h>
 
 struct GribMsgDataInfo
 {

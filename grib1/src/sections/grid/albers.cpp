@@ -1,4 +1,6 @@
 #include <sections/grid/albers.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <cassert>
 
 GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>::GridDefinition(unsigned char* buffer):

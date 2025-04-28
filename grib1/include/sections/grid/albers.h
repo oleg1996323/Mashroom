@@ -1,5 +1,4 @@
 #pragma once
-#include "code_tables/table_6.h"
 #include <cstdint>
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
@@ -7,8 +6,6 @@
 
 #ifdef __cplusplus
 #include <span>
-template<RepresentationType>
-struct GridDefinition;
 template<>
 struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>{
     float y1;

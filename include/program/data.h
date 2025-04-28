@@ -31,6 +31,7 @@ class Data{
         sublimed_data_by_common_data by_common_data_;
         sublimed_data_by_date_time by_date_;
         sublimed_data_by_grid by_grid_;
+        std::unique_ptr<GribData> unsaved_;
         GribData() = default;
         GribData(const GribData&) = delete;
         GribData(GribData&& other):

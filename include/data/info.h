@@ -6,6 +6,7 @@
 #include <ranges>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <filesystem>
 #include "aux_code/def.h"
 #include "types/time_interval.h"
@@ -15,6 +16,9 @@
 #include "data/msg.h"
 #include "cmd_parse/cmd_translator.h"
 #include "sys/error_print.h"
+#include <sys/error_code.h>
+#include <def.h>
+#include <grib1/include/def.h>
 using namespace std::string_literals;
 
 

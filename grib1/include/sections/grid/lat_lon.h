@@ -1,11 +1,9 @@
 #pragma once
 #include "code_tables/table_6.h"
-#include <cstdint>
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
-#include "sections/grid/def.h"
 #include "types/coord.h"
-#include "grib1/include/def.h"
+#include "def.h"
 
 #include <span>
 

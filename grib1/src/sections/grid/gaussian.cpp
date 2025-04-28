@@ -1,5 +1,6 @@
-#pragma once
 #include <sections/grid/gaussian.h>
+#include <sections/grid/grid.h>
+#include <format>
 #include <cassert>
 
 GridDefinition<RepresentationType::GAUSSIAN>::GridDefinition(unsigned char* buffer):

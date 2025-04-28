@@ -1,12 +1,9 @@
 #pragma once
-#include "code_tables/table_6.h"
 #include <cstdint>
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
 #include "def.h"
 #include <span>
-template<RepresentationType>
-struct GridDefinition;
 template<>
 struct GridDefinition<RepresentationType::GAUSSIAN>{
     float y1;
