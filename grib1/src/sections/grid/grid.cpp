@@ -199,6 +199,7 @@ GridDataType::GridDataType(unsigned char* buffer, RepresentationType T){
     }
 }
 
+#include <cassert>
 const char* GridInfo::print_grid_info() const{
     switch(rep_type){
         case RepresentationType::ALBERS_EQUAL_AREA :
@@ -268,9 +269,11 @@ const char* GridInfo::print_grid_info() const{
         return data.str_rot_harmonic.print_grid_info();
         break;
     default:
+        return "Unknown grid";
         break;
     }
+    assert(false);
 }
 std::vector<uint8_t> GridInfo::bin_grid_info() const{
-
+    
 }
