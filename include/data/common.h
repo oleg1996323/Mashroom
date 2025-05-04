@@ -24,14 +24,14 @@ STRUCT_END(CommonDataProperties)
 template<>
 struct std::hash<CommonDataProperties>{
     size_t operator()(const CommonDataProperties& cs) const{
-        // size_t result = std::hash<size_t>{}(static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24);
-        // result+=std::hash<size_t>{}(static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16);
-        // result+=std::hash<size_t>{}(static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8);
-        // result+=std::hash<size_t>{}(cs.parameter_.has_value()?cs.parameter_.value():0);
-        // return result;
-        return std::hash<size_t>{}(static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24+
-        static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16+
-        static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8+
+        size_t result = std::hash<size_t>{}(static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24);
+        result+=std::hash<size_t>{}(static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16);
+        result+=std::hash<size_t>{}(static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8);
+        result+=std::hash<size_t>{}(cs.parameter_.has_value()?cs.parameter_.value():0);
+        return result;
+        return std::hash<size_t>{}((static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24)+
+        (static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16)+
+        (static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8)+
         cs.parameter_.has_value()?cs.parameter_.value():0);
     }
 };

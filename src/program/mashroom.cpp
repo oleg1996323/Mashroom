@@ -2,6 +2,14 @@
 #include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <cmd_parse/server_parse.h>
+#include <cmd_parse/capitalize_parse.h>
+#include <cmd_parse/integrity_parse.h>
+#include <cmd_parse/extract_parse.h>
+#include <cmd_parse/config_parse.h>
+#include <cmd_parse/cmd_translator.h>
+#include <cmd_parse/functions.h>
+#include <network/server.h>
 
 namespace fs = std::filesystem;
 
@@ -150,6 +158,9 @@ ErrorCode Mashroom::read_command(const std::vector<std::string_view>& argv){
                 }
                 exit(0);
                 break;
+            case translate::token::ModeArgs::SERVER:
+                return server_parse(arguments);
+                break;
             default:{
                 if(Application::config().has_config_name(argv.at(0))){
                     if(argv.size()>1){
@@ -180,4 +191,18 @@ bool Mashroom::read_command(std::istream& stream){
     std::vector<std::string_view> commands=split(view," ");
     read_command(commands);
     return true;
+}
+
+void Mashroom::close_server(){
+    if(server_)
+        server_->~Server();
+}
+void Mashroom::shutdown_server(){
+
+}
+void Mashroom::make_server(){
+
+}
+void Mashroom::launch_server(){
+
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-enum TimeFrame{
+enum TimeFrame:uint8_t{
     MINUTE = 0,
     HOUR = 1,
     DAY = 2,

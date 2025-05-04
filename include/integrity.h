@@ -35,7 +35,8 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 
 #include <abstractsearchprocess.h>
 #include <abstracttimeseparation.h>
-class Integrity:public AbstractSearchProcess,public AbstractTimeSeparation{
+#include <abstractcallholder.h>
+class Integrity:public AbstractCallHolder,public AbstractSearchProcess,public AbstractTimeSeparation{
     private:
     GribDataInfo data_;
     std::vector<std::pair<fs::path,ErrorCodeData>> file_errors_;
@@ -43,6 +44,7 @@ class Integrity:public AbstractSearchProcess,public AbstractTimeSeparation{
     int cpus = 1;
     void __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr);
     public:
+    Integrity(Caller caller = hProgram.get()):AbstractCallHolder(std::move(caller)){}
     virtual ErrorCode execute() override final;
     ErrorCode properties_integrity() const{
         if(is_correct_interval(props_.from_date_,props_.to_date_))

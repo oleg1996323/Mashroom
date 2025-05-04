@@ -40,7 +40,14 @@ enum class ModeArgs:uint8_t{
     HELP,
     SAVE,
     EXIT,
-    CONTAINS
+    CONTAINS,
+    SERVER
+};
+
+enum class ServerConfigCommands:uint8_t{
+    ADDRESS,
+    PORT,
+    ACCEPTED_ADDRESSES
 };
 
 enum class ConfigAction:uint8_t{
@@ -51,7 +58,16 @@ enum class ConfigAction:uint8_t{
     SET,        //set permanent configuration
     ADDSET,
     GET         //get config action by name or all (if '.' is inputed)
-};    
+};
+
+enum class ServerAction:uint8_t{
+    ADD,
+    REMOVE,
+    LAUNCH,
+    SHUTDOWN,
+    CONFIG,
+    CLOSE
+};
 
 enum class FileFormat:uint8_t{
     UNDEF,
@@ -64,6 +80,25 @@ enum class FileFormat:uint8_t{
 
 template<typename T>
 struct __Token_text__;
+
+template<>
+struct __Token_text__<translate::token::ServerAction>{
+    static constexpr std::array<const char*,5> txt = {
+        "-add",
+        "-remove",
+        "-launch",
+        "-shutdown",
+        "-close"
+    };
+};
+
+template<>
+struct __Token_text__<translate::token::ServerConfigCommands>{
+    static constexpr std::array<const char*,5> txt = {
+        "-netaddr",
+        "-port"
+    };
+};
 
 template<>
 struct __Token_text__<translate::token::Command>{
@@ -94,7 +129,7 @@ struct __Token_text__<translate::token::Command>{
 
 template<>
 struct __Token_text__<translate::token::ModeArgs>{
-    static constexpr std::array<const char*,9> txt = {
+    static constexpr std::array<const char*,10> txt = {
         "",
         "-ext",
         "-cap",
@@ -103,7 +138,8 @@ struct __Token_text__<translate::token::ModeArgs>{
         "-help",
         "-save",
         "exit()",
-        "-contains"
+        "-contains",
+        "-server"
     };
 };
 

@@ -11,25 +11,23 @@
 #include "error_code.h"
 #include "err_msg.h"
 #include "error_print.h"
-#include "cmd_parse/functions.h"
-
-#include "capitalize_parse.h"
-#include "integrity_parse.h"
-#include "extract_parse.h"
-#include "config_parse.h"
-#include "cmd_parse/cmd_translator.h"
 #include "help.h"
 #include "application.h"
-
 #include "data.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_view_literals;
 constexpr std::string_view mashroom_data_info = "mashroom_data.json"sv;
 
+namespace server{
+    class Server;
+}
+
 class Mashroom{
     Data data_;
     std::unordered_set<fs::path> data_files_;
+    std::unique_ptr<server::Server> server_;
+    friend ErrorCode server::Server::init();
     fs::path data_dir_;
     std::fstream dat_file;
     void __read_initial_data_file__();
@@ -56,6 +54,10 @@ class Mashroom{
         save();
     }
     static ErrorCode read_command(const std::vector<std::string_view>& argv);
+    void close_server(); //further will be lot of servers (data,cadastre,measurement etc)
+    void shutdown_server(); //further will be lot of servers (data,cadastre,measurement etc)
+    void make_server(); //further will be lot of servers (data,cadastre,measurement etc)
+    void launch_server(); //further will be lot of servers (data,cadastre,measurement etc)
     bool read_command(std::istream& stream);
     const Data& data(){
         return data_;

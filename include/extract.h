@@ -76,7 +76,8 @@ namespace fs = std::filesystem;
 
 #include <abstractsearchprocess.h>
 #include <abstracttimeseparation.h>
-class Extract:public AbstractSearchProcess,public AbstractTimeSeparation{
+#include <abstractcallholder.h>
+class Extract:public AbstractCallHolder,public AbstractSearchProcess,public AbstractTimeSeparation{
     public:
     enum class ExtractFormat:uint{
         DEFAULT = 0,
@@ -99,6 +100,7 @@ class Extract:public AbstractSearchProcess,public AbstractTimeSeparation{
     template<typename... ARGS>
     fs::path __generate_directory__(ARGS&&... args);//TODO expand extract division
     public:
+    Extract(Caller caller = hProgram.get()):AbstractCallHolder(std::move(caller)){}
     virtual ErrorCode execute() override final;
     virtual ErrorCode properties_integrity() const override final{
         if(!in_path_.empty() && !fs::exists(in_path_))
