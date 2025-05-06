@@ -31,7 +31,7 @@ namespace server{
         connection::ProcessPool connection_pool_;
         addrinfo* server_=nullptr;
         Socket server_socket_;
-        bool interput_transactions_ = false;
+        bool interrupt_transactions_ = false;
         ErrorCode err_;
         Status status_=Status::INACTIVE;
         static void __launch__(Server* server);
@@ -40,8 +40,9 @@ namespace server{
         public:
         Status get_status() const;
         void launch();
-        void close(bool abort_connections = false);
-        void shutdown(bool wait_for_end_conenctions = true);
+        void stop();
+        void close(bool wait_for_end_connections = false);
+        void shutdown(bool wait_for_end_connections = false);
         ~Server();
         static ErrorCode init();
     };

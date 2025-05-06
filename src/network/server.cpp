@@ -114,13 +114,14 @@ void Server::launch(){
     }
     server_thread_ = std::move(std::make_unique<std::thread>(__launch__,this));
 }
-void Server::close(bool abort_connections = false){
+void Server::close(bool wait_for_end_connections){
     ::shutdown(server_socket_,SHUT_RDWR);
 }
-void Server::shutdown(bool wait_for_end_conenctions = true){
+void Server::shutdown(bool wait_for_end_connections){
     if(status_!=Status::INACTIVE){
-        if(wait_for_end_conenctions)
-            interput_transactions_ = false;
+        if(!wait_for_end_connections)
+            for(auto& connection_process:connection_pool_)
+                if(connection_process.)
         status_=Status::SUSPENDED;
     }
 }

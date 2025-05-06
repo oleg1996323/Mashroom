@@ -6,11 +6,10 @@
 #include "sys/error_code.h"
 #include "data/info.h"
 #include "message.h"
-#include <abstractcallholder.h>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
-class Capitalize:public AbstractCallHolder{
+class Capitalize{
 private:
 GribDataInfo result;
 fs::path from_file_;
@@ -21,7 +20,6 @@ DataFormat output_format_ = DataFormat::NONE;
 std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
-Capitalize(Caller caller = hProgram.get()):AbstractCallHolder(std::move(caller)){}
 static bool check_format(std::string_view fmt);
 void execute();
 

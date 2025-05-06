@@ -32,12 +32,10 @@ struct ContainOutputFilter{
     bool time_interval = true;
 };
 
-#include <abstractcallholder.h>
-class Contains:public AbstractCallHolder,public AbstractSearchProcess{
+class Contains:public AbstractSearchProcess{
     std::vector<FoundDataInfo> data_; //make_templated further
     ContainOutputFilter filter_;
     public:
-    Contains(Caller caller = hProgram.get()):AbstractCallHolder(std::move(caller)){}
     virtual ErrorCode execute() override final{
         if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 

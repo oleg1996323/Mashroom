@@ -41,7 +41,7 @@ struct Message<TYPE_MESSAGE::METEO_REPLY>{
     const TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::METEO_REPLY;
     MessageFileInfo finfo_;
     size_t total_sz_=sizeof(total_sz_)+sizeof(finfo_);
-    bool sendto(int sock,const fs::path& file_send,bool& interrupt);
+    bool sendto(int sock,const fs::path& file_send);
 };
 template<>
 struct Message<TYPE_MESSAGE::SERVER_CHECK>{

@@ -34,7 +34,7 @@ namespace server{
     enum class Status{
         READY,
         SUSPENDED,
-        INACTIVE            
+        INACTIVE          
     };
 }
 

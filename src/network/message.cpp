@@ -23,7 +23,7 @@ Extract Message<TYPE_MESSAGE::METEO_REQUEST>::prepare_and_check_integrity_extrac
     err = hExtract.properties_integrity();
     return hExtract;
 }
-bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_send,bool& interrupt){
+bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_send){
     if(sock<0)
         return false;
     if(file_send.empty() || !fs::exists(file_send) || !fs::is_regular_file(file_send))

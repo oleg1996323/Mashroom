@@ -9,6 +9,7 @@
 #include <future>
 #include <vector>
 #include <network/message.h>
+#include <queue>
 
 namespace server{
     class Server;
@@ -24,15 +25,15 @@ namespace connection{
         private:
         std::vector<char> buffer_;
         ProcessInstance instance_;
-        std::unique_ptr<std::thread> thread_;
+        std::unordered_set<std::thread> thread_;
         Server* server_;
         Socket connection_socket_;
-        network::TYPE_MESSAGE msg_t_;
         Process(Server* server, int connection_socket, size_t buffer_sz=4096);
         Process(const Process&) = delete;
         void __send_error_and_close_connection__(ErrorCode err,const char* msg_err);
         void __send_error_and_continue__(ErrorCode err,const char* msg_err);
         bool __check_and_notify_if_server_inaccessible__();
+        void __add_process__(network::TYPE_MESSAGE msg_t);
         public:
         Process(Process&& other);
         ~Process();

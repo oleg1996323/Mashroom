@@ -19,12 +19,10 @@ Process::Process(Process&& other):server_(other.server_){
         std::swap(instance_,other.instance_);
         thread_.swap(other.thread_);
         std::swap(connection_socket_,other.connection_socket_);
-        std::swap(msg_t_,other.msg_t_);
     }
 }
 Process::~Process(){
-    if(thread_)
-        thread_->join();
+    thread_.clear();
     if(connection_socket_!=-1){
         close(connection_socket_);
         connection_socket_=-1;
@@ -66,97 +64,120 @@ void Process::__send_error_and_continue__(ErrorCode err,const char* message){
     return;
 }
 bool Process::__check_and_notify_if_server_inaccessible__(){
-    if(server_->status_==Status::INACTIVE){
+    if(server_->status_!=Status::READY){
         __send_error_and_continue__(ErrorCode::SERVER_RECEIVING_MSG_ERROR,"Server is currently inaccessible. Try later");
         return true;
     }
     else return false;
 }
-ErrorCode Process::launch(){
-    thread_ = std::make_unique<std::thread>([this](){
+void Process::__add_process__(network::TYPE_MESSAGE msg_t){
+    thread_.insert(std::thread([this,msg_t](){
         ErrorCode err;
-        size_t to_read = buffer_.size();
-        while(to_read>0) //вынести switch за пределы цикла
-            if(recv(this->connection_socket_,&msg_t_,1,0)==-1){
+        switch(msg_t){
+            case network::TYPE_MESSAGE::SERVER_CHECK:{
+                network::Message<network::TYPE_MESSAGE::SERVER_CHECK> msg;
+                msg.status = server_->status_;
+                break;
+            }
+            case network::TYPE_MESSAGE::METEO_REQUEST:{
+                network::Message<network::TYPE_MESSAGE::METEO_REQUEST> msg;
+                Extract hExtract = msg.prepare_and_check_integrity_extractor(err);
+                if(err!=ErrorCode::NONE){
+                    __send_error_and_continue__(err,"");
+                    return err;
+                }
+                else err = hExtract.execute(); //get output directory
+                if(err!=ErrorCode::NONE){
+                    __send_error_and_continue__(err,"");
+                    return err;
+                }
+                if(!fs::is_directory(hExtract.out_path()) || !fs::is_regular_file(hExtract.out_path())) //must be directory|regular file (tmp (temporary) in case of internet transaction)
+                    __send_error_and_close_connection__(ErrorCode::INTERNAL_ERROR,"Something went wrong (server side)");
+                else {
+                    network::Message<network::TYPE_MESSAGE::METEO_REPLY> reply_msg;
+                    if(fs::is_regular_file(hExtract.out_path()))
+                        reply_msg.sendto(connection_socket_,hExtract.out_path());
+                    else{
+                        for(fs::directory_entry entry:fs::directory_iterator(hExtract.out_path()))
+                            reply_msg.sendto(connection_socket_,entry.path());
+                    }
+                }
+                return err;
+                break;
+            }
+            default:{
+                __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
+                return ErrorCode::INVALID_CLIENT_REQUEST;
+            }
+        }
+    }
+    ));
+}
+ErrorCode Process::launch(){
+    size_t to_read = buffer_.size();
+    network::TYPE_MESSAGE msg_t;
+    while(true){ //вынести switch за пределы цикла
+        if(recv(this->connection_socket_,&msg_t,sizeof(msg_t),0)==-1){
+            network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+            fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
+            msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
+            close(connection_socket_);
+            return ErrorCode::INTERNAL_ERROR;
+        }
+        switch(msg_t){
+            case network::TYPE_MESSAGE::NONE:
+            case network::TYPE_MESSAGE::ERROR:
+            case network::TYPE_MESSAGE::METEO_REPLY:
+                __send_error_and_continue__(ErrorCode::INVALID_CLIENT_REQUEST,"Invalid request");
+                while (to_read<network::sizes_msg_struct[(int)msg_t]-1)
+                {
+                    if(int readed = recv(this->connection_socket_,&msg_t,sizeof(msg_t),0)==-1){
+                        network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+                        fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
+                        msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
+                        close(connection_socket_);
+                        return ErrorCode::INTERNAL_ERROR;
+                    }
+                    else to_read+=readed;
+                }
+                continue;
+            case network::TYPE_MESSAGE::METEO_REQUEST:{
+                if(__check_and_notify_if_server_inaccessible__()){
+                    while (to_read<network::sizes_msg_struct[(int)msg_t]-1)
+                    {
+                        if(int readed = recv(this->connection_socket_,&msg_t,sizeof(msg_t),0)==-1){
+                            network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+                            fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
+                            msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
+                            close(connection_socket_);
+                            return ErrorCode::INTERNAL_ERROR;
+                        }
+                        else to_read+=readed;
+                    }
+                    continue;
+                }
+            }
+            case network::TYPE_MESSAGE::SERVER_CHECK:{
+                break;
+            }
+            default:{
+                __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
+                return ErrorCode::INVALID_CLIENT_REQUEST;
+            }
+        }
+        while (to_read<network::sizes_msg_struct[(int)msg_t]-1)
+        {
+            if(int readed = recv(this->connection_socket_,&msg_t,sizeof(msg_t),0)==-1){
                 network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
                 fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
                 msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
                 close(connection_socket_);
-            }
-            else{
-                if(msg_t_==network::TYPE_MESSAGE::SERVER_CHECK){
-                    network::Message<network::TYPE_MESSAGE::SERVER_CHECK> msg;
-                    msg.status = server_->status_;
-                    return ErrorCode::NONE;
-                }
-                else{
-                    if(__check_and_notify_if_server_inaccessible__())
-                        return ErrorCode::SERVER_RECEIVING_MSG_ERROR;
-                    switch(msg_t_){
-                        case network::TYPE_MESSAGE::NONE:
-                            __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Request not sent");
-                            return ErrorCode::INVALID_CLIENT_REQUEST;
-                            break;
-                        case network::TYPE_MESSAGE::ERROR:
-                            __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Error message can by only replied");
-                            return ErrorCode::INVALID_CLIENT_REQUEST;
-                            break;
-                        case network::TYPE_MESSAGE::METEO_REPLY:
-                            __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Data reply message can't be sent as request");
-                            return ErrorCode::INVALID_CLIENT_REQUEST;
-                            break;
-                        case network::TYPE_MESSAGE::METEO_REQUEST:{
-                            network::Message<network::TYPE_MESSAGE::METEO_REQUEST> msg;
-                            Extract hExtract = msg.prepare_and_check_integrity_extractor(err);
-                            if(err!=ErrorCode::NONE){
-                                __send_error_and_close_connection__(err,"");
-                                return err;
-                            }
-                            else err = hExtract.execute(); //get output directory
-                            if(err!=ErrorCode::NONE){
-                                __send_error_and_close_connection__(err,"");
-                                return err;
-                            }
-                            if(!fs::is_directory(hExtract.out_path()) || !fs::is_regular_file(hExtract.out_path())) //must be directory|regular file (tmp (temporary) in case of internet transaction)
-                                __send_error_and_close_connection__(ErrorCode::INTERNAL_ERROR,"Something went wrong (server side)");
-                            else {
-                                network::Message<network::TYPE_MESSAGE::METEO_REPLY> reply_msg;
-                                if(server_->interput_transactions_)
-                                    shutdown(connection_socket_,SHUT_RDWR);
-                                if(fs::is_regular_file(hExtract.out_path()))
-                                    reply_msg.sendto(connection_socket_,hExtract.out_path());
-                                else{
-                                    for(fs::directory_entry entry:fs::directory_iterator(hExtract.out_path()))
-                                        reply_msg.sendto(connection_socket_,entry.path());
-                                }
-                            }
-                            return err;
-                            break;
-                        }
-                        default:{
-                            __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
-                            return ErrorCode::INVALID_CLIENT_REQUEST;
-                        }
-                            //Process::init(connection_pool_,connected_client,def_type,network::sizes_msg_struct[(int)def_type]-sizeof(def_type));
-                    }
-                }
-            }
-            if(recv(connection_socket_,buffer_.data(),buffer_.size(),0)==-1){
-                network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
-                msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
-                close(connection_socket_);
                 return ErrorCode::INTERNAL_ERROR;
             }
-        switch (msg_t_)
-        {
-        case network::TYPE_MESSAGE::METEO_REQUEST:{
-            network::Message<network::TYPE_MESSAGE::METEO_REQUEST> msg;
-            break;
+            else to_read+=readed;
         }
-        default:
-            break;
-        }
-    });
+        __add_process__(msg_t);
+    }
 }
 ProcessInstance Process::get_instance() const{
     return instance_;
