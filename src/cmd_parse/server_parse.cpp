@@ -1,5 +1,8 @@
 #include <cmd_parse/server_parse.h>
 #include <functions.h>
+#include <sys/application.h>
+#include <sys/config.h>
+#include <sys/log_err.h>
 
 using namespace translate::token;
 

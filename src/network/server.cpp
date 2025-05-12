@@ -1,7 +1,8 @@
 #include "network/server.h"
 #include <network/def.h>
 #include <program/mashroom.h>
-
+#include <sys/config.h>
+#include <sys/log_err.h>
 
 using namespace server;
 
@@ -37,11 +38,27 @@ std::ostream& Server::print_ip_port(std::ostream& stream,addrinfo* addr){
         return stream;
     }
 }
+ErrorCode Server::__set_no_block__(int socket){
+    if(int flags = fcntl(socket,F_GETFL,0)==-1){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"getting socket flags",AT_ERROR_ACTION::CONTINUE);
+        close(socket);
+        return ErrorCode::INTERNAL_ERROR;
+    }
+    else{
+        if(fcntl(socket,F_SETFL,flags|O_NONBLOCK)==-1){
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"setting socket flags",AT_ERROR_ACTION::CONTINUE);
+            close(socket);
+            return ErrorCode::INTERNAL_ERROR;
+        }
+    }
+    return ErrorCode::NONE;
+}
 Server::Server():connection_pool_(*this){
     struct addrinfo ainfo_;
     struct sigaction sa;
     memset(&ainfo_,0,sizeof(ainfo_));
     ainfo_.ai_family = AF_INET;
+    ainfo_.ai_flags = AI_PASSIVE;
     ainfo_.ai_socktype = SOCK_STREAM;
     const char* service;
     if(!Application::config().current_server_setting().settings_.service.empty())
@@ -56,6 +73,8 @@ Server::Server():connection_pool_(*this){
         int status=0;
         status = getaddrinfo(   Application::config().current_server_setting().settings_.host.c_str(),
                                 service,&ainfo_,&server_);
+        // status = getaddrinfo(   NULL,
+        //                         service,&ainfo_,&server_);
         if(status!=0){
             std::cout<<gai_strerror(status)<<std::endl;
             err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
@@ -77,12 +96,16 @@ Server::Server():connection_pool_(*this){
         server_ = ptr_addr;
         break;
     }
+    if(__set_no_block__(server_socket_)!=ErrorCode::NONE){
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization - "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        errno = 0;
+        return;
+    }
     if(err_!=ErrorCode::NONE){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
         freeaddrinfo(server_);
         return;
     }
-
     sa.sa_handler=sigchld_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags=SA_RESTART;
@@ -135,18 +158,8 @@ void Server::__launch__(Server* server){
                     //add checking allowed client properties
                     //add checking hash key
                     //if not - close connection and continue
-                    if(int flags = fcntl(tmp_sock,F_GETFL,0)==-1){
-                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"getting socket flags",AT_ERROR_ACTION::CONTINUE);
-                        close(tmp_sock);
+                    if(__set_no_block__(tmp_sock)!=ErrorCode::NONE)
                         continue;
-                    }
-                    else{
-                        if(fcntl(tmp_sock,F_SETFL,flags|O_NONBLOCK)==-1){
-                            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"setting socket flags",AT_ERROR_ACTION::CONTINUE);
-                            close(tmp_sock);
-                            continue;
-                        }
-                    }
                 }
                 server->__new_connection__(events[i].data.fd);
                 memset(&another,0,sizeof(sockaddr_storage));

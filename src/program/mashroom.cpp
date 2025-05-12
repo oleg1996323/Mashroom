@@ -10,6 +10,8 @@
 #include <cmd_parse/cmd_translator.h>
 #include <cmd_parse/functions.h>
 #include <network/server.h>
+#include <sys/config.h>
+#include <sys/log_err.h>
 
 namespace fs = std::filesystem;
 

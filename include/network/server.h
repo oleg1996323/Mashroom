@@ -18,14 +18,14 @@ namespace connection{
 }
 namespace server{
     class Server{
-        private:
+    private:
         static void sigchld_handler(int s);
         friend class connection::Process;
         connection::ConnectionPool connection_pool_;
         std::jthread server_thread_;
         std::stop_token stop_token_;
         addrinfo* server_=nullptr;
-        Socket server_socket_;
+        Socket server_socket_=-1;
         bool interrupt_transactions_ = false;
         ErrorCode err_;
         Status status_=Status::INACTIVE;
@@ -33,7 +33,8 @@ namespace server{
         Server();
         void __new_connection__(Socket connected_client);
         ErrorCode __connection_process__(Socket connected_client);
-        public:
+        static ErrorCode __set_no_block__(int);
+    public:
         Status get_status() const;
         void launch();
         void stop();

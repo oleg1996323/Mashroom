@@ -148,8 +148,8 @@ class Config{
     std::unordered_map<std::string,std::vector<std::string>> configs_;
     std::unordered_set<server::ServerConfig> server_configs_;
     const fs::path config_mashroom_dir = get_config_dir();
-    static const std::vector<std::string> empty_config_;
-    static const server::ServerConfig empty_server_config_;
+    inline static const std::vector<std::string> empty_config_{};
+    inline static const server::ServerConfig empty_server_config_{};
     std::fstream config_file;
     std::fstream server_file;
 
@@ -157,6 +157,10 @@ class Config{
     Config(){
         read();
     }
+    Config& operator=(const Config&) = delete;
+    Config& operator=(Config&&) = delete;
+    Config(const Config&) = delete;
+    Config(Config&&) = delete;
     ~Config(){
         save();
         config_file.close();

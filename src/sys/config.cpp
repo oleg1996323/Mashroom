@@ -6,11 +6,6 @@
 
 namespace fs = std::filesystem;
 
-const std::vector<std::string> Config::empty_config_{};
-const server::ServerConfig Config::empty_server_config_{};
-static const fs::path config_mashroom_dir = get_config_dir();
-std::unique_ptr<Config> Application::conf_ = std::make_unique<Config>();
-
 namespace server{
     ServerConfig get_default_server_config(){
         ServerConfig config_;
@@ -26,7 +21,7 @@ namespace server{
     }
     void ServerConfig::print_server_config(std::ostream& stream) const{
         stream<<"Server config name: \""<<name_<<"\""<<std::endl;
-        stream<<"Host: "<<settings_.host<<" service: "<<settings_.service<<" protocol: "<<settings_.protocol<<" timeout: "<<settings_.timeout_seconds_<<std::endl;
+        stream<<"Host: \'"<<settings_.host<<"\' service: \'"<<settings_.service<<"\' port: \'"<<settings_.port<<"\' protocol: \'"<<settings_.protocol<<"\' timeout: "<<settings_.timeout_seconds_<<" seconds"<<std::endl;
         stream<<"Accepted addresses: ";
         auto joined = accepted_addresses_ | std::views::join_with(';');
         for (char addr : joined)
@@ -73,7 +68,7 @@ void Config::read(){
         config_file.close();
     }
     if(fs::exists(config_mashroom_dir/sc_filename)){
-        server_file.open(config_mashroom_dir/uc_filename,std::ios::in);
+        server_file.open(config_mashroom_dir/sc_filename,std::ios::in);
         if(!server_file.is_open())
             return;
         {
@@ -104,16 +99,17 @@ void Config::read(){
                         if(c.contains("host"))
                             config_tmp.settings_.host=c.at("host").as_string();
                         if(c.contains("service"))
-                            config_tmp.settings_.host=c.at("service").as_string();
+                            config_tmp.settings_.service=c.at("service").as_string();
                         if(c.contains("port"))
-                            config_tmp.settings_.host=c.at("port").as_string();
+                            config_tmp.settings_.port=c.at("port").as_string();
                         if(c.contains("protocol"))
-                            config_tmp.settings_.host=c.at("protocol").as_string();
+                            config_tmp.settings_.protocol=c.at("protocol").as_string();
                         if(c.contains("timeout"))
                             config_tmp.settings_.timeout_seconds_=c.at("timeout").as_int64();
                         if(c.contains("accaddr"))
                             for(auto& accaddr:c.at("accaddr").as_array())
                                 config_tmp.accepted_addresses_.insert(accaddr.as_string().data());
+                        server_configs_.insert(std::move(config_tmp));
                     }
                 if(!last_config.empty())
                     server_config_ = get_server_config(last_config);
@@ -174,7 +170,6 @@ void Config::write(){
         }
         server_file<<val.as_object();
         server_file.flush();
-        std::cout<<val<<std::endl;
         std::cout<<"Saved server configurations to "<<config_mashroom_dir/sc_filename<<std::endl;
         server_file.close();
     }
