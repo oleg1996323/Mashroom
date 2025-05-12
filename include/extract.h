@@ -76,7 +76,8 @@ namespace fs = std::filesystem;
 
 #include <abstractsearchprocess.h>
 #include <abstracttimeseparation.h>
-class Extract:public AbstractSearchProcess,public AbstractTimeSeparation{
+#include <abstractthreadinterruptor.h>
+class Extract:public AbstractSearchProcess,public AbstractTimeSeparation,public AbstractThreadInterruptor{
     public:
     enum class ExtractFormat:uint{
         DEFAULT = 0,
@@ -85,11 +86,9 @@ class Extract:public AbstractSearchProcess,public AbstractTimeSeparation{
         GRIB_F = (1<<2),
         ARCHIVED = (1<<3)
     };
-    
     private:
     std::string directory_format = std::string("{:%Y")+fs::path::preferred_separator+"%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
-    TimeOffset diff_time_interval_ = {years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0)};
     ExtractFormat output_format_ = ExtractFormat::DEFAULT;
     void __extract__(const fs::path& file,ExtractedData& ref_data,const SublimedDataInfo& positions);
     ErrorCode __create_dir_for_file__(const fs::path& out_f_name);

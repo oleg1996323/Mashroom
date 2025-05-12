@@ -159,6 +159,8 @@ ErrorCode Mashroom::read_command(const std::vector<std::string_view>& argv){
                 exit(0);
                 break;
             case translate::token::ModeArgs::SERVER:
+                if(arguments.empty())
+                    return ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server mode",AT_ERROR_ACTION::CONTINUE);
                 return server_parse(arguments);
                 break;
             default:{
@@ -192,17 +194,28 @@ bool Mashroom::read_command(std::istream& stream){
     read_command(commands);
     return true;
 }
-
-void Mashroom::close_server(){
+void Mashroom::collapse_server(bool wait_processes){
+    Server::collapse(server_.get(),wait_processes);
+}
+void Mashroom::close_server(bool wait_processes){
     if(server_)
-        server_->~Server();
+        server_->close_connections(wait_processes);
 }
-void Mashroom::shutdown_server(){
-
+void Mashroom::shutdown_server(bool wait_processes){
+    if(server_)
+        server_->shutdown(wait_processes);
 }
-void Mashroom::make_server(){
-
+void Mashroom::deploy_server(){
+    ErrorCode err;
+    server_ = server::Server::make_instance(err);
+    return;
 }
 void Mashroom::launch_server(){
-
+    if(!server_)
+        deploy_server();
+    if(!server_){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR, "server deploy and launching failure",AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
+    server_->launch();
 }

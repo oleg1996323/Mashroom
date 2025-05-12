@@ -16,7 +16,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at capitalization: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,31> err_msg={
+constexpr std::array<const char*,33> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -47,5 +47,7 @@ constexpr std::array<const char*,31> err_msg={
     "Connection error",
     "Connection error with {0}",
     "Server receiving message error",
-    "Invalid request"
+    "Invalid request",
+    "Sending reply error",
+    "Connection closed"
 };

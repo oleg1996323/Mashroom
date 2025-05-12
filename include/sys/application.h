@@ -6,6 +6,7 @@
 #include "config.h"
 
 class Application{
+    static std::string_view app_directory;
     public:
     static LogError& log(){
         return *logger_;

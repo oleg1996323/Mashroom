@@ -45,9 +45,12 @@ enum class ModeArgs:uint8_t{
 };
 
 enum class ServerConfigCommands:uint8_t{
-    ADDRESS,
+    NAME,
+    HOST,
     PORT,
-    ACCEPTED_ADDRESSES
+    SERVICE,
+    ACCEPTED_ADDRESSES,
+    TIMEOUT
 };
 
 enum class ConfigAction:uint8_t{
@@ -62,11 +65,13 @@ enum class ConfigAction:uint8_t{
 
 enum class ServerAction:uint8_t{
     ADD,
+    SET,
     REMOVE,
     LAUNCH,
     SHUTDOWN,
-    CONFIG,
-    CLOSE
+    CLOSE,
+    COLLAPSE,
+    GET_CURRENT_CONFIG
 };
 
 enum class FileFormat:uint8_t{
@@ -83,20 +88,27 @@ struct __Token_text__;
 
 template<>
 struct __Token_text__<translate::token::ServerAction>{
-    static constexpr std::array<const char*,5> txt = {
-        "-add",
-        "-remove",
-        "-launch",
-        "-shutdown",
-        "-close"
+    static constexpr std::array<const char*,8> txt = {
+        "add",
+        "set",
+        "remove",
+        "launch",
+        "shutdown",
+        "close",
+        "collapse",
+        "getcur"
     };
 };
 
 template<>
 struct __Token_text__<translate::token::ServerConfigCommands>{
-    static constexpr std::array<const char*,5> txt = {
-        "-netaddr",
-        "-port"
+    static constexpr std::array<const char*,6> txt = {
+        "-name",
+        "-host",
+        "-port",
+        "-service",
+        "-accaddr",
+        "-timeout"
     };
 };
 
@@ -172,7 +184,7 @@ inline T translate_from_txt(std::string_view cmd) noexcept{
         if(cmd==__Token_text__<T>::txt[i])
             return (T)i;
     }
-    return (T)0U;
+    return (T)-1;
 }
 
 template<typename T>

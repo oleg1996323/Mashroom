@@ -18,7 +18,6 @@ std::optional<T> from_chars(std::string_view s,ErrorCode& err, Args... args) noe
     T number;
     auto result = std::from_chars(s.data(), end, number, args...);
     if (result.ec != std::errc{} || result.ptr != end){
-        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid input",AT_ERROR_ACTION::CONTINUE,s);
         err = ErrorCode::COMMAND_INPUT_X1_ERROR;
         return std::nullopt;
     }

@@ -72,6 +72,7 @@ class AbstractTimeSeparation{
         return result;
     }
     public:
+    virtual ~AbstractTimeSeparation() = default;
     void set_offset_time_interval(const TimeOffset& diff){
         diff_time_interval_ = diff;
         if(diff_time_interval_.seconds_>std::chrono::seconds(0)){

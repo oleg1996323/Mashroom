@@ -62,6 +62,8 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
             grib.next_message();
 
 		//ReturnVal result_date;
+        if(stop_token_.stop_requested())
+            return;
         GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():std::nullopt,
                                     msg.value().get().section_1_.date(),
                                     grib.current_message_position(),
@@ -70,23 +72,23 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
                                     msg.value().get().section_1_.unit_time_range(),
                                     msg.value().get().section_1_.center(),
                                     msg.value().get().section_1_.table_version());
-        if(props_.center_.has_value() && msg_info.center!=props_.center_)
-            continue;
-        if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
-            continue;
-        if(props_.fcst_unit_.has_value() && msg_info.t_unit!=props_.fcst_unit_.value())
-            continue;
-        if(props_.grid_type_.has_value()){
-            if(!msg_info.grid_data.has_value())
-                continue;
-            if(props_.grid_type_.value()!=msg_info.grid_data.value().rep_type)
-                continue;                  
-            if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_){
-                continue;
-            }
-            if(!pos_in_grid(props_.position_.value(),msg_info.grid_data.value()))
-                continue;
-        }
+        // if(props_.center_.has_value() && msg_info.center!=props_.center_)
+        //     continue;
+        // if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
+        //     continue;
+        // if(props_.fcst_unit_.has_value() && msg_info.t_unit!=props_.fcst_unit_.value())
+        //     continue;
+        // if(props_.grid_type_.has_value()){
+        //     if(!msg_info.grid_data.has_value())
+        //         continue;
+        //     if(props_.grid_type_.value()!=msg_info.grid_data.value().rep_type)
+        //         continue;                  
+        //     if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_){
+        //         continue;
+        //     }
+        //     if(!pos_in_grid(props_.position_.value(),msg_info.grid_data.value()))
+        //         continue;
+        // }
         if(msg_info.grid_data.has_value())
             ref_data[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data.value())));
@@ -163,7 +165,11 @@ ErrorCode Extract::execute(){
             }
             std::cout<<"Extracting from "<<fn<<std::endl;
             std::sort(positions.buf_pos_.begin(),positions.buf_pos_.end());
+            if(stop_token_.stop_requested())
+                return ErrorCode::INTERRUPTED;
             __extract__(fn,result,positions);
+            if(stop_token_.stop_requested())
+                return ErrorCode::INTERRUPTED;
         }
         utc_tp current_time = utc_tp::max();
         size_t max_length = 0;
@@ -184,6 +190,8 @@ ErrorCode Extract::execute(){
         fs::path out_f_name;
         cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
         for(int row=0;row<max_length;++row){
+            if(stop_token_.stop_requested())
+                return ErrorCode::INTERRUPTED;
             //if current_time>file_end_time
             current_time = utc_tp::max();
             for(int col=0;col<col_vals_.size();++col)

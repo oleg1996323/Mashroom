@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(Mashroom_data_worker VERSION 0.1 LANGUAGES CXX)
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
-set(CONFIG_MR $ENV{HOME}/.config/Mashroom)
+set(CONFIG_REL_HOME_DIR .config/Mashroom)
+set(APP_DATA_REL_DIR /data)
 set(CMAKE_CXX_STANDARD 23)
 add_compile_options("-O0")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
@@ -47,8 +48,9 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/grib1/include
 add_executable(Mashroom ${Mashroom_SOURCES} ${GRIB_SOURCES})
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
 
-target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}" $<$<BOOL:${LOG_ON}>:LOG_ON> $<$<BOOL:${PERMANENT_GET}>:PERMANENT_GET> )
-target_compile_definitions(Mashroom_lib PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR="${CONFIG_MR}")
+target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}" $<$<BOOL:${LOG_ON}>:LOG_ON> $<$<BOOL:${PERMANENT_GET}>:PERMANENT_GET> 
+                        APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
+target_compile_definitions(Mashroom_lib PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
 file(GLOB PNG_LIBS third_party/png/*.so)
 
 target_include_directories(Mashroom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/include
@@ -67,8 +69,8 @@ target_include_directories(Mashroom_lib PRIVATE ${CMAKE_CURRENT_LIST_DIR}/grib1/
                                         ${PNG_INCLUDE_DIRS}
                                         ${CMAKE_CURRENT_LIST_DIR}/include/sys
                                         ${CMAKE_CURRENT_LIST_DIR}/include/cmd_parse)
-target_link_libraries(Mashroom PRIVATE Mashroom_lib ${PNG_LIBRARIES} Boost::json)
-
+target_link_libraries(Mashroom PRIVATE Mashroom_lib ${PNG_LIBRARIES} Boost::json)                 
+                    
 set_target_properties(Mashroom Mashroom_lib
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"

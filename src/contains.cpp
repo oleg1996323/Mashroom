@@ -74,3 +74,7 @@ bool contains(const fs::path& from,const std::chrono::system_clock::time_point& 
         continue;
     }while(grib.next_message());
 }
+
+void Contains::set_integral_only(bool integral){
+    integral_only_ = integral;
+}

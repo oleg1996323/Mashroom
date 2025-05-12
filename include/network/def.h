@@ -26,11 +26,19 @@
 #include <signal.h>
 #include <sys/sendfile.h>
 #include <netinet/tcp.h>
+#include <sys/epoll.h>
+#include <thread>
 
 using Socket = int;
 using Port = short;
 
 namespace server{
+    constexpr int min_timeout_seconds = 1;
+    static std::vector<struct epoll_event> define_epoll_event(){
+        std::vector<struct epoll_event> result;
+        result.resize(std::thread::hardware_concurrency());
+        return result;
+    }
     enum class Status{
         READY,
         SUSPENDED,

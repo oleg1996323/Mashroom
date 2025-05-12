@@ -31,10 +31,11 @@ struct ContainOutputFilter{
     bool grid_info = true;
     bool time_interval = true;
 };
-
-class Contains:public AbstractSearchProcess{
+#include <abstractthreadinterruptor.h>
+class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     std::vector<FoundDataInfo> data_; //make_templated further
     ContainOutputFilter filter_;
+    bool integral_only_; //search only integral time-series in searching time interval
     public:
     virtual ErrorCode execute() override final{
         if(     !props_.center_.has_value() && 
@@ -46,6 +47,8 @@ class Contains:public AbstractSearchProcess{
             for(auto& [file,file_data]:hProgram->data().data()){
                 for(auto& [common,info_seq]:file_data)
                     for(auto& info:info_seq){
+                        if(stop_token_.stop_requested())
+                            return ErrorCode::INTERRUPTED;
                         if(filter_.file)
                             std::cout<<"File "<<file<<std::endl;
                         if(filter_.center)
@@ -65,11 +68,11 @@ class Contains:public AbstractSearchProcess{
             }
         }
         else{
-            
+            assert(false);
         }
         return ErrorCode::NONE;
     }
-    
+    void set_integral_only(bool integral);
     virtual ErrorCode properties_integrity() const override final{
         if(out_path_.empty())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);

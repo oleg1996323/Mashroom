@@ -22,6 +22,7 @@ class AbstractSearchProcess{
     float progress_ = 0;
     int cpus = 1;
     public:
+    virtual ~AbstractSearchProcess() = default;
     virtual ErrorCode set_in_path(std::string_view in_path){
         if(!fs::exists(in_path)){
             ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());

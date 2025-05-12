@@ -9,31 +9,53 @@ void Server::sigchld_handler(int s){
     while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-ErrorCode Server::init(){
-    hProgram->server_ = std::make_unique<Server>();
-    if(hProgram->server_){
-        ErrorCode err = hProgram->server_->err_;
+std::unique_ptr<Server> Server::make_instance(ErrorCode& err){
+    auto result = std::unique_ptr<Server>(new Server());
+    if(result){
+        ErrorCode err = result->err_;
         if(err!=ErrorCode::NONE)
-            hProgram->server_.reset();
-        return err;
+            result.release();
     }
-    else return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization error",AT_ERROR_ACTION::CONTINUE);
+    else {
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization error",AT_ERROR_ACTION::CONTINUE);
+        err = ErrorCode::INTERNAL_ERROR;
+    }
+    return result;
 }
-
-Server::Server(std::string_view hname){
+std::ostream& Server::print_ip_port(std::ostream& stream,addrinfo* addr){
+    char ipstr[INET6_ADDRSTRLEN];
+    if(addr->ai_family==AF_INET){
+        sockaddr_in* a = (sockaddr_in *)addr->ai_addr;
+        stream<<"IPv4="<<inet_ntop(addr->ai_family, &a->sin_addr, ipstr, sizeof(ipstr))<<
+        " port="<<ntohs(a->sin_port)<<std::endl;
+        return stream;
+    }
+    else {
+        sockaddr_in6* a = (sockaddr_in6 *)addr->ai_addr;
+        stream<<"IPv6="<<inet_ntop(addr->ai_family, &a->sin6_addr, ipstr, sizeof(ipstr))<<
+        " port="<<ntohs(a->sin6_port)<<std::endl;
+        return stream;
+    }
+}
+Server::Server():connection_pool_(*this){
     struct addrinfo ainfo_;
     struct sigaction sa;
     memset(&ainfo_,0,sizeof(ainfo_));
-    ainfo_.ai_family = AF_UNSPEC;
+    ainfo_.ai_family = AF_INET;
     ainfo_.ai_socktype = SOCK_STREAM;
-    ainfo_.ai_flags = AI_PASSIVE;
-
+    const char* service;
+    if(!Application::config().current_server_setting().settings_.service.empty())
+        service = Application::config().current_server_setting().settings_.service.c_str();
+    else if(!Application::config().current_server_setting().settings_.port.empty())
+        service = Application::config().current_server_setting().settings_.service.c_str();
+    else{
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
     {
         int status=0;
-        if(hname.empty())
-            status = getaddrinfo(NULL,"3236",&ainfo_,&server_);
-        else
-            status = getaddrinfo(hname.data(),"3236",&ainfo_,&server_);
+        status = getaddrinfo(   Application::config().current_server_setting().settings_.host.c_str(),
+                                service,&ainfo_,&server_);
         if(status!=0){
             std::cout<<gai_strerror(status)<<std::endl;
             err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
@@ -55,7 +77,6 @@ Server::Server(std::string_view hname){
         server_ = ptr_addr;
         break;
     }
-
     if(err_!=ErrorCode::NONE){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
         freeaddrinfo(server_);
@@ -68,62 +89,111 @@ Server::Server(std::string_view hname){
     if (sigaction(SIGCHLD, &sa, NULL) == -1)
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"sigaction",AT_ERROR_ACTION::ABORT);
     {
-        char ipstr[INET6_ADDRSTRLEN];
         std::cout<<"Server ready for launching: ";
-        if(((struct sockaddr_in*)server_->ai_addr)->sin_family==AF_INET){
-            std::cout<<"IPv4="<<inet_ntop(server_->ai_family, (struct sockaddr_in *)server_->ai_addr, ipstr, sizeof(ipstr))<<
-            " port="<<((struct sockaddr_in*)server_->ai_addr)->sin_port<<std::endl;
-        }
-        else std::cout<<"IPv6="<<inet_ntop(server_->ai_family, (struct sockaddr_in *)server_->ai_addr, ipstr, sizeof(ipstr))<<
-        " port="<<((struct sockaddr_in6*)server_->ai_addr)->sin6_port<<std::endl;
+        print_ip_port(std::cout,server_);
     }
 }
 
 void Server::__launch__(Server* server){
-    listen(server->server_socket_,5);
-    server->status_=Status::READY;
-    printf("server: waiting for connections…\n");
+    if(!server)
+        return;
+    if(listen(server->server_socket_,5)==-1)
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server listening error. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
     socklen_t sin_size;
     sockaddr_storage another;
     memset(&another,0,sizeof(sockaddr_storage));
-    for(;;){
-        server->status_=Status::READY;
-        Socket tmp_sock = accept(server->server_socket_,(struct sockaddr*)&another,&sin_size);
-        if(tmp_sock==-1){
-            server->err_ = ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
-            continue;
-        }
-        server->__new_connection__(tmp_sock);
+    std::vector<epoll_event> events = define_epoll_event();
+    epoll_event ev;
+    ev.events = EPOLLIN;
+    ev.data.fd = server->server_socket_;
+    int epollfd = epoll_create1(0);
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server->server_socket_, &ev) == -1) {
+        perror("epoll_ctl: server socket");
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        hProgram->collapse_server(server);
     }
+    if(epollfd==-1)
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server epoll init. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
+    server->status_=Status::READY;
+    printf("server: waiting for connections…\n");
+    while(!server->stop_token_.stop_requested()){
+        errno = 0;
+        int number_epoll_wait;
+        if((number_epoll_wait = epoll_wait(epollfd,events.data(),events.size(),-1))==-1 && errno!=EINTR){
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"epoll wait",AT_ERROR_ACTION::CONTINUE);
+            return;
+        }
+        else
+        for(int i=0;i<number_epoll_wait;++i){
+            if(events.at(i).data.fd==server->server_socket_){ //if connection requested
+                Socket tmp_sock = 0;
+                if((tmp_sock = accept(server->server_socket_,(struct sockaddr*)&another,&sin_size))==-1){
+                    server->err_ = ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+                    continue;
+                }
+                else{
+                    //add checking allowed client properties
+                    //add checking hash key
+                    //if not - close connection and continue
+                    if(int flags = fcntl(tmp_sock,F_GETFL,0)==-1){
+                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"getting socket flags",AT_ERROR_ACTION::CONTINUE);
+                        close(tmp_sock);
+                        continue;
+                    }
+                    else{
+                        if(fcntl(tmp_sock,F_SETFL,flags|O_NONBLOCK)==-1){
+                            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"setting socket flags",AT_ERROR_ACTION::CONTINUE);
+                            close(tmp_sock);
+                            continue;
+                        }
+                    }
+                }
+                server->__new_connection__(events[i].data.fd);
+                memset(&another,0,sizeof(sockaddr_storage));
+                sin_size = 0;
+            }
+            else{
+                server->connection_pool_.process_connection(events[i].data.fd);
+            }
+        }
+    }//спросить надо ли указывать для неблокируемых сокетов EPOLLOUT (будут ли данные отправляться асинхронно и пр.)
 }
+
 void Server::__new_connection__(Socket connected_client){
-    if(setsockopt(connected_client,SOL_SOCKET,SO_RCVTIMEO,&settings.timeout_seconds_,sizeof(settings.timeout_seconds_))==-1){
+    if(setsockopt(connected_client,SOL_SOCKET,SO_RCVTIMEO,&Application::config().current_server_setting().settings_.timeout_seconds_,
+        sizeof(Application::config().current_server_setting().settings_.timeout_seconds_))==-1){
         network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
         msg_err.sendto(connected_client,ErrorCode::INTERNAL_ERROR,ErrorPrint::message(ErrorCode::INTERNAL_ERROR,strerror(errno)));
         close(connected_client);
     }
-    connection::Process::init(this,connected_client,0).launch();
+    connection_pool_.add_connection(connected_client);
 }
 server::Status Server::get_status() const{
     return status_;
 }
 void Server::launch(){
-    if(server_thread_){
-        server_thread_->join();
-        server_thread_.release();
-    }
-    server_thread_ = std::move(std::make_unique<std::thread>(__launch__,this));
+    if(server_thread_.joinable())
+        server_thread_.join();
+    server_thread_ = std::move(std::jthread(__launch__,this));
+    stop_token_ = server_thread_.get_stop_token();
+    std::cout<<"Server launched: ";
+    print_ip_port(std::cout,server_);
 }
-void Server::close(bool wait_for_end_connections){
+void Server::close_connections(bool wait_for_end_connections){
     ::shutdown(server_socket_,SHUT_RDWR);
 }
 void Server::shutdown(bool wait_for_end_connections){
     if(status_!=Status::INACTIVE){
         if(!wait_for_end_connections)
-            for(auto& connection_process:connection_pool_)
-                if(connection_process.)
+            connection_pool_.shutdown_all();
+        else connection_pool_.shut_not_processing();
         status_=Status::SUSPENDED;
     }
+}
+void Server::collapse(Server* server,bool wait_for_end_connections){
+    if(server)
+        server->close_connections(wait_for_end_connections);
+    server->~Server();
 }
 Server::~Server(){
     if(status_!=Status::INACTIVE){
@@ -131,13 +201,16 @@ Server::~Server(){
         status_=Status::INACTIVE;
         server_socket_=-1;
     }
-    if(server_thread_){
-        server_thread_->join();
-        server_thread_.release();
+    if(server_thread_.joinable()){
+        server_thread_.join();
     }
+    char ipstr[INET6_ADDRSTRLEN];
+    std::cout<<"Server closed: ";
+    print_ip_port(std::cout,server_);
     if(server_)
         freeaddrinfo(server_);
 }
+
 // void server::Server::set_socket(){
 //     s_sock_ = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 //     if(s_sock_<0)
