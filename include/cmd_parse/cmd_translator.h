@@ -50,7 +50,8 @@ enum class ServerConfigCommands:uint8_t{
     PORT,
     SERVICE,
     ACCEPTED_ADDRESSES,
-    TIMEOUT
+    TIMEOUT,
+    PROTOCOL
 };
 
 enum class ConfigAction:uint8_t{
@@ -102,13 +103,14 @@ struct __Token_text__<translate::token::ServerAction>{
 
 template<>
 struct __Token_text__<translate::token::ServerConfigCommands>{
-    static constexpr std::array<const char*,6> txt = {
+    static constexpr std::array<const char*,7> txt = {
         "-name",
         "-host",
         "-port",
         "-service",
         "-accaddr",
-        "-timeout"
+        "-timeout",
+        "-protocol"
     };
 };
 

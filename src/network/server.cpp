@@ -61,10 +61,11 @@ Server::Server():connection_pool_(*this){
     ainfo_.ai_flags = AI_PASSIVE;
     ainfo_.ai_socktype = SOCK_STREAM;
     const char* service;
+    int yes=1;
     if(!Application::config().current_server_setting().settings_.service.empty())
         service = Application::config().current_server_setting().settings_.service.c_str();
     else if(!Application::config().current_server_setting().settings_.port.empty())
-        service = Application::config().current_server_setting().settings_.service.c_str();
+        service = Application::config().current_server_setting().settings_.port.c_str();
     else{
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
         return;
@@ -85,16 +86,30 @@ Server::Server():connection_pool_(*this){
         server_socket_ = socket(ptr_addr->ai_family,ptr_addr->ai_socktype,ptr_addr->ai_protocol);
         if(server_socket_==-1){
             err_ = ErrorCode::INTERNAL_ERROR;
+            errno=0;
+            continue;
+        }
+        if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes,
+            sizeof(int)) == -1) {
+            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            server_socket_=-1;
+            errno=0;
             continue;
         }
         if(bind(server_socket_,ptr_addr->ai_addr,ptr_addr->ai_addrlen)==-1){
             close(server_socket_);
-            err_ = ErrorCode::INTERNAL_ERROR;
+            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization: "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            server_socket_=-1;
+            errno=0;
             continue;
         }
         err_=ErrorCode::NONE;
         server_ = ptr_addr;
         break;
+    }
+    if(server_socket_==-1){
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
+        return;
     }
     if(__set_no_block__(server_socket_)!=ErrorCode::NONE){
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization - "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
@@ -116,27 +131,44 @@ Server::Server():connection_pool_(*this){
         print_ip_port(std::cout,server_);
     }
 }
-
+#include <sys/eventfd.h>
 void Server::__launch__(Server* server){
     if(!server)
         return;
-    if(listen(server->server_socket_,5)==-1)
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server listening error. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
+    if(listen(server->server_socket_,5)==-1){
+        server->err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server listening error. "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
     socklen_t sin_size;
     sockaddr_storage another;
     memset(&another,0,sizeof(sockaddr_storage));
+    
     std::vector<epoll_event> events = define_epoll_event();
     epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.fd = server->server_socket_;
     int epollfd = epoll_create1(0);
+    if(epollfd==-1)
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server epoll init. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server->server_socket_, &ev) == -1) {
         perror("epoll_ctl: server socket");
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
         hProgram->collapse_server(server);
     }
-    if(epollfd==-1)
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server epoll init. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
+    server->server_interruptor = eventfd(0,EFD_NONBLOCK);
+    if(server->server_interruptor==-1){
+        server->err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
+    ev.data.fd = server->server_interruptor;
+    ev.events = EPOLLIN;
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server->server_interruptor, &ev) == -1) {
+        perror("epoll_ctl: eventfd");
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR, strerror(errno), AT_ERROR_ACTION::CONTINUE);
+        close(epollfd);
+        close(server->server_interruptor);
+        return;
+    }
     server->status_=Status::READY;
     printf("server: waiting for connections…\n");
     while(!server->stop_token_.stop_requested()){
@@ -148,6 +180,11 @@ void Server::__launch__(Server* server){
         }
         else
         for(int i=0;i<number_epoll_wait;++i){
+            if (events.at(i).data.fd == server->server_interruptor) {
+                uint64_t val;
+                read(server->server_interruptor, &val, sizeof(val));  // Очищаем eventfd
+                server->err_=ErrorCode::INTERRUPTED;
+            }
             if(events.at(i).data.fd==server->server_socket_){ //if connection requested
                 Socket tmp_sock = 0;
                 if((tmp_sock = accept(server->server_socket_,(struct sockaddr*)&another,&sin_size))==-1){
@@ -169,7 +206,7 @@ void Server::__launch__(Server* server){
                 server->connection_pool_.process_connection(events[i].data.fd);
             }
         }
-    }//спросить надо ли указывать для неблокируемых сокетов EPOLLOUT (будут ли данные отправляться асинхронно и пр.)
+    }
 }
 
 void Server::__new_connection__(Socket connected_client){
@@ -203,25 +240,27 @@ void Server::shutdown(bool wait_for_end_connections){
         status_=Status::SUSPENDED;
     }
 }
-void Server::collapse(Server* server,bool wait_for_end_connections){
-    if(server)
-        server->close_connections(wait_for_end_connections);
-    server->~Server();
-}
 Server::~Server(){
+    stop();
     if(status_!=Status::INACTIVE){
         ::close(server_socket_);
         status_=Status::INACTIVE;
         server_socket_=-1;
-    }
-    if(server_thread_.joinable()){
-        server_thread_.join();
     }
     char ipstr[INET6_ADDRSTRLEN];
     std::cout<<"Server closed: ";
     print_ip_port(std::cout,server_);
     if(server_)
         freeaddrinfo(server_);
+}
+void Server::stop() {
+    if(server_thread_.joinable()){
+        server_thread_.request_stop();
+        if (server_interruptor != -1) {
+            uint64_t val = 1;
+            write(server_interruptor, &val, sizeof(val));
+        }
+    }
 }
 
 // void server::Server::set_socket(){

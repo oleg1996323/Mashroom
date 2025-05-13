@@ -197,7 +197,9 @@ bool Mashroom::read_command(std::istream& stream){
     return true;
 }
 void Mashroom::collapse_server(bool wait_processes){
-    Server::collapse(server_.get(),wait_processes);
+    if(server_)
+        server_->close_connections(wait_processes);
+    server_.reset();
 }
 void Mashroom::close_server(bool wait_processes){
     if(server_)

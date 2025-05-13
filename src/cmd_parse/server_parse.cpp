@@ -74,55 +74,12 @@ ErrorCode server_settings_parse(std::string_view key, std::string_view arg,serve
             break;
         }
         case ServerConfigCommands::PORT:{
-            std::vector<std::string_view> port_protocol = split(arg,":");
-            if(port_protocol.empty()){
-                err=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition error",AT_ERROR_ACTION::CONTINUE,arg);
+            std::optional<short> port = from_chars<short>(arg,err);
+            if(!port.has_value() || err!=ErrorCode::NONE){
+                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
                 return err;
             }
-            else if(port_protocol.size()==1){
-                std::optional<short> port = from_chars<short>(port_protocol.front(),err);
-                if(!port.has_value() || err!=ErrorCode::NONE){
-                    err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
-                    return err;
-                }
-                else{
-                    auto serv = getservbyport(htons(port.value()),NULL);
-                    if(!serv){
-                        err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
-                        return err;
-                    }
-                    else{
-                        set.port=arg;
-                        set.protocol=serv->s_proto;
-                        return err;
-                    }
-                }
-            }
-            else if(port_protocol.size()==2){
-                std::optional<short> port = from_chars<short>(port_protocol.front(),err);
-                if(!port.has_value() || err!=ErrorCode::NONE){
-                    err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
-                    return err;
-                }
-                else{
-                    std::string protocol;
-                    protocol = port_protocol.back();
-                    auto serv =getservbyport(htons(port.value()),protocol.c_str());
-                    if(!serv){
-                        err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
-                        return err;
-                    }
-                    else{
-                        set.port=arg;
-                        set.protocol=serv->s_proto;
-                        break;
-                    }
-                }
-            }
-            else{
-                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"incorrect port",AT_ERROR_ACTION::CONTINUE,arg);
-                return err;
-            }
+            else set.port = arg;
             break;
         }
         case ServerConfigCommands::TIMEOUT:{
@@ -130,6 +87,14 @@ ErrorCode server_settings_parse(std::string_view key, std::string_view arg,serve
             if(!timeout.has_value() || err!=ErrorCode::NONE || timeout.value()<server::min_timeout_seconds)
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"timeout definition",AT_ERROR_ACTION::CONTINUE,arg);
             else set.timeout_seconds_ = timeout.value();
+            break;
+        }
+        case ServerConfigCommands::PROTOCOL:{
+            if(!getprotobyname(std::string(arg).c_str())){
+                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"protocol definition",AT_ERROR_ACTION::CONTINUE,arg);
+                return err; 
+            }
+            else set.protocol = arg;
             break;
         }
         default:{
@@ -257,6 +222,7 @@ ErrorCode server_config(const std::vector<std::string_view>& input,server::Serve
             case ServerConfigCommands::PORT:
             case ServerConfigCommands::SERVICE:
             case ServerConfigCommands::TIMEOUT:
+            case ServerConfigCommands::PROTOCOL:
                 err = server_settings_parse(input.at(i-1),input.at(i),config.settings_);
                 if(err!=ErrorCode::NONE)
                     return err;

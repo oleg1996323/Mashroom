@@ -11,6 +11,8 @@
 #include <thread>
 #include <future>
 #include <vector>
+#include <sys/eventfd.h>
+#include <network/credentials.h>
 
 using namespace std::string_view_literals;
 namespace connection{
@@ -25,6 +27,7 @@ namespace server{
         std::jthread server_thread_;
         std::stop_token stop_token_;
         addrinfo* server_=nullptr;
+        eventfd_t server_interruptor;
         Socket server_socket_=-1;
         bool interrupt_transactions_ = false;
         ErrorCode err_;
@@ -40,7 +43,6 @@ namespace server{
         void stop();
         void close_connections(bool wait_for_end_connections = false);
         void shutdown(bool wait_for_end_connections = false);
-        static void collapse(Server*,bool);
         static std::ostream& print_ip_port(std::ostream& stream,addrinfo* addr);
         ~Server();
         static std::unique_ptr<Server> make_instance(ErrorCode& err);
