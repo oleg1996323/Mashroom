@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include <network/def.h>
+#include <network/common/def.h>
 #include <extract.h>
 
 using namespace std::chrono;

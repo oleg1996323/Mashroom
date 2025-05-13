@@ -1,7 +1,7 @@
 #pragma once
-#include <network/def.h>
-#include <network/connection_pool.h>
-#include <network/connection_process.h>
+#include <network/common/def.h>
+#include <network/server/connection_pool.h>
+#include <network/server/connection_process.h>
 
 #include <string_view>
 #include <cinttypes>
@@ -12,7 +12,7 @@
 #include <future>
 #include <vector>
 #include <sys/eventfd.h>
-#include <network/credentials.h>
+#include <network/common/credentials.h>
 
 using namespace std::string_view_literals;
 namespace connection{
@@ -43,7 +43,6 @@ namespace server{
         void stop();
         void close_connections(bool wait_for_end_connections = false);
         void shutdown(bool wait_for_end_connections = false);
-        static std::ostream& print_ip_port(std::ostream& stream,addrinfo* addr);
         ~Server();
         static std::unique_ptr<Server> make_instance(ErrorCode& err);
     };

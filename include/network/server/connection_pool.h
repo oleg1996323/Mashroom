@@ -2,7 +2,7 @@
 #include <unordered_set>
 #include <thread>
 #include <mutex>
-#include <network/connection_process.h>
+#include <network/server/connection_process.h>
 #include <shared_mutex>
 
 namespace connection{

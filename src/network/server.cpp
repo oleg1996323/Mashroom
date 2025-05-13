@@ -1,5 +1,5 @@
 #include "network/server.h"
-#include <network/def.h>
+#include <network/common/def.h>
 #include <program/mashroom.h>
 #include <sys/config.h>
 #include <sys/log_err.h>
@@ -22,21 +22,6 @@ std::unique_ptr<Server> Server::make_instance(ErrorCode& err){
         err = ErrorCode::INTERNAL_ERROR;
     }
     return result;
-}
-std::ostream& Server::print_ip_port(std::ostream& stream,addrinfo* addr){
-    char ipstr[INET6_ADDRSTRLEN];
-    if(addr->ai_family==AF_INET){
-        sockaddr_in* a = (sockaddr_in *)addr->ai_addr;
-        stream<<"IPv4="<<inet_ntop(addr->ai_family, &a->sin_addr, ipstr, sizeof(ipstr))<<
-        " port="<<ntohs(a->sin_port)<<std::endl;
-        return stream;
-    }
-    else {
-        sockaddr_in6* a = (sockaddr_in6 *)addr->ai_addr;
-        stream<<"IPv6="<<inet_ntop(addr->ai_family, &a->sin6_addr, ipstr, sizeof(ipstr))<<
-        " port="<<ntohs(a->sin6_port)<<std::endl;
-        return stream;
-    }
 }
 ErrorCode Server::__set_no_block__(int socket){
     if(int flags = fcntl(socket,F_GETFL,0)==-1){
@@ -128,7 +113,7 @@ Server::Server():connection_pool_(*this){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"sigaction",AT_ERROR_ACTION::ABORT);
     {
         std::cout<<"Server ready for launching: ";
-        print_ip_port(std::cout,server_);
+        network::print_ip_port(std::cout,server_);
     }
 }
 #include <sys/eventfd.h>
@@ -227,7 +212,7 @@ void Server::launch(){
     server_thread_ = std::move(std::jthread(__launch__,this));
     stop_token_ = server_thread_.get_stop_token();
     std::cout<<"Server launched: ";
-    print_ip_port(std::cout,server_);
+    network::print_ip_port(std::cout,server_);
 }
 void Server::close_connections(bool wait_for_end_connections){
     ::shutdown(server_socket_,SHUT_RDWR);
@@ -249,7 +234,7 @@ Server::~Server(){
     }
     char ipstr[INET6_ADDRSTRLEN];
     std::cout<<"Server closed: ";
-    print_ip_port(std::cout,server_);
+    network::print_ip_port(std::cout,server_);
     if(server_)
         freeaddrinfo(server_);
 }

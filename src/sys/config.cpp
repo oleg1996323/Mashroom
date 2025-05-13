@@ -1,7 +1,7 @@
 #include "sys/config.h"
 #include "cmd_parse/functions.h"
 #include <cassert>
-#include <network/def.h>
+#include <network/common/def.h>
 #include <boost/json.hpp>
 
 namespace fs = std::filesystem;

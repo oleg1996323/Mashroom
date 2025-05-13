@@ -1,10 +1,10 @@
 #pragma once
 #include <thread>
 #include <unistd.h>
-#include <network/def.h>
+#include <network/common/def.h>
 #include <sys/eventfd.h>
 #include <poll.h>
-#include <network/credentials.h>
+#include <network/common/credentials.h>
 
 namespace client{
     class Client{
@@ -13,13 +13,15 @@ namespace client{
         addrinfo* client_=nullptr;
         Socket client_socket_ = -1;
         eventfd_t server_interruptor;
-        public:
+        ErrorCode err_;
+        mutable server::Status server_status_;
         Client();
+        public:
         ~Client();
         void cancel();
         void disconnect();
         void request();
         void server_status();
-        
+        static std::unique_ptr<Client> make_instance(ErrorCode& err);
     };
 }

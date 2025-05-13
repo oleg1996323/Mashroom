@@ -1,4 +1,4 @@
-#include <network/connection_process.h>
+#include <network/server/connection_process.h>
 #include <network/server.h>
 
 using namespace connection;

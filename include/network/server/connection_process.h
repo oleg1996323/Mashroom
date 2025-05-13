@@ -1,5 +1,5 @@
 #pragma once
-#include <network/def.h>
+#include <network/common/def.h>
 #include <string_view>
 #include <cinttypes>
 #include <memory>
@@ -8,7 +8,7 @@
 #include <thread>
 #include <future>
 #include <vector>
-#include <network/message.h>
+#include <network/common/message.h>
 #include <queue>
 #include <shared_mutex>
 

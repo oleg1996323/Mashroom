@@ -46,18 +46,6 @@ namespace server{
     };
 }
 
-constexpr const char* config_arg_type_conn[]={
-    "-auto",
-    "-stream",
-    "-dgramm",
-    "-raw",
-    "-rdm",
-    "-seq",
-    "-dccp"
-};
-
-// Тип сокета
-enum class SocketType : uint8_t {
-    client_socket = 0,
-    server_socket = 1
-};
+namespace network{
+    std::ostream& print_ip_port(std::ostream& stream,addrinfo* addr);
+}

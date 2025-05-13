@@ -1,5 +1,5 @@
-#include <network/message.h>
-#include <network/def.h>
+#include <network/common/message.h>
+#include <network/common/def.h>
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
