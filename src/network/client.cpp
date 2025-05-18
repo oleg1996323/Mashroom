@@ -1,11 +1,10 @@
 #include <network/client.h>
 #include <network/common/def.h>
-#include <network/common/message.h>
+#include <network/client/message.h>
 #include <sys/signalfd.h>
 
 namespace client
 {
-
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
@@ -16,72 +15,124 @@ void *get_in_addr(struct sockaddr *sa)
 
 Client::Client(const std::string& client_name){
     int sockfd, numbytes;
-    struct addrinfo hints, *servinfo, *p;
+    struct addrinfo hints, *servinfo;
     int rv;
     char s[INET6_ADDRSTRLEN];
     if (client_name.empty()) {
-        err_=ErrorCode::INVALID_SERVER_NAME_X1;
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client name undefined",AT_ERROR_ACTION::CONTINUE);
         return;
     }
-    ! memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    if ((rv = getaddrinfo(""/*client host*/, "" /*port-servive client*/, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return;
-    }
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-            if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1){
-                perror("client: socket");
-                continue;
-            }
-            if (::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
-                close(sockfd);
-                perror("client: connect");
-                continue;
-            }
-            break;
-        }
-        if (p == NULL){
-            fprintf(stderr, "client: failed to connect\n");
-            return;
-        }
-        inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-        s, sizeof s);
-        printf("client: connecting to %s\n", s);
-        freeaddrinfo(servinfo);
-        // с этой структурой закончили
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1,0)) == -1) {
-            perror("recv");
-            exit(1);
-        }
-        buf[numbytes]= '\0';
-        printf("client: received'%s'\n",buf);
-        close(sockfd);
-        return ;
+    else client_name_ = client_name;
 }
 Client::~Client(){
     disconnect();            
     client_socket_=-1;
     char ipstr[INET6_ADDRSTRLEN];
     std::cout<<"Connection closed: ";
-    network::print_ip_port(std::cout,client_);
-    if(client_)
-        freeaddrinfo(client_);
+    network::print_ip_port(std::cout,servinfo_);
+    if(servinfo_)
+        freeaddrinfo(servinfo_);
 }
 void Client::cancel(){
-
+    if(client_thread_.joinable()){
+        client_thread_.request_stop();
+        if (client_interruptor != -1) {
+            uint64_t val = 1;
+            write(client_interruptor, &val, sizeof(val));
+        }
+    }
 }
 ErrorCode Client::connect(){
-    
+    int sockfd, numbytes;
+    struct addrinfo hints;
+    int rv;
+    char s[INET6_ADDRSTRLEN];
+    bzero(&hints, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if ((rv = getaddrinfo(""/*client host*/, "" /*port-servive client*/, &hints, &servinfo_)) != 0) {
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
+        return err_;
+    }
+    for(auto p = servinfo_; p != nullptr; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+            p->ai_protocol)) == -1){
+            err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client: socket",AT_ERROR_ACTION::CONTINUE);
+            continue;
+        }
+        if (::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
+            err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client: connect",AT_ERROR_ACTION::CONTINUE);
+            close(sockfd);
+            client_socket_ = -1;
+            continue;
+        }
+        freeaddrinfo(servinfo_);
+        if(!p){
+            err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Client initialization\n",AT_ERROR_ACTION::CONTINUE);
+            return err_;
+        }
+        servinfo_ = p;
+        err_ = ErrorCode::NONE;
+        break;
+    }
+    std::cout<<"Client connected to: ";
+        network::print_ip_port(std::cout,servinfo_);
+    std::cout<<"Ready for request.";
 }
 ErrorCode Client::disconnect(){
+    cancel();
+    if(server_status_!=server::Status::INACTIVE){
+        ::close(client_socket_);
+        client_socket_=-1;
+    }
+    char ipstr[INET6_ADDRSTRLEN];
+    std::cout<<"Server closed: ";
+    network::print_ip_port(std::cout,servinfo_);
+    if(servinfo_)
+        freeaddrinfo(servinfo_);
     ::close(client_socket_);
+
     return ErrorCode::NONE;
 }
+bool Client::is_connected() const{
+    int error = 0;
+    socklen_t len = sizeof(error);
+    int ret = getsockopt(client_socket_,SOL_SOCKET,SO_ERROR,&error,&len);
+    if(ret!=0 || error!=0)
+        return false;
+    return true;
+}
+//remote extract mode by set parameters
 template<>
-ErrorCode Client::request<network::TYPE_MESSAGE::METEO_REQUEST>(network::Message<network::TYPE_MESSAGE::METEO_REQUEST> msg){
+ErrorCode Client::request<TYPE_MESSAGE::METEO_REQUEST>(Message<TYPE_MESSAGE::METEO_REQUEST> msg){
+    ssize_t sent = sizeof(msg);
+    err_ = ErrorCode::NONE;
+    while(sent!=0){
+        ssize_t sent_tmp = send(client_socket_,&msg,sizeof(msg),0);
+        if(sent_tmp==-1){
+            err_=ErrorPrint::print_error(ErrorCode::SENDING_REQUEST_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            return err_;
+        }
+    }
+    return err_;
+}
+//remote capitalize (may permit to orcherstrate the accesible remote data by capitalize mode)
+template<>
+ErrorCode Client::request<TYPE_MESSAGE::CHECK_DATA>(Message<TYPE_MESSAGE::CHECK_DATA> msg){
+    ssize_t sent = sizeof(msg);
+    err_ = ErrorCode::NONE;
+    while(sent!=0){
+        ssize_t sent_tmp = send(client_socket_,&msg,sizeof(msg),0);
+        if(sent_tmp==-1){
+            err_=ErrorPrint::print_error(ErrorCode::SENDING_REQUEST_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            return err_;
+        }
+    }
+    return err_;
+}
+//return the actual server status
+template<>
+ErrorCode Client::request<TYPE_MESSAGE::SERVER_CHECK>(Message<TYPE_MESSAGE::SERVER_CHECK> msg){
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
@@ -96,8 +147,8 @@ ErrorCode Client::request<network::TYPE_MESSAGE::METEO_REQUEST>(network::Message
 server::Status Client::server_status() const{
     return server_status_;
 }
-std::unique_ptr<Client> Client::make_instance(ErrorCode& err){
-    auto result = std::unique_ptr<Client>(new Client());
+std::unique_ptr<Client> Client::make_instance(const std::string& client_name,ErrorCode& err){
+    auto result = std::unique_ptr<Client>(new Client(client_name));
     if(result){
         ErrorCode err = result->err_;
         if(err!=ErrorCode::NONE)

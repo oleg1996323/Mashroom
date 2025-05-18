@@ -1,28 +1,9 @@
-#include <network/common/message.h>
+#include <network/server/message.h>
 #include <network/common/def.h>
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
-namespace network{
-Extract Message<TYPE_MESSAGE::METEO_REQUEST>::prepare_and_check_integrity_extractor(ErrorCode& err) const{
-    Extract hExtract;
-    if(center.has_value())
-        hExtract.set_center(center.value());
-    if(from.has_value())
-        hExtract.set_from_date(from.value());
-    if(to.has_value())
-        hExtract.set_to_date(to.value());
-    if(pos.has_value())
-        hExtract.set_position(pos.value());
-    if(fmt_.has_value())
-        hExtract.set_output_format(fmt_.value());
-    if(rep_t.has_value())
-        hExtract.set_grid_respresentation(rep_t.value());
-    if(time_off_.has_value())
-        hExtract.set_offset_time_interval(time_off_.value());
-    err = hExtract.properties_integrity();
-    return hExtract;
-}
+namespace server{
 bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_send){
     if(sock<0)
         return false;
@@ -32,7 +13,6 @@ bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_se
     finfo_.data_sz = fs::file_size(file_send);
     if(int fd=open(file_send.c_str(),O_RDONLY|O_DIRECT)!=-1){
         int val = 1;
-        setsockopt(sock,SOL_TCP,TCP_CORK,&val,sizeof(val));
         send(sock,(const void*)this,sizeof(*this),0);
         off_t offset = 0;
         size_t buffering = 4096*16;
@@ -43,7 +23,6 @@ bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_se
             else offset+=written;
         }
         val = 0;
-        setsockopt(sock,SOL_TCP,TCP_CORK,&val,sizeof(val));
         return true;
     }
     return false;

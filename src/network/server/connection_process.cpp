@@ -32,7 +32,7 @@ void Process::set_buffer_size(size_t sz){
     buffer_.resize(sz);
 }
 void Process::__send_error_and_close_connection__(ErrorCode err, const char* message) const{
-    network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+    server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
     fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)|SOCK_NONBLOCK);
     if(msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
         struct pollfd pfd = {.fd=connection_socket_,.events=POLLOUT,.revents=0};
@@ -45,7 +45,7 @@ void Process::__send_error_and_close_connection__(ErrorCode err, const char* mes
     return;
 }
 void Process::__send_error_and_continue__(ErrorCode err,const char* message) const{
-    network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+    server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
     fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)|SOCK_NONBLOCK);
     if(msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
         struct pollfd pfd = {.fd=connection_socket_,.events=POLLOUT,.revents=0};
@@ -57,12 +57,12 @@ void Process::__send_error_and_continue__(ErrorCode err,const char* message) con
     fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)^SOCK_NONBLOCK);
     return;
 }
-ErrorCode Process::__read_rest_data_at_error__(network::TYPE_MESSAGE msg) const{
+ErrorCode Process::__read_rest_data_at_error__(client::TYPE_MESSAGE msg) const{
     size_t to_read=0;
-    while (to_read<network::sizes_msg_struct[(int)msg]-1)
+    while (to_read<client::sizes_msg_struct[(int)msg]-1)
     {
-        if(int readed = recv(this->connection_socket_,&buffer_,network::sizes_msg_struct[(int)msg-1],MSG_DONTWAIT)==-1){
-            network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+        if(int readed = recv(this->connection_socket_,&buffer_,client::sizes_msg_struct[(int)msg-1],MSG_DONTWAIT)==-1){
+            server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
             fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
             msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
             ::close(connection_socket_);
@@ -82,9 +82,9 @@ bool Process::__check_and_notify_if_server_inaccessible__() const{
 ErrorCode Process::execute() const{
     busy_ = true;
     bool heavy = false;
-    network::TYPE_MESSAGE msg_t;
+    client::TYPE_MESSAGE msg_t;
     if(recv(this->connection_socket_,&msg_t,sizeof(msg_t),MSG_DONTWAIT)==-1){
-        network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+        server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
         fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
         msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
         ::close(connection_socket_);
@@ -92,19 +92,7 @@ ErrorCode Process::execute() const{
         return ErrorCode::INTERNAL_ERROR;
     }
     switch(msg_t){
-        case network::TYPE_MESSAGE::NONE:
-        case network::TYPE_MESSAGE::ERROR:
-        case network::TYPE_MESSAGE::SERVER_CHECK:
-        case network::TYPE_MESSAGE::METEO_REPLY:{
-            __send_error_and_continue__(ErrorCode::INVALID_CLIENT_REQUEST,"Invalid request");
-            ErrorCode err = __read_rest_data_at_error__(msg_t);
-            busy_=false;
-            if(err !=ErrorCode::NONE)
-                return err;
-            else
-                return ErrorCode::INVALID_CLIENT_REQUEST;
-        }
-        case network::TYPE_MESSAGE::METEO_REQUEST:{
+        case client::TYPE_MESSAGE::METEO_REQUEST:{
             if(__check_and_notify_if_server_inaccessible__()){
                 ErrorCode err = __read_rest_data_at_error__(msg_t);
                 busy_=false;
@@ -132,12 +120,12 @@ ErrorCode Process::execute() const{
         return err;
     }
 }
-ErrorCode Process::__execute_heavy_process__(network::TYPE_MESSAGE msg_t) const{
+ErrorCode Process::__execute_heavy_process__(client::TYPE_MESSAGE msg_t) const{
     size_t to_read = 0;
-    while (to_read<network::sizes_msg_struct[(int)msg_t]-1)
+    while (to_read<client::sizes_msg_struct[(int)msg_t]-1)
     {
-        if(int readed = recv(this->connection_socket_,buffer_.data(),network::sizes_msg_struct[(int)msg_t],0)==-1){
-            network::Message<network::TYPE_MESSAGE::ERROR> msg_err;
+        if(int readed = recv(this->connection_socket_,buffer_.data(),client::sizes_msg_struct[(int)msg_t],0)==-1){
+            server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
             fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
             msg_err.sendto(connection_socket_,ErrorCode::SERVER_RECEIVING_MSG_ERROR,ErrorPrint::message(ErrorCode::SERVER_RECEIVING_MSG_ERROR,strerror(errno)));
             ::close(connection_socket_);
@@ -148,8 +136,8 @@ ErrorCode Process::__execute_heavy_process__(network::TYPE_MESSAGE msg_t) const{
     thread_ = std::move(std::jthread([this,msg_t](){
         ErrorCode err;
         switch(msg_t){
-            case network::TYPE_MESSAGE::METEO_REQUEST:{
-                network::Message<network::TYPE_MESSAGE::METEO_REQUEST> msg;
+            case client::TYPE_MESSAGE::METEO_REQUEST:{
+                client::Message<client::TYPE_MESSAGE::METEO_REQUEST> msg;
                 Extract hExtract = msg.prepare_and_check_integrity_extractor(err);
                 if(err!=ErrorCode::NONE){
                     __send_error_and_continue__(err,"");
@@ -166,7 +154,7 @@ ErrorCode Process::__execute_heavy_process__(network::TYPE_MESSAGE msg_t) const{
                     break;
                 }
                 else {
-                    network::Message<network::TYPE_MESSAGE::METEO_REPLY> reply_msg;
+                    server::Message<server::TYPE_MESSAGE::METEO_REPLY> reply_msg;
                     if(fs::is_regular_file(hExtract.out_path())){
                         translating_.wait(false);
                         if(!reply_msg.sendto(connection_socket_,hExtract.out_path())){
@@ -201,7 +189,7 @@ ErrorCode Process::__execute_heavy_process__(network::TYPE_MESSAGE msg_t) const{
     }));
     return ErrorCode::NONE;
 }
-ErrorCode Process::__execute_light_process__(network::TYPE_MESSAGE msg_t) const{
+ErrorCode Process::__execute_light_process__(client::TYPE_MESSAGE msg_t) const{
     switch(msg_t){
         default:{
             __send_error_and_continue__(ErrorCode::INVALID_CLIENT_REQUEST,"");
@@ -211,8 +199,8 @@ ErrorCode Process::__execute_light_process__(network::TYPE_MESSAGE msg_t) const{
 }
 ErrorCode Process::send_status_message(server::Status status) const{
     translating_ = true;
-    network::Message<network::TYPE_MESSAGE::SERVER_CHECK> msg;
-    msg.status = status;
+    server::Message<server::TYPE_MESSAGE::SERVER_CHECK> msg;
+    msg.status_ = status;
     bool res = msg.sendto(connection_socket_);
     translating_ = false;
     if(!res)

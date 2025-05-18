@@ -43,7 +43,6 @@ enum class ModeArgs:uint8_t{
     CONTAINS,
     SERVER
 };
-
 enum class ServerConfigCommands:uint8_t{
     NAME,
     HOST,
@@ -53,7 +52,6 @@ enum class ServerConfigCommands:uint8_t{
     TIMEOUT,
     PROTOCOL
 };
-
 enum class ConfigAction:uint8_t{
     UNDEF,      //undefined action (error)
     ADD,        //check and add configuration by name
@@ -63,7 +61,6 @@ enum class ConfigAction:uint8_t{
     ADDSET,
     GET         //get config action by name or all (if '.' is inputed)
 };
-
 enum class ServerAction:uint8_t{
     ADD,
     SET,

@@ -77,6 +77,7 @@ namespace fs = std::filesystem;
 #include <abstractsearchprocess.h>
 #include <abstracttimeseparation.h>
 #include <abstractthreadinterruptor.h>
+#include <netdb.h>
 class Extract:public AbstractSearchProcess,public AbstractTimeSeparation,public AbstractThreadInterruptor{
     public:
     enum class ExtractFormat:uint{
@@ -99,9 +100,10 @@ class Extract:public AbstractSearchProcess,public AbstractTimeSeparation,public 
     fs::path __generate_directory__(ARGS&&... args);//TODO expand extract division
     public:
     virtual ErrorCode execute() override final;
+    
     virtual ErrorCode properties_integrity() const override final{
-        if(!in_path_.empty() && !fs::exists(in_path_))
-            return ErrorPrint::print_error(ErrorCode::INVALID_PATH_OF_DIRECTORIES_X1,"",AT_ERROR_ACTION::CONTINUE,in_path_.c_str());
+        /*  input path and host are checked in AbstractSearchProcess corresponding methods
+        */
         if(out_path_.empty())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Output path for extraction mode",AT_ERROR_ACTION::CONTINUE);
         if(!fs::exists(out_path_)){

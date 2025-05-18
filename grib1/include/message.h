@@ -69,7 +69,7 @@ STRUCT_BEG(HGrib1)
     #ifdef __cplusplus
     private:
     #endif
-    std::unique_ptr<Message> msg_ DEF_STRUCT_VAL(nullptr)
+    std::unique_ptr<::Message> msg_ DEF_STRUCT_VAL(nullptr)
     unsigned char* __f_ptr DEF_STRUCT_VAL(nullptr)
     unsigned char* current_ptr_ DEF_STRUCT_VAL(nullptr)
     unsigned long sz_ DEF_STRUCT_VAL(0)
@@ -79,7 +79,7 @@ STRUCT_BEG(HGrib1)
     HGrib1(const fs::path& filename):msg_(nullptr){open_grib(filename);}
     HGrib1() = default;
     ~HGrib1();
-    std::optional<std::reference_wrapper<Message>> message() const;
+    std::optional<std::reference_wrapper<::Message>> message() const;
     ptrdiff_t current_message_position() const noexcept;
     std::optional<unsigned long> current_message_length() const noexcept;
     bool next_message();

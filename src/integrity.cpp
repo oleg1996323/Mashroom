@@ -18,7 +18,7 @@ using namespace std::chrono;
 ErrorCode Integrity::execute(){ //TODO: add search from match if in path not defined
     ErrorCode result = ErrorCode::NONE;
     std::vector<fs::directory_entry> entries;
-    for(const fs::directory_entry& entry: fs::directory_iterator(in_path_))
+    for(const fs::directory_entry& entry: fs::directory_iterator(*in_path_))
         entries.push_back(entry);
     {
         if(entries.size()/cpus>1){

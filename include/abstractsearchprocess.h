@@ -7,31 +7,37 @@
 #include <sys/error_print.h>
 #include <sys/log_err.h>
 #include <sys/application.h>
-#include <./include/def.h>
+#include <include/def.h>
 #include <types/time_interval.h>
 #include <filesystem>
 #include <thread>
+#include <netdb.h>
 
 namespace fs = std::filesystem;
 
 class AbstractSearchProcess{
     protected:
     SearchProperties props_;
-    fs::path in_path_;
     fs::path out_path_;
+    std::unordered_set<fs::path> in_path_;
+    std::unordered_set<std::string> host_;
     float progress_ = 0;
     int cpus = 1;
     public:
     virtual ~AbstractSearchProcess() = default;
-    virtual ErrorCode set_in_path(std::string_view in_path){
-        if(!fs::exists(in_path)){
-            ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());
-            return ErrorCode::FILE_X1_DONT_EXISTS;
-        }
-        in_path_=in_path;
+    ErrorCode add_in_path(std::string_view in_path){
+        if(!fs::exists(in_path))
+            return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());
+        in_path_.insert(in_path);
         return ErrorCode::NONE;
     }
-    virtual ErrorCode set_out_path(std::string_view out_path){
+    ErrorCode add_search_host(std::string_view host){
+        if(!gethostbyname(host.data()))
+            return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,host);
+        host_.insert(std::string(host));
+        return ErrorCode::NONE;
+    }
+    ErrorCode set_out_path(std::string_view out_path){
         if(!fs::exists(out_path) && !fs::create_directories(out_path)){
             log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",out_path.data());
             return ErrorCode::INTERNAL_ERROR;
@@ -74,21 +80,47 @@ class AbstractSearchProcess{
     void set_grid_respresentation(RepresentationType grid_type){
         props_.grid_type_.emplace(grid_type);
     }
+    /** \brief Define the grid-type of the matching data.
+     * 
+     */
     std::optional<RepresentationType> get_grid_representation() const{
         return props_.grid_type_;
     }
+    /** \brief Define the global position on Earth.
+     * 
+     *  \remark Currently accessible only WGS coordinate-system position type.
+     *  Other position coordinate-systems will be added further.
+     */
     template<typename ARG>
     void set_position(ARG&& pos){
         props_.position_.emplace(std::forward<ARG>(pos));
     }
+    /** \brief Return the normilized float-point value (0-100) of current process
+     *  
+     *  \details Can be attached to any calling processes to notify the application.
+     */
     const float& get_progress() const{
         return progress_;
     }
+    /** \brief define the used parallel cores for any process
+     * 
+     *  \attention this field may be ignored in different case:
+     *  1.  The searching path is located at hard-drive (HDD).
+     *      It is defined in such a way as to exclude the damage to the hardware
+     *  2.  The process is launched via Client request (this parameter can be run only
+     *      directly by host - not remotely)
+     */
     void set_using_processor_cores(int cores){
         if(cores>0 && cores<std::thread::hardware_concurrency())
             cpus=cores;
         else cpus = 1;
     }
+    /** \brief Return the output path of process results
+     * 
+     * \details The result may differ: Extract (optional definition) emplace to the defined out_path_
+     * the generated files requested by previously defined Properties
+     * 
+     */
     const fs::path& out_path() const{
         return out_path_;
     }
@@ -96,6 +128,14 @@ class AbstractSearchProcess{
         return props_.position_;
     }
 
+    /** \brief Check the fullness of all necessairy fields in the search object
+        \details Is pure abstract and must be overriden in the child class with
+        checking its fields
+        For example: Extract object needs defined Properties for correct matching of
+        searched data.
+    */ 
     virtual ErrorCode properties_integrity() const=0;
+
+    //
     virtual ErrorCode execute() = 0;
 };

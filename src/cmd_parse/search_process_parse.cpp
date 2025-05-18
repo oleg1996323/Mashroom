@@ -12,9 +12,9 @@ ErrorCode search_process_parse(std::string_view option,std::string_view arg, Abs
             break;
         }
         case translate::token::Command::IN_PATH:
-            err=obj.set_in_path(arg);
+            err=obj.add_in_path(arg);
             break;
-        case translate::token::Command::OUT_PATH:{
+        case translate::token::Command::OUT_PATH:{ //TODO: swap this block with IN_PATH
             std::vector<std::string_view> tokens = split(arg,":");
             if(tokens.size()!=2){
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg);

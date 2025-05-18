@@ -8,7 +8,8 @@
 #include <thread>
 #include <future>
 #include <vector>
-#include <network/common/message.h>
+#include <network/server/message.h>
+#include <network/client/message.h>
 #include <queue>
 #include <shared_mutex>
 
@@ -39,9 +40,9 @@ namespace connection{
         void __send_error_and_close_connection__(ErrorCode err,const char* msg_err) const;
         void __send_error_and_continue__(ErrorCode err,const char* msg_err) const;
         bool __check_and_notify_if_server_inaccessible__() const;
-        ErrorCode __execute_heavy_process__(network::TYPE_MESSAGE msg_t) const; //
-        ErrorCode __execute_light_process__(network::TYPE_MESSAGE msg_t) const; //asyncronously
-        ErrorCode __read_rest_data_at_error__(network::TYPE_MESSAGE msg) const;
+        ErrorCode __execute_heavy_process__(client::TYPE_MESSAGE msg_t) const; //
+        ErrorCode __execute_light_process__(client::TYPE_MESSAGE msg_t) const; //asyncronously
+        ErrorCode __read_rest_data_at_error__(client::TYPE_MESSAGE msg) const;
         public:
         Process(int connection_socket,const ConnectionPool& pool, size_t buffer_sz=4096);
         Process(Process&& other);

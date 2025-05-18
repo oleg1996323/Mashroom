@@ -4,11 +4,12 @@
 #include <unordered_map>
 #include <algorithm>
 #include <chrono>
-#include "aux_code/def.h"
-#include "code_tables/table_0.h"
-#include "sections/grid/grid.h"
+#include <aux_code/def.h>
+#include <code_tables/table_0.h>
+#include <code_tables/table_4.h>
+#include <sections/grid/grid.h>
 #include <def.h>
-#include "types/time_interval.h"
+#include <types/time_interval.h>
 #include <grib1/include/def.h>
 
 struct GribMsgDataInfo
