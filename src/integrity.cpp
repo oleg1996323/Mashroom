@@ -18,30 +18,32 @@ using namespace std::chrono;
 ErrorCode Integrity::execute(){ //TODO: add search from match if in path not defined
     ErrorCode result = ErrorCode::NONE;
     std::vector<fs::directory_entry> entries;
-    for(const fs::directory_entry& entry: fs::directory_iterator(*in_path_))
-        entries.push_back(entry);
-    {
-        if(entries.size()/cpus>1){
-            std::vector<std::thread> threads(cpus);
+    for(auto& path:in_path_){
+        for(const fs::directory_entry& entry: fs::directory_iterator(path))
+            entries.push_back(entry);
+        {
+            if(entries.size()/cpus>1){ //check if HDD or SSD
+                std::vector<std::thread> threads(cpus);
 
-            for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
-                auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
-                                                                                    entries.begin()+(cpu+1)*entries.size()/cpus<entries.end()?
-                                                                                    entries.begin()+(cpu+1)*entries.size()/cpus:
-                                                                                    entries.end()
-                                                                                    );
-                std::mutex mute_at_print;
-                threads.at(cpu) = std::move(std::thread([this,r,&mute_at_print]() mutable{
-                                    __process_core__(std::move(r),&mute_at_print);
-                                }));
+                for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
+                    auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
+                                                                                        entries.begin()+(cpu+1)*entries.size()/cpus<entries.end()?
+                                                                                        entries.begin()+(cpu+1)*entries.size()/cpus:
+                                                                                        entries.end()
+                                                                                        );
+                    std::mutex mute_at_print;
+                    threads.at(cpu) = std::move(std::thread([this,r,&mute_at_print]() mutable{
+                                        __process_core__(std::move(r),&mute_at_print);
+                                    }));
+                }
+                for(int i = 0;i<cpus;++i){
+                    threads.at(i).join();
+                }
+                threads.clear();
             }
-            for(int i = 0;i<cpus;++i){
-                threads.at(i).join();
-            }
-            threads.clear();
+            else
+                __process_core__(entries);
         }
-        else
-            __process_core__(entries);
     }
     auto sublimed_grib_data = data_.sublime();
     std::ofstream missing_log(out_path_/missed_data,std::ios::out|std::ios::trunc);

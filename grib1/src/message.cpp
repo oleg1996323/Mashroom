@@ -187,11 +187,6 @@ ErrorCodeData HGrib1::open_grib(const fs::path& filename){
     sz_=lseek(file,0,SEEK_END);
     lseek(file,0,SEEK_SET);
     __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_PRIVATE|MAP_LOCKED,file,0);
-    //TODO for SSD/HDD
-    //bool is_rotational = (ioctl(fd, BLKROTATIONAL, &rot) == 0 && rot;
-    //__builtin_prefetch(data + offset);
-    //#pragma omp parallel for schedule(dynamic, 256*1024)
-    //posix_memalign(&buffer, 4096, 1 << 20);
     madvise(__f_ptr, sz_, MADV_SEQUENTIAL);
     if(!__f_ptr)
         return ErrorCodeData::READ_POS;

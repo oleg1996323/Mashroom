@@ -11,32 +11,35 @@ ErrorCode search_process_parse(std::string_view option,std::string_view arg, Abs
             obj.set_using_processor_cores(tmp_proc_num.value());
             break;
         }
-        case translate::token::Command::IN_PATH:
-            err=obj.add_in_path(arg);
-            break;
-        case translate::token::Command::OUT_PATH:{ //TODO: swap this block with IN_PATH
-            std::vector<std::string_view> tokens = split(arg,":");
-            if(tokens.size()!=2){
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg);
-                err = ErrorCode::COMMAND_INPUT_X1_ERROR;
-                break;
-            }
-            if(tokens.at(0)=="dir"){
-                err = obj.set_out_path(tokens.at(1));
-                if(err!=ErrorCode::NONE)
+        /** \brief Set user defined path(s) where iteratively (if file is not capitalized) or 
+         *  directly (by file message pointers) search or  set user defined host(s) in the way
+         *  to request the searched data
+         * 
+         */
+        case translate::token::Command::IN_PATH:{
+            std::vector<std::string_view> tokens;
+            if(arg.starts_with('[') && arg.ends_with(']'))
+                tokens = split(arg.substr(1,arg.size()-1),",");
+            else
+                tokens.push_back(arg);
+            for(auto token:tokens){
+                if(token.starts_with("path:"))
+                    obj.add_in_path(token.substr(4));
+                else if(token.starts_with("host:"))
+                    obj.add_search_host(token.substr(5));
+                else{
+                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg);
+                    err = ErrorCode::COMMAND_INPUT_X1_ERROR;
                     break;
+                }
             }
-            else if(tokens.at(0)=="ip"){
-            //TODO
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use extract mode by IP",AT_ERROR_ACTION::CONTINUE,tokens[0]);
-                err = ErrorCode::COMMAND_INPUT_X1_ERROR;
+            break;
+        }
+        case translate::token::Command::OUT_PATH:{ //TODO: swap this block with IN_PATH
+            err = obj.set_out_path(arg);
+            if(err!=ErrorCode::NONE)
                 break;
-            }
-            else{
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for extract mode",AT_ERROR_ACTION::CONTINUE,arg);
-                err = ErrorCode::COMMAND_INPUT_X1_ERROR;
-                break;
-            }
+            else return err;
             break;
         }
         case translate::token::Command::DATE_FROM:{

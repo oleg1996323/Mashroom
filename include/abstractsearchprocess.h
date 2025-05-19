@@ -15,12 +15,29 @@
 
 namespace fs = std::filesystem;
 
+
+struct Path{
+    enum class TYPE:uint8_t{
+        DIRECTORY,
+        FILE,
+        HOST
+    };
+    fs::path path_;
+    TYPE type_;
+};
+
+template<>
+struct std::hash<Path>{
+    size_t operator()(const Path& path){
+        return std::hash<size_t>{}(size_t(path.type_)<<63)|std::hash<fs::path>{}(path.path_)>>1;
+    }
+};
+
 class AbstractSearchProcess{
     protected:
     SearchProperties props_;
     fs::path out_path_;
-    std::unordered_set<fs::path> in_path_;
-    std::unordered_set<std::string> host_;
+    std::unordered_set<Path> in_path_;
     float progress_ = 0;
     int cpus = 1;
     public:
@@ -28,13 +45,18 @@ class AbstractSearchProcess{
     ErrorCode add_in_path(std::string_view in_path){
         if(!fs::exists(in_path))
             return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());
-        in_path_.insert(in_path);
+        if(fs::is_regular_file(in_path))
+            in_path_.insert({in_path,Path::TYPE::FILE});
+        else if(fs::is_directory(in_path))
+            in_path_.insert({in_path,Path::TYPE::DIRECTORY});
+        else
+            return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_REGULAR_FILE_OR_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,in_path);
         return ErrorCode::NONE;
     }
     ErrorCode add_search_host(std::string_view host){
         if(!gethostbyname(host.data()))
             return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,host);
-        host_.insert(std::string(host));
+        in_path_.insert(Path{std::string(host),Path::TYPE::HOST});
         return ErrorCode::NONE;
     }
     ErrorCode set_out_path(std::string_view out_path){
