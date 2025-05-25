@@ -1,8 +1,8 @@
 #include "data/info.h"
 
 namespace fs = std::filesystem;
-void GribDataInfo::add_info(const fs::path& file_name, const GribMsgDataInfo& msg_info) noexcept{
-    info_[file_name][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
+void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept{
+    info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(GribCapitalizeDataInfo{
         msg_info.grid_data,
         msg_info.buf_pos_,
@@ -10,8 +10,8 @@ void GribDataInfo::add_info(const fs::path& file_name, const GribMsgDataInfo& ms
         ErrorCodeData::NONE_ERR});
 }
 
-void GribDataInfo::add_info(const fs::path& file_name, GribMsgDataInfo&& msg_info) noexcept{
-    info_[file_name][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
+void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
+    info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(GribCapitalizeDataInfo{
         msg_info.grid_data,
         msg_info.buf_pos_,
@@ -36,9 +36,9 @@ using namespace std::string_literals;
 SublimedGribDataInfo GribDataInfo::sublime(){
     SublimedGribDataInfo returned;
     sublimed_data_t result;
-    for(auto& [file_name,file_data]:info_){
-        auto& data_t_tmp = result[file_name.c_str()];
-        for(auto& [cmn_d,data_seq]:file_data){
+    for(auto& [path,path_data]:info_){
+        auto& data_t_tmp = result[path];
+        for(auto& [cmn_d,data_seq]:path_data){
             auto& data_seq_tmp = data_t_tmp[cmn_d];
             //placing without grid to the beginning
             //errorness structures to the end
@@ -120,18 +120,19 @@ void SublimedGribDataInfo::serialize(std::ofstream& file){
     int token = (int)DataTypeInfo::Grib;
     file.write((const char*)&token,sizeof(int));
     int dont_exists = 0;
-    for(const auto& [filename,filedata]:info_){
-        if(!fs::exists(filename))
+    for(const auto& [path,filedata]:info_){
+        if(path.type_!=path::TYPE::HOST || !fs::exists(path.path_))
             ++dont_exists;
     }
     size_t data_sz = info_.size()-dont_exists;
     file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));        //number of files
-    for(const auto& [filename,filedata]:info_){
-        if(!fs::exists(filename))
+    for(const auto& [path,filedata]:info_){
+        if(path.type_!=path::TYPE::HOST || !fs::exists(path.path_))
             continue;
-        data_sz = filename.size();                                              //length filename
+        data_sz = path.path_.size();                                              //length filename
         file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));    //filename
-        file.write(filename.data(),data_sz);                                    //filename
+        file.write(path.path_.data(),data_sz);                                    //filename
+        file.write(reinterpret_cast<const char*>(&path.type_),sizeof(path.type_));
         data_sz = filedata.size();                                              //number of grib variations
         file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));    //number of grib variations
         for(const auto& grib_info:filedata){
@@ -161,17 +162,19 @@ void SublimedGribDataInfo::deserialize(std::ifstream& file){
             SublimedGribDataInfo to_add;
             file.read((char*)(&number_files),sizeof(number_files));
             for(int i=0;i<number_files;++i){
-                std::string filename;
+                std::string path;
+                path::TYPE path_type=path::TYPE(0);
                 size_t length_filename = 0;
                 file.read(reinterpret_cast<char*>(&length_filename),sizeof(length_filename));
-                filename.resize(length_filename);
-                file.read(filename.data(),length_filename);
-                auto& file_data_tmp = to_add.info_[*to_add.paths_.emplace(filename).first];
+                path.resize(length_filename);
+                file.read(path.data(),length_filename);
+                file.read(reinterpret_cast<char*>(&path_type),sizeof(path_type));
+                auto& path_data_tmp = to_add.info_[*to_add.paths_.emplace(path,path_type).first];
                 size_t grib_variations = 0;
                 file.read(reinterpret_cast<char*>(&grib_variations),sizeof(grib_variations));
                 for(int j=0;j<grib_variations;++j){
                     file.read(reinterpret_cast<char*>(&common),sizeof(CommonDataProperties));
-                    auto& seq = file_data_tmp[std::make_shared<CommonDataProperties>(std::move(common))];
+                    auto& seq = path_data_tmp[std::make_shared<CommonDataProperties>(std::move(common))];
                     size_t data_sz=0;
                     //data-sequence size
                     file.read(reinterpret_cast<char*>(&data_sz),sizeof(data_sz));

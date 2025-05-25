@@ -73,11 +73,12 @@ struct SublimedDataInfo
 class SublimedGribDataInfo;
 
 #include <string_view>
+#include <path_process.h>
 namespace fs = std::filesystem;
 class GribDataInfo{
     public:
-    using data_t = std::unordered_map<fs::path,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribCapitalizeDataInfo>>>;
-    using sublimed_data_t = std::unordered_map<std::string_view,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribCapitalizeDataInfo>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
     ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
@@ -93,15 +94,15 @@ class GribDataInfo{
     GribDataInfo(data_t&& info):
     info_(std::move(info)){}
     template<typename CDP = CommonDataProperties, typename GCDI = GribCapitalizeDataInfo>
-    void add_info(const fs::path& filename,CDP&& cmn,GCDI&& cap_info){
+    void add_info(const path::Storage<false>& path,CDP&& cmn,GCDI&& cap_info){
         if constexpr(std::is_same_v<std::vector<GribCapitalizeDataInfo>,std::decay_t<GCDI>>){
-            info_[filename][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(cap_info));
+            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(cap_info));
         }
         else
-            info_[filename][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(cap_info));
+            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(cap_info));
     }
-    void add_info(const fs::path& file_name, const GribMsgDataInfo& msg_info) noexcept;
-    void add_info(const fs::path& file_name, GribMsgDataInfo&& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
     ErrorCodeData error() const;
     const data_t& data() const;
     void swap(GribDataInfo& other) noexcept;
@@ -110,14 +111,15 @@ class GribDataInfo{
     SublimedGribDataInfo sublime();
 };
 #include <unordered_set>
+#include <path_process.h>
 class SublimedGribDataInfo
 {
     public:
-    using sublimed_data_t = std::unordered_map<std::string_view,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     
     private:
     sublimed_data_t info_;
-    std::unordered_set<std::string> paths_;
+    std::unordered_set<path::Storage<false>> paths_;
     public:
     SublimedGribDataInfo() = default;
     SublimedGribDataInfo(SublimedGribDataInfo&& other):
@@ -128,41 +130,41 @@ class SublimedGribDataInfo
     }
     void serialize(std::ofstream& file);
     void deserialize(std::ifstream& file);
-    const std::unordered_set<std::string>& paths() const{
+    const std::unordered_set<path::Storage<false>>& paths() const{
         return paths_;
     }
     void add_data(SublimedGribDataInfo& grib_data){
-        for(auto& [filename,file_data]:grib_data.info_){
-            auto found = paths_.find(filename.data());
+        for(auto& [path,file_data]:grib_data.info_){
+            auto found = paths_.find(path);
             if(found==paths_.end())
-                info_[paths_.insert(std::string(filename.data())).first->c_str()].swap(file_data);
+                info_[*paths_.emplace(path).first].swap(file_data);
             else 
                 info_[*paths_.insert(*found).first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t& grib_data){
-        for(auto& [filename,file_data]:grib_data){
-            auto found = paths_.find(filename.data());
+        for(auto& [path,file_data]:grib_data){
+            auto found = paths_.find(path);
             if(found==paths_.end())
-                info_[paths_.insert(std::string(filename.data())).first->c_str()].swap(file_data);
+                info_[*paths_.emplace(path).first].swap(file_data);
             else 
                 info_[*paths_.insert(*found).first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo&& grib_data){
-        for(auto& [filename,file_data]:grib_data.info_){
-            auto found = paths_.find(filename.data());
+        for(auto& [path,file_data]:grib_data.info_){
+            auto found = paths_.find(path);
             if(found==paths_.end())
-                info_[paths_.insert(std::string(filename.data())).first->c_str()].swap(file_data);
+                info_[*paths_.emplace(path).first].swap(file_data);
             else 
                 info_[*paths_.insert(*found).first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t&& grib_data){
-        for(auto& [filename,file_data]:grib_data){
-            auto found = paths_.find(filename.data());
+        for(auto& [path,file_data]:grib_data){
+            auto found = paths_.find(path);
             if(found==paths_.end()){
-                info_[paths_.insert(std::string(filename.data())).first->c_str()].swap(file_data);
+                info_[*paths_.emplace(path).first].swap(file_data);
             }
             else{
                 info_[*paths_.insert(*found).first].swap(file_data);

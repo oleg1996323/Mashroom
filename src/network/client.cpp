@@ -3,7 +3,7 @@
 #include <network/client/message.h>
 #include <sys/signalfd.h>
 
-namespace client
+namespace network::client
 {
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -13,16 +13,29 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-Client::Client(const std::string& client_name){
+Client::Client(const std::string& host){
     int sockfd, numbytes;
     struct addrinfo hints, *servinfo;
     int rv;
     char s[INET6_ADDRSTRLEN];
-    if (client_name.empty()) {
+    if (host.empty()) {
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client name undefined",AT_ERROR_ACTION::CONTINUE);
         return;
     }
-    else client_name_ = client_name;
+    else host_ = host;
+}
+Client::Client(Client&& other) noexcept{
+    if(this!=&other){
+        process_ = std::move(other.process_);
+        host_.swap(other.host_);
+        client_thread_.swap(other.client_thread_);
+        std::swap(servinfo_,other.servinfo_);
+        std::swap(client_socket_,other.client_socket_);
+        std::swap(client_interruptor,other.client_interruptor);
+        std::swap(err_,other.err_);
+        std::swap(temporary_,other.temporary_);
+        std::swap(retry_connection_,other.retry_connection_);
+    }
 }
 Client::~Client(){
     disconnect();            
@@ -50,7 +63,7 @@ ErrorCode Client::connect(){
     bzero(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    if ((rv = getaddrinfo(""/*client host*/, "" /*port-servive client*/, &hints, &servinfo_)) != 0) {
+    if ((rv = getaddrinfo(host_.c_str(), "" /*port-servive client*/, &hints, &servinfo_)) != 0) {
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
         return err_;
     }
@@ -104,7 +117,7 @@ bool Client::is_connected() const{
 }
 //remote extract mode by set parameters
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::METEO_REQUEST>(Message<TYPE_MESSAGE::METEO_REQUEST> msg){
+ErrorCode Client::request<TYPE_MESSAGE::DATA_REQUEST>(Message<TYPE_MESSAGE::DATA_REQUEST> msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
@@ -118,7 +131,7 @@ ErrorCode Client::request<TYPE_MESSAGE::METEO_REQUEST>(Message<TYPE_MESSAGE::MET
 }
 //remote capitalize (may permit to orcherstrate the accesible remote data by capitalize mode)
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::CHECK_DATA>(Message<TYPE_MESSAGE::CHECK_DATA> msg){
+ErrorCode Client::request<TYPE_MESSAGE::CAPITALIZE>(Message<TYPE_MESSAGE::CAPITALIZE> msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
@@ -132,7 +145,7 @@ ErrorCode Client::request<TYPE_MESSAGE::CHECK_DATA>(Message<TYPE_MESSAGE::CHECK_
 }
 //return the actual server status
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::SERVER_CHECK>(Message<TYPE_MESSAGE::SERVER_CHECK> msg){
+ErrorCode Client::request<TYPE_MESSAGE::SERVER_STATUS>(Message<TYPE_MESSAGE::SERVER_STATUS> msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
@@ -147,18 +160,18 @@ ErrorCode Client::request<TYPE_MESSAGE::SERVER_CHECK>(Message<TYPE_MESSAGE::SERV
 server::Status Client::server_status() const{
     return server_status_;
 }
-std::unique_ptr<Client> Client::make_instance(const std::string& client_name,ErrorCode& err){
-    auto result = std::unique_ptr<Client>(new Client(client_name));
-    if(result){
-        ErrorCode err = result->err_;
-        if(err!=ErrorCode::NONE)
-            result.release();
-    }
-    else {
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Client initialization error",AT_ERROR_ACTION::CONTINUE);
-        err = ErrorCode::INTERNAL_ERROR;
-    }
-    return result;
-}
+// std::unique_ptr<Client> Client::make_instance(const std::string& client_name,ErrorCode& err){
+//     auto result = std::unique_ptr<Client>(new Client(client_name));
+//     if(result){
+//         ErrorCode err = result->err_;
+//         if(err!=ErrorCode::NONE)
+//             result.release();
+//     }
+//     else {
+//         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Client initialization error",AT_ERROR_ACTION::CONTINUE);
+//         err = ErrorCode::INTERNAL_ERROR;
+//     }
+//     return result;
+// }
 }
 

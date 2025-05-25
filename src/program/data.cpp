@@ -92,14 +92,14 @@ bool Data::write(const fs::path& filename){
     }
 }
 
-std::unordered_map<std::string_view,SublimedDataInfo> Data::match(
+std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     Organization center,
     uint8_t table_version,
     TimeInterval time_interval,
     RepresentationType rep_t,
     Coord pos
 ) const{
-    std::unordered_map<std::string_view,SublimedDataInfo> result;
+    std::unordered_map<path::Storage<true>,SublimedDataInfo> result;
     for(const auto& [cmn,seq_fn]:grib_.by_common_data_){
         if(!cmn.expired() && cmn.lock()->center_==center && cmn.lock()->table_version_==table_version){
             for(auto fn:seq_fn)
@@ -135,7 +135,7 @@ std::unordered_map<std::string_view,SublimedDataInfo> Data::match(
 }
 #include <format>
 #include "./include/def.h"
-std::unordered_map<std::string_view,SublimedDataInfo> Data::match(
+std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     Organization center,
     std::optional<TimeFrame> time_fcst,
     const std::unordered_set<SearchParamTableVersion>& parameters,
@@ -143,7 +143,7 @@ std::unordered_map<std::string_view,SublimedDataInfo> Data::match(
     RepresentationType rep_t,
     Coord pos
 ) const{
-    std::unordered_map<std::string_view,SublimedDataInfo> result;
+    std::unordered_map<path::Storage<true>,SublimedDataInfo> result;
     std::vector<CommonDataProperties> param_variations;
     if(!time_fcst.has_value()){
         if(parameters.empty())

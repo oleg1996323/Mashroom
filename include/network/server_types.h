@@ -1,20 +1,23 @@
 #pragma once
 #include <array>
 
-enum class ServerInfoCodes{
+namespace network::server{
+
+enum class InfoCodes{
     ExtractMeteo = 0,
     ExtractTopo = 1,
     ExtractCadastre = 2
 };
 
-struct ServerInfo{
+struct Info{
     const char* name;
     int type;
 };
 
 //further will be added
-std::array<ServerInfo,sizeof(ServerInfoCodes)-1> servers = {
-    ServerInfo({"Extract meteo",(int)ServerInfoCodes::ExtractMeteo}),
-    ServerInfo({"Extract topo",(int)ServerInfoCodes::ExtractTopo}),
-    ServerInfo({"Extract cadastre",(int)ServerInfoCodes::ExtractCadastre})
+std::array<Info,sizeof(InfoCodes)-1> servers = {
+    Info({"Extract meteo",(int)InfoCodes::ExtractMeteo}),
+    Info({"Extract topo",(int)InfoCodes::ExtractTopo}),
+    Info({"Extract cadastre",(int)InfoCodes::ExtractCadastre})
 };
+}

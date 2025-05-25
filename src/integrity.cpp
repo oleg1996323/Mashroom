@@ -11,6 +11,9 @@
 #include <ranges>
 #include <numeric>
 #include <format>
+#include <path_process.h>
+#include <network/client.h>
+#include <program/mashroom.h>
 #include "sys/error_print.h"
 
 using namespace std::chrono;
@@ -19,30 +22,47 @@ ErrorCode Integrity::execute(){ //TODO: add search from match if in path not def
     ErrorCode result = ErrorCode::NONE;
     std::vector<fs::directory_entry> entries;
     for(auto& path:in_path_){
-        for(const fs::directory_entry& entry: fs::directory_iterator(path))
-            entries.push_back(entry);
-        {
-            if(entries.size()/cpus>1){ //check if HDD or SSD
-                std::vector<std::thread> threads(cpus);
+        switch(path.type_){
+            case path::TYPE::DIRECTORY:{
+                for(const fs::directory_entry& entry: fs::directory_iterator(path.path_))
+                    entries.push_back(entry);
+                {
+                    __process_core__(entries); //temporary solution before paralleling
 
-                for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
-                    auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
-                                                                                        entries.begin()+(cpu+1)*entries.size()/cpus<entries.end()?
-                                                                                        entries.begin()+(cpu+1)*entries.size()/cpus:
-                                                                                        entries.end()
-                                                                                        );
-                    std::mutex mute_at_print;
-                    threads.at(cpu) = std::move(std::thread([this,r,&mute_at_print]() mutable{
-                                        __process_core__(std::move(r),&mute_at_print);
-                                    }));
+                    //TODO:
+                    // if(entries.size()/cpus>1){ //check if HDD or SSD
+                    //     std::vector<std::thread> threads(cpus);
+
+                    //     for(unsigned int cpu = 0;cpu<cpus && entries.size()/cpus>1;++cpu){
+                    //         auto r = std::ranges::subrange(entries.begin()+cpu*entries.size()/cpus,
+                    //                                                                             entries.begin()+(cpu+1)*entries.size()/cpus<entries.end()?
+                    //                                                                             entries.begin()+(cpu+1)*entries.size()/cpus:
+                    //                                                                             entries.end()
+                    //                                                                             );
+                    //         std::mutex mute_at_print;
+                    //         threads.at(cpu) = std::move(std::thread([this,r,&mute_at_print]() mutable{
+                    //                             __process_core__(std::move(r),&mute_at_print);
+                    //                         }));
+                    //     }
+                    //     for(int i = 0;i<cpus;++i){
+                    //         threads.at(i).join();
+                    //     }
+                    //     threads.clear();
+                    // }
+                    // else
+                    //     __process_core__(entries);
                 }
-                for(int i = 0;i<cpus;++i){
-                    threads.at(i).join();
-                }
-                threads.clear();
             }
-            else
+            case path::TYPE::FILE:{
+                entries.push_back(fs::directory_entry(path.path_));
                 __process_core__(entries);
+            }
+            case path::TYPE::HOST:{
+                hProgram->request(path.path_,network::client::Message<network::client::TYPE_MESSAGE::CAPITALIZE>());
+            }
+            default:{
+
+            }
         }
     }
     auto sublimed_grib_data = data_.sublime();
@@ -146,9 +166,9 @@ void Integrity::__process_core__(std::ranges::random_access_range auto&& entries
                 {
                     if(mute_at_print){
                         std::lock_guard<std::mutex> locked(*mute_at_print);
-                        data_.add_info(entry.path(),std::move(info));
+                        data_.add_info(path::Storage<false>(entry.path().string(),path::TYPE::FILE),std::move(info));
                     }
-                    else data_.add_info(entry.path(),std::move(info));
+                    else data_.add_info(path::Storage<false>(entry.path().string(),path::TYPE::FILE),std::move(info));
                 }
             }while(grib.next_message());
         }

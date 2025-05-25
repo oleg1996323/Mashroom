@@ -211,7 +211,7 @@ void Mashroom::shutdown_server(bool wait_processes){
 }
 void Mashroom::deploy_server(){
     ErrorCode err;
-    server_ = server::Server::make_instance(err);
+    server_ = network::server::Server::make_instance(err);
     return;
 }
 void Mashroom::launch_server(){

@@ -3,8 +3,8 @@
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
-namespace client{
-Extract Message<TYPE_MESSAGE::METEO_REQUEST>::prepare_and_check_integrity_extractor(ErrorCode& err) const{
+namespace network::client{
+Extract Message<TYPE_MESSAGE::DATA_REQUEST>::prepare_and_check_integrity_extractor(ErrorCode& err) const{
     Extract hExtract;
     if(center.has_value())
         hExtract.set_center(center.value());
@@ -23,7 +23,7 @@ Extract Message<TYPE_MESSAGE::METEO_REQUEST>::prepare_and_check_integrity_extrac
     err = hExtract.properties_integrity();
     return hExtract;
 }
-bool Message<TYPE_MESSAGE::SERVER_CHECK>::sendto(int sock){
+bool Message<TYPE_MESSAGE::SERVER_STATUS>::sendto(int sock){
     send(sock,this,sizeof(*this),0);
     return true;
 }

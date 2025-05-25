@@ -6,13 +6,14 @@
 #include "sys/error_code.h"
 #include "data/info.h"
 #include "message.h"
+#include <path_process.h>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 class Capitalize{
 private:
 GribDataInfo result;
-fs::path from_file_;
+std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
 int cpus = 1;
@@ -23,12 +24,27 @@ public:
 static bool check_format(std::string_view fmt);
 void execute();
 
-ErrorCode set_from_path(std::string_view root_directory){
-    if(!fs::exists(root_directory))
-        return ErrorPrint::print_error(ErrorCode::DIRECTORY_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,root_directory);
-    if(!fs::is_directory(root_directory))
-        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,root_directory);
-    from_file_=root_directory;
+ErrorCode add_in_path(const path::Storage<false>& path){
+    if(path.path_.empty())
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"empty path",AT_ERROR_ACTION::CONTINUE);
+    switch(path.type_){
+        case path::TYPE::FILE:
+            if(!fs::exists(path.path_))
+                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else if(!fs::is_regular_file(path.path_))
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else in_path_.insert(path);
+            break;
+        case path::TYPE::DIRECTORY:
+            if(!fs::exists(path.path_))
+                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else if(!fs::is_directory(path.path_))
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else in_path_.insert(path);
+            break;
+        case path::TYPE::HOST:
+            in_path_.insert(path); //will be checked later at process
+    }       
     return ErrorCode::NONE;
 }
 ErrorCode set_dest_dir(std::string_view dest_directory){

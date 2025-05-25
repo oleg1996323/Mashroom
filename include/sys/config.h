@@ -12,7 +12,7 @@
 #include <type_traits>
 
 namespace fs = std::filesystem;
-namespace server{
+namespace network::server{
 struct Settings{
     std::string host;
     std::string service;
@@ -61,24 +61,24 @@ struct Settings{
         return *this;
     }  
 };
-struct ServerConfig{
-    server::Settings settings_;
+struct Config{
+    network::server::Settings settings_;
     std::unordered_set<std::string> accepted_addresses_;
     std::string name_;
-    ServerConfig() = default;
+    Config() = default;
     operator bool() const;
     void print_server_config(std::ostream&) const;
 };
 
-ServerConfig get_default_server_config();
+Config get_default_server_config();
 }
 template<>
-struct std::hash<server::ServerConfig>{
+struct std::hash<network::server::Config>{
     using is_transparent = std::true_type;
-    size_t operator()(const server::ServerConfig& config) const{
+    size_t operator()(const network::server::Config& config) const{
         return std::hash<std::string>{}(config.name_);
     }
-    size_t operator()(server::ServerConfig&& config) const{
+    size_t operator()(network::server::Config&& config) const{
         return std::hash<std::string>{}(config.name_);
     }
     size_t operator()(const std::string& name) const{
@@ -90,44 +90,44 @@ struct std::hash<server::ServerConfig>{
 };
 
 template<>
-struct std::equal_to<server::ServerConfig>{
+struct std::equal_to<network::server::Config>{
     using is_transparent = std::true_type;
-    bool operator()(const server::ServerConfig& lhs,const server::ServerConfig& rhs) const{
+    bool operator()(const network::server::Config& lhs,const network::server::Config& rhs) const{
         return lhs.name_==rhs.name_;
     }
-    bool operator()(const std::string& lhs,const server::ServerConfig& rhs) const{
+    bool operator()(const std::string& lhs,const network::server::Config& rhs) const{
         return lhs==rhs.name_;
     }
-    bool operator()(const server::ServerConfig& lhs,const std::string& rhs) const{
+    bool operator()(const network::server::Config& lhs,const std::string& rhs) const{
         return lhs.name_==rhs;
     }
-    bool operator()(const server::ServerConfig& lhs,std::string_view rhs) const{
+    bool operator()(const network::server::Config& lhs,std::string_view rhs) const{
         return lhs.name_==rhs;
     }
-    bool operator()(std::string_view lhs,const server::ServerConfig& rhs) const{
+    bool operator()(std::string_view lhs,const network::server::Config& rhs) const{
         return lhs==rhs.name_;
     }
-    bool operator()(std::string_view lhs,server::ServerConfig&& rhs) const{
+    bool operator()(std::string_view lhs,network::server::Config&& rhs) const{
         return lhs==rhs.name_;
     }
 };
 
 template<>
-struct std::less<server::ServerConfig>{
+struct std::less<network::server::Config>{
     using is_transparent = std::true_type;
-    bool operator()(const server::ServerConfig& lhs,const server::ServerConfig& rhs) const{
+    bool operator()(const network::server::Config& lhs,const network::server::Config& rhs) const{
         return lhs.name_<rhs.name_;
     }
-    bool operator()(const std::string& lhs,const server::ServerConfig& rhs) const{
+    bool operator()(const std::string& lhs,const network::server::Config& rhs) const{
         return lhs<rhs.name_;
     }
-    bool operator()(const server::ServerConfig& lhs,const std::string& rhs) const{
+    bool operator()(const network::server::Config& lhs,const std::string& rhs) const{
         return lhs.name_<rhs;
     }
-    bool operator()(std::string_view lhs,const server::ServerConfig& rhs) const{
+    bool operator()(std::string_view lhs,const network::server::Config& rhs) const{
         return lhs<rhs.name_;
     }
-    bool operator()(const server::ServerConfig& lhs,std::string_view rhs) const{
+    bool operator()(const network::server::Config& lhs,std::string_view rhs) const{
         return lhs.name_<rhs;
     }
 };
@@ -144,12 +144,12 @@ constexpr const char* uc_filename = "usr.txt";
 constexpr const char* sc_filename = "server.txt";
 
 class Config{
-    mutable server::ServerConfig server_config_;
+    mutable network::server::Config server_config_;
     std::unordered_map<std::string,std::vector<std::string>> configs_;
-    std::unordered_set<server::ServerConfig> server_configs_;
+    std::unordered_set<network::server::Config> server_configs_;
     const fs::path config_mashroom_dir = get_config_dir();
     inline static const std::vector<std::string> empty_config_{};
-    inline static const server::ServerConfig empty_server_config_{};
+    inline static const network::server::Config empty_server_config_{};
     std::fstream config_file;
     std::fstream server_file;
 
@@ -167,7 +167,7 @@ class Config{
     }
     bool add_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool add_user_config(const std::string& name,const std::vector<std::string>& commands);
-    bool add_server_config(server::ServerConfig&&);
+    bool add_server_config(network::server::Config&&);
     bool change_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool change_user_config(const std::string& name,const std::vector<std::string>& commands);
     bool remove_user_config(const std::string& name);
@@ -189,14 +189,14 @@ class Config{
     }
     bool set_current_server_config(std::string_view name) const;
     bool set_current_server_config(const std::string& name) const;
-    bool set_current_server_config(server::ServerConfig&& config);
+    bool set_current_server_config(network::server::Config&& config);
     const std::unordered_map<std::string,std::vector<std::string>> get_user_configs() const;
     const std::vector<std::string>& get_user_config(const std::string& name) const;
     const std::vector<std::string>& get_user_config(std::string_view name) const;
-    const server::ServerConfig& get_server_config(std::string_view name) const;
-    const server::ServerConfig& get_server_config(const std::string& name) const;
-    const server::ServerConfig& get_current_server_config() const;
-    const server::ServerConfig& current_server_setting();
+    const network::server::Config& get_server_config(std::string_view name) const;
+    const network::server::Config& get_server_config(const std::string& name) const;
+    const network::server::Config& get_current_server_config() const;
+    const network::server::Config& current_server_setting();
     private:
     void read();
     void write();

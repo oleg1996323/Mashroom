@@ -154,20 +154,20 @@ ErrorCode Extract::execute(){
                                                 props_.grid_type_.value(),
                                                 props_.position_.value());
         ExtractedData result;
-        for(auto& [fn,positions]:matched){            
-            if(!fs::exists(fn)){
-                ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,fn);
+        for(auto& [path,positions]:matched){   
+            if(path.type_!=path::TYPE::FILE || !fs::is_regular_file(path.path_)){
+                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
                 continue;
             }
-            if(!fs::is_regular_file(fn)){
-                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,fn);
+            if(!fs::exists(path.path_)){
+                ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
                 continue;
             }
-            std::cout<<"Extracting from "<<fn<<std::endl;
+            std::cout<<"Extracting from "<<path<<std::endl;
             std::sort(positions.buf_pos_.begin(),positions.buf_pos_.end());
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
-            __extract__(fn,result,positions);
+            __extract__(path.path_,result,positions);
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
         }

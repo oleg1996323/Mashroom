@@ -9,7 +9,7 @@
 #include "def.h"
 #include "message.h"
 #include "program/mashroom.h"
-
+#include <path_process.h>
 #include <format>
 bool Capitalize::check_format(std::string_view fmt){
 	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
@@ -105,7 +105,7 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 			write_res= std::move(__write__(grib_msgs));
 		}
 		for(const auto& [filename,msg]:write_res)
-			result.add_info(filename,msg);
+			result.add_info(path::Storage<false>(filename,path::TYPE::FILE),msg);
 		return result;
 	}
 	else{ //only refer (do not overwrite initial files)
@@ -120,7 +120,7 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 										msg.value().get().section_1_.unit_time_range(),
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
-				result.add_info(file,info);
+				result.add_info(path::Storage<false>(file,path::TYPE::FILE),info);
 			}
 		}while(grib.next_message());
 		return result;
@@ -130,13 +130,25 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 void Capitalize::execute(){
 	if(!hProgram)
 		hProgram= std::make_unique<Mashroom>(Mashroom());
-    for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(from_file_)){
-        if(entry.is_regular_file() && entry.path().has_extension() && 
-        (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
-            std::cout<<entry.path()<<std::endl;
-            const GribDataInfo& cap_data = __capitalize_file__(entry.path());
-        }
-        else continue;
-    }
+	for(const path::Storage<false>& path:in_path_){
+		switch(path.type_){
+			case path::TYPE::DIRECTORY:
+				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(path.path_)){
+					if(entry.is_regular_file() && entry.path().has_extension() && 
+					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
+						std::cout<<entry.path()<<std::endl;
+						const GribDataInfo& cap_data = __capitalize_file__(entry.path());
+					}
+					else continue;
+				}
+				break;
+			case path::TYPE::FILE:
+				__capitalize_file__(path.path_);
+				break;
+			case path::TYPE::HOST:
+				hProgram->request(path.path_,network::client::Message<)
+		}
+		
+	}
 	hProgram->add_data(result);
 }

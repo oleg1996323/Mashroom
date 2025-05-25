@@ -3,14 +3,14 @@
 #include <network/common/def.h>
 #include <network/common/message_handler.h>
 #include <extract.h>
-
+#include <program/data.h>
 using namespace std::chrono;
 namespace fs = std::filesystem;
-namespace server{
+namespace network::server{
 enum class TYPE_MESSAGE : uint8_t{
     METEO_REPLY,
-    SERVER_CHECK,
-    CHECK_DATA,
+    SERVER_STATUS,
+    CAPITALIZE,
     ERROR,
     PROGRESS
 };
@@ -37,7 +37,7 @@ template<>
 struct Message<TYPE_MESSAGE::PROGRESS>:ProgressBase{
     static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::PROGRESS;
     ProgressBase prog_;
-    server::Status status_=server::Status::READY;
+    network::server::Status status_=network::server::Status::READY;
 };
 template<>
 struct Message<TYPE_MESSAGE::METEO_REPLY>{
@@ -45,13 +45,13 @@ struct Message<TYPE_MESSAGE::METEO_REPLY>{
     MessageFileInfo finfo_;
     size_t total_sz_=sizeof(total_sz_)+sizeof(finfo_);
     ProgressBase progress_;
-    server::Status status_=server::Status::READY;
+    network::server::Status status_=network::server::Status::READY;
     bool sendto(int sock,const fs::path& file_send);
 };
 template<>
-struct Message<TYPE_MESSAGE::SERVER_CHECK>{
-    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::SERVER_CHECK;
-    server::Status status_=server::Status::READY;
+struct Message<TYPE_MESSAGE::SERVER_STATUS>{
+    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::SERVER_STATUS;
+    network::server::Status status_=network::server::Status::READY;
     bool sendto(int sock);
 };
 template<>
@@ -59,35 +59,59 @@ struct Message<TYPE_MESSAGE::ERROR>{
     static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::ERROR;
     std::array<char,256> error_message;
     ErrorCode err_ = ErrorCode::NONE;
-    server::Status status_=server::Status::READY;
+    network::server::Status status_=network::server::Status::READY;
     bool sendto(int sock,ErrorCode err, std::string msg);
 };
+
 template<>
-struct Message<TYPE_MESSAGE::CHECK_DATA>{
-    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::CHECK_DATA;
-    server::Status status_=server::Status::READY;
+struct Message<TYPE_MESSAGE::CAPITALIZE>{
+    template<Data::TYPE T,Data::FORMAT F>
+    struct CapitalizeResultProxy{
+        static constexpr Data::TYPE data_type = T;
+        static constexpr Data::FORMAT data_format = F;
+    };
+    template<Data::TYPE,Data::FORMAT>
+    struct CapitalizeResult;
+
+    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::CAPITALIZE;
+    network::server::Status status_=network::server::Status::READY;
+    size_t msg_sz_ = 0;
+    
     //TODO: set structure for reply message
     //maybe add data-type (topo,meteo,kadasr etc)
+    bool sendto(int sock);
+};
+template<>
+struct Message<TYPE_MESSAGE::CAPITALIZE>::CapitalizeResult<Data::TYPE::METEO,Data::FORMAT::GRIB>:
+Message<TYPE_MESSAGE::CAPITALIZE>::CapitalizeResultProxy<Data::TYPE::METEO,Data::FORMAT::GRIB>
+{
+    size_t common_data_number_;
+    CommonDataProperties common_data_;
+    //TODO: complete
 };
 constexpr std::array<size_t,5> sizes_msg_struct={
     sizeof(Message<TYPE_MESSAGE::METEO_REPLY>),
-    sizeof(Message<TYPE_MESSAGE::SERVER_CHECK>),
-    sizeof(Message<TYPE_MESSAGE::CHECK_DATA>),
+    sizeof(Message<TYPE_MESSAGE::SERVER_STATUS>),
+    sizeof(Message<TYPE_MESSAGE::CAPITALIZE>),
     sizeof(Message<TYPE_MESSAGE::ERROR>),
     sizeof(Message<TYPE_MESSAGE::PROGRESS>)
 };
 constexpr size_t num_msg = sizes_msg_struct.size();
 using reply_message = std::variant<std::monostate,
                         server::Message<TYPE_MESSAGE::METEO_REPLY>,
-                        server::Message<TYPE_MESSAGE::SERVER_CHECK>,
-                        server::Message<TYPE_MESSAGE::CHECK_DATA>,
+                        server::Message<TYPE_MESSAGE::SERVER_STATUS>,
+                        server::Message<TYPE_MESSAGE::CAPITALIZE>,
                         server::Message<TYPE_MESSAGE::ERROR>,
                         server::Message<TYPE_MESSAGE::PROGRESS>>;
 
-class MessageProcess:public ::network::MessageHandler<::server::TYPE_MESSAGE,reply_message>{
+namespace detail{
+class MessageHandler:public network::detail::MessageHandler<TYPE_MESSAGE,reply_message>{};
+}
+
+class MessageProcess:public detail::MessageHandler{
     public:
     MessageProcess(){
-        ::network::check_variant_enum<TYPE_MESSAGE,reply_message,num_msg>();
+        network::detail::check_variant_enum<TYPE_MESSAGE,reply_message,num_msg>();
     }
 };
 }

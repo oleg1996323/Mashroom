@@ -3,7 +3,7 @@
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
-namespace server{
+namespace network::server{
 bool Message<TYPE_MESSAGE::METEO_REPLY>::sendto(int sock,const fs::path& file_send){
     if(sock<0)
         return false;
@@ -33,8 +33,11 @@ bool Message<TYPE_MESSAGE::ERROR>::sendto(int sock,ErrorCode err, std::string ms
     send(sock,this,sizeof(*this),0);
     return true;
 }
-bool Message<TYPE_MESSAGE::SERVER_CHECK>::sendto(int sock){
+bool Message<TYPE_MESSAGE::SERVER_STATUS>::sendto(int sock){
     send(sock,this,sizeof(*this),0);
     return true;
+}
+bool Message<TYPE_MESSAGE::CAPITALIZE>::sendto(int sock){
+    
 }
 }

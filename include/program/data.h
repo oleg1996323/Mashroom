@@ -14,6 +14,7 @@
 #include "types/time_interval.h"
 #include "cmd_parse/cmd_translator.h"
 #include "./include/def.h"
+#include <path_process.h>
 
 using namespace std::chrono;
 using namespace std::string_literals;
@@ -21,12 +22,27 @@ using namespace std::string_literals;
 namespace fs = std::filesystem;
 class Data{
     public:
-        using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<std::string_view>>;
-        using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<std::string_view>>;
-        using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<std::string_view>>;
-        
+        using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
+        using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<path::Storage<true>>>;
+        using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<path::Storage<true>>>;
+        enum class TYPE{
+            METEO,
+            TOPO,
+            KADASTR
+        };
+        enum class FORMAT{
+            GRIB,
+            HGT,
+            NETCDF
+        };
     private:
-    struct GribData{
+    template<TYPE DATA_T,FORMAT DATA_F>
+    struct __Data__{
+        static constexpr uint8_t format_t = DATA_F;
+        static constexpr uint8_t data_t = DATA_T;
+    };
+
+    struct GribData:__Data__<TYPE::METEO,FORMAT::GRIB>{
         SublimedGribDataInfo grib_data_;
         sublimed_data_by_common_data by_common_data_;
         sublimed_data_by_date_time by_date_;
@@ -82,7 +98,7 @@ class Data{
         bool unsaved() const{
             return !unsaved_.empty();
         }
-        const std::unordered_set<std::string> paths() const{
+        const std::unordered_set<path::Storage<false>> paths() const{
             return grib_.grib_data_.paths();
         }
         auto data() const{
@@ -94,14 +110,14 @@ class Data{
         const SublimedGribDataInfo& sublimed_data() const{
             return grib_.grib_data_;
         }
-        std::unordered_map<std::string_view,SublimedDataInfo> match(
+        std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
             Organization center,
             uint8_t table_version,
             TimeInterval time_interval,
             RepresentationType rep_t,
             Coord pos
         ) const;
-        std::unordered_map<std::string_view,SublimedDataInfo> match(
+        std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
             Organization center,
             std::optional<TimeFrame> time_fcst,
             const std::unordered_set<SearchParamTableVersion>& parameters,

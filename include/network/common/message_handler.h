@@ -2,7 +2,7 @@
 #include <variant>
 #include <utility>
 
-namespace network{
+namespace network::detail{
     template<typename VARIANT,typename = void>
     struct IsVariant : std::false_type{};
 

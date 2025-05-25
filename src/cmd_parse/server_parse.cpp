@@ -6,7 +6,7 @@
 
 using namespace translate::token;
 
-ErrorCode server_settings_parse(std::string_view key, std::string_view arg,server::Settings& set){
+ErrorCode server_settings_parse(std::string_view key, std::string_view arg,network::server::Settings& set){
     ErrorCode err;
     switch(translate_from_txt<ServerConfigCommands>(key)){
         case ServerConfigCommands::HOST:{
@@ -84,7 +84,7 @@ ErrorCode server_settings_parse(std::string_view key, std::string_view arg,serve
         }
         case ServerConfigCommands::TIMEOUT:{
             auto timeout = from_chars<int>(arg,err);
-            if(!timeout.has_value() || err!=ErrorCode::NONE || timeout.value()<server::min_timeout_seconds)
+            if(!timeout.has_value() || err!=ErrorCode::NONE || timeout.value()<network::server::min_timeout_seconds)
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"timeout definition",AT_ERROR_ACTION::CONTINUE,arg);
             else set.timeout_seconds_ = timeout.value();
             break;
@@ -111,7 +111,7 @@ ErrorCode server_parse(const std::vector<std::string_view>& input){
     ErrorCode err = ErrorCode::NONE; 
     switch(translate_from_txt<ServerAction>(input.at(0))){
         case ServerAction::ADD:{
-            server::ServerConfig config;
+            network::server::Config config;
             err = server_config(std::vector<std::string_view>(input.begin()+1,input.end()),config);
             if(err!=ErrorCode::NONE)
                 return err;
@@ -173,7 +173,7 @@ ErrorCode server_parse(const std::vector<std::string_view>& input){
     return err;
 }
 
-ErrorCode server_config(const std::vector<std::string_view>& input,server::ServerConfig& config){
+ErrorCode server_config(const std::vector<std::string_view>& input,network::server::Config& config){
     ErrorCode err = ErrorCode::NONE;
     int i=0;
     if(input.size()>1){

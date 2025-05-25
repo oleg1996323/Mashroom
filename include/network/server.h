@@ -15,15 +15,12 @@
 #include <network/common/credentials.h>
 
 using namespace std::string_view_literals;
-namespace connection{
-    class Process;
-}
-namespace server{
+namespace network::server{
     class Server{
     private:
         static void sigchld_handler(int s);
-        friend class connection::Process;
-        connection::ConnectionPool connection_pool_;
+        friend class connection::Process<Server>;
+        network::connection::ConnectionPool connection_pool_;
         std::jthread server_thread_;
         std::stop_token stop_token_;
         addrinfo* server_=nullptr;

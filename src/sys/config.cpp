@@ -6,9 +6,9 @@
 
 namespace fs = std::filesystem;
 
-namespace server{
-    ServerConfig get_default_server_config(){
-        ServerConfig config_;
+namespace network::server{
+    Config get_default_server_config(){
+        Config config_;
         config_.settings_.host="10.10.10.10";
         config_.settings_.service="32396";
         config_.settings_.protocol="tcp";
@@ -16,10 +16,10 @@ namespace server{
         config_.name_ = "default";
         return config_;
     }
-    ServerConfig::operator bool() const{
+    Config::operator bool() const{
         return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port.empty()) && !settings_.protocol.empty() && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
     }
-    void ServerConfig::print_server_config(std::ostream& stream) const{
+    void Config::print_server_config(std::ostream& stream) const{
         stream<<"Server config name: \""<<name_<<"\""<<std::endl;
         stream<<"Host: \'"<<settings_.host<<"\' service: \'"<<settings_.service<<"\' port: \'"<<settings_.port<<"\' protocol: \'"<<settings_.protocol<<"\' timeout: "<<settings_.timeout_seconds_<<" seconds"<<std::endl;
         stream<<"Accepted addresses: ";
@@ -93,7 +93,7 @@ void Config::read(){
                     last_config=name_configs.at("last").as_string();
                 if(name_configs.contains("configs") && name_configs.at("configs").is_object())
                     for(const auto& [name,config]:name_configs.at("configs").as_object()){
-                        server::ServerConfig config_tmp;
+                        network::server::Config config_tmp;
                         config_tmp.name_=name;
                         auto& c = config.as_object();
                         if(c.contains("host"))
@@ -118,7 +118,7 @@ void Config::read(){
         server_file.close();
     }
     if(!server_config_)
-        server_config_ = server::get_default_server_config();
+        server_config_ = network::server::get_default_server_config();
     if(server_configs_.empty())
         server_configs_.insert(server_config_);
 }
@@ -193,7 +193,7 @@ bool Config::add_user_config(std::string_view name,const std::vector<std::string
     else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::CONTINUE,name);
     return false;
 }
-bool Config::add_server_config(server::ServerConfig&& set){
+bool Config::add_server_config(network::server::Config&& set){
     if(!server_configs_.contains(set)){
         server_configs_.insert(std::move(set));
         return true;
@@ -247,15 +247,15 @@ const std::vector<std::string>& Config::get_user_config(std::string_view name) c
         return configs_.at(name.data());
     else return empty_config_;
 }
-const server::ServerConfig& Config::get_server_config(std::string_view name) const{
+const network::server::Config& Config::get_server_config(std::string_view name) const{
     if(has_server_config(name))
         return *server_configs_.find(name);
     else return empty_server_config_;
 }
-const server::ServerConfig& Config::get_server_config(const std::string& name) const{
+const network::server::Config& Config::get_server_config(const std::string& name) const{
     return get_server_config(std::string_view(name));
 }
-const server::ServerConfig& Config::get_current_server_config() const{
+const network::server::Config& Config::get_current_server_config() const{
     return server_config_;
 }
 bool Config::set_current_server_config(std::string_view name) const{
@@ -268,14 +268,14 @@ bool Config::set_current_server_config(std::string_view name) const{
 bool Config::set_current_server_config(const std::string& name) const{
     return set_current_server_config(std::string_view(name));
 }
-bool Config::set_current_server_config(server::ServerConfig&& config){
+bool Config::set_current_server_config(network::server::Config&& config){
     if(config){
         server_configs_.insert(std::move(config));
         return true;
     }
     return false;
 }
-const server::ServerConfig& Config::current_server_setting(){
+const network::server::Config& Config::current_server_setting(){
     return server_config_;
 }
 //config_file

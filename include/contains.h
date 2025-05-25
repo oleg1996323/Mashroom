@@ -50,7 +50,7 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
                         if(stop_token_.stop_requested())
                             return ErrorCode::INTERRUPTED;
                         if(filter_.file)
-                            std::cout<<"File "<<file<<std::endl;
+                            std::cout<<file<<std::endl;
                         if(filter_.center)
                             std::cout<<"center "<<(int)common->center_.value()<<"("<<center_to_abbr(common->center_.value())<<") "<<std::flush;
                         if(filter_.table_version)

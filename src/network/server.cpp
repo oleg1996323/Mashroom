@@ -4,7 +4,7 @@
 #include <sys/config.h>
 #include <sys/log_err.h>
 
-using namespace server;
+using namespace network::server;
 
 void Server::sigchld_handler(int s){
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -203,7 +203,7 @@ void Server::__new_connection__(Socket connected_client){
     }
     connection_pool_.add_connection(connected_client);
 }
-server::Status Server::get_status() const{
+network::server::Status Server::get_status() const{
     return status_;
 }
 void Server::launch(){

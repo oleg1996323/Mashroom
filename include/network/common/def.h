@@ -32,7 +32,7 @@
 using Socket = int;
 using Port = short;
 
-namespace server{
+namespace network::server{
     constexpr int min_timeout_seconds = 1;
     static std::vector<struct epoll_event> define_epoll_event(){
         std::vector<struct epoll_event> result;

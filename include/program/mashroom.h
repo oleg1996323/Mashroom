@@ -15,6 +15,8 @@
 #include "application.h"
 #include "data.h"
 #include <network/server.h>
+#include <program/clients_handler.h>
+
 
 namespace fs = std::filesystem;
 using namespace std::string_view_literals;
@@ -23,7 +25,8 @@ constexpr std::string_view mashroom_data_info = "mashroom_data.json"sv;
 class Mashroom{
     Data data_;
     std::unordered_set<fs::path> data_files_;
-    std::unique_ptr<server::Server> server_;
+    std::unique_ptr<network::server::Server> server_;
+    network::ClientsHandler clients_;
     fs::path data_dir_;
     std::fstream dat_file;
     void __read_initial_data_file__();
@@ -56,6 +59,10 @@ class Mashroom{
     void deploy_server(); //further will be lot of servers (data,cadastre,measurement etc)
     void launch_server(); //further will be lot of servers (data,cadastre,measurement etc)
     bool read_command(std::istream& stream);
+    ErrorCode connect(const std::string& host);
+
+    template<network::client::TYPE_MESSAGE MSG_T>
+    ErrorCode request(const std::string& host,const network::client::Message<MSG_T>& msg);
     const Data& data(){
         return data_;
     }
@@ -85,3 +92,8 @@ class Mashroom{
 };
 
 inline std::unique_ptr<Mashroom> hProgram;
+
+template<network::client::TYPE_MESSAGE MSG_T>
+ErrorCode Mashroom::request(const std::string& host,const network::client::Message<MSG_T>& msg){
+    return clients_.request(host,msg);
+}
