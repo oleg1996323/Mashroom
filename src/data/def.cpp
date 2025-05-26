@@ -1,28 +1,28 @@
 #include "data/def.h"
 #include <string.h>
 
-DataTypeInfo extension_to_type(const char* extension) noexcept{
+int extension_to_type(const char* extension) noexcept{
     for(int i=0;i<data_extensions.size();++i)
         if(strcmp(extension,data_extensions[i])==0)
-            return DataTypeInfo(i);
-    return DataTypeInfo::Undef;    
+            return i;
+    return -1;    
 }
 
-const char* type_to_extension(DataTypeInfo type_extension) noexcept{
+const char* type_to_extension(__Data__::FORMAT type_extension) noexcept{
     return data_extensions[(int)type_extension];
 }
 
-DataTypeInfo text_to_data_type(const char* text) noexcept{
+int text_to_data_type(const char* text) noexcept{
     std::string_view str(text);
     if(str == "Grib")
-        return DataTypeInfo::Grib;
-    else return DataTypeInfo::Undef;
+        return (int)__Data__::FORMAT::GRIB;
+    else return -1;
 }
 
-const char* data_type_to_text(DataTypeInfo type) noexcept{
+const char* data_type_to_text(__Data__::FORMAT type) noexcept{
     switch (type)
     {
-    case DataTypeInfo::Grib:
+    case __Data__::FORMAT::GRIB:
         return "Grib";
         break;
     
@@ -32,6 +32,6 @@ const char* data_type_to_text(DataTypeInfo type) noexcept{
     }
 }
 using namespace std::string_literals;
-std::string filename_by_type(DataTypeInfo type){
+std::string filename_by_type(__Data__::FORMAT type){
     return ""s+bindata_filename.data()+type_to_extension(type);
 }

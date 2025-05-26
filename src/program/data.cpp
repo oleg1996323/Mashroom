@@ -2,7 +2,7 @@
 #include "sections/section_1.h"
 
 template<>
-void Data::__read__<DataTypeInfo::Grib>(const fs::path& fn){
+void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
     std::ifstream file(fn,std::ios::binary);
     if(!file.is_open())
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
@@ -24,29 +24,35 @@ void Data::__read__<DataTypeInfo::Grib>(const fs::path& fn){
 }
 
 template<>
-void Data::__write__<DataTypeInfo::Grib>(const fs::path& dir){
+void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     if(!fs::create_directories(dir) && !fs::is_directory(dir))
         ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());
-    fs::path save_file = dir/filename_by_type(DataTypeInfo::Grib);
+    fs::path save_file = dir/filename_by_type(Data::FORMAT::GRIB);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
     grib_.grib_data_.serialize(file);
     files_.insert(save_file);
     file.close();
 }
-
+template<>
+void Data::__write__<Data::FORMAT::GRIB>(std::vector<char>& buf){
+    
+}
 void Data::read(const fs::path& filename){
     if(fs::exists(filename)){
-        switch (extension_to_type(filename.extension().c_str()))
+        int fmt = extension_to_type(filename.extension().c_str());
+        if(fmt==-1){
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
+            return;
+        }
+        switch ((FORMAT)fmt)
         {
-        case DataTypeInfo::Grib:{
-            __read__<DataTypeInfo::Grib>(filename);
+        case Data::FORMAT::GRIB:{
+            __read__<Data::FORMAT::GRIB>(filename);
             break;
         }
-        case DataTypeInfo::Undef:
-            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::ABORT);
-            break;
         default:
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::ABORT);
             break;
         }
     }
@@ -56,7 +62,8 @@ bool Data::write(const fs::path& filename){
         ErrorPrint::print_error(ErrorCode::UNDEFINED_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE);
         return false;
     }
-    if(extension_to_type(filename.extension().c_str())==DataTypeInfo::Undef){
+    int fmt = extension_to_type(filename.extension().c_str());
+    if(fmt==-1){
         ErrorPrint::print_error(ErrorCode::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.extension().c_str());
         return false;
     }
@@ -73,25 +80,23 @@ bool Data::write(const fs::path& filename){
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
         return false;
     }
-    DataTypeInfo type = extension_to_type(filename.extension().c_str());
-    switch (type)
+    switch ((FORMAT)fmt)
     {
-    case DataTypeInfo::Grib:{
-        __write__<DataTypeInfo::Grib>(filename);
-        unsaved_.erase(type);
+    case FORMAT::GRIB:{
+        __write__<FORMAT::GRIB>(filename);
+        unsaved_.erase((FORMAT)fmt);
         return true;
         break;
     }
-    case DataTypeInfo::Undef:
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
-        return false;
-        break;
     default:
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
         return false;
         break;
     }
 }
+bool Data::write(std::vector<char>& buf){
 
+}
 std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     Organization center,
     uint8_t table_version,
@@ -242,7 +247,7 @@ void Data::add_data(SublimedGribDataInfo& grib_data){
             }
         }
     }
-    unsaved_.insert(DataTypeInfo::Grib);
+    unsaved_.insert(FORMAT::GRIB);
     std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
 }
 

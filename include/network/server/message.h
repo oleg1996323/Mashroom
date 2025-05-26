@@ -65,30 +65,39 @@ struct Message<TYPE_MESSAGE::ERROR>{
 
 template<>
 struct Message<TYPE_MESSAGE::CAPITALIZE>{
+    template<Data::TYPE,Data::FORMAT>
+    struct CapitalizeResult;
+
     template<Data::TYPE T,Data::FORMAT F>
     struct CapitalizeResultProxy{
         static constexpr Data::TYPE data_type = T;
         static constexpr Data::FORMAT data_format = F;
+        static std::vector<char> serialize(const CapitalizeResult<T,F>& msg){
+            return CapitalizeResult<T,F>::serialize(msg);
+        }
+        static CapitalizeResult<T,F> deserialize(std::vector<char>::const_iterator buffer_iter){
+            return CapitalizeResult<T,F>::deserialize(buffer_iter);
+        }
     };
-    template<Data::TYPE,Data::FORMAT>
-    struct CapitalizeResult;
 
-    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::CAPITALIZE;
-    network::server::Status status_=network::server::Status::READY;
-    size_t msg_sz_ = 0;
+    struct CapitalizeMessage{
+        static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::CAPITALIZE;
+        network::server::Status status_=network::server::Status::READY;
+        size_t blocks_ = 0;
+    };
     
+    private:
+    CapitalizeMessage msg_;
+    std::vector<char> buffer_;
+    public:
     //TODO: set structure for reply message
     //maybe add data-type (topo,meteo,kadasr etc)
     bool sendto(int sock);
+    bool receivefrom(int sock);
+    template<Data::TYPE T,Data::FORMAT F>
+    bool add_block(const CapitalizeResult<T,F>& result);
 };
-template<>
-struct Message<TYPE_MESSAGE::CAPITALIZE>::CapitalizeResult<Data::TYPE::METEO,Data::FORMAT::GRIB>:
-Message<TYPE_MESSAGE::CAPITALIZE>::CapitalizeResultProxy<Data::TYPE::METEO,Data::FORMAT::GRIB>
-{
-    size_t common_data_number_;
-    CommonDataProperties common_data_;
-    //TODO: complete
-};
+
 constexpr std::array<size_t,5> sizes_msg_struct={
     sizeof(Message<TYPE_MESSAGE::METEO_REPLY>),
     sizeof(Message<TYPE_MESSAGE::SERVER_STATUS>),

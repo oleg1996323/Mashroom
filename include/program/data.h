@@ -20,7 +20,7 @@ using namespace std::chrono;
 using namespace std::string_literals;
 
 namespace fs = std::filesystem;
-class Data{
+class Data:public __Data__{
     public:
         using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
         using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<path::Storage<true>>>;
@@ -30,19 +30,15 @@ class Data{
             TOPO,
             KADASTR
         };
-        enum class FORMAT{
-            GRIB,
-            HGT,
-            NETCDF
-        };
+
     private:
     template<TYPE DATA_T,FORMAT DATA_F>
-    struct __Data__{
+    struct __Data_type__{
         static constexpr uint8_t format_t = DATA_F;
         static constexpr uint8_t data_t = DATA_T;
     };
 
-    struct GribData:__Data__<TYPE::METEO,FORMAT::GRIB>{
+    struct GribData:__Data_type__<TYPE::METEO,FORMAT::GRIB>{
         SublimedGribDataInfo grib_data_;
         sublimed_data_by_common_data by_common_data_;
         sublimed_data_by_date_time by_date_;
@@ -57,21 +53,23 @@ class Data{
         by_grid_(std::move(other.by_grid_)){}
     };
     GribData grib_;
-    std::set<DataTypeInfo> unsaved_;
+    std::set<Data::FORMAT> unsaved_;
     std::unordered_set<fs::path> files_;
     fs::path data_directory_;
 
-    template<DataTypeInfo>
+    template<Data::FORMAT>
     void __read__(const fs::path& filename);
-    template<DataTypeInfo>
+    template<Data::FORMAT>
     void __write__(const fs::path& filename);
+    template<Data::FORMAT>
+    void __write__(std::vector<char>& buf);
 
     template <size_t I=0>
     void __write_all__(){
         if constexpr (I < data_types.size()) {
-            if(unsaved_.contains((DataTypeInfo)(I+1))){
+            if(unsaved_.contains((FORMAT)(I+1))){
                 __write__<data_types[I]>(data_directory_);
-                unsaved_.erase((DataTypeInfo)(I+1));
+                unsaved_.erase((FORMAT)(I+1));
             }
             __write_all__<I + 1>();
         }
@@ -92,6 +90,7 @@ class Data{
         }
         void read(const fs::path& filename);
         bool write(const fs::path& filename);
+        bool write(std::vector<char>& buf);
         void add_data(GribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo&& grib_data);

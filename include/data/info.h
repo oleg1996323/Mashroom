@@ -133,6 +133,11 @@ class SublimedGribDataInfo
     const std::unordered_set<path::Storage<false>>& paths() const{
         return paths_;
     }
+    void serialize(std::vector<char>& buf);
+    void deserialize(std::vector<char>& buf);
+    const std::unordered_set<path::Storage<false>>& paths() const{
+        return paths_;
+    }
     void add_data(SublimedGribDataInfo& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
             auto found = paths_.find(path);

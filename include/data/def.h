@@ -4,23 +4,28 @@
 
 constexpr std::string_view bindata_filename = "data";
 
-enum class DataTypeInfo{
-    Undef,
-    Grib
+struct __Data__{
+    enum class FORMAT{
+        GRIB,
+        HGT,
+        NETCDF
+    };
 };
 
-constexpr std::array<DataTypeInfo,1> data_types = {
-    DataTypeInfo::Grib
+constexpr std::array<__Data__::FORMAT,3> data_types = {
+    __Data__::FORMAT::GRIB,
+    __Data__::FORMAT::HGT,
+    __Data__::FORMAT::NETCDF
 };
 
-DataTypeInfo text_to_data_type(const char* text) noexcept;
+int text_to_data_type(const char* text) noexcept;
 
 constexpr std::array<const char*,2> data_extensions ={
     "",     //undefined
     ".gbd"  //grib binary data
 };
 
-DataTypeInfo extension_to_type(const char* extension) noexcept;
-const char* type_to_extension(DataTypeInfo type_extension) noexcept;
-const char* data_type_to_text(DataTypeInfo type) noexcept;
-std::string filename_by_type(DataTypeInfo type);
+int extension_to_type(const char* extension) noexcept;
+const char* type_to_extension(__Data__::FORMAT type_extension) noexcept;
+const char* data_type_to_text(__Data__::FORMAT type) noexcept;
+std::string filename_by_type(__Data__::FORMAT type);
