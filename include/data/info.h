@@ -19,6 +19,8 @@
 #include <sys/error_code.h>
 #include <def.h>
 #include <grib1/include/def.h>
+#include <cassert>
+#include <cstring>
 using namespace std::string_literals;
 
 
@@ -60,6 +62,28 @@ struct SublimedDataInfo
         file.read(reinterpret_cast<char*>(&from),sizeof(decltype(from)));
         file.read(reinterpret_cast<char*>(&to),sizeof(decltype(to)));
         file.read(reinterpret_cast<char*>(&discret),sizeof(decltype(discret)));
+    }
+
+    void serialize(std::vector<char>& buf) const{
+        buf.insert(buf.end(),(const char*)&grid_data,(const char*)&grid_data+sizeof(decltype(grid_data)));
+        buf.insert(buf.end(),(const char*)&from,(const char*)&from+sizeof(decltype(from)));
+        buf.insert(buf.end(),(const char*)&to,(const char*)&to+sizeof(decltype(to)));
+        buf.insert(buf.end(),(const char*)&discret,(const char*)&discret+sizeof(decltype(discret)));
+    }
+
+    void deserialize(const std::vector<char>& buf,size_t n){
+        size_t read = n;
+        assert(buf.size()>read);
+        std::memcpy(&grid_data,buf.data()+read,sizeof(decltype(grid_data)));
+        read+=sizeof(decltype(grid_data));
+        assert(buf.size()>read);
+        std::memcpy(&from,buf.data()+read,sizeof(decltype(from)));
+        read+=sizeof(decltype(from));
+        assert(buf.size()>read);
+        std::memcpy(&to,buf.data()+read,sizeof(decltype(to)));
+        read+=sizeof(decltype(to));
+        assert(buf.size()>read);
+        std::memcpy(&discret,buf.data()+read,sizeof(decltype(discret)));
     }
 
     // std::vector<GribCapitalizeDataInfo> desublime(){
@@ -133,11 +157,8 @@ class SublimedGribDataInfo
     const std::unordered_set<path::Storage<false>>& paths() const{
         return paths_;
     }
-    void serialize(std::vector<char>& buf);
-    void deserialize(std::vector<char>& buf);
-    const std::unordered_set<path::Storage<false>>& paths() const{
-        return paths_;
-    }
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(std::vector<char>& buf) const;
     void add_data(SublimedGribDataInfo& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
             auto found = paths_.find(path);

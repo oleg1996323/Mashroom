@@ -194,44 +194,85 @@ void SublimedGribDataInfo::deserialize(std::ifstream& file){
     }
 }
 #include <cstring>
-void SublimedGribDataInfo::serialize(std::vector<char>& buf){
+void SublimedGribDataInfo::serialize(std::vector<char>& buf) const{
     using namespace translate::token;
-    size_t written = 0;
     int token = (int)__Data__::FORMAT::GRIB;
-    if(buf.size()<sizeof(int))
-        buf.resize(sizeof(int));
-    std::memcpy(buf.data()+written,&token,sizeof(int));
-    written+=sizeof(int);
-    //TODO
+    buf.insert(buf.end(),(const char*)&token,(const char*)&token+sizeof(token));
     int dont_exists = 0;
     for(const auto& [path,filedata]:info_){
         if(path.type_!=path::TYPE::HOST || !fs::exists(path.path_))
             ++dont_exists;
     }
     size_t data_sz = info_.size()-dont_exists;
-    file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));        //number of files
+    buf.insert(buf.end(),(const char*)&data_sz,(const char*)&data_sz+sizeof(data_sz));
     for(const auto& [path,filedata]:info_){
-        if(path.type_!=path::TYPE::HOST || !fs::exists(path.path_))
-            continue;
-        data_sz = path.path_.size();                                              //length filename
-        file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));    //filename
-        file.write(path.path_.data(),data_sz);                                    //filename
-        file.write(reinterpret_cast<const char*>(&path.type_),sizeof(path.type_));
+        if(path.type_!=path::TYPE::HOST){
+            if(!fs::exists(path.path_))
+                continue;
+            else{
+                buf.insert(buf.end(),(const char*)&path.type_,(const char*)&path.type_+sizeof(path.type_));
+            }
+        }
+        else{
+            buf.insert(buf.end(),(const char*)&path.type_,(const char*)&path.type_+sizeof(path.type_));
+            size_t path_sz = path.path_.size();
+            buf.insert(buf.end(),(const char*)&path_sz,(const char*)&path_sz+sizeof(path_sz));
+            buf.insert(buf.end(),path.path_.data(),path.path_.data()+path_sz);
+        }
         data_sz = filedata.size();                                              //number of grib variations
-        file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));    //number of grib variations
+        buf.insert(buf.end(),(const char*)&data_sz,(const char*)&data_sz+sizeof(data_sz));
         for(const auto& grib_info:filedata){
             //header
-            file.write(reinterpret_cast<const char*>(grib_info.first.get()),sizeof(CommonDataProperties));
+            buf.insert(buf.end(),(const char*)grib_info.first.get(),(const char*)grib_info.first.get()+sizeof(CommonDataProperties));
             data_sz = grib_info.second.size();
             //data-sequence size
-            file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));
+            buf.insert(buf.end(),(const char*)&data_sz,(const char*)&data_sz+sizeof(data_sz));
             //data
             for(const auto& sublimed_data:grib_info.second)
-                sublimed_data.serialize(file);
+                sublimed_data.serialize(buf);
         }
     }
-    file.close();
 }
-void SublimedGribDataInfo::deserialize(std::vector<char>& buf){
-
+void SublimedGribDataInfo::deserialize(std::vector<char>& buf) const{
+    __Data__::FORMAT tokens_f;
+    size_t read = 0;
+    using namespace translate::token;
+    while(read<buf.size()){
+        switch ((tokens_f)){
+        case __Data__::FORMAT::GRIB:{
+            size_t number_blocks = *(size_t*)(buf.data()+read);
+            SublimedGribDataInfo to_add;
+            read+=sizeof(number_blocks);
+            for(int i=0;i<number_blocks;++i){
+                path::TYPE path_type = *(path::TYPE*)(buf.data()+read);
+                read+=sizeof(path_type);
+                std::string_view path;
+                if(path_type==path::TYPE::HOST){
+                    size_t path_sz = *(size_t*)(buf.data()+read);
+                    assert(path_sz>0);
+                    read+=sizeof(path_sz);
+                    path = std::string_view(buf.data()+read,path_sz);
+                    read+=path_sz;
+                }
+                auto& path_data_tmp = to_add.info_[*to_add.paths_.emplace(path,path_type).first]; //if not host, then empty string
+                size_t grib_variations = *(size_t*)(buf.data()+read);
+                read+=sizeof(grib_variations);
+                for(int j=0;j<grib_variations;++j){
+                    std::vector<SublimedDataInfo>& seq = path_data_tmp[std::make_shared<CommonDataProperties>(*(CommonDataProperties*)(buf.data()+read))];
+                    read+=sizeof(CommonDataProperties);
+                    //data-sequence size
+                    seq.resize(*(size_t*)(buf.data()+read));
+                    read+=sizeof(size_t);
+                    //data
+                    for(auto& sub_data:seq)
+                        sub_data.deserialize(buf,read);
+                }
+            }
+            break;
+        }
+        default:
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Corrupted file \'"s+bindata_filename.data()+type_to_extension(__Data__::FORMAT::GRIB)+"\'",AT_ERROR_ACTION::ABORT);
+            break;
+        }
+    }
 }

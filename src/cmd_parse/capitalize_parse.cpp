@@ -25,21 +25,24 @@ ErrorCode capitalize_parse(const std::vector<std::string_view>& input){
                 hCapitalize.set_using_processor_cores(tmp_proc_num.value());
                 break;
             }
-            case Command::IN_PATH:
-                err = hCapitalize.set_from_path(input[i]);
-                if(err!=ErrorCode::NONE)
-                    return ErrorPrint::print_error(err,"",AT_ERROR_ACTION::CONTINUE,input[i]);
-                break;
-            case Command::OUT_PATH:{
+            case Command::IN_PATH:{
                 std::vector<std::string_view> tokens = split(input[i],":");
                 if(tokens.size()!=2)
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,input[i]);
                 if(tokens.at(0)=="dir")
-                    hCapitalize.set_dest_dir(tokens.at(1));
-                else if(tokens.at(0)=="ip")
-                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unable to use capitalize mode by IP",AT_ERROR_ACTION::CONTINUE,tokens[0]);
+                    hCapitalize.add_in_path(path::Storage<true>(tokens.at(1),path::TYPE::DIRECTORY));
+                else if(tokens.at(0)=="host")
+                    hCapitalize.add_in_path(path::Storage<true>(tokens.at(1),path::TYPE::HOST));
+                else if(tokens.at(0)=="file")
+                    hCapitalize.add_in_path(path::Storage<true>(tokens.at(1),path::TYPE::FILE));
+                break;
+            }
+            case Command::OUT_PATH:{
+                err = hCapitalize.set_dest_dir(input[i]);
+                if(err!=ErrorCode::NONE)
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,input[i]);
                 else
-                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::CONTINUE,input[i]);
+                    hCapitalize.set_dest_dir(input[i]); //TODO add check extension and create file
                 break;
             }
             case Command::CAPITALIZE_HIERARCHY:
