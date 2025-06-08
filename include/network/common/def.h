@@ -39,7 +39,7 @@ namespace network::server{
         result.resize(std::thread::hardware_concurrency());
         return result;
     }
-    enum class Status{
+    enum class Status:int{
         READY,
         SUSPENDED,
         INACTIVE          

@@ -10,7 +10,7 @@ include(autogen)
 include(loadCodeTables)
 
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables")
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes")
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 endif()
 load_eccode_header(

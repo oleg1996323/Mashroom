@@ -1,3 +1,6 @@
 [submodule "/home/oster/Mashroom/external/eccodes"]
 	path = /home/oster/Mashroom/external/eccodes
 	url = https://github.com/ecmwf/eccodes.git
+[submodule "/home/oster/Mashroom/external/BLAKE3"]
+	path = /home/oster/Mashroom/external/BLAKE3
+	url = git@github.com:BLAKE3-team/BLAKE3.git

@@ -131,7 +131,7 @@ ErrorCode Client::request<TYPE_MESSAGE::DATA_REQUEST>(Message<TYPE_MESSAGE::DATA
 }
 //remote capitalize (may permit to orcherstrate the accesible remote data by capitalize mode)
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::CAPITALIZE>(Message<TYPE_MESSAGE::CAPITALIZE> msg) const{
+ErrorCode Client::request<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE> msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){

@@ -3,6 +3,8 @@
 #include <network/common/def.h>
 #include <extract.h>
 #include <network/common/message_handler.h>
+#include <types/time_interval.h>
+#include <sys/error_code.h>
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
@@ -41,19 +43,19 @@ struct Message<TYPE_MESSAGE::SERVER_STATUS>{
     bool sendto(int sock);
 };
 template<>
-struct Message<TYPE_MESSAGE::CAPITALIZE>{
-    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::CAPITALIZE;
+struct Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>{
+    static constexpr TYPE_MESSAGE type_msg_ = TYPE_MESSAGE::DATA_REPLY_CAPITALIZE;
 };
 constexpr std::array<size_t,3> sizes_msg_struct={
     sizeof(Message<TYPE_MESSAGE::DATA_REQUEST>),
     sizeof(Message<TYPE_MESSAGE::SERVER_STATUS>),
-    sizeof(Message<TYPE_MESSAGE::CAPITALIZE>)
+    sizeof(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>)
 };
 constexpr size_t num_msg = sizes_msg_struct.size();
 using request_message = std::variant<std::monostate,
                         network::client::Message<TYPE_MESSAGE::DATA_REQUEST>,
                         network::client::Message<TYPE_MESSAGE::SERVER_STATUS>,
-                        network::client::Message<TYPE_MESSAGE::CAPITALIZE>>;
+                        network::client::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>>;
 
 namespace detail{
 class MessageHandler:public network::detail::MessageHandler<TYPE_MESSAGE,request_message>{};

@@ -154,7 +154,7 @@ ErrorCode Process<Server>::__execute_heavy_process__(client::TYPE_MESSAGE msg_t)
                     break;
                 }
                 else {
-                    server::Message<server::TYPE_MESSAGE::METEO_REPLY> reply_msg;
+                    server::Message<server::TYPE_MESSAGE::DATA_REPLY_FILEINFO> reply_msg;
                     if(fs::is_regular_file(hExtract.out_path())){
                         translating_.wait(false);
                         if(!reply_msg.sendto(connection_socket_,hExtract.out_path())){
