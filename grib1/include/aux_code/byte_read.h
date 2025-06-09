@@ -3,6 +3,7 @@
 #ifdef __cplusplus
 template<typename... ARGS>
 unsigned read_bytes(ARGS&&... args){
+    //TODO if system endianness is littleendian - reverse argument bytes to big endian
     unsigned shift = 0;
     return ((static_cast<unsigned>(args)<<(shift++*8))+...);
 }
