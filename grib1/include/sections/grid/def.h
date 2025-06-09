@@ -213,5 +213,16 @@ static const char *scan_mode[8] = {
 void GDS_winds(unsigned char *gds, int verbose);
 
 #include <code_tables/table_6.h>
+
+template<typename GridDefinitionDerived>
+struct BaseGridDefinition{
+	void serialize(std::vector<char>& buf) const{
+		return static_cast<const GridDefinitionDerived*>(this)->serialize(buf);
+	}
+	void deserialize(const std::vector<char>& buf){
+		return static_cast<const GridDefinitionDerived*>(this)->deserialize(buf);
+	}
+};
+
 template<RepresentationType>
 struct GridDefinition;

@@ -30,6 +30,11 @@ class Data:public __Data__{
             TOPO,
             KADASTR
         };
+        enum class ACCESS{
+            PUBLIC,
+            PROTECTED,
+            PRIVATE
+        };
 
     private:
     template<TYPE DATA_T,FORMAT DATA_F>
@@ -61,8 +66,6 @@ class Data:public __Data__{
     void __read__(const fs::path& filename);
     template<Data::FORMAT>
     void __write__(const fs::path& filename);
-    template<Data::FORMAT>
-    void __write__(std::vector<char>& buf);
 
     template <size_t I=0>
     void __write_all__(){
@@ -90,7 +93,13 @@ class Data:public __Data__{
         }
         void read(const fs::path& filename);
         bool write(const fs::path& filename);
-        bool write(std::vector<char>& buf);
+        template<Data::TYPE,Data::FORMAT>
+        bool write( std::vector<char>& buf,Organization center,
+                    std::optional<TimeFrame> time_fcst,
+                    const std::unordered_set<SearchParamTableVersion>& parameters,
+                    TimeInterval time_interval,
+                    RepresentationType rep_t,
+                    Coord pos);
         void add_data(GribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo&& grib_data);
@@ -125,3 +134,20 @@ class Data:public __Data__{
             Coord pos
         ) const;
 };
+
+template<>
+bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
+(                   std::vector<char>& buf,
+                    Organization center,
+                    std::optional<TimeFrame> time_fcst,
+                    const std::unordered_set<SearchParamTableVersion>& parameters,
+                    TimeInterval time_interval,
+                    RepresentationType rep_t,
+                    Coord pos)
+{
+    for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
+        if(path.type_==path::TYPE::FILE)
+            matched.serialize(buf);
+    for(const SearchParamTableVersion& param:parameters)
+        m
+}

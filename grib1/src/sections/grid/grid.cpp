@@ -277,3 +277,77 @@ const char* GridInfo::print_grid_info() const{
 std::vector<uint8_t> GridInfo::bin_grid_info() const{
     
 }
+void GridInfo::serialize(std::vector<char>& buf){
+    switch(rep_type){
+    case RepresentationType::ALBERS_EQUAL_AREA :
+        return data.albers.print_grid_info();
+        break;
+    case RepresentationType::GAUSSIAN :
+        return data.gauss.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_GAUSSIAN_LAT_LON :
+        return data.rot_gauss.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_GAUSSIAN_LAT_LON :
+        return data.str_gauss.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON :
+        return data.str_rot_gauss.print_grid_info();
+        break;
+    case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR :
+        return data.latlon.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_LAT_LON:
+        return data.rot_latlon.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_LAT_LON :
+        return data.str_latlon.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON :
+        return data.str_rot_latlon.print_grid_info();
+        break;
+    case RepresentationType::LAMBERT :
+        return data.lambert.print_grid_info();
+        break;
+    case RepresentationType::MERCATOR :
+        return data.mercator.print_grid_info();
+        break;
+    case RepresentationType::MILLERS_CYLINDR :
+        return data.millers.print_grid_info();
+        break;
+    case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL :
+        return data.lambert_oblique.print_grid_info();
+        break;
+    case RepresentationType::POLAR_STEREOGRAPH_PROJ :
+        return data.polar.print_grid_info();
+        break;
+    case RepresentationType::SIMPLE_POLYCONIC :
+        return data.polyconic.print_grid_info();
+        break;
+    case RepresentationType::GNOMONIC :
+        return data.gnomonic.print_grid_info();
+        break;
+    case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.rot_harmonic.print_grid_info();
+        break;
+    case RepresentationType::UTM :
+        return data.utm.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.str_harmonic.print_grid_info();
+        break;
+    case RepresentationType::SPACE_VIEW :
+        return data.space.print_grid_info();
+        break;
+    case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.harmonic.print_grid_info();
+        break;
+    case RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS :
+        return data.str_rot_harmonic.print_grid_info();
+        break;
+    default:
+        return "Unknown grid";
+        break;
+    }
+    assert(false);
+}

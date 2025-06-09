@@ -25,4 +25,5 @@ uint64_t ntohll(uint64_t value)
 {
     return htonll(value);
 }
+
 }

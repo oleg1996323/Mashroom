@@ -23,8 +23,8 @@ namespace network::server{
                     hmsg_ = Message<TYPE_MESSAGE::DATA_REPLY_FILEPART>::deserialize(std::move(buffer));
                 case TYPE_MESSAGE::VERSION:
                     hmsg_ = Message<TYPE_MESSAGE::VERSION>::deserialize(std::move(buffer));
-                case TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_INFO:
-                    hmsg_ = Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_INFO>::deserialize(std::move(buffer));
+                case TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF:
+                    hmsg_ = Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>::deserialize(std::move(buffer));
                 case TYPE_MESSAGE::DATA_REPLY_EXTRACT:{
                     hmsg_ = Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>::deserialize(std::move(buffer));
                 }

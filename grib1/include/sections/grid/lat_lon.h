@@ -23,6 +23,8 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const;
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 
 #include "aux_code/ibmtofloat.h"
@@ -45,6 +47,8 @@ struct GridDefinition<RepresentationType::ROTATED_LAT_LON>{
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const;
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 
 template<>
@@ -66,6 +70,8 @@ struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>{
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const;
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 
 template<>
@@ -90,5 +96,7 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>{
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const;
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 

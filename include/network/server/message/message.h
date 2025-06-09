@@ -8,6 +8,7 @@
 #include <network/server/message/progress.h>
 #include <network/server/message/status.h>
 #include <network/server/message/version.h>
+#include <network/server/message/data_transaction.h>
 
 #include <optional>
 #include <network/common/def.h>
@@ -25,7 +26,7 @@ namespace network::server{
 //     sizeof(Message<TYPE_MESSAGE::PROGRESS>),
 //     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_FILEPART>),
 //     sizeof(Message<TYPE_MESSAGE::VERSION>),
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_INFO>),
+//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>),
 //     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>)
 // };
 using reply_message = std::variant<std::monostate,
@@ -36,7 +37,7 @@ using reply_message = std::variant<std::monostate,
                         server::Message<TYPE_MESSAGE::PROGRESS>,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_FILEPART>,
                         server::Message<TYPE_MESSAGE::VERSION>,
-                        server::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_INFO>,
+                        server::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>>;
 
 constexpr size_t num_msg = std::variant_size_v<reply_message>-1;
@@ -50,7 +51,7 @@ using associated_t = std::variant<std::monostate,
                         server::Message<TYPE_MESSAGE::PROGRESS>,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_FILEPART>::associated_t,
                         server::Message<TYPE_MESSAGE::VERSION>,
-                        server::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_INFO>,
+                        server::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>>;
 
 class MessageHandler:public network::detail::MessageHandler<TYPE_MESSAGE,reply_message>{

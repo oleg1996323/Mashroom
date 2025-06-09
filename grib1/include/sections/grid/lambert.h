@@ -24,10 +24,14 @@ struct GridDefinition<RepresentationType::LAMBERT>{
     ResolutionComponentFlags resolutionAndComponentFlags;
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 
 template<>
 struct GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };

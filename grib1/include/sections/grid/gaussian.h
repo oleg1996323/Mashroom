@@ -20,6 +20,10 @@ struct GridDefinition<RepresentationType::GAUSSIAN>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::GAUSSIAN>& other) const;
+    void serialize(std::vector<char>& buf) const{
+        
+    }
+    void deserialize(const std::vector<char>& buf);
 };
 template<>
 struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
@@ -37,6 +41,8 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>& other) const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>{
@@ -53,6 +59,8 @@ struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>{
 
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>{
@@ -69,4 +77,6 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>{
 
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };

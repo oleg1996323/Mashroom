@@ -98,6 +98,7 @@ struct GridInfo{
                 break;
             }
         }
+        void serialize(std::vector<char>& buf);
         const char* print_grid_info() const;
         std::vector<uint8_t> bin_grid_info() const;
         bool operator==(const GridInfo& other) const;

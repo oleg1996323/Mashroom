@@ -8,6 +8,24 @@
 using namespace std::chrono;
 namespace fs = std::filesystem;
 namespace network::server{
+
+/**
+ * @brief network::server::TYPE_MESSAGE - type of server-side sent messages.
+ * 
+ * @details DATA_REPLY_FILEINFO: Message about the file being sent. If receiving Client send TYPE_MESSAGE::DATA_TRANSACTION with ACCEPT
+ *          a sequence of messages of TYPE_MESSAGE::DATA_REPLY_FILE_PART will be sent by server.
+ * @details SERVER_STATUS: Message about the server status. It is sending by server automatically while the connection is established but
+ *          there was nothing requeted by client.
+ * @details DATA_REPLY_CAPITALIZE: Message with information about shared data ready to be sent by capitalize request. 
+ *          If receiving Client send TYPE_MESSAGE::DATA_TRANSACTION with ACCEPT a sequence of messages of 
+ *          TYPE_MESSAGE::DATA_REPLY_FILE_PART will be sent by server.
+ * @details ERROR: Message with error code. This message is sent by Server when something is gone wrong.
+ * @details PROGRESS: This message is sent during the entire time that the remote process is running at the Client's request.
+ * @details DATA_REPLY_FILEPART: Message with file-part information and data.
+ * @details VERSION: Message with the program version for backward compatibility of network transactions.
+ * @details DATA_REPLY_CAPITALIZE_REF: Message with information about hosts data owning.
+ * 
+ */
 enum class TYPE_MESSAGE : int{
     DATA_REPLY_FILEINFO,
     SERVER_STATUS,
@@ -16,7 +34,7 @@ enum class TYPE_MESSAGE : int{
     PROGRESS,
     DATA_REPLY_FILEPART,
     VERSION,
-    DATA_REPLY_CAPITALIZE_INFO,
+    DATA_REPLY_CAPITALIZE_REF,
     DATA_REPLY_EXTRACT
 };
 

@@ -11,15 +11,21 @@ namespace network::server{
 
 template<>
 class Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>:public __Message__<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>{
+    struct BaseCapitalizeResult{
+        const Data::TYPE data_type;
+        const Data::FORMAT data_format;
+        std::vector<char> buffer_;
+    };
     template<Data::TYPE T,Data::FORMAT F>
-    struct __CAPITALIZE_RESULT__{
-        static constexpr Data::TYPE data_type = T;
-        static constexpr Data::FORMAT data_format = F;
-        static std::vector<char> serialize(const CapitalizeResult<T,F>& msg){
-            return CapitalizeResult<T,F>::serialize(msg);
+    struct __CAPITALIZE_RESULT__:BaseCapitalizeResult{
+        __CAPITALIZE_RESULT__():BaseCapitalizeResult{T,F}{}
+        
+
+        static std::vector<char> serialize(const __CAPITALIZE_RESULT__& msg){
+            return __CAPITALIZE_RESULT__::serialize(msg);
         }
-        static CapitalizeResult<T,F> deserialize(std::vector<char>::const_iterator buffer_iter){
-            return CapitalizeResult<T,F>::deserialize(buffer_iter);
+        static __CAPITALIZE_RESULT__ deserialize(std::vector<char>::const_iterator buffer_iter){
+            return __CAPITALIZE_RESULT__::deserialize(buffer_iter);
         }
     };
     uint64_t blocks_ = 0;
@@ -33,11 +39,7 @@ class Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>:public __Message__<TYPE_MESSA
     ErrorCode serialize_impl() const;
     ErrorCode deserialize_impl();
     public:
-    using associated_t = __CAPITALIZE_RESULT__;
-    //TODO: set structure for reply message
-    //maybe add data-type (topo,meteo,kadasr etc)
-    bool sendto(int sock);
-    bool receivefrom(int sock);
-
+    using associated_t = BaseCapitalizeResult;
+    bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
 };
 }

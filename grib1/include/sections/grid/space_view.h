@@ -8,4 +8,6 @@ template<>
 struct GridDefinition<RepresentationType::SPACE_VIEW>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
+    void serialize(std::vector<char>& buf) const;
+    void deserialize(const std::vector<char>& buf);
 };

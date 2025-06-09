@@ -34,12 +34,8 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     files_.insert(save_file);
     file.close();
 }
-template<>
-void Data::__write__<Data::FORMAT::GRIB>(std::vector<char>& buf){
-    
-}
 void Data::read(const fs::path& filename){
-    if(fs::exists(filename)){
+    if(fs::exsists(filename)){
         int fmt = extension_to_type(filename.extension().c_str());
         if(fmt==-1){
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
@@ -93,9 +89,6 @@ bool Data::write(const fs::path& filename){
         return false;
         break;
     }
-}
-bool Data::write(std::vector<char>& buf){
-
 }
 std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     Organization center,
