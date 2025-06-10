@@ -45,7 +45,9 @@ GridDefinition<RepresentationType::ROTATED_LAT_LON>::GridDefinition(unsigned cha
     scan_mode(ScanMode(GDS_RotLL_scan(buffer))), //TODO: correct (see above)
     angle_rotation(GDS_RotLL_RotAng(buffer)),
     latitude_south_pole(GDS_RotLL_LaSP(buffer)),
-    longitude_south_pole(GDS_RotLL_LoSP(buffer)){}
+    longitude_south_pole(GDS_RotLL_LoSP(buffer)){
+        
+    }
 bool GridDefinition<RepresentationType::ROTATED_LAT_LON>::operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
     return y1 == other.y1 &&
     x1 == other.x1 &&
