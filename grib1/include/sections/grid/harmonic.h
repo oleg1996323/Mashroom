@@ -6,6 +6,7 @@
 #include "def.h"
 #include <span>
 #include "code_tables/table_10.h"
+#include "network/common/utility.h"
 
 /** @brief Spherical harmonic grid
     @note Notes: 
@@ -132,6 +133,7 @@ struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENT
     /// @return Printed by text parameters
     const char* print_grid_info() const;
     void serialize(std::vector<char>& buf) const{
+        using namespace network::utility;
         GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::serialize(buf);
         if(network::utility::is_little_endian()){
             float ySoP_n = htonf(ySoP);
@@ -148,6 +150,7 @@ struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENT
         }
     }
     void deserialize(std::span<const char> buf){
+        using namespace network::utility;
         if(buf.size()!=GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::serial_size())
             return;
         else{
@@ -209,6 +212,7 @@ struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIE
     const char* print_grid_info() const;
 
     void serialize(std::vector<char>& buf) const{
+        using namespace network::utility;
         GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::serialize(buf);
         if(network::utility::is_little_endian()){
             float ysp_n = htonf(ysp);
@@ -225,10 +229,11 @@ struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIE
         }
     }
     void deserialize(std::span<const char> buf){
-        if(buf.size()!=GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::serial_size())
+        using namespace network::utility;
+        if(buf.size()!=GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>::serial_size())
             return;
         else{
-            GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>::deserialize(buf);
+            GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::deserialize(buf);
             uint16_t offset = GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::serial_size();
             if(network::utility::is_little_endian()){
                 ysp = ntohf(*(decltype(ysp)*)(buf.data()+offset));
@@ -267,8 +272,12 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_C
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const;
-    void deserialize(std::span<const char> buf);
+    void serialize(std::vector<char>& buf) const{
+
+    }
+    void deserialize(std::span<const char> buf){
+
+    }
 
     /// @brief Full buffer size after serialization of GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>
     /// @return uint8_t
