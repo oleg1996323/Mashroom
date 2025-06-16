@@ -65,45 +65,11 @@ void serialize(Coord pos, std::vector<char>& buf) noexcept{
     buf.insert(buf.end(), begin_lon, begin_lon + sizeof(pos.lon_));
 }
 
-template<>
-auto deserialize<Coord,true>(std::span<const char> buf) noexcept -> std::expected<Coord,SerializationEC>{
-    if(buf.size()<serial_size(Coord{}))
-        return std::unexpected(SerializationEC::BUFFER_SIZE_LESSER);
-    Coord result;
-    if(is_little_endian()){
-        {
-            auto des_res = deserialize_network<decltype(Coord::lat_)>(buf);
-            if(des_res.has_value())
-                result.lat_ = des_res.value();
-            else return std::unexpected(des_res.error());
-        }
-        {
-            auto des_res = deserialize_network<decltype(Coord::lon_)>(buf);
-            if(des_res.has_value())
-                result.lon_ = des_res.value();
-            else return std::unexpected(des_res.error());
-        }
-    }
-    return result;
-}
-
-template<>
-auto deserialize<Coord,false>(std::span<const char> buf) noexcept -> std::expected<Coord,SerializationEC>{
-    if(buf.size()<serial_size(Coord{}))
-        return std::unexpected(SerializationEC::BUFFER_SIZE_LESSER);
-    Coord result;
-    {
-        auto des_res = deserialize_native<decltype(Coord::lat_)>(buf);
-        if(des_res.has_value())
-            result.lat_ = des_res.value();
-        else return std::unexpected(des_res.error());
-    }
-    {
-        auto des_res = deserialize_native<decltype(Coord::lon_)>(buf);
-        if(des_res.has_value())
-            result.lon_ = des_res.value();
-        else return std::unexpected(des_res.error());
-    }
-    return result;
+template<bool NETWORK_ORDER>
+auto deserialize<NETWORK_ORDER,Coord>(std::span<const char> buf) noexcept -> std::expected<Coord,SerializationEC>{
+    auto result_des = deserialize<NETWORK_ORDER,Coord>(buf,decltype(Coord::lat_)(),decltype(Coord::lon_)());
+    if(!result_des)
+        return std::unexpected(result_des.error());
+    return result_des.value();
 }
 }
