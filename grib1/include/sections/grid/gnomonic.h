@@ -6,15 +6,13 @@
 #include "def.h"
 #include "stdexcept"
 #include <cassert>
+#include "grid_base.h"
+
+namespace grid{
 
 template<>
 struct GridDefinition<RepresentationType::GNOMONIC>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const{
-        assert(false); //not accessible
-    }
-    void deserialize(const std::vector<char>& buf){
-        assert(false); //not accessible
-    }
 };
+}

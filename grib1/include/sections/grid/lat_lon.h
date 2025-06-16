@@ -6,97 +6,89 @@
 #include "def.h"
 
 #include <span>
+#include "grid_base.h"
 
+namespace grid{
+/** @brief Simple latitude-longitude grid
+    @note Notes: 
+    1. Latitude, longitude and increments are in millidegrees.
+    2. Latitude values are limited to the range 090 000; bit 1 is set to 1 to indicate south latitude.
+    3. Longitude values are limited to the range 0360 000; bit 1 is set to 1 to indicate west longitude.
+    4. The latitude and longitude of the last grid point and the first grid point should always be given for regular grids.
+    5. Where items are not given, the appropriate octet(s) should have all bits set to 1.
+    6. Three parameters define a general latitude/longitude coordinate system,
+        formed by a general rotation of the sphere. One choice for these parameters is:
+     a.     The geographic latitude in degrees of the southern pole of the coordinate system, thetap for example;
+     b.     The geographic longitude in degrees of the southern pole of the coordinate system, lambdap for example;
+     c.     The angle of rotation in degrees about the new polar axis (measured clockwise when looking from the southern
+            to the northern pole) of the coordinate system, assuming the new axis to have been obtained by first rotating
+            the sphere through lambdap degrees about the geographic polar axis, and then rotating through (90 + thetap)
+            degrees so that the southern pole moved along the (previously rotated) Greenwich meridian.
+    7. The first and last grid points may not necessarily correspond to the first and last data points, respectively, if the bit-map section is used.
+    8. For data on a quasi-regular grid, in which all the rows or columns do not necessarily have the same number of grid points, either Ni (octets 7-8) or Nj (octets 9-10) and the corresponding Di (octets 24-25) or Dj (octets 26-27) shall be coded with all bits set to 1 (missing); the actual number of points along each parallel or meridian shall be coded.
+    9. A quasi-regular grid is only defined for appropriate grid scanning modes. Either rows or columns, but not both simultaneously, may have variable numbers of points. The first point in each row (column) shall be positioned at the meridian (parallel) indicated by octets 11-16. The grid points shall be evenly spaced in latitude (longitude).
+
+    /// @attention bytes 29-32: reserved
+*/
 template<>
-struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
-    float y1;
-    float x1;
-    float y2;
-    float x2;
-    float dy;
-    float dx;
-    uint16_t ny;
-    uint16_t nx;
-    ScanMode scan_mode;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-
+struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
+    GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::NONE>{
     GridDefinition(unsigned char* buffer);
-    bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const;
+    bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
+        return GridDefinitionBase::operator==(other);
+    }
     const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const;
-    void deserialize(const std::vector<char>& buf);
+    bool extendable(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
+        if(base_.dx!=other.base_.dx ||
+            base_.dy!=other.base_.dy)
+            return false;
+        return !(base_.x1 > other.base_.x2 ||
+            base_.x2 < other.base_.x1 || 
+            base_.y1 > other.base_.y2||
+            base_.y2 < other.base_.y1);
+    }
+
+    bool extend(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other){
+        if(other.base_.x1<base_.x1)
+            base_.x1 = other.base_.x1;
+        if(other.base_.y2<base_.y2)
+            base_.y2 = other.base_.y2;
+        if(other.base_.x2>base_.x2)
+            base_.x2 = other.base_.x2;
+        if(other.base_.y1>base_.y1)
+            base_.y1 = other.base_.y1;
+        return true;
+    }
 };
 
-#include "aux_code/ibmtofloat.h"
+#include "functional/ibmtofloat.h"
 template<>
-struct GridDefinition<RepresentationType::ROTATED_LAT_LON>{
-    double angle_rotation;
-    float y1;
-    float x1;
-    float y2;
-    float x2;
-    float dy;
-    float dx;
-    int latitude_south_pole;
-    int longitude_south_pole;
-    uint16_t ny;
-    uint16_t nx;
-    ScanMode scan_mode;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-
+struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
+    GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION>{
     GridDefinition(unsigned char* buffer);
-    bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const;
+    bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
+        return GridDefinitionBase::operator==(other);
+    }
     const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const;
-    void deserialize(const std::vector<char>& buf);
-};
-
-template<>
-struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>{
-    double stretch_factor;
-    float y1;
-    float x1;
-    float y2;
-    float x2;
-    float dy;
-    float dx;
-    int latitude_stretch_pole;
-    int longitude_stretch_pole;
-    uint16_t ny;
-    uint16_t nx;
-    ScanMode scan_mode;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-
-    GridDefinition(unsigned char* buffer);
-    bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const;
-    const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const;
-    void deserialize(const std::vector<char>& buf);
 };
 
 template<>
-struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>{
-    double angle_rotation;
-    double stretch_factor;
-    float y1;
-    float x1;
-    float y2;
-    float x2;
-    float dy;
-    float dx;
-    int latitude_south_pole;
-    int longitude_south_pole;
-    int latitude_stretch_pole;
-    int longitude_stretch_pole;
-    uint16_t ny;
-    uint16_t nx;
-    ScanMode scan_mode;
-    ResolutionComponentFlags resolutionAndComponentFlags;
-
+struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>:
+    GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::STRETCHING>{
     GridDefinition(unsigned char* buffer);
-    bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const;
+    bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const{
+        return GridDefinitionBase::operator==(other);
+    }
     const char* print_grid_info() const;
-    void serialize(std::vector<char>& buf) const;
-    void deserialize(const std::vector<char>& buf);
 };
 
+template<>
+struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
+    GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION_STRETCHING>{
+    GridDefinition(unsigned char* buffer);
+    bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const{
+        return GridDefinitionBase::operator==(other);
+    }
+    const char* print_grid_info() const;
+};
+}

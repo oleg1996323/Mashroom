@@ -36,12 +36,21 @@ struct std::equal_to<SearchParamTableVersion>{
 };
 using namespace std::chrono_literals;
 using namespace std::chrono;
+#include <types/time_interval.h>
 struct SearchProperties{
     std::unordered_set<SearchParamTableVersion> parameters_;
     std::optional<TimeFrame> fcst_unit_;
     std::optional<Organization> center_;
-    system_clock::time_point from_date_ = system_clock::time_point(sys_days(1970y/1/1));
-    system_clock::time_point to_date_ = system_clock::now();
+    utc_tp from_date_ = utc_tp(sys_days(1970y/1/1));
+    utc_tp to_date_ = system_clock::now();
     std::optional<RepresentationType> grid_type_;
     std::optional<Coord> position_;
 };
+
+namespace serialization{
+    template<bool NETWORK_ORDER = true>
+    void serialize(const SearchParamTableVersion& sptv, std::vector<char>& buf) noexcept{
+        buf.push_back(static_cast<char>(sptv.param_));
+        buf.push_back(static_cast<char>(sptv.t_ver_));
+    }
+}

@@ -1,15 +1,18 @@
 #pragma once
-#include "aux_code/ibmtofloat.h"
-#include "aux_code/floattoieee.h"
-#include "aux_code/byte_read.h"
+#include "functional/ibmtofloat.h"
+#include "functional/floattoieee.h"
+#include "functional/byte_read.h"
 
 #ifndef DEF_T62_NCEP_TABLE
 #define DEF_T62_NCEP_TABLE	rean
 #endif
 
-extern int ec_large_grib;
+// extern int ec_large_grib;
 
-#define BDS_LEN(bds)		(ec_large_grib ? len_ec_bds : ((int) ((bds[0]<<16)+(bds[1]<<8)+bds[2])) )
+//#define BDS_LEN(bds)		((int) ((bds[0]<<16)+(bds[1]<<8)+bds[2]))
+constexpr uint32_t BDS_LEN(unsigned char* ptr){
+    return read_bytes<3,false>(ptr);
+}
 
 #define BDS_Flag(bds)		(bds[3])
 

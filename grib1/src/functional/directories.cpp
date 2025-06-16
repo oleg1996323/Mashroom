@@ -1,4 +1,4 @@
-#include "aux_code/directories.h"
+#include "functional/directories.h"
 #include "sys/unistd.h"
 #include <sys/stat.h>
 

@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include "aux_code/def.h"
+#include "functional/def.h"
 #include "types/time_interval.h"
 #include "common.h"
 #include "sections/grid/grid.h"

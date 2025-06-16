@@ -1,6 +1,6 @@
 #pragma once
 #include "progress_base.h"
-#include "msgdef.h"
+#include <network/common/message/msgdef.h>
 #include <fstream>
 #include <sys/mman.h>
 #include "network/common/utility.h"

@@ -9,7 +9,7 @@ namespace network::server{
         
     }
     ErrorCode Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>::deserialize_impl(){
-        auto& buf = buffer();
+        auto& buf = __buffer__();
         if(buf.size()==sizeof(fn_sz)+fn_sz+sizeof(file_sz)+sizeof(file_hash_)){
             
         }

@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <cassert>
   
+using namespace grid;
+
 GridDefinition<RepresentationType::SIMPLE_POLYCONIC>::GridDefinition(unsigned char* buffer){
     throw std::invalid_argument("Unable to use Polyconic coordinate-system");
 }

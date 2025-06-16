@@ -28,22 +28,29 @@
 #include <netinet/tcp.h>
 #include <sys/epoll.h>
 #include <thread>
+#include <functional/float_conv.h>
 
 using Socket = int;
 using Port = short;
 
-namespace network::server{
-    constexpr int min_timeout_seconds = 1;
-    static std::vector<struct epoll_event> define_epoll_event(){
-        std::vector<struct epoll_event> result;
-        result.resize(std::thread::hardware_concurrency());
-        return result;
-    }
-    enum class Status:int{
-        READY,
-        SUSPENDED,
-        INACTIVE          
+namespace network{
+    enum class Side{
+        SERVER,
+        CLIENT
     };
+    namespace server{
+        constexpr int min_timeout_seconds = 1;
+        static std::vector<struct epoll_event> define_epoll_event(){
+            std::vector<struct epoll_event> result;
+            result.resize(std::thread::hardware_concurrency());
+            return result;
+        }
+        enum class Status:int{
+            READY,
+            SUSPENDED,
+            INACTIVE          
+        };
+    }
 }
 
 namespace network{

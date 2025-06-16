@@ -1,4 +1,4 @@
-#include "aux_code/int_pow.h"
+#include "functional/int_pow.h"
 
 extern double int_power(double x, int y) {
 

@@ -3,7 +3,7 @@
 
 namespace network::server{
     ErrorCode Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>::serialize_impl() const{
-        auto& buf = buffer();
+        auto& buf = __buffer__();
         if(!buf.empty())
             buf.clear();
         assert(!filename.empty() && filename.size()==fn_sz && file_hash_!=0);
@@ -18,7 +18,7 @@ namespace network::server{
         buf.insert(buf.end(),(char*)&file_hash_n,(char*)&file_hash_n+sizeof(file_hash_n));
     }
     ErrorCode Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>::deserialize_impl(){
-        auto& buf = buffer();
+        auto& buf = __buffer__();
         if(!buf.empty())
             fn_sz = network::utility::ntohll(*(decltype(fn_sz)*)buf.data());
         else

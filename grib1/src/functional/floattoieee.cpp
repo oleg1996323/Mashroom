@@ -1,4 +1,4 @@
-#include "aux_code/floattoieee.h"
+#include "functional/floattoieee.h"
 #include "math.h"
 #include "float.h"
 /* ibm2flt       wesley ebisuzaki

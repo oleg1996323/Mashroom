@@ -1,20 +1,18 @@
 #pragma once
-
-#include "code_tables/table_7.h"
-#include "code_tables/table_8.h"
-#include "albers.h"
-#include "lambert.h"
-#include "lat_lon.h"
-#include "gnomonic.h"
 #include "gaussian.h"
+#include "space_view.h"
+#include "harmonic.h"
+#include "lat_lon.h"
+#include "albers.h"
+#include "gnomonic.h"
+#include "utm.h"
 #include "mercator.h"
 #include "millers.h"
 #include "polar.h"
 #include "polyconic.h"
-#include "space_view.h"
-#include "harmonic.h"
-#include "utm.h"
 #include "lambert.h"
+
+using namespace grid;
 
 UNION_BEG(GridDataType){
     void* empty DEF_STRUCT_VAL(NULL)
@@ -63,13 +61,7 @@ struct GridInfo{
             switch (other.rep_type)
             {
             case LAT_LON_GRID_EQUIDIST_CYLINDR:
-                if(data.latlon.dx!=other.data.latlon.dx ||
-                    data.latlon.dy!=other.data.latlon.dy)
-                    return false;
-                return !(data.latlon.x1 > other.data.latlon.x2 ||
-                    data.latlon.x2 < other.data.latlon.x1 || 
-                    data.latlon.y1 > other.data.latlon.y2||
-                    data.latlon.y2 < other.data.latlon.y1);
+                return data.latlon.extendable(other.data.latlon);
                 break;
             default:
                 std::runtime_error("Still not available");
@@ -83,22 +75,14 @@ struct GridInfo{
             switch (grid.rep_type)
             {
             case LAT_LON_GRID_EQUIDIST_CYLINDR :
-                if(grid.data.latlon.x1<data.latlon.x1)
-                    data.latlon.x1 = grid.data.latlon.x1;
-                if(grid.data.latlon.y2<data.latlon.y2)
-                    data.latlon.y2 = grid.data.latlon.y2;
-                if(grid.data.latlon.x2>data.latlon.x2)
-                    data.latlon.x2 = grid.data.latlon.x2;
-                if(grid.data.latlon.y1>data.latlon.y1)
-                    data.latlon.y1 = grid.data.latlon.y1;
-                return true;
+                return data.latlon.extend(grid.data.latlon);
                 break;
             default:
                 throw std::runtime_error("Still not available");
                 break;
             }
         }
-        void serialize(std::vector<char>& buf);
+        
         const char* print_grid_info() const;
         std::vector<uint8_t> bin_grid_info() const;
         bool operator==(const GridInfo& other) const;
@@ -115,6 +99,7 @@ struct std::hash<GridInfo>{
         return std::hash<uint64_t>{}((uint64_t)data.rep_type<<(sizeof(size_t)-sizeof(data.rep_type)))^
         (std::hash<std::string_view>{}(reinterpret_cast<const char*>(&data.data))>>sizeof(data.rep_type));
     }
+    
 };
 
 template<>

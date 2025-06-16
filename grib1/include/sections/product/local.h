@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "def.h"
 #include "code_tables/table_0.h"
-#include "aux_code/def.h"
+#include "functional/def.h"
 
 #ifdef __cplusplus
 #include <span>

@@ -8,27 +8,15 @@
 #include <network/server/message/progress.h>
 #include <network/server/message/status.h>
 #include <network/server/message/version.h>
-#include <network/server/message/data_transaction.h>
 
 #include <optional>
 #include <network/common/def.h>
-#include <network/common/message_handler.h>
 #include <extract.h>
 #include <program/data.h>
 using namespace std::chrono;
 namespace fs = std::filesystem;
 namespace network::server{
-// constexpr std::array<size_t,9> sizes_msg_struct={
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>),
-//     sizeof(Message<TYPE_MESSAGE::SERVER_STATUS>),
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>),
-//     sizeof(Message<TYPE_MESSAGE::ERROR>),
-//     sizeof(Message<TYPE_MESSAGE::PROGRESS>),
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_FILEPART>),
-//     sizeof(Message<TYPE_MESSAGE::VERSION>),
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>),
-//     sizeof(Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>)
-// };
+
 using reply_message = std::variant<std::monostate,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>,
                         server::Message<TYPE_MESSAGE::SERVER_STATUS>,
@@ -40,7 +28,6 @@ using reply_message = std::variant<std::monostate,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>,
                         server::Message<TYPE_MESSAGE::DATA_REPLY_EXTRACT>>;
 
-constexpr size_t num_msg = std::variant_size_v<reply_message>-1;
 class MessageProcess;
 namespace detail{
 using associated_t = std::variant<std::monostate,
@@ -63,15 +50,16 @@ class MessageHandler:public network::detail::MessageHandler<TYPE_MESSAGE,reply_m
     template<TYPE_MESSAGE MSG,typename... ARGS>
     bool create_message(ARGS&&... args){
         msg_data_ = std::make_unique<Message<MSG>::associated_t>();
-        *this = Message<MSG>(*msg_data_.get(),std::forward<ARGS>(args));
+        *this = Message<MSG>(*msg_data_.get(),std::forward<ARGS>(args...));
         err_ = msg_data_->err_;
     }
 };
 }
 
 class MessageProcess{
-    static_assert(network::detail::check_variant_enum<TYPE_MESSAGE,reply_message,num_msg>());
+    static_assert(network::detail::check_variant_enum<TYPE_MESSAGE,reply_message,std::variant_size_v<reply_message>-1>);
     network::server::detail::MessageHandler hmsg_;
+    ErrorCode err_;
     bool __deserialize_msg__(std::vector<char>&& buffer);
     bool __receive_buffer__(int sock, std::vector<char>& buffer);
     public:
@@ -90,12 +78,41 @@ class MessageProcess{
     }
 
     bool send_file_by_parts(int sock,network::server::Status status,uint32_t chunk,const fs::path& filename);
+    bool send_error(int sock,network::server::Status status,ErrorCode err);
 };
 
+/// @brief 
+/// @details Send header with file information. If accepted by client, the file will be sent by parts.
+/// @param sock socket
+/// @param status server status
+/// @param chunk part of file data by message
+/// @param path path destination of file
+/// @return success or failure of sending
 bool MessageProcess::send_file_by_parts(int sock,network::server::Status status,uint32_t chunk,const fs::path& path){
     if(!hmsg_.create_message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>(path,status))
         return false;
-    std::vector<char> to_send_buf = Message<MSG>::serialize(msg);
-    msg::send_impl(sock,msg);
+    auto& msg = hmsg_.get<Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>>();
+    Message<TYPE_MESSAGE::DATA_REPLY_FILEINFO>::serialize(msg);
+    int16_t sent = 0;
+    while(sent<=msg.buffer().size()-1){
+        sent = send(sock,msg.buffer().data()+sent,msg.buffer().size(),0);
+        if(sent<0 || errno!=0){
+            err_ = ErrorPrint::print_error(ErrorCode::SENDING_REPLY_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            if(!send_error(sock,Status::READY,err_))
+                close(sock);
+            return false;
+        }
+    }
+    MessageProcess accept_decline;
+    /// @todo (ACCEPT or DECLINE)
+    accept_decline.receive(sock);
+}
+/// @brief 
+/// @param sock socket
+/// @param status server status
+/// @param err error code
+/// @return 
+bool MessageProcess::send_error(int sock,network::server::Status status,ErrorCode err){
+    return false;
 }
 }

@@ -1,5 +1,5 @@
 #include <float.h>
-#include "aux_code/ibmtofloat.h"
+#include "functional/ibmtofloat.h"
 
 extern double ibm2flt(unsigned char *ibm) {
 

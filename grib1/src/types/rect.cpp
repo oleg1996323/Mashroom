@@ -1,7 +1,7 @@
 // #include "types/rect.h"
 // #include <stdlib.h>
 // #include <stdio.h>
-// #include <aux_code/def.h>
+// #include <functional/def.h>
 // #include "math.h"
 
 // bool operator==(const Rect& lhs,const Rect& rhs){

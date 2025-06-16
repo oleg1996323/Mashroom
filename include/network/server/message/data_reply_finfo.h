@@ -1,6 +1,9 @@
 #pragma once
+#include <network/common/message/msgdef.h>
 #include "progress_base.h"
-#include "msgdef.h"
+#include <fstream>
+#include <sys/mman.h>
+#include "network/common/utility.h"
 
 namespace network::server{
 template<>

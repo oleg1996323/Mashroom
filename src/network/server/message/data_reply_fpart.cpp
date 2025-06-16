@@ -42,7 +42,7 @@ namespace network::server{
         decltype(file_part_sz_) file_part_sz_n = network::utility::htonll(file_part_sz_);
         decltype(offset_) offset_n = network::utility::htonll(offset_);
         decltype(file_hash_) file_hash_n = htonl(file_hash_);
-        auto& buf = buffer();
+        auto& buf = __buffer__();
         buf.insert(buf.end(),(char*)&file_part_sz_n,(char*)(&file_part_sz_n+sizeof(file_part_sz_n)));
         buf.insert(buf.end(),(char*)&offset_n,(char*)(&offset_n+sizeof(offset_n)));
         buf.insert(buf.end(),(char*)&file_hash_n,(char*)(&file_hash_n+sizeof(file_hash_n)));

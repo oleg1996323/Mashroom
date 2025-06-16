@@ -115,7 +115,10 @@
         "source_location": "cpp",
         "shared_mutex": "cpp",
         "typeindex": "cpp",
-        "netdb.h": "c"
+        "netdb.h": "c",
+        "byte_read.h": "c",
+        "stdfloat": "cpp",
+        "expected": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

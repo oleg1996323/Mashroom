@@ -35,7 +35,7 @@ class Data:public __Data__{
             PROTECTED,
             PRIVATE
         };
-
+    
     private:
     template<TYPE DATA_T,FORMAT DATA_F>
     struct __Data_type__{
@@ -148,6 +148,8 @@ bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
     for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
         if(path.type_==path::TYPE::FILE)
             matched.serialize(buf);
-    for(const SearchParamTableVersion& param:parameters)
-        m
+    for(const SearchParamTableVersion& param:parameters){
+        ///@todo
+    }
+    assert(false);
 }

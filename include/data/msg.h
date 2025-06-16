@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <chrono>
-#include <aux_code/def.h>
+#include <functional/def.h>
 #include <code_tables/table_0.h>
 #include <code_tables/table_4.h>
 #include <sections/grid/grid.h>

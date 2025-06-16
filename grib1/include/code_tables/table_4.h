@@ -1,4 +1,6 @@
 #pragma once
+#include <cinttypes>
+#include <cstddef>
 
 enum TimeFrame:uint8_t{
     MINUTE = 0,

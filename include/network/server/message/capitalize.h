@@ -1,8 +1,7 @@
 #pragma once
-#include "msgdef.h"
-#include <optional>
 #include <network/common/def.h>
-#include <network/common/message_handler.h>
+#include <network/common/message/msgdef.h>
+#include <optional>
 #include <extract.h>
 #include <program/data.h>
 using namespace std::chrono;

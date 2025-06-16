@@ -1,5 +1,5 @@
 #pragma once
-#include "msgdef.h"
+#include <network/common/message/msgdef.h>
 #include "progress_base.h"
 
 namespace network::server{
@@ -17,7 +17,7 @@ class Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>:public __Message__<TYPE_M
     }
     static Message<type_msg_> deserialize_impl(const std::vector<char>& buf){
         if(buf.size()==sizeof(Message<type_msg_>)){
-            size_t filename_size_tmp = *(size_t*)buf.data()+base_msg_sz<type_msg_>;
+            size_t filename_size_tmp = *(size_t*)buf.data()+header_base_sz();
             return Message<type_msg_>(      //progress
                                             *(ProgressBase*)(buf.data()+
                                             base_msg_sz<type_msg_>+

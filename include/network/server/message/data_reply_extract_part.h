@@ -1,5 +1,5 @@
 #pragma once
-#include "msgdef.h"
+#include <network/common/message/msgdef.h>
 #include "progress_base.h"
 
 namespace network::server{

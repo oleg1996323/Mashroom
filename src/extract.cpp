@@ -15,7 +15,7 @@
 #include "extract.h"
 #include "def.h"
 #include "message.h"
-#include "aux_code/int_pow.h"
+#include "functional/int_pow.h"
 #include "data/info.h"
 #include "generated/code_tables/eccodes_tables.h"
 

@@ -1,7 +1,7 @@
 #include "contains.h"
 #include "data/msg.h"
 #include "message.h"
-#include "aux_code/int_pow.h"
+#include "functional/int_pow.h"
 
 bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
     const CommonDataProperties& data,std::optional<RepresentationType> grid_type){

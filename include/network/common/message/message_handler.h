@@ -13,8 +13,8 @@ namespace network::detail{
     template<typename ENUM, typename VARIANT, size_t... Is>
     constexpr bool check_variant_enum_aligned_impl(::std::index_sequence<Is...>) {
         static_assert(IsVariant<VARIANT>::value, "Must be a variant!");
-        return ((std::is_same_v<ENUM, std::decay_t<decltype(std::variant_alternative_t<Is + 1, VARIANT>::type_msg_)>> && ...)) &&
-        ((std::to_underlying(std::variant_alternative_t<Is + 1, VARIANT>::type_msg_) == Is) && ...);
+        return ((std::is_same_v<ENUM, std::decay_t<decltype(std::variant_alternative_t<Is + 1, VARIANT>::get_msg_t())>> && ...)) &&
+        ((std::to_underlying(std::variant_alternative_t<Is + 1, VARIANT>::get_msg_t()) == Is) && ...);
     }
 
     //check if enum-ed message-structures are listed sequentially (std::monostate,struct{ENUM::0},struct{ENUM::1},...)
@@ -43,16 +43,16 @@ namespace network::detail{
         using VARIANT::VARIANT;
         MessageHandler() = default;
         template<typename T>
-        const T* get() const{
+        const T& get() const{
             if(std::holds_alternative<std::decay_t<T>>(*this))
-                return &std::get<std::decay_t<T>>(*this);
-            else return nullptr;
+                return std::get<std::decay_t<T>>(*this);
+            else return std::monostate();
         }
         template<typename T>
-        T* get(){
+        T& get(){
             if(std::holds_alternative<std::decay_t<T>>(*this))
-                return &std::get<std::decay_t<T>>(*this);
-            else return nullptr;
+                return std::get<std::decay_t<T>>(*this);
+            else return std::monostate();
         }
         //if std::monostate then -1
         int msg_type() const{
