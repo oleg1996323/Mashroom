@@ -48,9 +48,28 @@ struct SearchProperties{
 };
 
 namespace serialization{
-    template<bool NETWORK_ORDER = true>
-    void serialize(const SearchParamTableVersion& sptv, std::vector<char>& buf) noexcept{
-        buf.push_back(static_cast<char>(sptv.param_));
-        buf.push_back(static_cast<char>(sptv.t_ver_));
+    template<>
+    size_t serial_size(const SearchParamTableVersion& sptv) noexcept{
+        return serial_size(sptv.param_,sptv.t_ver_);
+    }
+
+    template<>
+    constexpr size_t min_serial_size(const SearchParamTableVersion& sptv) noexcept{
+        return min_serial_size(sptv.param_,sptv.t_ver_);
+    }
+
+    template<>
+    constexpr size_t max_serial_size(const SearchParamTableVersion& sptv) noexcept{
+        return max_serial_size(sptv.param_,sptv.t_ver_);
+    }
+
+    template<bool NETWORK_ORDER>
+    SerializationEC serialize(const SearchParamTableVersion& sptv, std::vector<char>& buf) noexcept{
+        return serialize<NETWORK_ORDER>(sptv,buf,sptv.param_,sptv.t_ver_);
+    }
+
+    template<>
+    SerializationEC deserialize<true>(SearchParamTableVersion& sptv, std::span<const char> buf) noexcept{
+        return deserialize<true>(sptv,buf,sptv.param_,sptv.t_ver_);
     }
 }
