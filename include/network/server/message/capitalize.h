@@ -2,43 +2,109 @@
 #include <network/common/def.h>
 #include <network/common/message/msgdef.h>
 #include <optional>
-#include <extract.h>
 #include <program/data.h>
+#include "functional/serialization.h"
 using namespace std::chrono;
 namespace fs = std::filesystem;
-namespace network::server{
+namespace network{
 
 template<>
-class Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>:public __Message__<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>{
-    struct BaseCapitalizeResult{
-        const Data::TYPE data_type;
-        const Data::FORMAT data_format;
-        std::vector<char> buffer_;
-    };
-    template<Data::TYPE T,Data::FORMAT F>
-    struct __CAPITALIZE_RESULT__:BaseCapitalizeResult{
-        __CAPITALIZE_RESULT__():BaseCapitalizeResult{T,F}{}
-        
+    struct MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>
+    {
+        struct BaseCapitalizeResult{
+            const Data::TYPE data_type;
+            const Data::FORMAT data_format;
+            std::vector<char> buffer_;
+        };
 
-        static std::vector<char> serialize(const __CAPITALIZE_RESULT__& msg){
-            return __CAPITALIZE_RESULT__::serialize(msg);
-        }
-        static __CAPITALIZE_RESULT__ deserialize(std::vector<char>::const_iterator buffer_iter){
-            return __CAPITALIZE_RESULT__::deserialize(buffer_iter);
+        std::vector<BaseCapitalizeResult> blocks_;
+        public:
+        MessageAdditional(ErrorCode& err,Data::ACCESS access, const std::vector<std::pair<Data::TYPE,Data::FORMAT>>& to_match){}
+        MessageAdditional() = default;
+        bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
+    };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.blocks_);
         }
     };
-    uint64_t blocks_ = 0;
 
-    Message(    ErrorCode err,
-                server::Status status = server::Status::READY):
-    __Message__<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>(status,0){
-        
-    }
-    private:
-    ErrorCode serialize_impl() const;
-    ErrorCode deserialize_impl();
-    public:
-    using associated_t = BaseCapitalizeResult;
-    bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
-};
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.blocks_);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.blocks_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.blocks_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.blocks_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.data_format,msg.data_type);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.data_format,msg.data_type);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.data_format,msg.data_type);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.data_format,msg.data_type);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE>::BaseCapitalizeResult;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.data_format,msg.data_type);
+        }
+    };
+
 }

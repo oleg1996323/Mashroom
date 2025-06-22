@@ -4,8 +4,6 @@
 #include <sys/config.h>
 #include <sys/log_err.h>
 
-using namespace network::server;
-
 void Server::sigchld_handler(int s){
     while(waitpid(-1, NULL, WNOHANG) > 0);
 }
@@ -128,7 +126,7 @@ void Server::__launch__(Server* server){
     sockaddr_storage another;
     memset(&another,0,sizeof(sockaddr_storage));
     
-    std::vector<epoll_event> events = define_epoll_event();
+    std::vector<epoll_event> events = server::define_epoll_event();
     epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.fd = server->server_socket_;
@@ -154,7 +152,7 @@ void Server::__launch__(Server* server){
         close(server->server_interruptor);
         return;
     }
-    server->status_=Status::READY;
+    server->status_=server::Status::READY;
     printf("server: waiting for connections…\n");
     while(!server->stop_token_.stop_requested()){
         errno = 0;
@@ -197,7 +195,7 @@ void Server::__launch__(Server* server){
 void Server::__new_connection__(Socket connected_client){
     if(setsockopt(connected_client,SOL_SOCKET,SO_RCVTIMEO,&Application::config().current_server_setting().settings_.timeout_seconds_,
         sizeof(Application::config().current_server_setting().settings_.timeout_seconds_))==-1){
-        server::Message<server::TYPE_MESSAGE::ERROR> msg_err;
+        Message<Server_MsgT::ERROR> msg_err;
         msg_err.sendto(connected_client,ErrorCode::INTERNAL_ERROR,ErrorPrint::message(ErrorCode::INTERNAL_ERROR,strerror(errno)));
         close(connected_client);
     }
@@ -218,18 +216,18 @@ void Server::close_connections(bool wait_for_end_connections){
     ::shutdown(server_socket_,SHUT_RDWR);
 }
 void Server::shutdown(bool wait_for_end_connections){
-    if(status_!=Status::INACTIVE){
+    if(status_!=server::Status::INACTIVE){
         if(!wait_for_end_connections)
             connection_pool_.shutdown_all();
         else connection_pool_.shut_not_processing();
-        status_=Status::SUSPENDED;
+        status_=server::Status::SUSPENDED;
     }
 }
 Server::~Server(){
     stop();
-    if(status_!=Status::INACTIVE){
+    if(status_!=server::Status::INACTIVE){
         ::close(server_socket_);
-        status_=Status::INACTIVE;
+        status_=server::Status::INACTIVE;
         server_socket_=-1;
     }
     char ipstr[INET6_ADDRSTRLEN];

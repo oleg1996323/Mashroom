@@ -2,38 +2,58 @@
 #include <network/common/message/msgdef.h>
 #include "progress_base.h"
 
-namespace network::server{
+namespace network{
 template<>
-class Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>:public __Message__<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>{
-    uint16_t fn_sz = 0;
+struct MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>
+{
+    server::Status status_;
     std::string filename;
-    uintmax_t file_sz = 0;      //size of file
-    Message(ProgressBase progr,const fs::path& file_path, server::Status status):
-    __Message__<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE_REF>(status,sizeof(fn_sz)+fn_sz+sizeof(file_sz)+sizeof(ProgressBase)){
-
-    }
-    static void serialize_impl(const Message<type_msg_>& msg){
-        
-    }
-    static Message<type_msg_> deserialize_impl(const std::vector<char>& buf){
-        if(buf.size()==sizeof(Message<type_msg_>)){
-            size_t filename_size_tmp = *(size_t*)buf.data()+header_base_sz();
-            return Message<type_msg_>(      //progress
-                                            *(ProgressBase*)(buf.data()+
-                                            base_msg_sz<type_msg_>+
-                                            sizeof(fn_sz)+
-                                            filename_size_tmp+
-                                            sizeof(file_sz)),
-                                            //filename
-                                            std::string(buf.data()+
-                                            base_msg_sz<type_msg_>+
-                                            sizeof(fn_sz),
-                                            buf.data()+
-                                            base_msg_sz<type_msg_>+
-                                            sizeof(fn_sz)+filename_size_tmp),
-                                            //server status
-                                            *(server::Status*)(buf.data()+sizeof(TYPE_MESSAGE)));
-        }
-    }
+    uintmax_t file_sz_ = 0;      //size of file
+    public:
+    MessageAdditional(ErrorCode& err,const fs::path& file_path, server::Status status){}
+    MessageAdditional() = default;
 };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename,msg.file_sz_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename,msg.file_sz_);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.status_,msg.filename,msg.file_sz_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.status_,msg.filename,msg.file_sz_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
+        using type = MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.status_,msg.filename,msg.file_sz_);
+        }
+    };
 }

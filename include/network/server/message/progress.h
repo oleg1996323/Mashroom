@@ -2,19 +2,56 @@
 #include "progress_base.h"
 #include <network/common/message/msgdef.h>
 
-namespace network::server{
+namespace network{
 template<>
-class Message<TYPE_MESSAGE::PROGRESS>:public __Message__<TYPE_MESSAGE::PROGRESS>{
+struct MessageAdditional<Server_MsgT::PROGRESS>{
+    server::Status status_;
     ProgressBase prog_;
-    Message(const ProgressBase& progress,server::Status status):
-    __Message__<TYPE_MESSAGE::PROGRESS>(status,sizeof(prog_)){}
-    static void serialize_impl(const Message<type_msg_>& msg){
-
-    }
-    static Message<type_msg_> deserialize_impl(const std::vector<char>& buf){
-        if(!buf.empty())
-            return Message<TYPE_MESSAGE::PROGRESS>( *(ProgressBase*)(buf.data()+base_msg_sz<type_msg_>),
-                                                    __Message__::get_status(buf));
-    }
+    MessageAdditional(ErrorCode& err,const ProgressBase& progress,server::Status status):
+    status_(status),prog_(progress){}
+    MessageAdditional() = default;
 };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::PROGRESS>>{
+        using type = MessageAdditional<Server_MsgT::PROGRESS>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.prog_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::PROGRESS>>{
+        using type = MessageAdditional<Server_MsgT::PROGRESS>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.prog_);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::PROGRESS>>{
+        using type = MessageAdditional<Server_MsgT::PROGRESS>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.status_,msg.status_,msg.prog_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::PROGRESS>>{
+        using type = MessageAdditional<Server_MsgT::PROGRESS>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.status_,msg.status_,msg.prog_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::PROGRESS>>{
+        using type = MessageAdditional<Server_MsgT::PROGRESS>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.status_,msg.status_,msg.prog_);
+        }
+    };
 }

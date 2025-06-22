@@ -1,0 +1,413 @@
+#pragma once
+#include <optional>
+#include <vector>
+#include <bit>
+#include <functional/float_conv.h>
+#include <functional/def.h>
+#include <chrono>
+#include <cstring>
+#include <expected>
+#include <concepts>
+#include <tuple>
+#include <utility>
+#include <cstring>
+
+namespace serialization{
+    
+    enum class SerializationEC{
+        NONE,
+        BUFFER_SIZE_LESSER,
+        UNMATCHED_TYPE,
+        BUFFER_OVERFLOW
+    };
+
+}
+/// @brief Check if code error is equal serialization::SerializationEC::NONE;
+/// @param code 
+/// @return if false - has an error
+bool operator!(serialization::SerializationEC code);
+
+namespace serialization{
+
+    template<typename T>
+    concept numeric_types_concept = std::is_integral_v<std::decay_t<T>> || std::is_floating_point_v<std::decay_t<T>> || std::is_enum_v<std::decay_t<T>>;
+
+    template<typename T>
+    concept common_types_concept = numeric_types_concept<std::decay_t<T>> || std::is_class_v<std::decay_t<T>>;
+
+    template<typename T>
+    concept serialize_concept = 
+    requires(const std::decay_t<T>& val, const std::vector<char>& buf){
+        { serialize<true,std::decay_t<T>>(val, buf) } -> std::same_as<SerializationEC>;
+        requires noexcept (serialize<true,std::decay_t<T>>(val, buf));
+    };
+
+    template<typename T>
+    concept deserialize_concept = 
+    requires(const std::decay_t<T>& val,std::span<const char> buf){
+        { deserialize<true,std::decay_t<T>>(val,buf) } -> std::same_as<SerializationEC>;
+        requires noexcept (deserialize<true,std::decay_t<T>>(val,buf));
+    };
+
+    template<typename T>
+    concept serial_size_concept = 
+    requires(const std::decay_t<T>& val){
+        { serial_size<std::decay_t<T>>(val) } -> std::same_as<size_t>;
+        requires noexcept (serial_size<std::decay_t<T>>(val));
+    };
+
+    template<typename T>
+    concept min_serial_size_concept = 
+    requires(const std::decay_t<T>& val){
+        { min_serial_size<std::decay_t<T>>(val) } -> std::same_as<size_t>;
+        requires noexcept (min_serial_size<std::decay_t<T>>(val));
+    };
+
+    template<typename T>
+    concept max_serial_size_concept = 
+    requires(const std::decay_t<T>& val){
+        { max_serial_size<std::decay_t<T>>(val) } -> std::same_as<size_t>;
+        requires noexcept (max_serial_size<std::decay_t<T>>(val));
+    };
+
+    template<typename T>
+    concept time_point_concept = requires (const std::decay_t<T>& time){
+        time.time_since_epoch().count();
+    };
+
+    template<typename T>
+    concept duration_concept = requires (const std::decay_t<T>& duration){
+        duration.count();
+    };
+    
+    struct Serialization{
+        template<bool NETWORK_ORDER,typename T>
+        SerializationEC serialize(const T& to_serialize,std::vector<char>& buf) noexcept;
+
+        template<bool NETWORK_ORDER,typename T,serialize_concept... ARGS>
+        requires (sizeof...(ARGS)>0)
+        SerializationEC serialize(const T& to_serialize, std::vector<char>& buf, const ARGS&... args) noexcept{
+            // static_assert(min_serial_size()==min_serial_size(args...),
+            // "Minimal serial size of serialized struct must be equal to the minimal serial size of all its members to be serialized");
+            // static_assert(max_serial_size()==max_serial_size(args...),
+            // "Maximal serial size of serialized struct must be equal to the maximal serial size of all its members to be serialized");
+            return (serialize<NETWORK_ORDER,ARGS>(args, buf) && ...);
+        }
+    };
+
+    template<bool NETWORK_ORDER,typename T>
+    SerializationEC Serialization::serialize(const T& to_serialize,std::vector<char>& buf) noexcept{
+        using type = std::decay_t<decltype(to_serialize)>;
+        type val(to_serialize);
+        if constexpr (numeric_types_concept<type>){
+            if constexpr (std::is_integral_v<type> || std::is_enum_v<type>){
+                using RawType = std::conditional_t<std::is_enum_v<type>, std::underlying_type_t<type>, type>;
+                RawType raw_val = static_cast<RawType>(val);
+                if constexpr(sizeof(type)==1)
+                    buf.push_back(static_cast<char>(raw_val));
+                else{
+                    if constexpr(NETWORK_ORDER && is_little_endian())
+                        raw_val = std::byteswap(raw_val);
+                    const auto* begin = reinterpret_cast<const char*>(&raw_val);
+                    buf.insert(buf.end(),begin,begin+sizeof(raw_val));
+                }
+            }
+            else{
+                if constexpr(NETWORK_ORDER && is_little_endian()){
+                        auto int_val = to_integer(val);
+                        int_val = std::byteswap(int_val);
+                        val = to_float(int_val);
+                }
+                const auto* begin = reinterpret_cast<const char*>(&val);
+                buf.insert(buf.end(),begin,begin+sizeof(val));
+            }
+            return SerializationEC::NONE;
+        }
+        else if constexpr (time_point_concept<type>){
+            using Rep = decltype(val.time_since_epoch().count());
+            Rep time_count = val.time_since_epoch().count();
+            if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
+                time_count = std::byteswap(time_count);
+            const auto* begin = reinterpret_cast<const char*>(&time_count);
+            buf.insert(buf.end(), begin, begin + sizeof(time_count));
+            return SerializationEC::NONE;
+        }
+        else if constexpr (time_point_concept<type>){
+            using Rep = decltype(val.count());
+            Rep time_count = val.count();
+            if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
+                time_count = std::byteswap(time_count);
+            const auto* begin = reinterpret_cast<const char*>(&time_count);
+            buf.insert(buf.end(), begin, begin + sizeof(time_count));
+            return SerializationEC::NONE;
+        }
+        else
+            static_assert(false,"serialize unspecified");
+    }
+
+    /// @brief Deserialize data from buffer to specified type
+    /// @tparam T Supported types: integral, floating-point, enum (including scoped enum)
+    /// @tparam NETWORK_ORDER If true, converts from network (big-endian) byte order
+    /// @param buf Input data buffer (read-only)
+    /// @return std::expected<T, SerializationEC> - value or error code
+    /// @note Supports both runtime and constexpr contexts
+    /// @warning Buffer must be properly aligned for type T
+
+    template<bool NETWORK_ORDER,typename T>
+    SerializationEC deserialize(T& to_deserialize,std::span<const char> buf) noexcept{
+                if constexpr (numeric_types_concept<T>){
+            static_assert(std::is_trivially_copyable_v<std::decay_t<T>>, 
+                "Type T must be trivially copyable");
+            if(buf.size()<sizeof(T))
+                return SerializationEC::BUFFER_SIZE_LESSER;
+            if constexpr (std::is_integral_v<T> || std::is_enum_v<T>){
+                using RawType = std::conditional_t<std::is_enum_v<T>, std::underlying_type_t<T>, T>;
+                RawType value;
+                if constexpr (sizeof(RawType) == 1){
+                    std::memcpy(&to_deserialize,buf.data(),sizeof(RawType));
+                    return SerializationEC::NONE;
+                }
+                if (std::is_constant_evaluated())
+                    std::copy_n(buf.data(), sizeof(RawType), reinterpret_cast<char*>(&value));
+                else
+                    std::memcpy(&value,buf.data(),sizeof(RawType));
+                if constexpr(NETWORK_ORDER && sizeof(RawType)>1)
+                    if(is_little_endian())
+                        value = std::byteswap(value);
+                to_deserialize = static_cast<T>(value);
+                return SerializationEC::NONE;
+            }
+            else{
+                using IntType = ::detail::to_integer_type<sizeof(T)>;
+                IntType int_val;
+                if (std::is_constant_evaluated())
+                    std::copy_n(buf.data(), sizeof(IntType), reinterpret_cast<char*>(&int_val));
+                else
+                    std::memcpy(&int_val,buf.data(),sizeof(IntType));
+                if constexpr(NETWORK_ORDER)
+                    if(is_little_endian())
+                        int_val = std::byteswap(int_val);
+                to_deserialize = to_float(int_val);
+                return SerializationEC::NONE;
+            }
+        }
+        else if constexpr (time_point_concept<T>){
+            if(buf.size()<min_serial_size(to_deserialize))
+                return SerializationEC::BUFFER_SIZE_LESSER;
+            decltype(to_deserialize.time_since_epoch().count()) IntVal = 0;
+            auto code = deserialize<NETWORK_ORDER>(IntVal,buf);
+            if(!code){
+                to_deserialize = std::chrono::system_clock::time_point(std::chrono::nanoseconds(IntVal));
+                return SerializationEC::NONE;
+            }
+            else
+                return code;
+        }
+        else if constexpr (duration_concept<T>){
+            if(buf.size()<min_serial_size(to_deserialize))
+                return SerializationEC::BUFFER_SIZE_LESSER;
+            decltype(to_deserialize.count()) IntVal = 0;
+            auto code = deserialize<NETWORK_ORDER>(IntVal,buf);
+            if(!code){
+                to_deserialize = T(IntVal);
+                return SerializationEC::NONE;
+            }
+            else
+                return code;
+        }
+        else static_assert(false,"deserialize unspecified");
+    }
+
+    template<bool NETWORK_ORDER,typename T,deserialize_concept... ARGS>
+    requires (sizeof...(ARGS)!=0)
+    SerializationEC deserialize(std::span<const char> buf,const T& to_deserialize, ARGS&... args) noexcept{
+        using args_type = std::decay_t<ARGS>...;
+        // static_assert(min_serial_size_concept<decltype(to_deserialize)>,"Expected specification of min_serial_size function");
+        // static_assert(max_serial_size_concept<decltype(to_deserialize)>,"Expected specification of max_serial_size function");
+        // static_assert(min_serial_size(to_deserialize)==min_serial_size(args...),"Expected equal minimal serial size of object and its fields' summary minimal serial size");
+        // static_assert(min_serial_size(to_deserialize)==min_serial_size(args...),"Expected equal maximal serial size of object and its fields' summary maximal serial size");
+        size_t offset = 0;
+        if (buf.size() < min_serial_size(to_deserialize))
+            return SerializationEC::BUFFER_SIZE_LESSER;
+
+        SerializationEC deserialize_field = [&](auto field) {
+            if (offset >= buf.size()) {
+                return SerializationEC::BUFFER_OVERFLOW;
+            }
+            auto subspan = buf.subspan(offset);
+            SerializationEC code = deserialize<NETWORK_ORDER,T>(field,subspan);
+            
+            if (code!=SerializationEC::NONE) {
+                return code;
+            }
+
+            offset += serial_size(field);
+            return SerializationEC::NONE;
+        };
+
+        for(auto& field:{std::ref(args)...})
+            if (auto code = deserialize_field(field); code != SerializationEC::NONE) {
+                return code;
+            }
+        return SerializationEC::NONE;
+    }
+
+    template<typename T>
+    size_t serial_size(const T& val) noexcept{
+        if constexpr (numeric_types_concept<T>)
+            return sizeof(val);
+        else if constexpr (time_point_concept<T>)
+            return sizeof(val.time_since_epoch().count());
+        else if constexpr (duration_concept<T>)
+            return sizeof(val.count());
+        else static_assert(false,"serial_size unspecified");
+    }
+
+    template<typename... ARGS>
+    requires ((serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    static size_t serial_size(const ARGS&...  val) noexcept{
+        return (serial_size(val) + ...);
+    }
+
+    template<typename T>
+    constexpr size_t min_serial_size() noexcept{
+        if constexpr (numeric_types_concept<T>)
+            return sizeof(T);
+        else if constexpr (time_point_concept<T>)
+            return sizeof(T::time_since_epoch().count());
+        else if constexpr (duration_concept<T>)
+            return sizeof(T::count());
+        else static_assert(false,"min_serial_size unspecified");
+    }
+
+    template<typename T>
+    constexpr size_t min_serial_size(const T& val) noexcept{
+        return min_serial_size<T>();
+    }
+
+    template<typename... ARGS>
+    requires ((min_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    constexpr size_t min_serial_size(const std::decay<ARGS>&... val) noexcept{
+        return (min_serial_size(val) + ...);
+    }
+
+    template<typename T>
+    constexpr size_t max_serial_size() noexcept{
+        if constexpr (numeric_types_concept<T>)
+            return sizeof(T);
+        else if constexpr (time_point_concept<T>)
+            return sizeof(T::time_since_epoch().count());
+        else if constexpr (duration_concept<T>)
+            return sizeof(T::count());
+        else static_assert(false,"max_serial_size unspecified");
+    }
+
+    template<typename T>
+    constexpr size_t max_serial_size(const T& val) noexcept{
+        return max_serial_size<T>();
+    }
+
+    template<typename... ARGS>
+    requires ((max_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    constexpr size_t max_serial_size(const std::decay<ARGS>&... val) noexcept{
+        return (max_serial_size(val) + ...);
+    }
+
+    template<typename T>
+    auto serialize_native(const T& val,std::vector<char>& buf) noexcept{
+        return serialize<false,T>(val,buf);
+    }
+    template<typename T>
+    auto serialize_network(const T& val,std::vector<char>& buf) noexcept{
+        return serialize<true,T>(val,buf);
+    }
+    template<typename T>
+    auto deserialize_native(const T& to_deserialize,std::span<const char> buf) noexcept{
+        return deserialize<false,T>(to_deserialize,buf);
+    }
+    template<typename T>
+    auto deserialize_network(const T& to_deserialize,std::span<const char> buf) noexcept{
+        return deserialize<true,T>(to_deserialize,buf);
+    }
+
+    template<typename T,typename... ARGS>
+    auto serialize_native(std::vector<char>& buf,const T& val,ARGS&&... args) noexcept{
+        return serialize<false,T>(buf,val,args...);
+    }
+    template<typename T,typename... ARGS>
+    auto serialize_network(std::vector<char>& buf,const T& val,ARGS&&... args) noexcept{
+        return serialize<true,T>(buf,val,args...);
+    }
+    template<typename T,typename... ARGS>
+    auto deserialize_native(std::span<const char> buf,const T& to_deserialize,ARGS&&... args) noexcept{
+        return deserialize<false,T>(buf,to_deserialize,args...);
+    }
+    template<typename T,typename... ARGS>
+    auto deserialize_network(std::span<const char> buf,const T& to_deserialize,ARGS&&... args) noexcept{
+        return deserialize<true,T>(buf,to_deserialize,args...);
+    }
+
+    template<bool NETWORK_ORDER,serialize_concept T>
+    SerializationEC serialize(const std::optional<T>& val,std::vector<char>& buf) noexcept{
+        auto err = serialize<NETWORK_ORDER>(val.has_value(),buf);
+        if(err!=SerializationEC::NONE)
+            return err;
+        if(!val.has_value())
+            return SerializationEC::NONE;
+        err = serialize<NETWORK_ORDER>(val.value(),buf);
+        if(err!=SerializationEC::NONE)
+            return err;
+        return SerializationEC::NONE;
+    }
+
+    /// @brief Deserialize data from buffer to specified type
+    /// @tparam T Supported types: integral, floating-point, enum (including scoped enum)
+    /// @tparam NETWORK_ORDER If true, converts from network (big-endian) byte order
+    /// @param buf Input data buffer (read-only)
+    /// @return std::expected<T, SerializationEC> - value or error code
+    /// @note Supports both runtime and constexpr contexts
+    /// @warning Buffer must be properly aligned for type T
+    template<bool NETWORK_ORDER,deserialize_concept T>
+    SerializationEC deserialize(std::optional<T>& to_deserialize,std::span<const char> buf) noexcept{
+        to_deserialize.reset();
+        if(buf.size()<min_serial_size(to_deserialize))
+            return SerializationEC::BUFFER_SIZE_LESSER;
+        bool has_value = false;
+        auto code = deserialize<NETWORK_ORDER>(has_value,buf.subspan(0,serial_size(code)));
+        if(!code!=SerializationEC::NONE)
+            return code;
+        if(!has_value)
+            return SerializationEC::NONE;
+        if(buf.size()<max_serial_size(to_deserialize))
+            return SerializationEC::BUFFER_SIZE_LESSER;
+        T value;
+        code = deserialize<NETWORK_ORDER>(value,buf.subspan(0,serial_size(code)));
+        if(code!=SerializationEC::NONE)
+            return code;
+
+        if constexpr(std::is_move_assignable_v<T>)
+            to_deserialize = std::move(value);
+        else to_deserialize = value;
+    }
+
+    template<serial_size_concept T>
+    size_t serial_size(const std::optional<T>& val) noexcept{
+        constexpr size_t flag_size = 1;
+        return flag_size + (val.has_value() ? serial_size(*val) : 0);
+    }
+
+    template<min_serial_size_concept T>
+    constexpr size_t min_serial_size() noexcept{
+        return sizeof(std::optional<T>::has_value());
+    }
+
+    template<max_serial_size_concept T>
+    constexpr static size_t max_serial_size<std::optional<T>>() noexcept{
+        return min_serial_size<std::optional<T>>()+max_serial_size<T>();
+    }
+
+}
+
+bool operator!(serialization::SerializationEC code){
+    return code==serialization::SerializationEC::NONE;
+}

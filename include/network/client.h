@@ -1,24 +1,24 @@
 #pragma once
 #include <thread>
 #include <unistd.h>
-#include <network/common/def.h>
+#include "network/common/def.h"
 #include <sys/eventfd.h>
 #include <poll.h>
-#include <network/common/credentials.h>
-#include <network/client/message.h>
+#include "network/common/credentials.h"
+#include "network/common/message/message_process.h"
 #include <variant>
-#include <network/client/connection_process.h>
+#include "network/client/connection_process.h"
+#include <netdb.h>
 
 namespace network{
     class ClientsHandler;
 }
-namespace network::client{
-    enum class TYPE_MESSAGE:uint8_t;
+namespace network{
 
     class Client{
         private:
-        friend struct std::hash<network::client::Client>;
-        friend struct std::equal_to<network::client::Client>;
+        friend struct std::hash<network::Client>;
+        friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
         network::connection::Process<Client> process_;
         std::string host_;
@@ -38,8 +38,8 @@ namespace network::client{
         ErrorCode connect();
         bool is_connected() const;
         ErrorCode disconnect();
-        template<client::TYPE_MESSAGE T>
-        ErrorCode request(client::Message<T>) const;
+        template<Client_MsgT::type T>
+        ErrorCode request(const Message<T>&) const;
 
         server::Status server_status() const;
         // static std::unique_ptr<Client> make_instance(const std::string&,ErrorCode&);
@@ -47,8 +47,8 @@ namespace network::client{
 }
 
 template<>
-struct std::hash<network::client::Client>{
-    size_t operator()(const network::client::Client& client) const{
+struct std::hash<network::Client>{
+    size_t operator()(const network::Client& client) const{
         if(client.servinfo_->ai_family==AF_INET){
             auto* addr = (sockaddr_in*)client.servinfo_->ai_addr;
             return std::hash<size_t>{}(addr->sin_addr.s_addr)^std::hash<size_t>{}(addr->sin_port);
@@ -65,8 +65,8 @@ struct std::hash<network::client::Client>{
 };
 
 template<>
-struct std::equal_to<network::client::Client>{
-    size_t operator()(const network::client::Client& lhs,const network::client::Client& rhs) const{
+struct std::equal_to<network::Client>{
+    size_t operator()(const network::Client& lhs,const network::Client& rhs) const{
     if (lhs.servinfo_->ai_addr == rhs.servinfo_->ai_addr) return true;  // Один и тот же указатель
     if (!lhs.servinfo_->ai_addr || !rhs.servinfo_->ai_addr) return false;  // Один из них nullptr
     if (lhs.servinfo_->ai_addr->sa_family != rhs.servinfo_->ai_addr->sa_family) {

@@ -14,8 +14,8 @@
 
 using namespace grid;
 
-UNION_BEG(GridDataType){
-    void* empty DEF_STRUCT_VAL(NULL)
+union GridDataType{
+    void* empty = NULL;
     GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR> latlon;
     GridDefinition<ROTATED_LAT_LON> rot_latlon;
     GridDefinition<STRETCHED_LAT_LON> str_latlon;
@@ -41,8 +41,7 @@ UNION_BEG(GridDataType){
 
     GridDataType():empty(NULL){} // Явное указание использовать конструктор по умолчанию
     GridDataType(unsigned char* buffer, RepresentationType T);
-}
-UNION_END(GridDataType)
+};
 
 #include <array>
 #include <string_view>
@@ -50,8 +49,8 @@ UNION_END(GridDataType)
 #include <vector>
 #ifndef GRID_INFO
 struct GridInfo{
-    GridDataType data DEF_STRUCT_VAL({})
-    RepresentationType rep_type DEF_STRUCT_VAL((RepresentationType)-1)
+    GridDataType data = {};
+    RepresentationType rep_type =(RepresentationType)-1;
     #ifdef __cplusplus
         GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
         GridInfo() = default;

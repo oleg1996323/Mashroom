@@ -14,7 +14,7 @@
 #include <stdint.h>
 #endif
 
-STRUCT_BEG(BinaryDataSection)
+struct BinaryDataSection
 {
 	unsigned char* buf_;
 	#ifdef __cplusplus
@@ -42,5 +42,4 @@ STRUCT_BEG(BinaryDataSection)
 		return BDS_NumBits(buf_);
 	}
 	#endif
-}
-STRUCT_END(BinaryDataSection)
+};

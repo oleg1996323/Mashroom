@@ -13,12 +13,12 @@
 #include <string>
 #include <string_view>
 #include <iostream>
+
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-STRUCT_BEG(Message)
-{
+struct Message{
     IndicatorSection section_0_;
     ProductDefinitionSection section_1_;
     GridDescriptionSection section_2_;
@@ -26,7 +26,6 @@ STRUCT_BEG(Message)
     BinaryDataSection section_4_;
     ErrorCodeData err_;
 
-    #ifdef __cplusplus
     Message(unsigned char* buffer):section_0_(buffer),
                                     section_1_(buffer+sec_0_min_sz),
                                     section_2_(section_1_.section1Flags().sec2_inc?section_1_.buffer_+section_1_.section_length():nullptr),
@@ -60,21 +59,17 @@ STRUCT_BEG(Message)
     }
     float extract_value(int n);
     std::vector<float> extract_all();
-    #endif
-}
-STRUCT_END(Message)
+};
 
-STRUCT_BEG(HGrib1)
+struct HGrib1
 {   
-    #ifdef __cplusplus
     private:
-    #endif
-    std::unique_ptr<::Message> msg_ DEF_STRUCT_VAL(nullptr)
-    unsigned char* __f_ptr DEF_STRUCT_VAL(nullptr)
-    unsigned char* current_ptr_ DEF_STRUCT_VAL(nullptr)
-    unsigned long sz_ DEF_STRUCT_VAL(0)
+    std::unique_ptr<::Message> msg_ = nullptr;
+    unsigned char* __f_ptr = nullptr;
+    unsigned char* current_ptr_ = nullptr;
+    unsigned long sz_ = 0;
     int file = -1;
-    #ifdef __cplusplus
+
     public:
     HGrib1(const fs::path& filename):msg_(nullptr){open_grib(filename);}
     HGrib1() = default;
@@ -88,9 +83,7 @@ STRUCT_BEG(HGrib1)
     std::optional<unsigned char> grib_version() const noexcept;
     ErrorCodeData open_grib(const fs::path& filename);
     bool set_message(ptrdiff_t pos) noexcept;
-    #endif
-}
-STRUCT_END(HGrib1)
+};
 
 #ifndef __cplusplus
 Message* read_message(Message* msg){

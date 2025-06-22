@@ -1,5 +1,4 @@
 #pragma once
-#ifdef __cplusplus
 #include <cstdint>
 #include <vector>
 #include <ranges>
@@ -16,13 +15,3 @@ struct IndicatorSection{
     unsigned char grib_version() const noexcept;
     unsigned long message_length() const noexcept;
 };
-#else
-#include <stdint.h>
-typedef struct{
-    unsigned char identifier[4];
-    unsigned msg_length;
-    unsigned char grib_edition;
-}IndicatorSection;
-
-extern void read_IS(IndicatorSection* section);
-#endif

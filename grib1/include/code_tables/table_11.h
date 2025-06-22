@@ -7,7 +7,7 @@
 //Although GRIB is not capable of representing a matrix of data values at each grid point, the meaning of bit 6 is retained in anticipation of a future capability.
 //When secondary bit maps are present in the data (used in association with second order packing) this is indicated by setting bit 7 to 1.
 //When octet 14 contains the extended flag information octets 12 and 13 will also contain "special" information; the actual data will begin in a subsequent octet. See above.
-STRUCT_BEG(Flag)
+struct Flag
 {
     int spherical_harm_coefs:1;
     int complex_pack:1;
@@ -16,6 +16,5 @@ STRUCT_BEG(Flag)
     int matrix:1;
     int second_bmp:1;
     int second_order_diff_widths:1;
-}
-STRUCT_END(Flag)
+};
 #pragma pack(pop)

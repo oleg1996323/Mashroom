@@ -58,7 +58,7 @@ ErrorCode Integrity::execute(){ //TODO: add search from match if in path not def
                 __process_core__(entries);
             }
             case path::TYPE::HOST:{
-                hProgram->request(path.path_,network::client::Message<network::client::TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>());
+                hProgram->request(path.path_,network::Message<network::Client_MsgT::CAPITALIZE_REF>());
             }
             default:{
 

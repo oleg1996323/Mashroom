@@ -1,21 +1,56 @@
 #pragma once
 #include <network/common/message/msgdef.h>
 
-namespace network::server{
+namespace network{
 template<>
-class Message<TYPE_MESSAGE::ERROR>:public __Message__<TYPE_MESSAGE::ERROR>{
+struct MessageAdditional<Server_MsgT::ERROR>{
+    server::Status status_;
     ErrorCode err_ = ErrorCode::NONE;
-    Message(    ErrorCode err,
-                server::Status status = server::Status::READY):
-    __Message__<TYPE_MESSAGE::ERROR>(status,sizeof(err_)){}
-    static void serialize_impl(const Message<type_msg_>& msg){
-        msg.__buffer__().insert(msg.__buffer__().end(),&msg,&msg+sizeof(msg));
-    }
-    static Message<type_msg_> deserialize_impl(const std::vector<char>& buf){
-        if(buf.size()==sizeof(Message<type_msg_>)){
-            return Message<type_msg_>(  *(ErrorCode*)(buf.data()+base_msg_sz<type_msg_>),
-                                        __Message__::get_status(buf));
-        }
-    }
+    MessageAdditional(    ErrorCode& err,ErrorCode error_code,
+                server::Status status = server::Status::READY){}
+    MessageAdditional() = default;
 };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::ERROR>>{
+        using type = MessageAdditional<Server_MsgT::ERROR>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.err_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::ERROR>>{
+        using type = MessageAdditional<Server_MsgT::ERROR>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.err_);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::ERROR>>{
+        using type = MessageAdditional<Server_MsgT::ERROR>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.status_,msg.status_,msg.err_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::ERROR>>{
+        using type = MessageAdditional<Server_MsgT::ERROR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.status_,msg.status_,msg.err_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::ERROR>>{
+        using type = MessageAdditional<Server_MsgT::ERROR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.status_,msg.status_,msg.err_);
+        }
+    };
 }

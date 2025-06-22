@@ -118,7 +118,12 @@
         "netdb.h": "c",
         "byte_read.h": "c",
         "stdfloat": "cpp",
-        "expected": "cpp"
+        "expected": "cpp",
+        "without structs": "cpp",
+        "error_print.h": "c",
+        "table_4.h": "c",
+        "table_0.h": "c"
     },
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.errorSquiggles": "enabled"
 }

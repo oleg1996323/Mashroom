@@ -1,6 +1,4 @@
 #pragma once
-#include <types/time_interval.h>
-#include <types/coord.h>
 #include <sys/error_code.h>
 #include <sys/error_print.h>
 #include <code_tables/table_0.h>
@@ -11,7 +9,6 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
-#include <extract.h>
 #include <filesystem>
 
 #include <netdb.h>
@@ -51,6 +48,11 @@ namespace network{
             INACTIVE          
         };
     }
+    enum class Transaction{
+        ACCEPT,
+        DECLINE,
+        CANCEL
+    };
 }
 
 namespace network{

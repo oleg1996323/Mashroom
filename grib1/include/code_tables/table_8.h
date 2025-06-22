@@ -1,6 +1,6 @@
 #pragma once
 #include "functional/def.h"
-STRUCT_BEG(ScanMode)
+struct ScanMode
 {
     bool points_sub_i_dir;
     bool points_sub_j_dir;
@@ -18,5 +18,4 @@ STRUCT_BEG(ScanMode)
                 points_sub_j_dir == other.points_sub_j_dir &&
                 adj_points_j_dir == other.adj_points_j_dir;
     }
-}
-STRUCT_END(ScanMode)
+};

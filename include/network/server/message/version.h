@@ -1,15 +1,56 @@
 #pragma once
 #include <network/common/message/msgdef.h>
 
-namespace network::server{
+namespace network{
 template<>
-class Message<TYPE_MESSAGE::VERSION>:public __Message__<TYPE_MESSAGE::VERSION>{
+struct MessageAdditional<Server_MsgT::VERSION>{
+    server::Status status_;
     uint64_t version_;
-    static void serialize_impl(const Message<type_msg_>& msg){
-        msg.__buffer__().insert(msg.__buffer__().end(),(char*)&msg,(char*)(&msg+base_msg_sz<type_msg_>));
-    }
-    static Message<type_msg_> deserialize_impl(const std::vector<char>& buf){
-        
-    }
+    MessageAdditional(ErrorCode& err,uint64_t version, server::Status status):
+    status_(status),version_(version){}
+    MessageAdditional() = default;
 };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::VERSION>>{
+        using type = MessageAdditional<Server_MsgT::VERSION>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.version_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::VERSION>>{
+        using type = MessageAdditional<Server_MsgT::VERSION>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.version_);
+        }
+    };
+
+    template<>
+    struct Serial_size<MessageAdditional<Server_MsgT::VERSION>>{
+        using type = MessageAdditional<Server_MsgT::VERSION>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.status_,msg.status_,msg.version_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<MessageAdditional<Server_MsgT::VERSION>>{
+        using type = MessageAdditional<Server_MsgT::VERSION>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.status_,msg.status_,msg.version_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<MessageAdditional<Server_MsgT::VERSION>>{
+        using type = MessageAdditional<Server_MsgT::VERSION>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.status_,msg.status_,msg.version_);
+        }
+    };
 }

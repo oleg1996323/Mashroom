@@ -1,6 +1,6 @@
 #pragma once
 #include "functional/def.h"
-STRUCT_BEG(ResolutionComponentFlags)
+struct ResolutionComponentFlags
 {
     bool given_direction;
     bool earth_spheroidal;
@@ -17,5 +17,4 @@ STRUCT_BEG(ResolutionComponentFlags)
                 earth_spheroidal == other.earth_spheroidal &&
                 grid_direction_uv_comp == other.grid_direction_uv_comp;
     }
-}
-STRUCT_END(ResolutionComponentFlags)
+};

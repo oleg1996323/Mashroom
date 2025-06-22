@@ -11,7 +11,7 @@ void network::connection::ConnectionPool::update_connections(){
         return !is_connected(process.socket());
     });
 }
-#include <network/server.h>
+#include "network/server.h"
 void network::connection::ConnectionPool::__proc_notifier__(connection::ConnectionPool& connections_pool){
     while(connections_pool.is_running_.load()){
         std::unique_lock<std::mutex> l(connections_pool.locker_);

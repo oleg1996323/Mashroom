@@ -24,7 +24,6 @@ struct ProductDefinitionSection
 {
 	unsigned char* buffer_;
 
-	#ifdef __cplusplus
 	ProductDefinitionSection(unsigned char* buffer):buffer_(buffer){}
 	unsigned section_length() const noexcept;
 	unsigned char table_version() const noexcept;
@@ -54,7 +53,6 @@ struct ProductDefinitionSection
 	unsigned char numberIncludedInAverage() const noexcept;
 	std::string_view parameter_name() const noexcept;
 	std::string_view param_comment() const noexcept;
-	#endif
 };
 
 const ParmTable* parameter_table(Organization center, unsigned char table_version, unsigned char param_num);

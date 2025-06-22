@@ -13,7 +13,7 @@
 #include <stdint.h>
 #endif
 
-STRUCT_BEG(BitMapSection)
+struct BitMapSection
 {
 	unsigned char* buf_;
 	#ifdef __cplusplus
@@ -23,5 +23,4 @@ STRUCT_BEG(BitMapSection)
 	unsigned short table_ref();
 	unsigned char* data();
 	#endif
-}
-STRUCT_END(BitMapSection)
+};

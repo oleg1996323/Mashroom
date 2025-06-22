@@ -4,11 +4,11 @@
 #include <cassert>
 
 namespace network{
-    struct __MessageBase__;
+    struct __MessageBuffer__;
 }
 
 class CashedData{
-    static std::unordered_map<const network::__MessageBase__*,std::vector<char>> data_;
+    static std::unordered_map<const network::__MessageBuffer__*,std::vector<char>> data_;
     public:
     template<typename T>
     static std::vector<char>& add(const T* msg_ptr){

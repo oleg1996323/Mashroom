@@ -1,15 +1,14 @@
 #pragma once
 #include <network/common/def.h>
-#include <network/server/message.h>
-#include <network/client/message.h>
-#include <network/common/connection_process.h>
-#include <network/client/request_scheduler.h>
+#include "network/common/message/message_process.h"
+#include "network/common/connection_process.h"
+#include "network/client/request_scheduler.h"
 
-namespace network::client{
+namespace network{
     class Client;
 }
 
-using namespace network::client;
+using namespace network;
 
 namespace network::connection{
     template<>
@@ -17,7 +16,7 @@ namespace network::connection{
         public:
         
         private:
-        friend class network::client::Client;
+        friend class network::Client;
         Process() = default;
         Process(const Process&) = delete;
         Process& operator=(const Process&) = delete;

@@ -8,17 +8,15 @@
 #include <thread>
 #include <future>
 #include <vector>
-#include <network/server/message.h>
-#include <network/client/message.h>
+#include "network/common/message/message_process.h"
 #include <queue>
 #include <shared_mutex>
-#include <network/common/connection_process.h>
+#include "network/common/connection_process.h"
 
-namespace network::server{
+namespace network{
     class Server;
 }
-
-using namespace network::server;
+using namespace network;
 
 namespace network::connection{
     class ConnectionPool;
@@ -42,14 +40,14 @@ namespace network::connection{
         void __send_error_and_close_connection__(ErrorCode err,const char* msg_err) const;
         void __send_error_and_continue__(ErrorCode err,const char* msg_err) const;
         bool __check_and_notify_if_server_inaccessible__() const;
-        ErrorCode __execute_heavy_process__(network::client::TYPE_MESSAGE msg_t) const; //
-        ErrorCode __execute_light_process__(network::client::TYPE_MESSAGE msg_t) const; //asyncronously
-        ErrorCode __read_rest_data_at_error__(network::client::TYPE_MESSAGE msg) const;
+        ErrorCode __execute_heavy_process__(network::Client_MsgT::type msg_t) const; //
+        ErrorCode __execute_light_process__(network::Client_MsgT::type msg_t) const; //asyncronously
+        ErrorCode __read_rest_data_at_error__(network::Client_MsgT::type msg) const;
         public:
         Process(int connection_socket,const ConnectionPool& pool, size_t buffer_sz=4096);
         Process(Process&& other);
         ~Process();
-        ErrorCode send_status_message(network::server::Status status) const;
+        ErrorCode send_status_message(server::Status status) const;
         void set_buffer_size(size_t sz = 4096);
         ErrorCode execute() const;
         bool busy() const{

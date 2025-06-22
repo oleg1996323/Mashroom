@@ -10,6 +10,7 @@
 #include "message.h"
 #include "program/mashroom.h"
 #include <path_process.h>
+#include "network/common/message/message_process.h"
 #include <format>
 bool Capitalize::check_format(std::string_view fmt){
 	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
@@ -146,7 +147,7 @@ void Capitalize::execute(){
 				__capitalize_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
-				hProgram->request(path.path_,network::client::Message<network::client::TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>());
+				hProgram->request(path.path_,network::Message<network::Client_MsgT::CAPITALIZE>{});
 		}
 		
 	}

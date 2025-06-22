@@ -5,7 +5,7 @@
 #include "code_tables/table_4.h"
 #include "code_tables/table_0.h"
 
-STRUCT_BEG(CommonDataProperties)
+struct CommonDataProperties
 {
     std::optional<TimeFrame> fcst_unit_ ={};
     std::optional<Organization> center_ = Organization::WMO;
@@ -18,8 +18,7 @@ STRUCT_BEG(CommonDataProperties)
     bool operator==(const CommonDataProperties& other) const{
         return center_==other.center_ && table_version_==other.table_version_ && fcst_unit_==other.fcst_unit_ && parameter_==other.parameter_;
     }
-}
-STRUCT_END(CommonDataProperties)
+};
 
 template<>
 struct std::hash<CommonDataProperties>{

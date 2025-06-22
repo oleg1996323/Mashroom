@@ -10,6 +10,8 @@
 #include "data/common.h"
 #include "data/info.h"
 #include <functional/serialization.h>
+#include "network/client.h"
+#include "network/server.h"
 
 struct ExtractedValue
 {
@@ -97,87 +99,7 @@ namespace fs = std::filesystem;
 #include <netdb.h>
 #include <program/data.h>
 
-template <Data::TYPE T, Data::FORMAT F>
-struct ExtractRequestForm;
 
-template <>
-struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
-{
-    constexpr static Data::TYPE type = Data::TYPE::METEO;
-    constexpr static Data::FORMAT format = Data::FORMAT::GRIB;
-    std::optional<TimeFrame> t_fcst_;
-    std::optional<Organization> center;
-    std::optional<utc_tp> from; // requested from Date
-    std::optional<utc_tp> to;   // requested to Date
-    std::optional<Coord> pos;   // requested position (in WGS)
-    std::optional<RepresentationType> rep_t;
-    std::optional<TimeOffset> time_off_;
-    size_t parameter_size = 0;
-    std::vector<SearchParamTableVersion> parameters_;
-};
-
-namespace serialization
-{
-    template <>
-    constexpr size_t min_serial_size(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &val) noexcept
-    {
-        return min_serial_size(val.type) + min_serial_size(val.type) + min_serial_size(val.center) + min_serial_size(val.from) + min_serial_size(val.to) + min_serial_size(val.pos) +
-               min_serial_size(val.rep_t) + min_serial_size(val.time_off_) + min_serial_size(val.parameter_size);
-    }
-
-    size_t serial_size(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &val) noexcept
-    {
-        return serial_size(val.type) + serial_size(val.type) + serial_size(val.center) + serial_size(val.from) +
-               serial_size(val.to) + serial_size(val.pos) + serial_size(val.rep_t) + serial_size(val.time_off_) +
-               serial_size(val.parameter_size) + serial_size<decltype(val.parameters_)::value_type()>() * val.parameter_size;
-    }
-
-    template <bool NETWORK_ORDER = true>
-    bool serialize(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>&form, std::vector<char> &buf) noexcept
-    {
-        if (form.parameters_.size() != form.parameter_size)
-            return false;
-        serialize(buf,form.type,form.format,form.t_fcst_,form.center,form.from,form.to,form.pos,form.time_off_,form.parameter_size);
-        for (const auto &param : form.parameters_)
-            if(!serialize<NETWORK_ORDER>(param, buf))
-                return false;
-        return true;
-    }
-
-    template <bool NETWORK_ORDER = true>
-    auto deserialize<ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>>(std::span<const char> buf)
-        -> std::expected<ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>, SerializationEC>
-    {   
-        using type = ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>;
-        using cont_type = decltype(type::parameters_)::value_type>;
-        if (buf.size() < min_serial_size<type>())
-            return std::unexpected(SerializationEC::BUFFER_SIZE_LESSER);
-        auto result = deserialize<NETWORK_ORDER,ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>>(
-            type::t_fcst_,type::center,type::from,type::to,type::pos,type::time_off_,
-            type::parameter_size,
-            buf.subspan(serial_size(result.type)+serial_size(result.format)));
-        if(!result)
-            return std::unexpected(result.error());
-        else{
-            if(buf.size()<serial_size())
-                return std::unexpected(SerializationEC::BUFFER_SIZE_LESSER);
-            buf.subspan(min_serial_size<type>());
-            result.parameters_.reserve(result.parameter_size);
-            for(int i = 0, i<result.parameter_size;++i){
-                auto res_cont = deserialize<cont_type,NETWORK_ORDER>(buf);
-                if(!res_cont)
-                    return std::unexpected(res_cont.error())
-                else result.parameters_.push_back(res_cont.value());
-                buf = buf.subspan(serial_size<cont_type>());
-            }
-            return result;
-        }
-    }
-
-    static_assert(std::is_same_v<decltype(deserialize_network<ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>>({})),
-                                 std::expected<ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>, SerializationEC>>,
-                  "Return type validation failed");
-}
 
 class Extract : public AbstractSearchProcess, public AbstractTimeSeparation, public AbstractThreadInterruptor
 {

@@ -134,7 +134,7 @@ class GribDataInfo{
     using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
-    ErrorCodeData err DEF_STRUCT_VAL(NONE_ERR)
+    ErrorCodeData err = NONE_ERR;
     friend class Capitalize;
     friend class Integrity;
     friend class Extract;

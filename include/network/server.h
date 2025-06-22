@@ -1,7 +1,7 @@
 #pragma once
-#include <network/common/def.h>
-#include <network/server/connection_pool.h>
-#include <network/server/connection_process.h>
+#include "network/common/def.h"
+#include "network/server/connection_pool.h"
+#include "network/server/connection_process.h"
 
 #include <string_view>
 #include <cinttypes>
@@ -12,10 +12,10 @@
 #include <future>
 #include <vector>
 #include <sys/eventfd.h>
-#include <network/common/credentials.h>
+#include "network/common/credentials.h"
 
 using namespace std::string_view_literals;
-namespace network::server{
+namespace network{
     class Server{
     private:
         static void sigchld_handler(int s);
@@ -28,14 +28,14 @@ namespace network::server{
         Socket server_socket_=-1;
         bool interrupt_transactions_ = false;
         ErrorCode err_;
-        Status status_=Status::INACTIVE;
+        server::Status status_=server::Status::INACTIVE;
         static void __launch__(Server*);
         Server();
         void __new_connection__(Socket connected_client);
         ErrorCode __connection_process__(Socket connected_client);
         static ErrorCode __set_no_block__(int);
     public:
-        Status get_status() const;
+        server::Status get_status() const;
         void launch();
         void stop();
         void close_connections(bool wait_for_end_connections = false);

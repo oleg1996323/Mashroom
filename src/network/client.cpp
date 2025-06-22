@@ -1,6 +1,5 @@
 #include <network/client.h>
-#include <network/common/def.h>
-#include <network/client/message.h>
+#include "network/common/message/message_process.h"
 #include <sys/signalfd.h>
 
 namespace network::client
@@ -117,13 +116,13 @@ bool Client::is_connected() const{
 }
 //remote extract mode by set parameters
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::DATA_REQUEST>(Message<TYPE_MESSAGE::DATA_REQUEST> msg) const{
+ErrorCode Client::request(const Message<Client_MsgT::DATA_REQUEST>& msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
         ssize_t sent_tmp = send(client_socket_,&msg,sizeof(msg),0);
         if(sent_tmp==-1){
-            err_=ErrorPrint::print_error(ErrorCode::SENDING_REQUEST_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            err_=ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE,strerror(errno),AT_ERROR_ACTION::CONTINUE);
             return err_;
         }
     }
@@ -131,13 +130,13 @@ ErrorCode Client::request<TYPE_MESSAGE::DATA_REQUEST>(Message<TYPE_MESSAGE::DATA
 }
 //remote capitalize (may permit to orcherstrate the accesible remote data by capitalize mode)
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>(Message<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE> msg) const{
+ErrorCode Client::request(const Message<Client_MsgT::CAPITALIZE>& msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
         ssize_t sent_tmp = send(client_socket_,&msg,sizeof(msg),0);
         if(sent_tmp==-1){
-            err_=ErrorPrint::print_error(ErrorCode::SENDING_REQUEST_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            err_=ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
             return err_;
         }
     }
@@ -145,13 +144,13 @@ ErrorCode Client::request<TYPE_MESSAGE::DATA_REPLY_CAPITALIZE>(Message<TYPE_MESS
 }
 //return the actual server status
 template<>
-ErrorCode Client::request<TYPE_MESSAGE::SERVER_STATUS>(Message<TYPE_MESSAGE::SERVER_STATUS> msg) const{
+ErrorCode Client::request<Client_MsgT::SERVER_STATUS>(Message<Client_MsgT::SERVER_STATUS> msg) const{
     ssize_t sent = sizeof(msg);
     err_ = ErrorCode::NONE;
     while(sent!=0){
         ssize_t sent_tmp = send(client_socket_,&msg,sizeof(msg),0);
         if(sent_tmp==-1){
-            err_=ErrorPrint::print_error(ErrorCode::SENDING_REQUEST_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            err_=ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
             return err_;
         }
     }
