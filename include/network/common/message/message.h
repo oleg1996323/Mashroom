@@ -150,7 +150,7 @@ namespace network{
     requires MessageEnumConcept<MSG_T>
     template<typename... ADD_ARGS>
     Message<MSG_T>::Message(ADD_ARGS&&... add_a):
-    additional_(err_,std::forward<ADD_ARGS>(add_a)...),
+    additional_(err_,std::forward<ADD_ARGS>(add_a...)),
     base_(serialization::serial_size(additional_)){}
 
     template<auto MSG_T>

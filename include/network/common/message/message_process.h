@@ -11,29 +11,20 @@ namespace network{
         template<Side ASide>
         friend class MessageProcess;
         MessageHandler<S> hmsg_;
+        MessageHandler<sent_from<S>()> recv_hmsg_;
         ErrorCode err_;
-        bool __deserialize_msg__(std::span<const char> buffer);
-        bool __receive_buffer__(Socket sock, std::vector<char>& buffer);
         template<auto T>
         requires MessageEnumConcept<T>
         ErrorCode __send__(Socket sock) noexcept{
             if(!hmsg_.has_message())
                 return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"not message",AT_ERROR_ACTION::CONTINUE);
-            auto& msg_tmp = hmsg_.get<T>();
+            auto& msg_tmp = hmsg_.template get<T>();
             if(serialization::SerializationEC err = serialization::serialize_network(msg_tmp,msg_tmp.buffer());
                     err!=serialization::SerializationEC::NONE)
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
             return send(sock,msg_tmp.buffer());
         }
         public:
-        bool receive(Socket sock){
-            std::vector<char> buffer;
-            if(__receive_buffer__(sock,buffer))
-                if(__deserialize_msg__(std::move(buffer)))
-                    return true;
-            return false;
-        }
-
         std::optional<Server_MsgT::type> get_msg_type() const{
             if(std::holds_alternative<std::monostate>(hmsg_))
                 return std::nullopt;
@@ -42,7 +33,9 @@ namespace network{
 
         template<MESSAGE_ID<S>::type,typename... ARGS>
         ErrorCode send_message(Socket sock,ARGS... args);
-        template<MESSAGE_ID<S>::type>
+        template<MESSAGE_ID<sent_from<S>()>::type>
+        ErrorCode receive_message(Socket sock);
+
         ErrorCode receive_message(Socket sock);
     };
 
@@ -95,8 +88,9 @@ namespace network{
     /// @return 
     template<>
     template<>
-    ErrorCode MessageProcess<Side::CLIENT>::receive_message<Client_MsgT::SERVER_STATUS>(Socket sock){
-        
+    ErrorCode MessageProcess<Side::SERVER>::receive_message<Client_MsgT::SERVER_STATUS>(Socket sock){
+        std::vector<char> buffer;
+        receive(sock,buffer,);
     }
 
     template<>
@@ -153,14 +147,13 @@ namespace network{
                 close(sock);
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         }
-        MessageProcess<Side::CLIENT> accept_decline;
-        if(err_ = accept_decline.receive_message<Client_MsgT::TRANSACTION>(sock);err_!=ErrorCode::NONE){
+        if(err_ = receive_message<Client_MsgT::TRANSACTION>(sock);err_!=ErrorCode::NONE){
             if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
                 close(sock);
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         }
-        assert(accept_decline.hmsg_.msg_type() == Client_MsgT::TRANSACTION);
-        auto& transaction_ = accept_decline.hmsg_.get<Client_MsgT::TRANSACTION>();
+        assert(recv_hmsg_.msg_type() == Client_MsgT::TRANSACTION);
+        auto& transaction_ = recv_hmsg_.get<Client_MsgT::TRANSACTION>();
         if(transaction_.additional_.op_status_==Transaction::ACCEPT){
             SendingFileInstance Ifile(path,chunk,offset);
             if(Ifile.err_!=ErrorCode::NONE){
