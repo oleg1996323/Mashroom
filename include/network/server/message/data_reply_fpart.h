@@ -18,6 +18,11 @@ struct MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>{
                 uint64_t file_part_sz,uint64_t offset = 0, 
                 uint32_t chunk=UINT16_MAX,
                 server::Status status=server::Status::READY);
+    MessageAdditional(const MessageAdditional& other):
+    status_(other.status_),
+    file_part_sz_(other.file_part_sz_),
+    offset_(other.offset_),
+    file_hash_(other.file_hash_){}
     MessageAdditional() = default;
 };
 

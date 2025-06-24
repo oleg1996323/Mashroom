@@ -23,12 +23,13 @@ namespace network::detail{
     template<typename ENUM, typename VARIANT>
     constexpr bool check_variant_enum_aligned() {
         return check_variant_enum_aligned_impl<ENUM, VARIANT>(
-            std::make_index_sequence<std::variant_size_v<VARIANT> - 1>{}
+            ::std::make_index_sequence<::std::variant_size_v<VARIANT> - 1>{}
         );
     }
     template<typename ENUM, typename VARIANT,size_t NUM_MSG>
     constexpr bool check_variant_enum_complete(){
-        return NUM_MSG==std::variant_size_v<VARIANT>-1; 
+        static_assert(NUM_MSG==std::variant_size_v<VARIANT>-1);
+        return NUM_MSG==::std::variant_size_v<VARIANT>-1; 
     }
     #include <cstddef>
     template<typename ENUM, typename VARIANT,size_t NUM_MSG>
@@ -40,11 +41,10 @@ namespace network::detail{
     requires std::is_enum_v<ENUM>
     class MessageHandler:public VARIANT{
         static_assert(IsVariant<VARIANT>::value,"Must be variant");
-        static_assert(network::detail::check_variant_enum<ENUM,VARIANT,std::variant_size_v<VARIANT>-1>);
+        static_assert(network::detail::check_variant_enum<ENUM,VARIANT,::std::variant_size_v<VARIANT>-1>);
         public:
         using enum_t = ENUM;
-        using VARIANT::VARIANT;
-        MessageHandler() = default;
+        using VARIANT::variant;
         template<auto T>
         requires MessageEnumConcept<T>
         const Message<T>& get() const{
@@ -67,14 +67,24 @@ namespace network{
     class MessageProcess;
 
     template<Side S>
-    class MessageHandler:public network::detail::MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
+    class MessageHandler:protected network::detail::MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
         private:
         using _handler = network::detail::MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
         using _handler::MessageHandler;
-        friend class network::MessageProcess<S>;
-        template<MESSAGE_ID<S>::type MSG,typename... ARGS>
-        ErrorCode create_message(ARGS&&... args){
-            return emplace<Message<MSG>>(std::forward<ARGS>(args)...).error();
+        template<Side Aside>
+        friend class network::MessageProcess;
+        template<typename MESSAGE_ID<S>::type MSG,typename... ARGS>
+        ErrorCode emplace_message(ARGS&&... args){
+            return this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...).error();
         }
+        void clear(){
+            this->emplace<std::monostate>();
+        }
+        bool has_message(){
+            if(!std::holds_alternative<std::monostate>(*this))
+                return true;
+            else return false;
+        }
+        
     };
 }

@@ -8,6 +8,9 @@ struct MessageAdditional<Server_MsgT::VERSION>{
     uint64_t version_;
     MessageAdditional(ErrorCode& err,uint64_t version, server::Status status):
     status_(status),version_(version){}
+    MessageAdditional(const MessageAdditional& other):
+    status_(other.status_),
+    version_(other.version_){}
     MessageAdditional() = default;
 };
 }

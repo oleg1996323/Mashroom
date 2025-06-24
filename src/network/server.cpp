@@ -196,7 +196,7 @@ void Server::__new_connection__(Socket connected_client){
     if(setsockopt(connected_client,SOL_SOCKET,SO_RCVTIMEO,&Application::config().current_server_setting().settings_.timeout_seconds_,
         sizeof(Application::config().current_server_setting().settings_.timeout_seconds_))==-1){
         Message<Server_MsgT::ERROR> msg_err;
-        msg_err.sendto(connected_client,ErrorCode::INTERNAL_ERROR,ErrorPrint::message(ErrorCode::INTERNAL_ERROR,strerror(errno)));
+        //msg_err.sendto(connected_client,ErrorCode::INTERNAL_ERROR,ErrorPrint::message(ErrorCode::INTERNAL_ERROR,strerror(errno)));
         close(connected_client);
     }
     connection_pool_.add_connection(connected_client);

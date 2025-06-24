@@ -35,6 +35,14 @@ namespace network{
         SERVER,
         CLIENT
     };
+
+    template<Side S>
+    constexpr Side sent_from(){
+        if constexpr(S == Side::SERVER)
+            return Side::CLIENT;
+        else return Side::SERVER;
+    }
+
     namespace server{
         constexpr int min_timeout_seconds = 1;
         static std::vector<struct epoll_event> define_epoll_event(){

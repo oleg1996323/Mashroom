@@ -38,8 +38,10 @@ namespace network{
         ErrorCode connect();
         bool is_connected() const;
         ErrorCode disconnect();
-        template<Client_MsgT::type T>
-        ErrorCode request(const Message<T>&) const;
+        template<Client_MsgT::type T,typename... ARGS>
+        ErrorCode request(const Message<T>&) const{
+            
+        }
 
         server::Status server_status() const;
         // static std::unique_ptr<Client> make_instance(const std::string&,ErrorCode&);

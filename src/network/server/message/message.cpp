@@ -1,7 +1,7 @@
-#include "network/server/message/message.h"
+#include "network/common/message/message_process.h"
 #include "functional/serialization.h"
 
-namespace network::server{
+namespace network{
     bool MessageProcess::__deserialize_msg__(std::span<const char> buffer){
         if(!buffer.empty()){
             if((int)(*(Server_MsgT::type*)(buffer.data()+sizeof(uint64_t)))>=(std::variant_size_v<reply_message>-1)){

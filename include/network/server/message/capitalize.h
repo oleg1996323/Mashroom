@@ -20,6 +20,7 @@ template<>
         std::vector<BaseCapitalizeResult> blocks_;
         public:
         MessageAdditional(ErrorCode& err,Data::ACCESS access, const std::vector<std::pair<Data::TYPE,Data::FORMAT>>& to_match){}
+        MessageAdditional(const MessageAdditional& other):blocks_(other.blocks_){}
         MessageAdditional() = default;
         bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
     };

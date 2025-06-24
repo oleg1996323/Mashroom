@@ -1,6 +1,8 @@
 #pragma once
 #include "network/common/message/msgdef.h"
 #include <variant>
+#include <cstdint>
+#include <cstddef>
 
 template <Data::TYPE T, Data::FORMAT F>
 struct ExtractRequestForm;
@@ -133,12 +135,14 @@ namespace serialization
 
 namespace network{    
     template<>
-    class MessageAdditional<Client_MsgT::DATA_REQUEST>:public ExtractForm{
+    struct MessageAdditional<Client_MsgT::DATA_REQUEST>:public ExtractForm{
         public:
         using variant::variant;
         MessageAdditional(ErrorCode& err){
 
         }
+        MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional() = default;
     };
 }
 

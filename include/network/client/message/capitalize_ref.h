@@ -3,7 +3,9 @@
 
 namespace network{
     template<>
-    class MessageAdditional<Client_MsgT::CAPITALIZE_REF>{
+    struct MessageAdditional<Client_MsgT::CAPITALIZE_REF>{
+        public:
+        MessageAdditional(const MessageAdditional& other) = default;
         MessageAdditional(){}
     };
 }

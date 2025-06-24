@@ -3,5 +3,8 @@
 
 namespace network{
     template<>
-    struct Message<Client_MsgT::SERVER_STATUS>{};
+    struct MessageAdditional<Client_MsgT::SERVER_STATUS>{
+        MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional() = default;
+    };
 }

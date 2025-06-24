@@ -14,6 +14,10 @@ struct MessageAdditional<Server_MsgT::DATA_REPLY_FILEINFO>{
     size_t file_hash_ = 0;
 
     MessageAdditional(ErrorCode& err,const fs::path& file_path, server::Status status);
+    MessageAdditional(const MessageAdditional& other):
+    status_(other.status_),
+    filename_(other.filename_),
+    file_sz_(other.file_sz_){}
     MessageAdditional() = default;
 };
 }

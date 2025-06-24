@@ -1,11 +1,11 @@
 #pragma once
 #include <optional>
+#include <expected>
 #include "network/common/def.h"
 #include "program/data.h"
 #include "network/common/message/cashed_data.h"
 #include "functional/serialization.h"
 #include "buffer.h"
-#include <expected>
 #include "msgdef.h"
 
 using namespace std::chrono;
@@ -16,7 +16,8 @@ namespace network{
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     struct MessageBase{
-        static constexpr decltype(MSG_T) type_msg_ = MSG_T;
+        using enum_t = decltype(MSG_T);
+        static constexpr enum_t type_msg_ = MSG_T;
         uint64_t data_sz_ = 0;
         static std::expected<size_t,serialization::SerializationEC> get_data_size(std::span<const char> buf);
         MessageBase(size_t data_sz);
@@ -27,7 +28,7 @@ namespace network{
         size_t data_size() const{
             return data_sz_;
         }
-        constexpr static decltype(MSG_T) msg_type(){
+        constexpr static enum_t msg_type(){
             return MSG_T;
         }
     };
@@ -113,7 +114,10 @@ namespace network{
         Message(ADD_ARGS&&... add_a);
         Message()=default;
         ErrorCode error() const;
-        constexpr static type msg_type();
+        constexpr static type msg_type(){
+            return decltype(base_)::msg_type();
+        }
+
     };
 
     template<auto MSG_T>
@@ -155,11 +159,6 @@ namespace network{
         return err_;
     }
 
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    constexpr Message<MSG_T>::type Message<MSG_T>::msg_type(){
-        return decltype(base_)::msg_type();
-    }
 
     template<Side S>
     struct list_message;

@@ -6,10 +6,11 @@
 #include "sys/error_print.h"
 #include "network/common/def.h"
 #include <cstring>
+#include <ranges>
 namespace network{
-    template<typename... ARGS>
-    requires (std::is_same_v<std::decay_t<ARGS>,std::span<const char>> && ...)
-    ErrorCode send(Socket socket,ARGS... buffers) noexcept{
+    template<std::ranges::random_access_range... ARGS>
+    // requires (std::is_same_v<std::decay_t<ARGS>,std::span<const char>> && ...)
+    ErrorCode send(Socket socket,const ARGS&... buffers) noexcept{
         ErrorCode err = ErrorCode::NONE;
         auto send_sequentialy = [&](std::span<const char> buffer,int flags) -> ErrorCode
         {
@@ -24,6 +25,7 @@ namespace network{
                 }
                 else sent+=cur;
             }
+            return ErrorCode::NONE;
         };
 
         size_t i = 0;

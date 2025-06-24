@@ -9,6 +9,9 @@ struct MessageAdditional<Server_MsgT::PROGRESS>{
     ProgressBase prog_;
     MessageAdditional(ErrorCode& err,const ProgressBase& progress,server::Status status):
     status_(status),prog_(progress){}
+    MessageAdditional(const MessageAdditional& other):
+    status_(other.status_),
+    prog_(other.prog_){}
     MessageAdditional() = default;
 };
 }

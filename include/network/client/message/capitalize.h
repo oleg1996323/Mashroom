@@ -4,6 +4,7 @@
 namespace network{
     template<>
     struct MessageAdditional<Client_MsgT::CAPITALIZE>{
+        MessageAdditional(const MessageAdditional& other) = default;
         MessageAdditional() = default;
     };
 }

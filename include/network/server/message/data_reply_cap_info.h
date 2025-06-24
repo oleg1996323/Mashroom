@@ -11,6 +11,10 @@ struct MessageAdditional<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>
     uintmax_t file_sz_ = 0;      //size of file
     public:
     MessageAdditional(ErrorCode& err,const fs::path& file_path, server::Status status){}
+    MessageAdditional(const MessageAdditional& other):
+    status_(other.status_),
+    filename(other.filename),
+    file_sz_(other.file_sz_){}
     MessageAdditional() = default;
 };
 }

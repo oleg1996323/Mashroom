@@ -1,6 +1,6 @@
 #pragma once
 #include <queue>
-#include "network/common/message/message.h"
+#include "network/common/message/message_process.h"
 
 namespace network::connection{
     class Scheduler{

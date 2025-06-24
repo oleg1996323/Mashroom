@@ -12,6 +12,7 @@ namespace network{
         /// @brief operation hash
         size_t op_hash_ = 0;
         Transaction op_status_ = Transaction::DECLINE;
+        MessageAdditional(const MessageAdditional& other):op_hash_(other.op_hash_){}
         MessageAdditional(size_t op_hash,Transaction op_status);
     };
 }
