@@ -37,6 +37,60 @@ namespace network::detail{
         return check_variant_enum_complete<ENUM,VARIANT,NUM_MSG>() && check_variant_enum_aligned<ENUM,VARIANT>();
     }
 
+    //dynamic polymorphism factory (for OsterMath)
+    /* template<class... _Types>
+    struct VariantFactory
+    {
+        static constexpr size_t kTypeCount = sizeof...(_Types);
+        using VariantType = std::variant<_Types...>;
+        using ResultType = std::optional<VariantType>;
+
+        bool emplace(ResultType& result, int type) const
+        {
+            return emplaceVariant(result, type);
+        }
+
+    protected:
+        template <std::size_t I = std::variant_size_v<VariantType>/2>
+        static bool emplaceVariant(ResultType& result, std::size_t index)
+        {
+            if constexpr (I >= kTypeCount)
+            {
+                return false;
+            }
+            else
+            {
+                if (index > I)
+                    return emplaceVariant<I+(std::variant_size_v<VariantType>-I)/2>(result,index);
+                else if(index < I)
+                    return emplaceVariant<I/2>(result,index);
+                else{
+                    result.emplace(std::in_place_index<I>);
+                    return true;
+                }
+            }
+        }
+    }; */
+
+    template<class... Types>
+    struct VariantFactory {
+        using VariantType = std::variant<Types...>;
+        using ResultType = std::optional<VariantType>;
+
+        static bool emplace(ResultType& result, size_t index) {
+            if (index >= sizeof...(Types)) return false;
+            return emplaceImpl(result, index, std::make_index_sequence<sizeof...(Types)>{});
+        }
+
+    private:
+        template <size_t... Is>
+        static bool emplaceImpl(ResultType& result, size_t index, std::index_sequence<Is...>) {
+            bool success = false;
+            ((index == Is ? (result.emplace(std::in_place_index<Is>), success = true) : false) || ...);
+            return success;
+        }
+    };
+
     template<typename ENUM,typename VARIANT>
     requires std::is_enum_v<ENUM>
     class MessageHandler:public VARIANT{

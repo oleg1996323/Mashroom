@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <expected>
+#include <set>
 #include "network/common/def.h"
 #include "program/data.h"
 #include "network/common/message/cashed_data.h"
@@ -19,7 +20,6 @@ namespace network{
         using enum_t = decltype(MSG_T);
         static constexpr enum_t type_msg_ = MSG_T;
         uint64_t data_sz_ = 0;
-        static std::expected<size_t,serialization::SerializationEC> get_data_size(std::span<const char> buf);
         MessageBase(size_t data_sz);
         MessageBase(MessageBase&& other) noexcept;
         MessageBase() = default;
@@ -30,6 +30,9 @@ namespace network{
         }
         constexpr static enum_t msg_type(){
             return MSG_T;
+        }
+        constexpr static uint64_t min_required_defining_size(){
+            return sizeof(MSG_T)+sizeof(data_sz_);
         }
     };
 }
@@ -117,17 +120,15 @@ namespace network{
         constexpr static type msg_type(){
             return decltype(base_)::msg_type();
         }
-
+        
+        static std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer){
+            MessageBase<MSG_T> tmp;
+            if(serialization::SerializationEC err = serialization::deserialize<true>(tmp,buffer);err!=serialization::SerializationEC::NONE)
+                return std::unexpected(err);
+            return tmp.data_sz_;
+        }
     };
 
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    std::expected<size_t,serialization::SerializationEC> MessageBase<MSG_T>::MessageBase::get_data_size(std::span<const char> buf){
-        decltype(MessageBase::data_sz_) sz = 0;
-        if(auto code = serialization::deserialize_network(sz,buf);code != serialization::SerializationEC::NONE)
-            return std::unexpected(code);
-        else return sz;
-    }
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     MessageBase<MSG_T>::MessageBase(size_t data_sz):
@@ -150,8 +151,8 @@ namespace network{
     requires MessageEnumConcept<MSG_T>
     template<typename... ADD_ARGS>
     Message<MSG_T>::Message(ADD_ARGS&&... add_a):
-    additional_(err_,std::forward<ADD_ARGS>(add_a...)),
-    base_(serialization::serial_size(additional_)){}
+    additional_(err_,std::forward<ADD_ARGS>(add_a)...),
+    base_(serialization::serial_size(additional_)+base_.min_required_defining_size()){}
 
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>

@@ -24,6 +24,9 @@ namespace network{
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
             return send(sock,msg_tmp.buffer());
         }
+        template<auto MSG_T>
+        requires MessageEnumConcept<MSG_T>
+        ErrorCode __receive_and_define_message__(Socket sock, std::vector<char>& buffer) noexcept;
         public:
         std::optional<Server_MsgT::type> get_msg_type() const{
             if(std::holds_alternative<std::monostate>(hmsg_))
@@ -38,6 +41,19 @@ namespace network{
 
         ErrorCode receive_message(Socket sock);
     };
+    template<Side S>
+    template<auto MSG_T>
+    requires MessageEnumConcept<MSG_T>
+    ErrorCode MessageProcess<S>::__receive_and_define_message__(Socket sock, std::vector<char>& buffer) noexcept{
+        buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
+        if(ErrorCode err = receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size());
+            err != ErrorCode::NONE){
+            return err;
+        }
+        else{
+            recv_hmsg_
+        }
+    }
 
     /// @brief 
     /// @param sock socket
@@ -90,7 +106,22 @@ namespace network{
     template<>
     ErrorCode MessageProcess<Side::SERVER>::receive_message<Client_MsgT::SERVER_STATUS>(Socket sock){
         std::vector<char> buffer;
-        receive(sock,buffer,);
+        if(ErrorCode err = __receive_and_define_message__<Client_MsgT::SERVER_STATUS>(sock,buffer));
+            err != ErrorCode::NONE){
+            return err;
+        }
+        else {
+            if(auto res = Message<Client_MsgT::SERVER_STATUS>::data_size_from_buffer(buffer);!res.has_value()){
+                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
+            }
+            else{
+                buffer.resize(res.value());
+                if(ErrorCode err = receive(sock,buffer,buffer.size());
+                    err != ErrorCode::NONE){
+                    return err;
+                }
+                else 
+            }
     }
 
     template<>
@@ -176,4 +207,5 @@ namespace network{
         }
         else return ErrorPrint::print_error(ErrorCode::TRANSACTION_REFUSED,"",AT_ERROR_ACTION::CONTINUE);
     }
+}
 }
