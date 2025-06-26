@@ -121,12 +121,8 @@ namespace network{
             return decltype(base_)::msg_type();
         }
         
-        static std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer){
-            MessageBase<MSG_T> tmp;
-            if(serialization::SerializationEC err = serialization::deserialize<true>(tmp,buffer);err!=serialization::SerializationEC::NONE)
-                return std::unexpected(err);
-            return tmp.data_sz_;
-        }
+        template<bool NETWORK_ORDER>
+        static std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept;
     };
 
     template<auto MSG_T>
@@ -187,6 +183,16 @@ namespace network{
                         Message<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>,
                         Message<Server_MsgT::DATA_REPLY_EXTRACT>>;
     };
+
+    template<auto MSG_T>
+    requires MessageEnumConcept<MSG_T>
+    template<bool NETWORK_ORDER>
+    std::expected<uint64_t,serialization::SerializationEC> Message<MSG_T>::data_size_from_buffer(std::span<const char> buffer) noexcept{
+        MessageBase<MSG_T> tmp;
+        if(serialization::SerializationEC err = serialization::deserialize<NETWORK_ORDER>(tmp,buffer);err!=serialization::SerializationEC::NONE)
+            return std::unexpected(err);
+        return tmp.data_sz_;
+    }
 }
 
 namespace serialization{

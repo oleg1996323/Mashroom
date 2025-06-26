@@ -107,5 +107,4 @@ namespace serialization{
             return max_serial_size(msg.data_format,msg.data_type);
         }
     };
-
 }

@@ -36,8 +36,20 @@ namespace network{
 
         template<MESSAGE_ID<S>::type,typename... ARGS>
         ErrorCode send_message(Socket sock,ARGS... args);
-        template<MESSAGE_ID<sent_from<S>()>::type>
-        ErrorCode receive_message(Socket sock);
+
+        /**
+         * @brief Common method for message receiving from other side.
+         * @return ErrorCode resulting this function
+         */
+        template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
+        requires MessageEnumConcept<MSG_T>
+        ErrorCode receive_message(Socket sock){
+            std::vector<char> buffer;
+            if(ErrorCode err = __receive_and_define_message__<MSG_T>(sock,buffer);
+                err != ErrorCode::NONE)
+                return err;
+            else return ErrorCode::NONE;
+        }
 
         ErrorCode receive_message(Socket sock);
     };
@@ -47,11 +59,24 @@ namespace network{
     ErrorCode MessageProcess<S>::__receive_and_define_message__(Socket sock, std::vector<char>& buffer) noexcept{
         buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
         if(ErrorCode err = receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size());
-            err != ErrorCode::NONE){
+            err != ErrorCode::NONE)
             return err;
-        }
         else{
-            serialization::deserialize_network(recv_hmsg_,buffer);
+            if(auto res = Message<MSG_T>::template data_size_from_buffer<true>(std::span<const char>(buffer));!res.has_value())
+                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
+            else{
+                buffer.resize(res.value());
+                if(ErrorCode err = receive(sock,buffer,buffer.size());
+                    err != ErrorCode::NONE){
+                    return err;
+                }
+                else {
+                    serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
+                    if(code!=serialization::SerializationEC::NONE)
+                        return ErrorCode::DESERIALIZATION_ERROR;
+                    else return ErrorCode::NONE;
+                }
+            }
         }
     }
 
@@ -86,54 +111,16 @@ namespace network{
         else return __send__<Server_MsgT::SERVER_STATUS>(sock);
     }
 
-    /// @brief 
-    /// @param sock socket
-    /// @param status server status
-    /// @param err error code
-    /// @return 
-    template<>
-    template<>
-    ErrorCode MessageProcess<Side::CLIENT>::receive_message<Server_MsgT::ERROR>(Socket sock){
-        
-    }
-
-    /// @brief 
-    /// @param sock socket
-    /// @param status server status
-    /// @param err error code
-    /// @return 
-    template<>
-    template<>
-    ErrorCode MessageProcess<Side::SERVER>::receive_message<Client_MsgT::SERVER_STATUS>(Socket sock){
-        std::vector<char> buffer;
-        if(ErrorCode err = __receive_and_define_message__<Client_MsgT::SERVER_STATUS>(sock,buffer));
-            err != ErrorCode::NONE){
-            return err;
-        }
-        else {
-            if(auto res = Message<Client_MsgT::SERVER_STATUS>::data_size_from_buffer(buffer);!res.has_value()){
-                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
-            }
-            else{
-                buffer.resize(res.value());
-                if(ErrorCode err = receive(sock,buffer,buffer.size());
-                    err != ErrorCode::NONE){
-                    return err;
-                }
-                else 
-            }
-    }
-
     template<>
     template<>
     ErrorCode MessageProcess<Side::CLIENT>::send_message<Client_MsgT::TRANSACTION>(Socket sock, Transaction transaction)
     {
-        err_ = hmsg_.emplace_message<Client_MsgT::SERVER_STATUS>(transaction);
+        err_ = hmsg_.emplace_message<Client_MsgT::TRANSACTION>(transaction);
         if(err_!=ErrorCode::NONE){
             hmsg_.clear();
             return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
         }
-        else return __send__<Client_MsgT::SERVER_STATUS>(sock);
+        else return __send__<Client_MsgT::TRANSACTION>(sock);
     }
 
     template<>
@@ -207,5 +194,4 @@ namespace network{
         }
         else return ErrorPrint::print_error(ErrorCode::TRANSACTION_REFUSED,"",AT_ERROR_ACTION::CONTINUE);
     }
-}
 }

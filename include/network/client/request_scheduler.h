@@ -5,8 +5,7 @@
 namespace network::connection{
     class Scheduler{
         public:
-        void add_request(network::MessageProcess<Side::CLIENT>&&);
-        void add_request(const network::MessageProcess<Side::CLIENT>&);
+        void add_request(network::MessageHandler<Side::CLIENT>&&);
 
         template <auto MSG_T>
         requires ClientMessageEnumConcept<MSG_T>
@@ -15,6 +14,6 @@ namespace network::connection{
         }
         void remove_last_request();
         private:
-        std::queue<network::MessageProcess<Side::CLIENT>> request_seq_;
+        std::queue<network::MessageHandler<Side::CLIENT>> request_seq_;
     };
 }

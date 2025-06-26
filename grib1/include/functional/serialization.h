@@ -97,10 +97,10 @@ namespace serialization{
 
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     requires (sizeof...(ARGS)>1)
-    SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept;
+    SerializationEC serialize(const T& val,std::vector<char>& buf,const ARGS&... args) noexcept;
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     requires (sizeof...(ARGS)>1)
-    SerializationEC deserialize(const T& to_deserialize,std::span<const char> buf) noexcept;
+    SerializationEC deserialize(const T& to_deserialize,std::span<const char> buf,ARGS&... args) noexcept;
 
     template<typename T>
     concept numeric_types_concept = std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_enum_v<T>;
@@ -272,7 +272,7 @@ namespace serialization{
 
         template<deserialize_concept... ARGS>
         requires (sizeof...(ARGS)>1)
-        SerializationEC operator()(const T& to_deserialize, std::span<const char> buf, std::remove_const<ARGS>&... args) noexcept;
+        SerializationEC operator()(const T& to_deserialize, std::span<const char> buf, ARGS&... args) noexcept;
     };
 
     template<typename T>
@@ -349,11 +349,11 @@ namespace serialization{
         return serialize<true,T>(val,buf);
     }
     template<typename T>
-    SerializationEC deserialize_native(const T& to_deserialize,std::span<const char> buf) noexcept{
+    SerializationEC deserialize_native(T& to_deserialize,std::span<const char> buf) noexcept{
         return deserialize<false,T>(to_deserialize,buf);
     }
     template<typename T>
-    SerializationEC deserialize_network(const T& to_deserialize,std::span<const char> buf) noexcept{
+    SerializationEC deserialize_network(T& to_deserialize,std::span<const char> buf) noexcept{
         return deserialize<true,T>(to_deserialize,buf);
     }
 
@@ -423,13 +423,15 @@ namespace serialization{
         return result;
     }
 
-        template<bool NETWORK_ORDER,typename T,typename... ARGS>
+    template<bool NETWORK_ORDER,typename T,typename... ARGS>
+    requires (sizeof...(ARGS)>1)
     SerializationEC serialize(const T& val,std::vector<char>& buf,const ARGS&... args) noexcept{
         if constexpr (NETWORK_ORDER)
             return serialize_network(val,buf,args...);
         else return serialize_native(val,buf,args...);
     }
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
+    requires (sizeof...(ARGS)>1)
     SerializationEC deserialize(const T& val,std::span<const char> buf, ARGS&... args) noexcept{
         if constexpr (NETWORK_ORDER)
             return deserialize_network(val,buf,args...);
@@ -582,7 +584,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,typename T>
     template<deserialize_concept... ARGS>
     requires (sizeof...(ARGS)>1)
-    SerializationEC Deserialize<NETWORK_ORDER,T>::operator()(const T& to_deserialize, std::span<const char> buf, std::remove_const<ARGS>&... args) noexcept{
+    SerializationEC Deserialize<NETWORK_ORDER,T>::operator()(const T& to_deserialize, std::span<const char> buf, ARGS&... args) noexcept{
         static_assert(min_serial_size_concept<decltype(to_deserialize)>,"Expected specification of min_serial_size function");
         static_assert(max_serial_size_concept<decltype(to_deserialize)>,"Expected specification of max_serial_size function");
         static_assert(min_serial_size(to_deserialize)==min_serial_size(args...),"Expected equal minimal serial size of object and its fields' summary minimal serial size");

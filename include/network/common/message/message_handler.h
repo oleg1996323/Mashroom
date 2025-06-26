@@ -3,7 +3,7 @@
 #include <utility>
 #include "network/common/message/message.h"
 
-namespace network::detail{
+namespace network{
     template<typename VARIANT,typename = void>
     struct IsVariant : std::false_type{};
 
@@ -124,11 +124,11 @@ namespace network::detail{
     template<typename ENUM,typename... Ts>
     requires std::is_enum_v<ENUM>
     class _MessageHandler<ENUM,std::variant<Ts...>>:public std::variant<Ts...>{
-        using variant_t = std::variant<Ts...>;
-        static_assert(network::detail::check_variant_enum<ENUM,std::variant_size_v<variant_t>-1,Ts...>());
-
         public:
+        using variant_t = std::variant<Ts...>;
         using enum_t = ENUM;
+        static_assert(network::check_variant_enum<ENUM,std::variant_size_v<variant_t>-1,Ts...>());
+        protected:
         using factory = VariantFactory<variant_t>;
         using variant_t::variant;
         template<auto T>
@@ -147,22 +147,20 @@ namespace network::detail{
         }
 
         template<typename... ARGS>
-        ErrorCode emplace_message(size_t msg_t,ARGS&&... args) noexcept{
+        ErrorCode emplace_message_by_id(size_t msg_t,ARGS&&... args) noexcept{
             if(msg_t+1>std::variant_size_v<variant_t>)
                 return ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid variant type",AT_ERROR_ACTION::CONTINUE);
             return factory::emplace(*this,msg_t+1,std::forward<ARGS>(args)...);
         }
     };
-}
 
-namespace network{
     template<Side S>
     class MessageProcess;
 
     template<Side S>
-    class MessageHandler:public network::detail::_MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
+    class MessageHandler:public _MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
         private:
-        using _handler = network::detail::_MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
+        using _handler = _MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
         using _handler::_MessageHandler;
         template<bool,auto>
         friend struct serialization::Serialize;
@@ -185,6 +183,9 @@ namespace network{
         ErrorCode emplace_message_by_id(size_t id, ARGS&&... args){
             return _handler::emplace_message(id,std::forward<ARGS>(args)...);
         }
+        ErrorCode emplace_default_message_by_id(size_t id){
+            return _handler::emplace_message(id);
+        }
         void clear(){
             this->template emplace<std::monostate>();
         }
@@ -203,6 +204,7 @@ namespace serialization{
         using type = MessageHandler<S>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             auto visitor = [&buf](auto&& arg){
+                static_assert(serialization::serialize_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return serialization::SerializationEC::UNMATCHED_TYPE;
@@ -223,13 +225,14 @@ namespace serialization{
             deserialize<NETWORK_ORDER>(T,buf);
             
             auto visitor = [&buf](auto&& arg){
+                static_assert(serialization::deserialize_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return serialization::SerializationEC::UNMATCHED_TYPE;
                 else return serialization::deserialize<NETWORK_ORDER>(arg,buf);
             };
             
-            if(msg.emplace_message_by_id(T)!=ErrorCode::NONE){
+            if(msg.emplace_default_message_by_id((size_t)T)!=ErrorCode::NONE){
                 msg.clear();
                 return SerializationEC::UNMATCHED_TYPE;
             }
@@ -246,6 +249,7 @@ namespace serialization{
         size_t operator()(const type& msg) noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
+                static_assert(serialization::serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return size_t(0);
@@ -261,6 +265,7 @@ namespace serialization{
         constexpr size_t operator()(const type& msg) noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
+                static_assert(serialization::min_serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return size_t(0);
@@ -276,6 +281,7 @@ namespace serialization{
         constexpr size_t operator()(const type& msg) noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
+                static_assert(serialization::max_serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return size_t(0);
