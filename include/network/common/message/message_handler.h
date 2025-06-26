@@ -32,13 +32,14 @@ namespace network::detail{
         return NUM_MSG==::std::variant_size_v<VARIANT>-1; 
     }
     #include <cstddef>
-    template<typename ENUM, typename VARIANT,size_t NUM_MSG>
+    template<typename ENUM, size_t NUM_MSG,typename... ARGS>
     constexpr bool check_variant_enum(){
-        return check_variant_enum_complete<ENUM,VARIANT,NUM_MSG>() && check_variant_enum_aligned<ENUM,VARIANT>();
+        return check_variant_enum_complete<ENUM,std::variant<ARGS...>,NUM_MSG>() && check_variant_enum_aligned<ENUM,std::variant<ARGS...>>();
     }
 
     //dynamic polymorphism factory (for OsterMath)
-    /* template<class... _Types>
+    /* 
+    template<class... _Types>
     struct VariantFactory
     {
         static constexpr size_t kTypeCount = sizeof...(_Types);
@@ -72,34 +73,64 @@ namespace network::detail{
         }
     }; */
 
+    template <typename T>
+    concept HasError = requires(T t) { t.error(); };
+
+    template<typename VARIANT,typename = void>
+    struct VariantFactory: std::false_type{};
+
     template<class... Types>
-    struct VariantFactory {
+    struct VariantFactory<std::variant<Types...>>{
         using VariantType = std::variant<Types...>;
-        using ResultType = std::optional<VariantType>;
+        using ResultType = VariantType;
 
-        static bool emplace(ResultType& result, size_t index) {
-            if (index >= sizeof...(Types)) return false;
-            return emplaceImpl(result, index, std::make_index_sequence<sizeof...(Types)>{});
+        template<typename... ARGS>
+        static ErrorCode emplace(ResultType& result, size_t index,ARGS&&... args) {
+            if (index >= sizeof...(Types))
+                return ErrorPrint::print_error(
+                    ErrorCode::INVALID_ARGUMENT,"invalid variant type",AT_ERROR_ACTION::CONTINUE);
+            return emplaceImpl(result, index, std::make_index_sequence<sizeof...(Types)>{},std::forward<ARGS>(args)...);
         }
-
     private:
-        template <size_t... Is>
-        static bool emplaceImpl(ResultType& result, size_t index, std::index_sequence<Is...>) {
-            bool success = false;
-            ((index == Is ? (result.emplace(std::in_place_index<Is>), success = true) : false) || ...);
-            return success;
+        template <size_t... Is,typename... ARGS>
+        static ErrorCode emplaceImpl(ResultType& result, size_t index, std::index_sequence<Is...>,ARGS&&... args) noexcept{
+            ErrorCode err = ErrorCode::NONE;
+            auto try_emplace = [&]<size_t ID>(){
+                using Type = std::variant_alternative_t<ID, VariantType>;
+                if(index!=ID)
+                    return ErrorCode::NONE;
+                if constexpr (std::is_constructible_v<Type,ARGS...>){
+                    const auto& emplaced = result.emplace(std::in_place_index<ID>, std::forward<ARGS>(args)...);
+                    if constexpr(HasError<Type>){
+                        err = emplaced.error();
+                        if(err!=ErrorCode::NONE){
+                            result.emplace(std::in_place_index<0>);
+                            return err;
+                        }
+                    }
+                    else return ErrorCode::NONE;
+                }
+                else return ErrorCode::INVALID_ARGUMENT;
+            };
+            ((err!=ErrorCode::NONE?(err = try_emplace.template operator()<Is>()):void()),...);
+            return err;
         }
     };
 
-    template<typename ENUM,typename VARIANT>
+    template<typename ENUM,typename = void>
     requires std::is_enum_v<ENUM>
-    class MessageHandler:public VARIANT{
-        static_assert(IsVariant<VARIANT>::value,"Must be variant");
-        static_assert(network::detail::check_variant_enum<ENUM,VARIANT,::std::variant_size_v<VARIANT>-1>);
+    class _MessageHandler:std::false_type{};
+
+    template<typename ENUM,typename... Ts>
+    requires std::is_enum_v<ENUM>
+    class _MessageHandler<ENUM,std::variant<Ts...>>:public std::variant<Ts...>{
+        using variant_t = std::variant<Ts...>;
+        static_assert(network::detail::check_variant_enum<ENUM,std::variant_size_v<variant_t>-1,Ts...>());
 
         public:
         using enum_t = ENUM;
-        using VARIANT::variant;
+        using factory = VariantFactory<variant_t>;
+        using variant_t::variant;
         template<auto T>
         requires MessageEnumConcept<T>
         const Message<T>& get() const{
@@ -107,12 +138,19 @@ namespace network::detail{
         }
         template<auto T>
         requires MessageEnumConcept<T>
-        Message<T>& get(){
+        Message<T>& get() noexcept{
             return std::get<Message<T>>(*this);
         }
         //if std::monostate then -1
         int msg_type() const{
-            return VARIANT::index()-1;
+            return variant_t::index()-1;
+        }
+
+        template<typename... ARGS>
+        ErrorCode emplace_message(size_t msg_t,ARGS&&... args) noexcept{
+            if(msg_t+1>std::variant_size_v<variant_t>)
+                return ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid variant type",AT_ERROR_ACTION::CONTINUE);
+            return factory::emplace(*this,msg_t+1,std::forward<ARGS>(args)...);
         }
     };
 }
@@ -122,10 +160,10 @@ namespace network{
     class MessageProcess;
 
     template<Side S>
-    class MessageHandler:public network::detail::MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
+    class MessageHandler:public network::detail::_MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
         private:
-        using _handler = network::detail::MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
-        using _handler::MessageHandler;
+        using _handler = network::detail::_MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
+        using _handler::_MessageHandler;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -138,9 +176,14 @@ namespace network{
         friend struct serialization::Max_serial_size;
         template<Side Aside>
         friend class network::MessageProcess;
-        template<typename MESSAGE_ID<S>::type MSG,typename... ARGS>
+        template<auto MSG,typename... ARGS>
+        requires MessageEnumConcept<MSG>
         ErrorCode emplace_message(ARGS&&... args){
             return this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...).error();
+        }
+        template<typename... ARGS>
+        ErrorCode emplace_message_by_id(size_t id, ARGS&&... args){
+            return _handler::emplace_message(id,std::forward<ARGS>(args)...);
         }
         void clear(){
             this->template emplace<std::monostate>();
@@ -150,7 +193,6 @@ namespace network{
                 return true;
             else return false;
         }
-        
     };
 }
 
@@ -167,6 +209,34 @@ namespace serialization{
                 else return serialization::serialize<NETWORK_ORDER>(arg,buf);
             };
             return std::visit(visitor,msg);
+        }
+    };
+
+    template<bool NETWORK_ORDER, Side S>
+    struct Deserialize<NETWORK_ORDER,MessageHandler<S>>{
+        using type = MessageHandler<S>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            msg.clear();
+            Client_MsgT::type T{};
+            if(buf.size()<min_serial_size(MessageBase<(Client_MsgT::type)0>{}))
+                return SerializationEC::NONE;
+            deserialize<NETWORK_ORDER>(T,buf);
+            
+            auto visitor = [&buf](auto&& arg){
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T,std::monostate>)
+                    return serialization::SerializationEC::UNMATCHED_TYPE;
+                else return serialization::deserialize<NETWORK_ORDER>(arg,buf);
+            };
+            
+            if(msg.emplace_message_by_id(T)!=ErrorCode::NONE){
+                msg.clear();
+                return SerializationEC::UNMATCHED_TYPE;
+            }
+            SerializationEC code = std::visit(visitor,msg);
+            if(code!=SerializationEC::NONE)
+                msg.clear();
+            return code;
         }
     };
 
@@ -212,104 +282,6 @@ namespace serialization{
                 else return serialization::max_serial_size(arg);
             };
             return std::visit(visitor,msg);
-        }
-    };
-
-    template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,MessageHandler<Side::CLIENT>>{
-        using type = MessageHandler<Side::CLIENT>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            msg.clear();
-            Client_MsgT::type T{};
-            if(buf.size()<min_serial_size(MessageBase<(Client_MsgT::type)0>{}))
-                return SerializationEC::NONE;
-            deserialize<NETWORK_ORDER>(T,buf);
-            
-            auto visitor = [&buf](auto&& arg){
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return serialization::SerializationEC::UNMATCHED_TYPE;
-                else return serialization::deserialize<NETWORK_ORDER>(arg,buf);
-            };
-            
-            switch(T){
-                case Client_MsgT::CAPITALIZE:
-                    msg.emplace_message<Client_MsgT::CAPITALIZE>();
-                    break;
-                case Client_MsgT::CAPITALIZE_REF:
-                    msg.emplace_message<Client_MsgT::CAPITALIZE_REF>();
-                    break;
-                case Client_MsgT::SERVER_STATUS:
-                    msg.emplace_message<Client_MsgT::SERVER_STATUS>();
-                    break;
-                case Client_MsgT::DATA_REQUEST:
-                    msg.emplace_message<Client_MsgT::DATA_REQUEST>();
-                    break;
-                case Client_MsgT::TRANSACTION:
-                    msg.emplace_message<Client_MsgT::TRANSACTION>();
-                    break;
-                default:
-                    return SerializationEC::UNMATCHED_TYPE;
-            }
-            SerializationEC code = std::visit(visitor,msg);
-            if(code!=SerializationEC::NONE)
-                msg.clear();
-            return code;
-        }
-    };
-
-    template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,MessageHandler<Side::SERVER>>{
-        using type = MessageHandler<Side::SERVER>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            msg.clear();
-            Server_MsgT::type T{};
-            if(buf.size()<min_serial_size(MessageBase<(Server_MsgT::type)0>{}))
-                return SerializationEC::NONE;
-            deserialize<NETWORK_ORDER>(T,buf);
-            
-            auto visitor = [&buf](auto&& arg){
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return serialization::SerializationEC::UNMATCHED_TYPE;
-                else return serialization::deserialize<NETWORK_ORDER>(arg,buf);
-            };
-            
-            switch(T){
-                case Server_MsgT::DATA_REPLY_FILEINFO:
-                    msg.emplace_message<Server_MsgT::DATA_REPLY_FILEINFO>();
-                    break;
-                case Server_MsgT::SERVER_STATUS:
-                    msg.emplace_message<Server_MsgT::SERVER_STATUS>();
-                    break;
-                case Server_MsgT::DATA_REPLY_CAPITALIZE:
-                    msg.emplace_message<Server_MsgT::DATA_REPLY_CAPITALIZE>();
-                    break;
-                case Server_MsgT::ERROR:
-                    msg.emplace_message<Server_MsgT::ERROR>();
-                    break;
-                case Server_MsgT::PROGRESS:
-                    msg.emplace_message<Server_MsgT::PROGRESS>();
-                    break;
-                case Server_MsgT::DATA_REPLY_FILEPART:
-                    msg.emplace_message<Server_MsgT::DATA_REPLY_FILEPART>();
-                    break;
-                case Server_MsgT::VERSION:
-                    msg.emplace_message<Server_MsgT::VERSION>();
-                    break;
-                case Server_MsgT::DATA_REPLY_CAPITALIZE_REF:
-                    msg.emplace_message<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>();
-                    break;
-                case Server_MsgT::DATA_REPLY_EXTRACT:
-                    msg.emplace_message<Server_MsgT::DATA_REPLY_EXTRACT>();
-                    break;
-                default:
-                    return SerializationEC::UNMATCHED_TYPE;
-            }
-            SerializationEC code = std::visit(visitor,msg);
-            if(code!=SerializationEC::NONE)
-                msg.clear();
-            return code;
         }
     };
 }

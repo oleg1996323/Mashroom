@@ -16,7 +16,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at capitalization: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,38> err_msg={
+constexpr std::array<const char*,40> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -54,5 +54,7 @@ constexpr std::array<const char*,38> err_msg={
     "Invalid value \"{0}\" of parameter \"{1}\"",
     "Invalid argument",
     "Transaction refused",
-    "Invalid credentials"
+    "Invalid credentials",
+    "Deserialization error",
+    "Serialization error"
 };

@@ -51,7 +51,7 @@ namespace network{
             return err;
         }
         else{
-            recv_hmsg_
+            serialization::deserialize_network(recv_hmsg_,buffer);
         }
     }
 
