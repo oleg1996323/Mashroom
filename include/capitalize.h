@@ -7,6 +7,7 @@
 #include "data/info.h"
 #include "message.h"
 #include <path_process.h>
+#include <units.h>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -16,46 +17,18 @@ GribDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
+std::pair<uint64_t,units::Information::type> max_cap_sz_ = {std::numeric_limits<uint64_t>::max(),units::Information::type::TERABYTE};
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
+bool host_ref_only = false;
 std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);
 void execute();
 
-ErrorCode add_in_path(const path::Storage<false>& path){
-    if(path.path_.empty())
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"empty path",AT_ERROR_ACTION::CONTINUE);
-    switch(path.type_){
-        case path::TYPE::FILE:
-            if(!fs::exists(path.path_))
-                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else if(!fs::is_regular_file(path.path_))
-                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else in_path_.insert(path);
-            break;
-        case path::TYPE::DIRECTORY:
-            if(!fs::exists(path.path_))
-                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else if(!fs::is_directory(path.path_))
-                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else in_path_.insert(path);
-            break;
-        case path::TYPE::HOST:
-            in_path_.insert(path); //will be checked later at process
-    }       
-    return ErrorCode::NONE;
-}
-ErrorCode set_dest_dir(std::string_view dest_directory){
-    if(fs::path(dest_directory).has_extension())
-        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
-    if(!fs::exists(dest_directory))
-        if(!fs::create_directories(dest_directory))
-            return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
-    dest_directory_=dest_directory;
-    return ErrorCode::NONE;
-}
+ErrorCode add_in_path(const path::Storage<false>& path);
+ErrorCode set_dest_dir(std::string_view dest_directory);
 ErrorCode set_output_order(std::string_view order){
     if(!check_format(order))
         return ErrorPrint::print_error(ErrorCode::INVALID_CAPITALIZE_ORDER,"",AT_ERROR_ACTION::CONTINUE,order);
@@ -83,5 +56,17 @@ void set_using_processor_cores(int cores){
 GribDataInfo release_result() noexcept{
     GribDataInfo res(std::move(result));
     return res;
+}
+void set_host_ref_only(){
+    host_ref_only = true;
+}
+/**
+ * @brief Sets the maximum allowed size when receiving part of data remotely via a host.
+ */
+void set_max_cap_size(uint64_t sz,Units<Units_t::InformationSize>::type info_unit){
+    if(sz=0)
+        return;
+    else max_cap_sz_.first = sz;
+    max_cap_sz_.second = info_unit;
 }
 };

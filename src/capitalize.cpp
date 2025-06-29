@@ -21,7 +21,9 @@ bool Capitalize::check_format(std::string_view fmt){
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
-//must return the names of created files
+/**
+ * @return Return the names of created files with registered grib data
+ */ 
 std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const std::vector<GribMsgDataInfo>& data_){
 	std::vector<std::pair<fs::path, GribMsgDataInfo>> result;
 	for(const GribMsgDataInfo& msg_info:data_){
@@ -48,10 +50,10 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const st
 				break;
 			case 'g':
 			case 'G':
-				if(msg_info.grid_data.has_value())
-					cur_path/=grid_to_abbr(msg_info.grid_data.value().rep_type);
+				if(msg_info.grid_data.has_grid())
+					cur_path/=grid_to_abbr(msg_info.grid_data.rep_type);
 				else
-					cur_path/="NON_GRID";
+					cur_path/="wogrid";
 			default:
 				fprintf(stderr,"Error reading format");
 				exit(1);
@@ -59,13 +61,15 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const st
 			}
 		}
 		if(!fs::exists(cur_path) && !fs::create_directories(cur_path))
+			// @todo
 			throw std::runtime_error("Unable to create path "s+cur_path.c_str());
 		const ParmTable* p_t = parameter_table(msg_info.center,msg_info.table_version,msg_info.parameter);
 		if(p_t)
 			cur_path/=p_t->name+".grib"s;
-		else cur_path/="MissParameter"+".grib"s;
+		else cur_path/="woparam"+".grib"s;
 		dump_file = fopen(cur_path.c_str(),"a");
 		if(!dump_file)
+			// @todo
 			throw std::runtime_error("Unable to open file "s+cur_path.c_str());
 		//may be usefull to separate in a unique function for C++ use
 		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
@@ -80,6 +84,9 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const st
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief Execute message capitalization of concrete file.
+ */
 const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 	HGrib1 grib;
 	if(grib.open_grib(file)!=ErrorCodeData::NONE_ERR){
@@ -147,9 +154,47 @@ void Capitalize::execute(){
 				__capitalize_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
-				hProgram->request<network::Client_MsgT::CAPITALIZE>(path.path_);
+				if(host_ref_only)
+					hProgram->request<network::Client_MsgT::CAPITALIZE_REF>(path.path_);
+				else hProgram->request<network::Client_MsgT::CAPITALIZE>(path.path_);
+				break;
+			default:{
+				continue;
+			}
 		}
-		
 	}
 	hProgram->add_data(result);
+}
+
+ErrorCode Capitalize::add_in_path(const path::Storage<false>& path){
+    if(path.path_.empty())
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"empty path",AT_ERROR_ACTION::CONTINUE);
+    switch(path.type_){
+        case path::TYPE::FILE:
+            if(!fs::exists(path.path_))
+                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else if(!fs::is_regular_file(path.path_))
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else in_path_.insert(path);
+            break;
+        case path::TYPE::DIRECTORY:
+            if(!fs::exists(path.path_))
+                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else if(!fs::is_directory(path.path_))
+                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            else in_path_.insert(path);
+            break;
+        case path::TYPE::HOST:
+            in_path_.insert(path); //will be checked later at process
+    }       
+    return ErrorCode::NONE;
+}
+ErrorCode Capitalize::set_dest_dir(std::string_view dest_directory){
+    if(fs::path(dest_directory).has_extension())
+        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+    if(!fs::exists(dest_directory))
+        if(!fs::create_directories(dest_directory))
+            return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+    dest_directory_=dest_directory;
+    return ErrorCode::NONE;
 }

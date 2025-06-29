@@ -67,4 +67,8 @@ namespace network{
 
 namespace network{
     std::ostream& print_ip_port(std::ostream& stream,addrinfo* addr);
+    std::string ip_to_text(addrinfo* addr);
+    std::string port_to_text(addrinfo* addr);
+    bool is_correct_address(const std::string& text) noexcept;
+    bool is_correct_address(std::string_view text) noexcept;
 }

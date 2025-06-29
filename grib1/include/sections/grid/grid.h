@@ -101,10 +101,14 @@ private:
             using Type = std::variant_alternative_t<ID, VariantType>;
             if(index!=ID)
                 return false;
-            if constexpr (sizeof...(ARGS)>0 && std::is_constructible_v<Type,ARGS...>)
+            if constexpr (sizeof...(ARGS)>0 && std::is_constructible_v<Type,ARGS...>){
                 result.template emplace<ID>(std::forward<ARGS>(args)...);
-            else if constexpr(sizeof...(ARGS)==0 && std::is_default_constructible_v<Type>)
+                return true;
+            }
+            else if constexpr(sizeof...(ARGS)==0 && std::is_default_constructible_v<Type>){
                 result.template emplace<ID>(std::forward<ARGS>(args)...);
+                return true;
+            }
             else return false;
         };
         ((!success?( success= try_emplace.template operator()<Is>()):(success=success)),...);
@@ -136,65 +140,71 @@ struct GridDataType:GridVariant
 struct GridInfo{
     GridDataType data = std::monostate{};
     RepresentationType rep_type = UNDEF_GRID;
-    #ifdef __cplusplus
-        GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
-        GridInfo() = default;
-        
-        bool extendable_by(const GridInfo& other) const noexcept{
-            if(rep_type != other.rep_type)
-                return false;
+    GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
+    GridInfo() = default;
+    
+    bool extendable_by(const GridInfo& other) const noexcept{
+        if(rep_type != other.rep_type)
+            return false;
 
-            auto visitor1 = [this,&other](auto&& grid1) -> bool
+        auto visitor1 = [this,&other](auto&& grid1) -> bool
+        {
+            using Grid1 = std::decay_t<decltype(grid1)>;
+            if constexpr (std::is_same_v<Grid1,std::monostate>)
+                return false;
+            auto visitor2 = [&grid1](auto&& grid2) -> bool
             {
                 using Grid1 = std::decay_t<decltype(grid1)>;
-                if constexpr (std::is_same_v<Grid1,std::monostate>)
+                using Grid2 = std::decay_t<decltype(grid2)>;
+                if constexpr (std::is_same_v<Grid2,std::monostate>)
                     return false;
+                if constexpr(requires {{grid1.extendable(grid2)} -> std::same_as<bool>;}){
+                    return grid1.extendable(grid2);
+                }
+                else return false;
+            };
+            return std::visit(visitor2,other.data);
+        };
+        return std::visit(visitor1,data);
+    }
+
+    bool extend(const GridInfo& other){
+        if(!extendable_by(other))
+            return false;
+        auto visitor1 = [this,&other](auto&& grid1) -> bool
+        {
+            using Grid1 = std::decay_t<decltype(grid1)>;
+            if constexpr (std::is_same_v<Grid1,std::monostate>)
+                return false;
+            else{
                 auto visitor2 = [&grid1](auto&& grid2) -> bool
                 {
                     using Grid1 = std::decay_t<decltype(grid1)>;
                     using Grid2 = std::decay_t<decltype(grid2)>;
                     if constexpr (std::is_same_v<Grid2,std::monostate>)
                         return false;
-                    if constexpr(requires {{grid1.extendable(grid2)} -> std::same_as<bool>;}){
-                        return grid1.extendable(grid2);
+                    if constexpr(requires {{grid1.extend(grid2)} -> std::same_as<bool>;}){
+                        return grid1.extend(grid2);
                     }
                     else return false;
                 };
                 return std::visit(visitor2,other.data);
-            };
-            return std::visit(visitor1,data);
-        }
+            }
+        };
+        return std::visit(visitor1,data);
+    }
 
-        bool extend(const GridInfo& other){
-            if(!extendable_by(other))
-                return false;
-            auto visitor1 = [this,&other](auto&& grid1) -> bool
-            {
-                using Grid1 = std::decay_t<decltype(grid1)>;
-                if constexpr (std::is_same_v<Grid1,std::monostate>)
-                    return false;
-                else{
-                    auto visitor2 = [&grid1](auto&& grid2) -> bool
-                    {
-                        using Grid1 = std::decay_t<decltype(grid1)>;
-                        using Grid2 = std::decay_t<decltype(grid2)>;
-                        if constexpr (std::is_same_v<Grid2,std::monostate>)
-                            return false;
-                        if constexpr(requires {{grid1.extend(grid2)} -> std::same_as<bool>;}){
-                            return grid1.extend(grid2);
-                        }
-                        else return false;
-                    };
-                    return std::visit(visitor2,other.data);
-                }
-            };
-            return std::visit(visitor1,data);
-        }
-        
-        const char* print_grid_info() const;
-        bool operator==(const GridInfo& other) const;
-        bool operator!=(const GridInfo& other) const;
-    #endif
+    bool has_grid() const{
+        return !std::holds_alternative<std::monostate>(data);
+    }
+
+    bool has_grid_type(RepresentationType rep) const{
+        return enum_to_index[rep]==data.index();
+    }
+    
+    const char* print_grid_info() const;
+    bool operator==(const GridInfo& other) const;
+    bool operator!=(const GridInfo& other) const;
 };
 #endif
 

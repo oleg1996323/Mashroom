@@ -28,7 +28,9 @@ enum class Command:uint16_t{
     TABLE_VERSION,
     COLLECTION,
     TIME_FCST,
-    GRID_TYPE
+    GRID_TYPE,
+    REF,
+    PART
 };
 
 enum class ModeArgs:uint8_t{
@@ -113,7 +115,7 @@ struct __Token_text__<translate::token::ServerConfigCommands>{
 
 template<>
 struct __Token_text__<translate::token::Command>{
-    static constexpr std::array<const char*,21> txt = {
+    static constexpr std::array<const char*,22> txt = {
         "",
         "-outp",
         "-inp",
@@ -135,6 +137,8 @@ struct __Token_text__<translate::token::Command>{
         "-collect",
         "-time_fcst",
         "-grid"
+        "-ref",
+        "-part"
     };
 };
 
@@ -177,6 +181,7 @@ struct __Token_text__<translate::token::FileFormat>{
         "zip"
     };
 };
+
 template<typename T>
 inline T translate_from_txt(std::string_view cmd) noexcept{
     for(int i=0;i<__Token_text__<T>::txt.size();++i){

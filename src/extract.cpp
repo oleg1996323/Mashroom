@@ -64,7 +64,7 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
 		//ReturnVal result_date;
         if(stop_token_.stop_requested())
             return;
-        GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():std::nullopt,
+        GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
                                     msg.value().get().section_1_.date(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
@@ -79,7 +79,7 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
         // if(props_.fcst_unit_.has_value() && msg_info.t_unit!=props_.fcst_unit_.value())
         //     continue;
         // if(props_.grid_type_.has_value()){
-        //     if(!msg_info.grid_data.has_value())
+        //     if(!msg_info.grid_data.has_grid())
         //         continue;
         //     if(props_.grid_type_.value()!=msg_info.grid_data.value().rep_type)
         //         continue;                  
@@ -89,9 +89,9 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
         //     if(!pos_in_grid(props_.position_.value(),msg_info.grid_data.value()))
         //         continue;
         // }
-        if(msg_info.grid_data.has_value())
+        if(msg_info.grid_data.has_grid())
             ref_data[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
-                msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data.value())));
+                msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }
     return;

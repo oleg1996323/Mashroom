@@ -62,7 +62,7 @@ ErrorCode Client::connect(){
     bzero(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    if ((rv = getaddrinfo(host_.c_str(), "" /*port-servive client*/, &hints, &servinfo_)) != 0) {
+    if ((rv = getaddrinfo(host_.c_str(), "" /*port-servive client*/, &hints, &servinfo_));rv!= 0) {
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
         return err_;
     }
@@ -73,7 +73,7 @@ ErrorCode Client::connect(){
             continue;
         }
         if (::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1){
-            err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client: connect",AT_ERROR_ACTION::CONTINUE);
+            err_ = ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR_WITH_X1,"client: connect",AT_ERROR_ACTION::CONTINUE,ip_to_text(p)+" "+port_to_text(p));
             close(sockfd);
             client_socket_ = -1;
             continue;
@@ -90,6 +90,8 @@ ErrorCode Client::connect(){
     std::cout<<"Client connected to: ";
         network::print_ip_port(std::cout,servinfo_);
     std::cout<<"Ready for request.";
+    err_ = ErrorCode::NONE;
+    return err_;
 }
 ErrorCode Client::disconnect(){
     cancel();

@@ -14,7 +14,7 @@
 
 struct GribMsgDataInfo
 {
-    std::optional<GridInfo> grid_data;
+    GridInfo grid_data;
     utc_tp date;
     ptrdiff_t buf_pos_;
     uint32_t msg_sz_;
@@ -24,7 +24,7 @@ struct GribMsgDataInfo
     uint8_t table_version;
     ErrorCodeData err = NONE_ERR;
 
-    GribMsgDataInfo(std::optional<GridInfo>&& grid_data_,
+    GribMsgDataInfo(GridInfo&& grid_data_,
         utc_tp&& date_,
         ptrdiff_t msg_buf_pos,
         uint32_t msg_size,

@@ -32,11 +32,11 @@ bool contains(const fs::path& from,const std::chrono::system_clock::time_point& 
         continue;
     if(data.parameter_!=info.parameter)
         continue;
-    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.value().rep_type)
+    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.rep_type)
         continue;
     if(date!=info.date)
         continue;
-    if(!pos_in_grid(coord,info.grid_data.value()))
+    if(!pos_in_grid(coord,info.grid_data))
         continue;
     }while(grib.next_message());
 }
@@ -66,11 +66,11 @@ bool contains(const fs::path& from,const std::chrono::system_clock::time_point& 
         continue;
     if(parameter!=info.parameter)
         continue;
-    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.value().rep_type)
+    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.rep_type)
         continue;
     if(date!=info.date)
         continue;
-    if(!pos_in_grid(coord,info.grid_data.value()))
+    if(!pos_in_grid(coord,info.grid_data))
         continue;
     }while(grib.next_message());
 }

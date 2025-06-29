@@ -67,6 +67,32 @@ ErrorCode capitalize_parse(const std::vector<std::string_view>& input){
                 else
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Already choosen other capitalize format",AT_ERROR_ACTION::CONTINUE,input[i]);
                 break;
+            case Command::REF:
+                hCapitalize.set_host_ref_only();
+                break;
+            case Command::PART:{
+                auto info_sz_unit = std::find(input[i].begin(),input[i].end(),[](const char ch){
+                    return !std::isdigit(ch);
+                });
+                if(info_sz_unit==input[i].begin() || info_sz_unit==input[i].end())
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected number and data unit (B,KB,MB,GB,TB). Example, 1000MB",AT_ERROR_ACTION::CONTINUE,input[i]);
+                auto checking_correct_input = std::find(info_sz_unit,input[i].end(),[](const char ch){
+                    return !std::isalpha(ch);
+                });
+                if(checking_correct_input!=input[i].end())
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected unsigned number and data unit (B,KB,MB,GB,TB). Example, 1000MB",
+                                        AT_ERROR_ACTION::CONTINUE,input[i]);
+                std::optional<uint64_t> sz_possible = from_chars<uint64_t>(std::string_view(input[i].begin(),info_sz_unit),err);
+                units::Information::type units;
+                if(units = translate_from_txt<units::Information::type>(std::string_view(info_sz_unit,input[i].end()));static_cast<int>(units)==-1)
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected unsigned number and data unit (B,KB,MB,GB,TB). Example, 1000MB",
+                                        AT_ERROR_ACTION::CONTINUE,std::string_view(info_sz_unit,input[i].end()));
+                if(sz_possible.has_value())
+                    hCapitalize.set_max_cap_size(sz_possible.value(),units);
+                else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected unsigned number and data unit (B,KB,MB,GB,TB). Example, 1000MB",
+                                        AT_ERROR_ACTION::CONTINUE,std::string_view(input[i].begin(),info_sz_unit));
+                break;
+            }
             default:
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument for capitalize mode",AT_ERROR_ACTION::CONTINUE,input[i]);
         }

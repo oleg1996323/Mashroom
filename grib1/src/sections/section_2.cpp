@@ -17,12 +17,10 @@ unsigned long GridDescriptionSection::section_length(){
 uint8_t GridDescriptionSection::get_representation_type() const noexcept{
 	return (uint8_t)buf_[5];
 }
-std::optional<GridInfo> GridDescriptionSection::define_grid() const noexcept{
-    if(get_representation_type()>255 || !is_representation[get_representation_type()])
-        return std::nullopt;
-    else
-        return std::optional<GridInfo>(GridInfo({GridDataType(buf_,(RepresentationType)get_representation_type()),
-										(RepresentationType)get_representation_type()}));
+GridInfo GridDescriptionSection::define_grid() const noexcept{
+	GridInfo grid;
+	grid.data.emplace_by_id(static_cast<RepresentationType>(get_representation_type()),buf_);
+	return grid;
 }
 unsigned long GridDescriptionSection::get_number_vertical_coord_values() const noexcept{
 	return GDS_NV(buf_);

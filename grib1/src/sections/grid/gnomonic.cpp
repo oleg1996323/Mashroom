@@ -7,5 +7,5 @@
 GridDefinition<RepresentationType::GNOMONIC>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
 const char* GridDefinition<RepresentationType::GNOMONIC>::print_grid_info() const{
-    "Gnomonic grid. Information unable";
+    return "Gnomonic grid. Information unable";
 }

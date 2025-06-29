@@ -12,22 +12,9 @@ ErrorCode server_settings_parse(std::string_view key, std::string_view arg,netwo
         case ServerConfigCommands::HOST:{
             std::string arg_string;
             arg_string = arg;
-            {
-                sockaddr_in tmp;
-                int res = inet_pton(AF_INET,arg_string.c_str(),&tmp);
-                if(res>0){
-                    set.host=arg;
-                    break;
-                }
-            }
-            {
-                sockaddr_in6 tmp;
-                int res = inet_pton(AF_INET6,arg_string.c_str(),&tmp);
-                if(res>0){
-                    set.host=arg;
-                    break;
-                }
-            }
+            if(network::is_correct_address(arg))
+                set.host=arg;
+            else return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,arg);
             break;
         }
         case ServerConfigCommands::SERVICE:{

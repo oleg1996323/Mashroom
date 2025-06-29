@@ -18,7 +18,7 @@ struct GridDescriptionSection{
 
 	unsigned long section_length();
 	uint8_t get_representation_type() const noexcept;
-	std::optional<GridInfo> define_grid() const noexcept;
+	GridInfo define_grid() const noexcept;
 	unsigned long get_number_vertical_coord_values() const noexcept;
 	unsigned long get_PV() const noexcept;
 	unsigned long get_PL() const noexcept;
