@@ -76,3 +76,47 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_C
 };
 
 }
+
+#include "functional/serialization.h"
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
+        using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
+        using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
+        using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
+        using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
+        using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
+        }
+    };
+}

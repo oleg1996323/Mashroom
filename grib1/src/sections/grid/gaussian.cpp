@@ -30,7 +30,7 @@ const char* GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>::prin
     assert(false);//still not available
 }
 GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>::GridDefinition(unsigned char* buffer):
-    GridDefinition(buffer){}
+    GridDefinitionBase(buffer){}
 
 /// @todo
 /// @return Printed by text parameters

@@ -26,3 +26,5 @@ class CashedData{
         return data_[msg_ptr];
     }
 };
+
+inline std::unordered_map<const network::__MessageBuffer__*,std::vector<char>> CashedData::data_ = {};

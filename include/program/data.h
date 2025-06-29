@@ -65,7 +65,9 @@ class Data:public __Data__{
     template<Data::FORMAT>
     void __read__(const fs::path& filename);
     template<Data::FORMAT>
-    void __write__(const fs::path& filename);
+    void __write__(const fs::path& filename){
+        assert(false);
+    }
 
     template <size_t I=0>
     void __write_all__(){
@@ -134,22 +136,3 @@ class Data:public __Data__{
             Coord pos
         ) const;
 };
-
-template<>
-bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
-(                   std::vector<char>& buf,
-                    Organization center,
-                    std::optional<TimeFrame> time_fcst,
-                    const std::unordered_set<SearchParamTableVersion>& parameters,
-                    TimeInterval time_interval,
-                    RepresentationType rep_t,
-                    Coord pos)
-{
-    for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
-        if(path.type_==path::TYPE::FILE)
-            matched.serialize(buf);
-    for(const SearchParamTableVersion& param:parameters){
-        ///@todo
-    }
-    assert(false);
-}

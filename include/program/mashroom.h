@@ -26,6 +26,10 @@ class Mashroom{
     Data data_;
     std::unordered_set<fs::path> data_files_;
     std::unique_ptr<network::Server> server_;
+    /** @brief Handle all clients connected to different servers at current moment
+     *  @details Filled at any kind of procedures like Extract or Capitalize (inside them methods) or
+     *  by permanent connection to these servers
+     */
     network::ClientsHandler clients_;
     fs::path data_dir_;
     std::fstream dat_file;
@@ -53,7 +57,15 @@ class Mashroom{
         save();
     }
     static ErrorCode read_command(const std::vector<std::string_view>& argv);
+    /**
+     * @brief Suspend active server
+     * @todo Expand to different server specified by type (data,cadastre,measurement etc)
+     */
     void collapse_server(bool wait_processes = false);
+    /**
+     * @brief Close active server and (optionaly close instantly close all existing connection without finishing the processes)
+     * @todo Expand to different server specified by type (data,cadastre,measurement etc)
+     */
     void close_server(bool wait_processes = false); //further will be lot of servers (data,cadastre,measurement etc)
     void shutdown_server(bool wait_processes = false); //further will be lot of servers (data,cadastre,measurement etc)
     void deploy_server(); //further will be lot of servers (data,cadastre,measurement etc)
@@ -61,8 +73,8 @@ class Mashroom{
     bool read_command(std::istream& stream);
     ErrorCode connect(const std::string& host);
 
-    template<network::Client_MsgT::type MSG_T>
-    ErrorCode request(const std::string& host,const network::Message<MSG_T>& msg);
+    template<network::Client_MsgT::type MSG_T, typename... ARGS>
+    ErrorCode request(const std::string& host,ARGS&&... args);
     const Data& data(){
         return data_;
     }
@@ -93,7 +105,7 @@ class Mashroom{
 
 inline std::unique_ptr<Mashroom> hProgram;
 
-template<network::Client_MsgT::type MSG_T>
-ErrorCode Mashroom::request(const std::string& host,const network::Message<MSG_T>& msg){
-    return clients_.request(host,msg);
+template<network::Client_MsgT::type MSG_T, typename... ARGS>
+ErrorCode Mashroom::request(const std::string& host,ARGS&&... args){
+    return clients_.request<MSG_T>(host,std::forward<ARGS>(args)...);
 }

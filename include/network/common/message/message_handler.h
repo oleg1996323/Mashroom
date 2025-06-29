@@ -40,7 +40,7 @@ namespace network{
     //dynamic polymorphism factory (for OsterMath)
     /* 
     template<class... _Types>
-    struct VariantFactory
+    struct MessageVariantFactory
     {
         static constexpr size_t kTypeCount = sizeof...(_Types);
         using VariantType = std::variant<_Types...>;
@@ -77,10 +77,10 @@ namespace network{
     concept HasError = requires(T t) { t.error(); };
 
     template<typename VARIANT,typename = void>
-    struct VariantFactory: std::false_type{};
+    struct MessageVariantFactory: std::false_type{};
 
     template<class... Types>
-    struct VariantFactory<std::variant<Types...>>{
+    struct MessageVariantFactory<std::variant<Types...>>{
         using VariantType = std::variant<Types...>;
         using ResultType = VariantType;
 
@@ -95,24 +95,27 @@ namespace network{
         template <size_t... Is,typename... ARGS>
         static ErrorCode emplaceImpl(ResultType& result, size_t index, std::index_sequence<Is...>,ARGS&&... args) noexcept{
             ErrorCode err = ErrorCode::NONE;
+            auto return_error = [&](const auto& emplaced){
+                using Type = std::decay_t<decltype(emplaced)>;
+                if constexpr(HasError<Type>){
+                    err = emplaced.error();
+                    if(err!=ErrorCode::NONE)
+                        result.template emplace<0>();
+                    return err;
+                }
+                else return ErrorCode::NONE;
+            };
             auto try_emplace = [&]<size_t ID>(){
                 using Type = std::variant_alternative_t<ID, VariantType>;
                 if(index!=ID)
-                    return ErrorCode::NONE;
-                if constexpr (std::is_constructible_v<Type,ARGS...>){
-                    const auto& emplaced = result.emplace(std::in_place_index<ID>, std::forward<ARGS>(args)...);
-                    if constexpr(HasError<Type>){
-                        err = emplaced.error();
-                        if(err!=ErrorCode::NONE){
-                            result.emplace(std::in_place_index<0>);
-                            return err;
-                        }
-                    }
-                    else return ErrorCode::NONE;
-                }
+                    return ErrorCode::INVALID_ARGUMENT;
+                if constexpr (sizeof...(ARGS)>0 && std::is_constructible_v<Type,ARGS...>)
+                    return return_error(result.template emplace<ID>(std::forward<ARGS>(args)...));
+                else if constexpr(sizeof...(ARGS)==0 && std::is_default_constructible_v<Type>)
+                    return return_error(result.template emplace<ID>());
                 else return ErrorCode::INVALID_ARGUMENT;
             };
-            ((err!=ErrorCode::NONE?(err = try_emplace.template operator()<Is>()):void()),...);
+            ((err!=ErrorCode::NONE?(err = try_emplace.template operator()<Is>()):(err=err)),...);
             return err;
         }
     };
@@ -129,7 +132,7 @@ namespace network{
         using enum_t = ENUM;
         static_assert(network::check_variant_enum<ENUM,std::variant_size_v<variant_t>-1,Ts...>());
         protected:
-        using factory = VariantFactory<variant_t>;
+        using factory = MessageVariantFactory<variant_t>;
         using variant_t::variant;
         template<auto T>
         requires MessageEnumConcept<T>
@@ -181,18 +184,31 @@ namespace network{
         }
         template<typename... ARGS>
         ErrorCode emplace_message_by_id(size_t id, ARGS&&... args){
-            return _handler::emplace_message(id,std::forward<ARGS>(args)...);
+            return _handler::emplace_message_by_id(id,std::forward<ARGS>(args)...);
         }
         ErrorCode emplace_default_message_by_id(size_t id){
-            return _handler::emplace_message(id);
+            return _handler::emplace_message_by_id(id);
         }
         void clear(){
             this->template emplace<std::monostate>();
         }
-        bool has_message(){
+        bool has_message() const{
             if(!std::holds_alternative<std::monostate>(*this))
                 return true;
             else return false;
+        }
+        
+        template<bool NETWORK_ORDER>
+        std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept{
+            assert(buffer.size()>=undefined_msg_type_min_required_size<S>());
+            auto visitor = [&buffer](auto&& arg) -> std::expected<uint64_t,serialization::SerializationEC>
+            {
+                using type = decltype(arg);
+                if constexpr (!Data_Size_Buffer<type>)
+                    return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
+                else return arg.data_size_buffer();
+            };
+            return std::visit(visitor,*this);
         }
     };
 }

@@ -44,10 +44,10 @@ void Mashroom::__read_initial_data_file__(){
     json::value root = parser.release();
     if(root.is_object())
         for(const auto& [key,val]:root.as_object()){
-            DataTypeInfo type_data = text_to_data_type(key.data());
-            if(val.is_array() && type_data!=DataTypeInfo::Undef){
+            __Data__::FORMAT type_data = __Data__::FORMAT(text_to_data_type(key.data()));
+            if(val.is_array() && type_data!=__Data__::FORMAT::UNDEF){
                 for(const auto& filename:val.as_array())
-                    if(type_data==DataTypeInfo::Grib && filename.is_string())
+                    if(type_data==__Data__::FORMAT::GRIB && filename.is_string())
                         data_files_.insert(filename.as_string().c_str());
             }
         }

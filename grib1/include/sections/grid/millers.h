@@ -10,7 +10,8 @@
 
 namespace grid{
 template<>
-struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
+struct GridDefinition<RepresentationType::MILLERS_CYLINDR>:
+        GridDefinitionBase<RepresentationType::MILLERS_CYLINDR,GridModification::NONE>{
     // uint16_t ny;
     // uint16_t nx;
     // uint32_t y1;
@@ -28,4 +29,46 @@ struct GridDefinition<RepresentationType::MILLERS_CYLINDR>{
         return true;
     }
 };
+}
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<MILLERS_CYLINDR>>{
+        using type = grid::GridBase<MILLERS_CYLINDR>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return SerializationEC::NONE;
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<MILLERS_CYLINDR>>{
+        using type = grid::GridBase<MILLERS_CYLINDR>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return SerializationEC::NONE;
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<MILLERS_CYLINDR>>{
+        using type = grid::GridBase<MILLERS_CYLINDR>;
+        size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<MILLERS_CYLINDR>>{
+        using type = grid::GridBase<MILLERS_CYLINDR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<MILLERS_CYLINDR>>{
+        using type = grid::GridBase<MILLERS_CYLINDR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
 }

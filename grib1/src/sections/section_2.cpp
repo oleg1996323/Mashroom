@@ -12,7 +12,7 @@ extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size
 #include <fstream>
 #include <vector>
 unsigned long GridDescriptionSection::section_length(){
-	return read_bytes(buf_[2],buf_[1],buf_[0]);
+	return read_bytes<3,false>(&buf_[0]);
 }
 uint8_t GridDescriptionSection::get_representation_type() const noexcept{
 	return (uint8_t)buf_[5];

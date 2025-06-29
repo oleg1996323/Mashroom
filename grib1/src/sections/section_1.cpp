@@ -349,7 +349,7 @@ int verf_time(unsigned char *pds, int *year, int *month, int *day, int *hour) {
 
 #ifdef __cplusplus
 unsigned ProductDefinitionSection::section_length() const noexcept{
-	return read_bytes(buffer_[2],buffer_[1],buffer_[0]);
+	return read_bytes<3,false>(buffer_);
 }
 unsigned char ProductDefinitionSection::table_version() const noexcept{
 	return PDS_Vsn(buffer_);
@@ -395,7 +395,7 @@ std::optional<Level> ProductDefinitionSection::level_data() const noexcept{
 			return result;
 			break;
 		case 2:
-			result.octet_11 = convert_level<11>(result.level_type_,read_bytes(buffer_[11],buffer_[10]));
+			result.octet_11 = convert_level<11>(result.level_type_,read_bytes<2,true>(&buffer_[10]));
 			return result;
 			break;
 		default:

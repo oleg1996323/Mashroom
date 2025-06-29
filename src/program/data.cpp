@@ -2,6 +2,25 @@
 #include "sections/section_1.h"
 
 template<>
+inline bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
+(                   std::vector<char>& buf,
+                    Organization center,
+                    std::optional<TimeFrame> time_fcst,
+                    const std::unordered_set<SearchParamTableVersion>& parameters,
+                    TimeInterval time_interval,
+                    RepresentationType rep_t,
+                    Coord pos)
+{
+    for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
+        if(path.type_==path::TYPE::FILE)
+            matched.serialize(buf);
+    for(const SearchParamTableVersion& param:parameters){
+        ///@todo
+    }
+    assert(false);
+}
+
+template<>
 void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
     std::ifstream file(fn,std::ios::binary);
     if(!file.is_open())
@@ -35,9 +54,9 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     file.close();
 }
 void Data::read(const fs::path& filename){
-    if(fs::exsists(filename)){
-        int fmt = extension_to_type(filename.extension().c_str());
-        if(fmt==-1){
+    if(fs::exists(filename)){
+        __Data__::FORMAT fmt = extension_to_type(filename.extension().c_str());
+        if(fmt==__Data__::FORMAT::UNDEF){
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
             return;
         }
@@ -58,8 +77,8 @@ bool Data::write(const fs::path& filename){
         ErrorPrint::print_error(ErrorCode::UNDEFINED_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE);
         return false;
     }
-    int fmt = extension_to_type(filename.extension().c_str());
-    if(fmt==-1){
+    __Data__::FORMAT fmt = extension_to_type(filename.extension().c_str());
+    if(fmt==__Data__::FORMAT::UNDEF){
         ErrorPrint::print_error(ErrorCode::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.extension().c_str());
         return false;
     }

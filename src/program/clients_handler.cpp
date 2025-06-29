@@ -3,7 +3,7 @@
 using namespace network;
 
 ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std::string& host){
-    network::client::Client client(host);
+    network::Client client(host);
     if(client.err_!=ErrorCode::NONE)
         return clients_.end();
     if(!clients_.contains(client)){

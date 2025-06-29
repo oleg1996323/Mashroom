@@ -4,9 +4,8 @@
 #include <cassert>
 #include <stdexcept>
 
-GridDefinition<RepresentationType::GNOMONIC>::GridDefinition(unsigned char* buffer){
-    throw std::invalid_argument("Unable to use Gnomonic coordinate-system");
-}
+GridDefinition<RepresentationType::GNOMONIC>::GridDefinition(unsigned char* buffer):
+    GridDefinitionBase(buffer){}
 const char* GridDefinition<RepresentationType::GNOMONIC>::print_grid_info() const{
-    assert(false);
+    "Gnomonic grid. Information unable";
 }

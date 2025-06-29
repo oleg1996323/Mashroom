@@ -10,10 +10,11 @@ template<>
 struct MessageAdditional<Server_MsgT::DATA_REPLY_FILEINFO>{
     server::Status status_;
     std::string filename_;
+    uint64_t offset_;
     uintmax_t file_sz_ = 0;      //size of file
     size_t file_hash_ = 0;
 
-    MessageAdditional(ErrorCode& err,const fs::path& file_path, server::Status status);
+    MessageAdditional(ErrorCode& err,server::Status status,const fs::path& file_path, uint64_t offset,uint64_t size);
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),
     filename_(other.filename_),

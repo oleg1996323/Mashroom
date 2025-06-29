@@ -38,7 +38,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
         return GridDefinitionBase::operator==(other);
     }
     const char* print_grid_info() const;
-    bool extendable(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
+    bool extendable(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const noexcept{
         if(base_.dx!=other.base_.dx ||
             base_.dy!=other.base_.dy)
             return false;
@@ -48,7 +48,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
             base_.y2 < other.base_.y1);
     }
 
-    bool extend(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other){
+    bool extend(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other) noexcept{
         if(other.base_.x1<base_.x1)
             base_.x1 = other.base_.x1;
         if(other.base_.y2<base_.y2)
@@ -58,6 +58,15 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
         if(other.base_.y1>base_.y1)
             base_.y1 = other.base_.y1;
         return true;
+    }
+
+    bool pos_in_grid(const Coord& pos) const noexcept{
+        if(pos.lat_<base_.y2 || pos.lat_>base_.y1 || pos.lon_<base_.x1 || pos.lon_>base_.x2)
+            return false;
+        return true;
+    }
+    int value_by_raw(const Coord& pos) const noexcept{
+        return (pos.lon_-base_.x1)/base_.dx+base_.nx*(pos.lat_-base_.y2)/base_.dy;
     }
 };
 
@@ -91,4 +100,53 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
     }
     const char* print_grid_info() const;
 };
+}
+
+#include "functional/serialization.h"
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+        using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
+                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+        using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
+                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+        using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
+                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+        using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
+                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
+        using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
+                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
 }

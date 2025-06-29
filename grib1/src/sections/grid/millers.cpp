@@ -4,9 +4,7 @@
 #include <cassert>
 
 GridDefinition<RepresentationType::MILLERS_CYLINDR>::GridDefinition(unsigned char* buffer):
-resolutionAndComponentFlags(GDS_Lambert_mode(buffer)),scan_mode(GDS_Lambert_scan(buffer)){
-    throw std::invalid_argument("Unable to use Millers coordinate-system");
-}
+GridDefinitionBase(buffer){}
 
 const char* GridDefinition<RepresentationType::MILLERS_CYLINDR>::print_grid_info() const{
     assert(false);

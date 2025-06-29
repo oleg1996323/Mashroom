@@ -27,24 +27,23 @@ namespace network::connection{
         friend struct std::equal_to<connection::Process<Server>>;
         friend class ConnectionPool;
         private:
-        mutable std::vector<char> buffer_; //24 byte
+        mutable MessageProcess<Side::SERVER> mprocess_;
         mutable std::jthread thread_; //16 byte
         const ConnectionPool& pool_; //8 byte
-        Socket connection_socket_; //4 byte
+        Socket sock_; //4 byte
         mutable std::atomic<bool> busy_ = false; //1 byte
         mutable std::atomic<bool> translating_ = false; //1 byte
         Process(const Process&) = delete;
         Process& operator=(Process&& other) = delete;   //thread_ may be launched and 
                                                         //containing old "other" pointer
         Process& operator=(const Process& other) = delete;
-        void __send_error_and_close_connection__(ErrorCode err,const char* msg_err) const;
-        void __send_error_and_continue__(ErrorCode err,const char* msg_err) const;
+        ErrorCode __send_error_and_close_connection__(ErrorCode err,const char* msg_err) const;
+        ErrorCode __send_error_and_continue__(ErrorCode err,const char* msg_err) const;
         bool __check_and_notify_if_server_inaccessible__() const;
         ErrorCode __execute_heavy_process__(network::Client_MsgT::type msg_t) const; //
         ErrorCode __execute_light_process__(network::Client_MsgT::type msg_t) const; //asyncronously
-        ErrorCode __read_rest_data_at_error__(network::Client_MsgT::type msg) const;
         public:
-        Process(int connection_socket,const ConnectionPool& pool, size_t buffer_sz=4096);
+        Process(int connection_socket,const ConnectionPool& pool);
         Process(Process&& other);
         ~Process();
         ErrorCode send_status_message(server::Status status) const;
@@ -69,7 +68,7 @@ template<>
 struct std::hash<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     size_t operator()(const network::connection::Process<Server>& process) const{
-        return std::hash<size_t>{}(static_cast<size_t>(process.connection_socket_));
+        return std::hash<size_t>{}(static_cast<size_t>(process.sock_));
     }
     size_t operator()(Socket sock) const{
         return std::hash<Socket>{}(sock);
@@ -80,7 +79,7 @@ template<>
 struct std::less<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     bool operator()(const network::connection::Process<Server>& lhs,const network::connection::Process<Server>& rhs) const{
-        return lhs.connection_socket_<rhs.connection_socket_;
+        return lhs.sock_<rhs.sock_;
     }
 };
 
@@ -88,12 +87,12 @@ template<>
 struct std::equal_to<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     bool operator()(const network::connection::Process<Server>& lhs,const network::connection::Process<Server>& rhs) const{
-        return lhs.connection_socket_==rhs.connection_socket_;
+        return lhs.sock_==rhs.sock_;
     }
     bool operator()(const network::connection::Process<Server>& lhs,Socket sock) const{
-        return lhs.connection_socket_==sock;
+        return lhs.sock_==sock;
     }
     bool operator()(Socket sock,const network::connection::Process<Server>& rhs) const{
-        return rhs.connection_socket_==sock;
+        return rhs.sock_==sock;
     }
 };

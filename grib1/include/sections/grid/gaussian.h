@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <span>
+#include <cmath>
 #include "def.h"
 #include "grid_base.h"
 
@@ -37,6 +38,17 @@ struct GridDefinition<RepresentationType::GAUSSIAN>:
     bool operator==(const GridDefinition<RepresentationType::GAUSSIAN>& other) const{
         return GridDefinitionBase::operator==(other);
     }
+
+    bool pos_in_grid(const Coord& pos) noexcept{
+        if(std::fmod((double)(base_.y1-pos.lat_)/
+                    ((base_.y1-base_.y2)/
+                    base_.ny),1)!=0 || 
+                    std::fmod((double)(base_.x2-pos.lon_)/
+                    ((base_.x2-base_.x1)/
+                    base_.nx),1)!=0)
+            return false;
+        else return true;
+    }
 };
 
 template<>
@@ -72,4 +84,53 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>:
         return GridDefinitionBase::operator==(other);
     }
 };
+}
+
+#include "functional/serialization.h"
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<GAUSSIAN>>{
+        using type = grid::GridBase<GAUSSIAN>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
+                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<GAUSSIAN>>{
+        using type = grid::GridBase<GAUSSIAN>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
+                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<GAUSSIAN>>{
+        using type = grid::GridBase<GAUSSIAN>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
+                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<GAUSSIAN>>{
+        using type = grid::GridBase<GAUSSIAN>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
+                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<GAUSSIAN>>{
+        using type = grid::GridBase<GAUSSIAN>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
+                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
+        }
+    };
 }

@@ -4,7 +4,7 @@ using namespace network::connection;
 
 ConnectionPool::iterator ConnectionPool::add_connection(int connection_socket,size_t buffer_sz){
     std::lock_guard<std::mutex> lock(locker_);
-    return data_.insert(Process<Server>(connection_socket,*this,buffer_sz)).first;
+    return data_.insert(Process<Server>(connection_socket,*this)).first;
 }
 void network::connection::ConnectionPool::update_connections(){
     std::erase_if(data_,[this](const std::decay_t<decltype(data_)>::value_type& process){

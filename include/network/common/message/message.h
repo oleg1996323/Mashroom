@@ -24,7 +24,6 @@ namespace network{
         MessageBase(MessageBase&& other) noexcept;
         MessageBase() = default;
         MessageBase& operator=(MessageBase&& other);
-        ~MessageBase();
         size_t data_size() const{
             return data_sz_;
         }
@@ -89,6 +88,17 @@ namespace serialization{
 #include "network/server/message/additional.h"
 
 namespace network{
+
+    template<typename MSG>
+    concept Data_Size_Buffer = requires(const MSG& val){
+        {std::declval<MSG>().data_size_buffer()} -> std::same_as<uint64_t>;
+    };
+
+    template<typename T>
+    concept Min_Req_Def_Size = requires(const T& val){
+        {T::min_required_defining_size()} -> std::same_as<uint64_t>;
+    };
+
     template<Side S>
     class MessageProcess;
 
@@ -123,6 +133,13 @@ namespace network{
         
         template<bool NETWORK_ORDER>
         static std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept;
+        constexpr static uint64_t min_required_defining_size();
+        const auto& additional() const{
+            return additional_;
+        }
+        const auto& base() const{
+            return base_;
+        }
     };
 
     template<auto MSG_T>
@@ -184,14 +201,62 @@ namespace network{
                         Message<Server_MsgT::DATA_REPLY_EXTRACT>>;
     };
 
+    constexpr Side get_side(MessageEnumConcept_t auto msg_t){
+        using type = decltype(msg_t);
+        if constexpr(std::is_same_v<type,MESSAGE_ID<Side::SERVER>::type>)
+            return MESSAGE_ID<Side::SERVER>::side();
+        else if constexpr(std::is_same_v<type,MESSAGE_ID<Side::CLIENT>::type>)
+            return MESSAGE_ID<Side::CLIENT>::side();
+        else static_assert(false,"Undefined side");
+    }
+
+    template<Side S>
+    constexpr uint64_t undefined_msg_type_min_required_size(){
+        uint64_t result = 0;
+        
+        constexpr auto max_size_by_type = []<typename T>() -> uint64_t
+        {
+            if constexpr(!Min_Req_Def_Size<T>)
+                return 0;
+            else return T::min_required_defining_size();
+        };
+
+        auto max_size = [&result,&max_size_by_type]<size_t... IDs>(std::integer_sequence<size_t, IDs...>) {
+            ((result = std::max(result, max_size_by_type. template operator()<std::variant_alternative_t<IDs, typename list_message<S>::type>>())), ...);
+        };
+        
+        max_size(std::make_index_sequence<std::variant_size_v<typename list_message<S>::type>>{});
+        
+        return result;
+    }
+
+    template<Side S, bool NETWORK_ORDER>
+    std::expected<typename MESSAGE_ID<S>::type,serialization::SerializationEC> message_type_from_buffer(std::span<const char> buffer) noexcept{
+        using namespace serialization;
+        assert(buffer.size()>=undefined_msg_type_min_required_size<S>());
+        typename MESSAGE_ID<S>::type result;
+        if(SerializationEC code = deserialize<NETWORK_ORDER>(result,buffer);code!=SerializationEC::NONE)
+            return std::unexpected(code);
+        if(result>=MESSAGE_ID<S>::count())
+            return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
+        else return result;
+    }
+
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     template<bool NETWORK_ORDER>
     std::expected<uint64_t,serialization::SerializationEC> Message<MSG_T>::data_size_from_buffer(std::span<const char> buffer) noexcept{
+        assert(buffer.size()>=min_required_defining_size());
         MessageBase<MSG_T> tmp;
         if(serialization::SerializationEC err = serialization::deserialize<NETWORK_ORDER>(tmp,buffer);err!=serialization::SerializationEC::NONE)
             return std::unexpected(err);
         return tmp.data_sz_;
+    }
+
+    template<auto MSG_T>
+    requires MessageEnumConcept<MSG_T>
+    constexpr uint64_t Message<MSG_T>::min_required_defining_size(){
+        return decltype(base_)::min_required_defining_size();
     }
 }
 
@@ -201,7 +266,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,MsgImpl<MSG_T>>{
         using type = MsgImpl<MSG_T>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
-            return serialize<NETWORK_ORDER>(msg,msg.base_,msg.additional_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
 
@@ -210,7 +275,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,MsgImpl<MSG_T>>{
         using type = MsgImpl<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            return deserialize<NETWORK_ORDER>(msg,msg.base,msg.additional_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.base,msg.additional_);
         }
     };
 

@@ -48,7 +48,7 @@ namespace network{
             DATA_REPLY_EXTRACT
         };
 
-        constexpr size_t count(){
+        constexpr static size_t count(){
             return DATA_REPLY_EXTRACT+1;
         }
     };
@@ -66,7 +66,7 @@ namespace network{
      */
     template<>
     struct MESSAGE_ID<Side::CLIENT>{
-        constexpr Side side(){
+        constexpr static Side side(){
             return Side::CLIENT;
         }
         enum type:int{
@@ -76,7 +76,7 @@ namespace network{
             CAPITALIZE_REF,
             TRANSACTION
         };
-        constexpr size_t count(){
+        constexpr static size_t count(){
             return TRANSACTION+1;
         }
     };
@@ -87,13 +87,24 @@ namespace network{
     template<auto MSG_T>
     concept ServerMessageEnumConcept = std::is_same_v<decltype(MSG_T),Server_MsgT::type>;
 
+    template<typename MSG_T>
+    concept ServerMessageEnumConcept_t = std::is_same_v<MSG_T,Server_MsgT::type>;
+
     template<auto MSG_T>
     concept ClientMessageEnumConcept = std::is_same_v<decltype(MSG_T),Client_MsgT::type>;
+
+    template<typename MSG_T>
+    concept ClientMessageEnumConcept_t = std::is_same_v<MSG_T,Client_MsgT::type>;
 
     template<auto MSG_T>
     concept MessageEnumConcept = 
         ServerMessageEnumConcept<MSG_T> ||
         ClientMessageEnumConcept<MSG_T>;
+
+    template<typename MSG_T>
+    concept MessageEnumConcept_t = 
+        ServerMessageEnumConcept_t<MSG_T> ||
+        ClientMessageEnumConcept_t<MSG_T>;
 
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>

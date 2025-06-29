@@ -22,10 +22,6 @@ namespace serialization{
     };
 
 }
-/// @brief Check if code error is equal serialization::SerializationEC::NONE;
-/// @param code 
-/// @return if false - has an error
-bool operator!(serialization::SerializationEC code);
 
 namespace serialization{
 
@@ -83,17 +79,9 @@ namespace serialization{
     constexpr size_t max_serial_size(const ARGS&...val) noexcept;
 
     template<bool NETWORK_ORDER,typename T>
-    SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept{
-        if constexpr (NETWORK_ORDER)
-            return serialize_network(val,buf);
-        else return serialize_native(val,buf);
-    }
+    SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept;
     template<bool NETWORK_ORDER,typename T>
-    SerializationEC deserialize(T& val,std::span<const char> buf) noexcept{
-        if constexpr (NETWORK_ORDER)
-            return deserialize_network(val,buf);
-        else return deserialize_native(val,buf);
-    }
+    SerializationEC deserialize(T& val,std::span<const char> buf) noexcept;
 
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     requires (sizeof...(ARGS)>1)
@@ -193,8 +181,10 @@ namespace serialization{
                 buf.insert(buf.end(), begin, begin + sizeof(time_count));
                 return SerializationEC::NONE;
             }
-            else
+            else{
                 static_assert(false,"serialize unspecified");
+                return SerializationEC::NONE;
+            }
         }
 
         template<serialize_concept... ARGS>
@@ -267,7 +257,10 @@ namespace serialization{
                 else
                     return code;
             }
-            else static_assert(false,"deserialize unspecified operator()");
+            else {
+                static_assert(false,"deserialize unspecified operator()");
+                return SerializationEC::NONE;
+            }
         }
 
         template<deserialize_concept... ARGS>
@@ -284,7 +277,10 @@ namespace serialization{
                 return sizeof(val.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(val.count());
-            else static_assert(false,"serial_size unspecified operator()");
+            else {
+                static_assert(false,"serial_size unspecified operator()");
+                return 0;
+            }
         }
 
         template<typename... ARGS>
@@ -303,7 +299,10 @@ namespace serialization{
                 return sizeof(T{}.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(T{}.count());
-            else static_assert(false,"min_serial_size unspecified operator()");
+            else{
+                static_assert(false,"min_serial_size unspecified operator()");
+                return 0;
+            }
         }
 
         constexpr size_t operator()(const T& val) noexcept{
@@ -326,7 +325,10 @@ namespace serialization{
                 return sizeof(T{}.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(T{}.count());
-            else static_assert(false,"max_serial_size unspecified operator()");
+            else{
+                static_assert(false,"max_serial_size unspecified operator()");
+                return 0;
+            }
         }
 
         constexpr size_t operator()(const T& val) noexcept{
@@ -355,6 +357,19 @@ namespace serialization{
     template<typename T>
     SerializationEC deserialize_network(T& to_deserialize,std::span<const char> buf) noexcept{
         return deserialize<true,T>(to_deserialize,buf);
+    }
+
+    template<bool NETWORK_ORDER,typename T>
+    SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept{
+        if constexpr (NETWORK_ORDER)
+            return serialize_network(val,buf);
+        else return serialize_native(val,buf);
+    }
+    template<bool NETWORK_ORDER,typename T>
+    SerializationEC deserialize(T& val,std::span<const char> buf) noexcept{
+        if constexpr (NETWORK_ORDER)
+            return deserialize_network(val,buf);
+        else return deserialize_native(val,buf);
     }
 
     template<typename T>
@@ -513,7 +528,7 @@ namespace serialization{
             SerializationEC err = serialize<NETWORK_ORDER>(range.size(),buf);
             for(const auto& item:range){
                 err = serialize<NETWORK_ORDER>(item,buf);
-                if(!err)
+                if(err==SerializationEC::NONE)
                     continue;
                 else
                     return err;
@@ -611,8 +626,4 @@ namespace serialization{
 
         return (((result_code = deserialize_field(args))==SerializationEC::NONE) && ...);
     }
-}
-
-bool operator!(serialization::SerializationEC code){
-    return code==serialization::SerializationEC::NONE;
 }

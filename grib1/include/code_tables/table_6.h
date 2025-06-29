@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 enum RepresentationType{
     LAT_LON_GRID_EQUIDIST_CYLINDR = 0,
@@ -24,7 +25,8 @@ enum RepresentationType{
     STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS=SPHERICAL_HARMONIC_COEFFICIENTS+\
                                                         ROTATED_LAT_LON+\
                                                         STRETCHED_LAT_LON,
-    SPACE_VIEW=90 //22
+    SPACE_VIEW=90, //22
+    UNDEF_GRID = UINT8_MAX
 };
 
 constexpr bool is_representation[255]={

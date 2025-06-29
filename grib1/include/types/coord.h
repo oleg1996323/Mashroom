@@ -7,8 +7,8 @@ typedef float Lon;
 
 struct Coord
 {
-    Lat lat_ = -999;
-    Lon lon_ = -999;
+    Lat lat_ = -999.;
+    Lon lon_ = -999.;
 
     bool is_correct_pos() const{
         if(lon_>=0 && lon_<=180 && lat_<=90 && lat_>=-90)

@@ -7,116 +7,12 @@
 #include "def.h"
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"
+#include "grid_additional.h"
 
 namespace grid{
-/// @brief Parameter specifying grid modifications (stretching,rotation)
-enum class GridModification{
-	NONE,
-	ROTATION,
-	STRETCHING,
-	ROTATION_STRETCHING
-};
 
 template<RepresentationType REP_T> struct GridDefinition;
 template<RepresentationType REP_T> struct GridBase;
-
-template<RepresentationType REP_T, GridModification MOD>
-struct GridAdditional;
-
-template<RepresentationType REP_T>
-struct GridAdditional<REP_T,GridModification::NONE>{
-	constexpr static size_t serial_size(){
-		return 0;
-	}
-	constexpr static size_t section_size(){
-        return 0;
-    }
-	constexpr static size_t begin_byte();
-
-	bool operator==(const GridAdditional<REP_T,GridModification::NONE>& other) const{
-		return true;
-	}
-    GridAdditional(unsigned char*){}
-};
-
-template<RepresentationType REP_T>
-struct GridAdditional<REP_T,GridModification::ROTATION>{
-	/// @brief Latitude of the southern pole in millidegrees (integer)
-    float yp;
-    /// @brief Longitude of the southern pole in millidegrees (integer)
-    float xp;
-    /// @brief Angle of rotation (represented in the same way as the reference value) (ibmfloat)
-    double ang;
-	
-	GridAdditional(unsigned char* buffer):
-	yp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
-    xp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
-    ang(ibm2flt(&buffer[begin_byte()+6])){}
-
-	constexpr static size_t serial_size(){
-		return sizeof(yp)+sizeof(xp)+sizeof(ang);
-	}
-	constexpr static size_t section_size(){
-        return 10;
-    }
-	constexpr static size_t begin_byte();
-
-	bool operator==(const GridAdditional<REP_T,GridModification::ROTATION>& other) const{
-		return yp==other.yp && xp == other.xp && ang == other.ang;
-	}
-};
-
-template<RepresentationType REP_T>
-struct GridAdditional<REP_T,GridModification::STRETCHING>{
-	/// @brief Latitude of pole of stretching in millidegrees (integer)
-	float ysp;
-    /// @brief Longitude of pole of stretching in millidegrees (integer)
-    float xsp;
-    /// @brief Stretching factor (representation as for the reference value) (ibmfloat)
-    double s_factor;
-	GridAdditional(unsigned char* buffer):
-	ysp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
-    xsp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
-    s_factor(ibm2flt(&buffer[begin_byte()+6])){}
-
-	constexpr static size_t serial_size(){
-		return sizeof(ysp)+sizeof(xsp)+sizeof(s_factor);
-	}
-	constexpr static size_t section_size(){
-        return 10;
-    }
-	constexpr static size_t begin_byte();
-
-	bool operator==(const GridAdditional<REP_T,GridModification::STRETCHING>& other) const{
-		return ysp==other.ysp && xsp == other.xsp && s_factor == other.s_factor;
-	}
-};
-
-template<RepresentationType REP_T>
-struct GridAdditional<REP_T,GridModification::ROTATION_STRETCHING>{
-	GridAdditional<REP_T,GridModification::ROTATION> rot_;
-    GridAdditional<REP_T,GridModification::STRETCHING> stretch_;
-	GridAdditional(unsigned char* buffer):
-	rot_(buffer),stretch_(buffer){}
-
-	constexpr static size_t section_size(){
-        return GridAdditional<REP_T,GridModification::ROTATION>::section_size()+
-		GridAdditional<REP_T,GridModification::STRETCHING>::section_size();
-    }
-	constexpr static size_t serial_size(){
-		return GridAdditional<REP_T,GridModification::ROTATION>::serial_size()+
-		GridAdditional<REP_T,GridModification::STRETCHING>::serial_size();
-	}
-	constexpr static size_t begin_byte();
-	bool operator==(const GridAdditional<REP_T,GridModification::ROTATION_STRETCHING>& other) const{
-		return 	stretch_.ysp==other.stretch_.ysp && 
-				stretch_.xsp == other.stretch_.xsp && 
-				stretch_.s_factor == other.stretch_.s_factor && 
-				rot_.yp==other.rot_.yp && 
-				rot_.xp == other.rot_.xp && 
-				rot_.ang == other.rot_.ang;
-	}
-};
 
 template<>
 struct GridBase<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
@@ -141,11 +37,6 @@ struct GridBase<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
     /// @brief Resolution and component flags (see Code table 7)
     ResolutionComponentFlags resolutionAndComponentFlags;
 
-    constexpr static size_t serial_size(){
-        return  sizeof(y1)+sizeof(x1)+sizeof(y2)+sizeof(x2)+
-                sizeof(ny)+sizeof(nx)+sizeof(dx)+
-                sizeof(dy)+sizeof(scan_mode)+sizeof(resolutionAndComponentFlags);
-    }
     /// @brief Full size of grid information section (including reserved bytes)
     /// @return unsigned long
     /// @attention Including reserved bytes
@@ -205,11 +96,6 @@ struct GridBase<RepresentationType::GAUSSIAN>{
     /// @brief Resolution and component flags (see Code table 7)
     ResolutionComponentFlags resolutionAndComponentFlags = {};
 
-    constexpr static size_t serial_size(){
-        return  sizeof(y1)+sizeof(x1)+sizeof(y2)+sizeof(x2)+
-                sizeof(ny)+sizeof(nx)+sizeof(directionIncrement)+
-                sizeof(N)+sizeof(scan_mode)+sizeof(resolutionAndComponentFlags);
-    }
     /// @brief Full size of grid information section (including reserved bytes)
     /// @return unsigned long
     /// @attention Including reserved bytes
@@ -292,12 +178,6 @@ struct GridBase<RepresentationType::ALBERS_EQUAL_AREA>{
     /// @brief byte 17: Resolution and component flags (see Code table 7)
     ResolutionComponentFlags resolutionAndComponentFlags = {};
 
-    constexpr static uint8_t serial_size(){
-        return sizeof(x1)+sizeof(y1)+sizeof(nx)+sizeof(ny)+sizeof(LoV)+sizeof(Dx)+
-                sizeof(Dy)+sizeof(is_south_pole)+sizeof(is_bipolar)+sizeof(latin1)+
-                sizeof(latin2)+sizeof(scan_mode)+sizeof(resolutionAndComponentFlags)+
-                sizeof(longitude_south_pole)+sizeof(latitude_south_pole);
-    }
     constexpr static size_t section_size(){
         return 36; //including reserved
     }
@@ -679,14 +559,7 @@ struct GridBase<MERCATOR>{
     float dy;
     /// @brief bytes 32-34: Dj latitudinal direction grid length (see Note (2))
     float dx;
-
-    /// @brief Full buffer size after serialization of GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>
-    /// @return uint8_t
-    constexpr static uint8_t serial_size(){
-        return sizeof(nx)+sizeof(ny)+sizeof(y1)+sizeof(x1)+sizeof(resolutionAndComponentFlags)+
-        sizeof(dx)+sizeof(dy)+sizeof(y2)+sizeof(x2)+sizeof(scan_mode)+
-        sizeof(latin);
-    }
+    
     /// @brief Full size of grid information section (including reserved bytes)
     /// @return unsigned long
     /// @attention Including reserved bytes
@@ -725,6 +598,54 @@ struct GridBase<MERCATOR>{
     dx(GDS_Merc_dx(buffer)){}
 };
 
+template<>
+struct GridBase<GNOMONIC>{
+    constexpr static size_t section_size(){
+        return 0;
+    }
+    constexpr static uint8_t begin_byte(){
+        return 6;
+    }
+
+    bool operator==(const GridBase& other) const{
+        return true;
+    }
+
+    GridBase(unsigned char* buffer){}
+};
+
+template<>
+struct GridBase<MILLERS_CYLINDR>{
+    constexpr static size_t section_size(){
+        return 0;
+    }
+    constexpr static uint8_t begin_byte(){
+        return 6;
+    }
+
+    bool operator==(const GridBase& other) const{
+        return true;
+    }
+
+    GridBase(unsigned char* buffer){}
+};
+
+template<>
+struct GridBase<SIMPLE_POLYCONIC>{
+    constexpr static size_t section_size(){
+        return 0;
+    }
+    constexpr static uint8_t begin_byte(){
+        return 6;
+    }
+
+    bool operator==(const GridBase& other) const{
+        return true;
+    }
+
+    GridBase(unsigned char* buffer){}
+};
+
 template<RepresentationType REP_T,GridModification MOD>
 struct GridDefinitionBase{
     constexpr static RepresentationType type(){
@@ -733,17 +654,13 @@ struct GridDefinitionBase{
     constexpr static GridModification modification(){
         return MOD;
     }
+    constexpr static RepresentationType rep_t = REP_T;
 	GridBase<REP_T> base_;
 	GridAdditional<REP_T,MOD> additional_;
 	bool operator==(const GridDefinitionBase<REP_T,MOD>& other) const{
 		return base_==other.base_ && additional_==other.additional_;
 	}
 
-	/// @brief Full buffer size after serialization of GridDefinitionImpl
-    /// @return uint8_t
-    constexpr static uint8_t serial_size(){
-        return sizeof(decltype(type()))+decltype(base_)::serial_size() + decltype(additional_)::serial_size();
-    }
     /// @brief Full size of grid information section (including reserved bytes)
     /// @return unsigned long
     /// @attention Including reserved bytes
@@ -779,4 +696,87 @@ constexpr size_t GridAdditional<REP_T,GridModification::ROTATION_STRETCHING>::be
     return 	GridBase<REP_T>::begin_byte()+
             GridBase<REP_T>::section_size();
 }
+}
+
+
+namespace serialization{
+    template<bool NETWORK_ORDER,RepresentationType REP,grid::GridModification MOD>
+    struct Serialize<NETWORK_ORDER,grid::GridDefinitionBase<REP,MOD>>{
+        using type = grid::GridDefinitionBase<REP,MOD>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
+        }
+    };
+
+    template<bool NETWORK_ORDER,RepresentationType REP,grid::GridModification MOD>
+    struct Deserialize<NETWORK_ORDER,grid::GridDefinitionBase<REP,MOD>>{
+        using type = grid::GridDefinitionBase<REP,MOD>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP,grid::GridModification MOD>
+    struct Serial_size<grid::GridDefinitionBase<REP,MOD>>{
+        using type = grid::GridDefinitionBase<REP,MOD>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP,grid::GridModification MOD>
+    struct Min_serial_size<grid::GridDefinitionBase<REP,MOD>>{
+        using type = grid::GridDefinitionBase<REP,MOD>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP,grid::GridModification MOD>
+    struct Max_serial_size<grid::GridDefinitionBase<REP,MOD>>{
+        using type = grid::GridDefinitionBase<REP,MOD>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.base_,msg.additional_);
+        }
+    };
+
+    template<bool NETWORK_ORDER,RepresentationType REP>
+    struct Serialize<NETWORK_ORDER,grid::GridDefinition<REP>>{
+        using type = grid::GridDefinition<REP>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
+        }
+    };
+
+    template<bool NETWORK_ORDER,RepresentationType REP>
+    struct Deserialize<NETWORK_ORDER,grid::GridDefinition<REP>>{
+        using type = grid::GridDefinition<REP>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP>
+    struct Serial_size<grid::GridDefinition<REP>>{
+        using type = grid::GridDefinition<REP>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP>
+    struct Min_serial_size<grid::GridDefinition<REP>>{
+        using type = grid::GridDefinition<REP>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.base_,msg.additional_);
+        }
+    };
+
+    template<RepresentationType REP>
+    struct Max_serial_size<grid::GridDefinition<REP>>{
+        using type = grid::GridDefinition<REP>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.base_,msg.additional_);
+        }
+    };
 }

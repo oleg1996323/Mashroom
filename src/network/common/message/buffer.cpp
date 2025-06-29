@@ -15,5 +15,7 @@ namespace network{
     std::vector<char>& __MessageBuffer__::__buffer__() const{
         return CashedData::get(this);
     }
-    
+    __MessageBuffer__::~__MessageBuffer__(){
+        CashedData::erase(this);
+    }
 }

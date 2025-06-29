@@ -1,74 +1,49 @@
 #include "network/server/connection_process.h"
 #include "network/server.h"
+#include "extract.h"
+#include "capitalize.h"
 
 using namespace network::connection;
-Process<Server>::Process(int connection_socket,const ConnectionPool& pool, size_t buffer_sz):
-
-                    buffer_([buffer_sz]()->
-                    std::vector<char>
-                    {
-                        std::vector<char> res;
-                        res.resize(buffer_sz);
-                        return res;
-                    }()),
+Process<Server>::Process(int connection_socket,const ConnectionPool& pool):
                     pool_(pool),
-                    connection_socket_(connection_socket){}
+                    sock_(connection_socket){}
 Process<Server>::Process(Process&& other):pool_(other.pool_){
     if(this!=&other){
-        buffer_.swap(other.buffer_);
         thread_.swap(other.thread_);
-        std::swap(connection_socket_,other.connection_socket_);
+        std::swap(sock_,other.sock_);
     }
 }
 Process<Server>::~Process(){
     if(thread_.joinable())
         thread_.join();
     if(is_connected()){
-        ::close(connection_socket_);
+        ::close(sock_);
     }
 }
-void Process<Server>::set_buffer_size(size_t sz){
-    buffer_.resize(sz);
-}
-void Process<Server>::__send_error_and_close_connection__(ErrorCode err, const char* message) const{
+ErrorCode Process<Server>::__send_error_and_close_connection__(ErrorCode err, const char* message) const{
     Message<Server_MsgT::ERROR> msg_err;
-    fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)|SOCK_NONBLOCK);
-    // if(msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
-    //     struct pollfd pfd = {.fd=connection_socket_,.events=POLLOUT,.revents=0};
-    //     int poll_return = poll(&pfd,1,1000);
-    //     if(poll_return>0 && (pfd.revents&POLLOUT)){
-    //         msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK);
-    //     }
-    // }
-    ::close(connection_socket_);
-    return;
-}
-void Process<Server>::__send_error_and_continue__(ErrorCode err,const char* message) const{
-    Message<Server_MsgT::ERROR> msg_err;
-    fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)|SOCK_NONBLOCK);
-    // if(msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
-    //     struct pollfd pfd = {.fd=connection_socket_,.events=POLLOUT,.revents=0};
-    //     int poll_return = poll(&pfd,1,1000);
-    //     if(poll_return>0 && (pfd.revents&POLLOUT)){
-    //         msg_err.sendto(connection_socket_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK);
-    //     }
-    // }
-    fcntl(connection_socket_,F_SETFL,fcntl(connection_socket_, F_GETFL, 0)^SOCK_NONBLOCK);
-    return;
-}
-ErrorCode Process<Server>::__read_rest_data_at_error__(Client_MsgT::type msg) const{
-    size_t to_read=0;
-    while (to_read<client::sizes_msg_struct[(int)msg]-1)
-    {
-        // if(int readed = recv(this->connection_socket_,&buffer_,client::sizes_msg_struct[(int)msg-1],MSG_DONTWAIT)==-1){
-        //     Message<Server_MsgT::ERROR> msg_err;
-        //     fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
-        //     msg_err.sendto(connection_socket_,ErrorCode::RECEIVING_MESSAGE_ERROR,ErrorPrint::message(ErrorCode::RECEIVING_MESSAGE_ERROR,strerror(errno)));
-        //     ::close(connection_socket_);
-        //     return ErrorCode::INTERNAL_ERROR;
-        // }
-        // else to_read+=readed;
+    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
+    if(err = mprocess_.send_message<Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+        close();
+        return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
     }
+    close();
+    return ErrorCode::NONE;
+}
+ErrorCode Process<Server>::__send_error_and_continue__(ErrorCode err,const char* message) const{
+    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
+    if(err = mprocess_.send_message<Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+        close();
+        return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
+    }
+    // if(msg_err.sendto(sock_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
+    //     struct pollfd pfd = {.fd=sock_,.events=POLLOUT,.revents=0};
+    //     int poll_return = poll(&pfd,1,1000);
+    //     if(poll_return>0 && (pfd.revents&POLLOUT)){
+    //         msg_err.sendto(sock_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK);
+    //     }
+    // }
+    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)^SOCK_NONBLOCK);
     return ErrorCode::NONE;
 }
 bool Process<Server>::__check_and_notify_if_server_inaccessible__() const{
@@ -81,111 +56,111 @@ bool Process<Server>::__check_and_notify_if_server_inaccessible__() const{
 ErrorCode Process<Server>::execute() const{
     busy_ = true;
     bool heavy = false;
-    Client_MsgT::type msg_t;
-    if(recv(this->connection_socket_,&msg_t,sizeof(msg_t),MSG_DONTWAIT)==-1){
-        // Message<Server_MsgT::ERROR> msg_err;
-        // fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
-        // msg_err.sendto(connection_socket_,ErrorCode::RECEIVING_MESSAGE_ERROR,ErrorPrint::message(ErrorCode::RECEIVING_MESSAGE_ERROR,strerror(errno)));
-        // ::close(connection_socket_);
-        // busy_=false;
-        // return ErrorCode::INTERNAL_ERROR;
+    ErrorCode err_ = mprocess_.receive_any_message(sock_);
+    auto msg_type = mprocess_.received_message_type();
+    if(err_!=ErrorCode::NONE || !msg_type.has_value()){
+        return __send_error_and_continue__(err_,"");
     }
-    switch(msg_t){
-        case Client_MsgT::DATA_REQUEST:{
-            if(__check_and_notify_if_server_inaccessible__()){
-                ErrorCode err = __read_rest_data_at_error__(msg_t);
-                busy_=false;
-                if(err !=ErrorCode::NONE)
-                    return err;
-                else
-                    return ErrorCode::INVALID_CLIENT_REQUEST;
-            }
-            heavy = true;
-        }
-        default:{
-            __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
-            return ErrorCode::INVALID_CLIENT_REQUEST;
+    else{
+        switch (msg_type.value())
+        {
+        case Client_MsgT::CAPITALIZE:
+            
+        break;
+        case Client_MsgT::CAPITALIZE_REF:
+
+        break;
+        case Client_MsgT::DATA_REQUEST:
+                    
+        break;
+        case Client_MsgT::SERVER_STATUS:
+
+        break;
+        case Client_MsgT::TRANSACTION:
+            
+        break;
+        default:
+            break;
         }
     }
     assert(busy_);
     if(heavy==true){
-        ErrorCode err = __execute_heavy_process__(msg_t);
+        ErrorCode err = __execute_heavy_process__(msg_type.value());
         busy_=false;
         return err;
     }
     else{
-        ErrorCode err = __execute_light_process__(msg_t);
+        ErrorCode err = __execute_light_process__(msg_type.value());
         busy_=false;
         return err;
     }
 }
 ErrorCode Process<Server>::__execute_heavy_process__(Client_MsgT::type msg_t) const{
-    size_t to_read = 0;
-    // while (to_read<client::sizes_msg_struct[(int)msg_t]-1)
-    // {
-    //     if(int readed = recv(this->connection_socket_,buffer_.data(),client::sizes_msg_struct[(int)msg_t],0)==-1){
-    //         Message<Server_MsgT::ERROR> msg_err;
-    //         fcntl(connection_socket_,F_SETFL,SOCK_NONBLOCK);
-    //         msg_err.sendto(connection_socket_,ErrorCode::RECEIVING_MESSAGE_ERROR,ErrorPrint::message(ErrorCode::RECEIVING_MESSAGE_ERROR,strerror(errno)));
-    //         ::close(connection_socket_);
-    //         return ErrorCode::INTERNAL_ERROR;
-    //     }
-    //     else to_read+=readed;
-    // }
-    // thread_ = std::move(std::jthread([this,msg_t](){
-    //     ErrorCode err;
-    //     switch(msg_t){
-    //         case Client_MsgT::DATA_REQUEST:{
-    //             client::Message<Client_MsgT::DATA_REQUEST> msg;
-    //             Extract hExtract = msg.prepare_and_check_integrity_extractor(err);
-    //             if(err!=ErrorCode::NONE){
-    //                 __send_error_and_continue__(err,"");
-    //                 break;
-    //             }
-    //             else err = hExtract.execute(); //get output directory
-    //             if(err!=ErrorCode::NONE){
-    //                 __send_error_and_continue__(err,"");
-    //                 break;
-    //             }
-    //             if(!fs::is_directory(hExtract.out_path()) && !fs::is_regular_file(hExtract.out_path())){ //must be directory|regular file (tmp (temporary) in case of internet transaction)
-    //                 __send_error_and_close_connection__(ErrorCode::INTERNAL_ERROR,"Something went wrong (server side)");
-    //                 err = ErrorCode::INTERNAL_ERROR;
-    //                 break;
-    //             }
-    //             else {
-    //                 Message<Server_MsgT::DATA_REPLY_FILEINFO> reply_msg;
-    //                 if(fs::is_regular_file(hExtract.out_path())){
-    //                     translating_.wait(false);
-    //                     if(!reply_msg.sendto(connection_socket_,hExtract.out_path())){
-    //                         __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"meteo request");
-    //                         err = ErrorCode::SENDING_MESSAGE_ERROR;
-    //                         translating_=false;
-    //                         break;
-    //                     }
-    //                     translating_ = false;
-    //                 }
-    //                 else{
-    //                     translating_.wait(false);
-    //                     for(fs::directory_entry entry:fs::directory_iterator(hExtract.out_path()))
-    //                         if(!reply_msg.sendto(connection_socket_,entry.path())){
-    //                             __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"meteo request");
-    //                             err = ErrorCode::SENDING_MESSAGE_ERROR;
-    //                             translating_=false;
-    //                             break;
-    //                         }
-    //                     translating_=false;
-    //                 }
-    //             }
-    //             break;
-    //         }
-    //         default:{
-    //             __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
-    //             err = ErrorCode::INVALID_CLIENT_REQUEST;
-    //             break;
-    //         }
-    //     }
-    //     return err;
-    // }));
+    thread_ = std::move(std::jthread([this,msg_t](){
+        ErrorCode err;
+        switch(msg_t){
+            case Client_MsgT::DATA_REQUEST:{
+                Message<Client_MsgT::DATA_REQUEST> msg;
+                Extract hExtract;
+                //hExtract.set_by_request();
+                if(err!=ErrorCode::NONE){
+                    __send_error_and_continue__(err,"");
+                    break;
+                }
+                else err = hExtract.execute(); //get output directory
+                if(err!=ErrorCode::NONE){
+                    __send_error_and_continue__(err,"");
+                    break;
+                }
+                if(!fs::is_directory(hExtract.out_path()) && !fs::is_regular_file(hExtract.out_path())){ //must be directory|regular file (tmp (temporary) in case of internet transaction)
+                    __send_error_and_close_connection__(ErrorCode::INTERNAL_ERROR,"Something went wrong (server side)");
+                    err = ErrorCode::INTERNAL_ERROR;
+                    break;
+                }
+                else {
+                    if(fs::is_regular_file(hExtract.out_path())){
+                        if(fs::file_size(hExtract.out_path())==0)
+                            return __send_error_and_continue__(ErrorCode::DATA_NOT_FOUND,"");
+                        else{
+                            if(err = mprocess_.send_message<Server_MsgT::DATA_REPLY_FILEINFO>(sock_,pool_.server_status(),hExtract.out_path(),0,fs::file_size(hExtract.out_path())); err!=ErrorCode::NONE)
+                                __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"");
+                            return err;
+                            if(err = mprocess_.receive_message<Client_MsgT::TRANSACTION>(sock_);err!=ErrorCode::NONE){
+                                __send_error_and_continue__(ErrorCode::RECEIVING_MESSAGE_ERROR,"");
+                                return err;
+                            }
+                            auto& msg = mprocess_.get_received_message<Client_MsgT::TRANSACTION>().value().get();
+                            if(msg.additional().op_status_!=Transaction::ACCEPT)
+                                return ErrorPrint::print_error(ErrorCode::TRANSACTION_REFUSED,"",AT_ERROR_ACTION::CONTINUE);
+                            else return ErrorCode::NONE;
+                        }
+                    }
+                    else{
+                        __send_error_and_continue__(ErrorCode::SERVER_ERROR,"");
+                        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,hExtract.out_path().string());
+                    }
+                    // else{
+                    //     translating_.wait(false);
+                    //     for(fs::directory_entry entry:fs::directory_iterator(hExtract.out_path()))
+                    //         if(!reply_msg.sendto(sock_,entry.path())){
+                    //             __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"meteo request");
+                    //             err = ErrorCode::SENDING_MESSAGE_ERROR;
+                    //             translating_=false;
+                    //             break;
+                    //         }
+                    //     translating_=false;
+                    // }
+                }
+                break;
+            }
+            default:{
+                __send_error_and_close_connection__(ErrorCode::INVALID_CLIENT_REQUEST,"Unknown request");
+                err = ErrorCode::INVALID_CLIENT_REQUEST;
+                break;
+            }
+        }
+        return err;
+    }));
     return ErrorCode::NONE;
 }
 ErrorCode Process<Server>::__execute_light_process__(Client_MsgT::type msg_t) const{
@@ -198,20 +173,20 @@ ErrorCode Process<Server>::__execute_light_process__(Client_MsgT::type msg_t) co
 }
 ErrorCode Process<Server>::send_status_message(server::Status status) const{
     translating_ = true;
-    Message<Server_MsgT::SERVER_STATUS> msg(status);
-    bool res = msg.sendto(connection_socket_);
+    if(ErrorCode err = mprocess_.send_message<Server_MsgT::SERVER_STATUS>(sock_,pool_.server_status());err!=ErrorCode::NONE){
+        __send_error_and_continue__(ErrorCode::SERVER_ERROR,"");
+        return err;
+    }
     translating_ = false;
-    if(!res)
-        return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-    else return ErrorCode::NONE;
+    return ErrorCode::NONE;
 }
 int Process<Server>::socket() const{
-    return connection_socket_;
+    return sock_;
 }
 bool Process<Server>::is_connected() const{
     int error = 0;
     socklen_t len = sizeof(error);
-    int ret = getsockopt(connection_socket_,SOL_SOCKET,SO_ERROR,&error,&len);
+    int ret = getsockopt(sock_,SOL_SOCKET,SO_ERROR,&error,&len);
     if(ret!=0 || error!=0)
         return false;
     return true;

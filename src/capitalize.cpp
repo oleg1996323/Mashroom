@@ -147,7 +147,7 @@ void Capitalize::execute(){
 				__capitalize_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
-				hProgram->request(path.path_,network::Message<network::Client_MsgT::CAPITALIZE>{});
+				hProgram->request<network::Client_MsgT::CAPITALIZE>(path.path_);
 		}
 		
 	}
