@@ -17,7 +17,7 @@ GribDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
-std::pair<uint64_t,units::Information::type> max_cap_sz_ = {std::numeric_limits<uint64_t>::max(),units::Information::type::TERABYTE};
+units::information::gigabytes file_sz_limits_{std::numeric_limits<int32_t>::max()};
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
 bool host_ref_only = false;
@@ -63,7 +63,7 @@ void set_host_ref_only(){
 /**
  * @brief Sets the maximum allowed size when receiving part of data remotely via a host.
  */
-void set_max_cap_size(uint64_t sz,Units<Units_t::InformationSize>::type info_unit){
+void set_max_cap_size(units::Information auto info_unit){
     if(sz=0)
         return;
     else max_cap_sz_.first = sz;
