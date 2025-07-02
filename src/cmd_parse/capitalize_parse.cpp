@@ -83,7 +83,7 @@ ErrorCode capitalize_parse(const std::vector<std::string_view>& input){
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected unsigned number and data unit (B,KB,MB,GB,TB). Example, 1000MB",
                                         AT_ERROR_ACTION::CONTINUE,input[i]);
                 std::optional<uint64_t> sz_possible = from_chars<uint64_t>(std::string_view(input[i].begin(),info_sz_unit),err);
-                units::information:: units;
+                units::Information auto units;
                 if(units = translate_from_txt<units::Information::type>(std::string_view(info_sz_unit,input[i].end()));static_cast<int>(units)==-1)
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"expected unsigned number and data unit (B,KB,MB,GB,TB). Example, 1000MB",
                                         AT_ERROR_ACTION::CONTINUE,std::string_view(info_sz_unit,input[i].end()));
