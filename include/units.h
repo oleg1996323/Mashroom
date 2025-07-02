@@ -5,25 +5,49 @@
 #include <string>
 #include <ratio>
 #include <array>
+#include <tuple>
+#include <limits>
 
 enum class UnitsDomain{
-    InformationSize
+    InformationSize,
+    Time,
+    Length,
+    Mass,
+    Derivative
 };
 
+consteval size_t consthash(std::string_view sv){
+    size_t hash = std::numeric_limits<uint64_t>::max();
+    for (char c : sv) {
+        hash ^= static_cast<uint64_t>(c);
+        hash *= std::numeric_limits<uint32_t>::max();
+    }
+    return hash;
+}
+
 using Units_t = UnitsDomain;
+
+template<Units_t DOM,int COUNT>
+struct UnitDomainCount{
+    constexpr static Units_t domain = DOM;
+    constexpr static int count = COUNT;
+};
+
+template<Units_t DOM,int COUNT1,int COUNT2>
+constexpr UnitDomainCount<DOM,COUNT1-COUNT2> operator-(UnitDomainCount<DOM,COUNT1>,UnitDomainCount<DOM,COUNT2>){
+    return UnitDomainCount<DOM,COUNT1-COUNT2>();
+}
+
+template<Units_t DOM,int COUNT1,int COUNT2>
+constexpr UnitDomainCount<DOM,COUNT1+COUNT2> operator+(UnitDomainCount<DOM,COUNT1>,UnitDomainCount<DOM,COUNT2>){
+    return UnitDomainCount<DOM,COUNT1+COUNT2>();
+}
 
 template<Units_t T>
 struct UnitsInfo;
 
 template<>
 struct UnitsInfo<Units_t::InformationSize>{
-    enum type:uint8_t{
-        BYTE,
-        KILOBYTE,
-        MEGABYTE,
-        GIGABYTE,
-        TERABYTE
-    };
     static constexpr std::array<const char*,5> abbr = {
         "B",
         "KB",
@@ -39,39 +63,75 @@ struct UnitsInfo<Units_t::InformationSize>{
         "gigabytes",
         "terabytes"
     };
+
+    enum type:size_t{
+        BYTE,
+        KILOBYTE,
+        MEGABYTE,
+        GIGABYTE,
+        TERABYTE
+    };
 };
 
-template<Units_t TYPE,auto UNIT_ENUM,intmax_t NUM,intmax_t DEN=1>
-requires std::is_same_v<typename UnitsInfo<TYPE>::type,decltype(UNIT_ENUM)>
+template<template <auto> typename UNITS_INFO,Units_t DOMAIN>
+consteval bool is_correct_enum(typename UNITS_INFO<DOMAIN>::type enum_val){
+    return true;
+}
+
+template<template <auto> typename UNITS_INFO,Units_t DOMAIN>
+consteval bool is_derivated(typename UNITS_INFO<DOMAIN>::type enum_val){
+    if constexpr (DOMAIN==Units_t::Derivative)
+        return true;
+    else return false;
+}
+
+//todo make tuple checking
+template<template <auto> typename UNITS_INFO,Units_t DOMAIN>
+consteval bool is_pure(typename UNITS_INFO<DOMAIN>::type enum_val){
+    if constexpr (DOMAIN==Units_t::Derivative)
+        return true;
+    else return false;
+}
+
+template<template<typename...> typename TUPLE1,template<typename...> typename TUPLE2,typename... UNIT_DOM_COUNT1,typename... UNIT_DOM_COUNT2>
+consteval auto operator/(const TUPLE1<UNIT_DOM_COUNT1...>& tuple1,const TUPLE2<UNIT_DOM_COUNT2...>& tuple2){
+    return std::tuple<UNIT_DOM_COUNT1-UNIT_DOM_COUNT2,...>;
+}
+
+template<intmax_t NUM,intmax_t DEN,auto UNIT_ENUM>
+requires (is_correct_enum(UNIT_ENUM) && !is_derivated(UNIT_ENUM) && DEN!=0)
 struct Unit final{
     using ratio = std::ratio<NUM,DEN>;
     using info = UnitsInfo<TYPE>;
+
     static_assert(std::is_same_v<decltype(UNIT_ENUM),info::type>);
     static_assert(std::is_enum_v<UNIT_ENUM>);
-    double val_;
+    double val_ = 0;
     explicit Unit(double val):val_(val){}
-    template<Units_t TYPE_OTHER,auto ENUM_OTHER,intmax_t NUM_OTHER,intmax_t DEN_OTHER>
-    Unit(Unit<TYPE_OTHER,ENUM_OTHER,NUM_OTHER,DEN_OTHER> other){
+    template<intmax_t NUM_OTHER,intmax_t DEN_OTHER,auto ENUM_OTHER>
+    requires (ENUM_OTHER==UNIT_ENUM)
+    Unit(Unit<NUM_OTHER,DEN_OTHER,TYPE,ENUM_OTHER> other){
         using OTHER_ratio = typename decltype(other)::ratio;
-        static_assert(TYPE==TYPE_OTHER,"Unable convert different unit domains.");
-        if constexpr (std::is_same_v<decltype(UNIT_ENUM), decltype(ENUM_OTHER)>) {
-            val_ = other.val_*OTHER_ratio::num/OTHER_ratio::den*ratio::den/ratio::num;
-        } else {
-            static_assert(false, "Incompatible unit types");
-        }
+        val_ = other.val_*OTHER_ratio::num/OTHER_ratio::den*ratio::den/ratio::num;
     }
 
-    template<Units_t TYPE_OTHER,auto ENUM_OTHER,intmax_t NUM_OTHER,intmax_t DEN_OTHER>
-    Unit& operator=(Unit<TYPE_OTHER,ENUM_OTHER,NUM_OTHER,DEN_OTHER> other){
+    template<intmax_t NUM_OTHER,intmax_t DEN_OTHER,auto ENUM_OTHER>
+    requires (ENUM_OTHER==UNIT_ENUM)
+    Unit operator=(Unit<NUM_OTHER,DEN_OTHER,TYPE,ENUM_OTHER> other){
         using OTHER_ratio = typename decltype(other)::ratio;
-        static_assert(TYPE==TYPE_OTHER,"Unable convert different unit domains.");
-        if constexpr (std::is_same_v<decltype(UNIT_ENUM), decltype(ENUM_OTHER)>) {
-            val_ = other.val_*OTHER_ratio::num/OTHER_ratio::den*ratio::den/ratio::num;
-        } else {
-            static_assert(false, "Incompatible unit types");
-        }
+        val_ = other.val_*OTHER_ratio::num/OTHER_ratio::den*ratio::den/ratio::num;
         return *this;
     }
+
+    template<intmax_t NUM_OTHER,intmax_t DEN_OTHER,auto ENUM_OTHER>
+    std::conditional_t<ENUM_OTHER==UNIT_ENUM,
+    Unit<NUM_OTHER/NUM,DEN/DEN_OTHER,
+     operator/(Unit<NUM_OTHER,DEN_OTHER,TYPE,ENUM_OTHER> other){
+        using OTHER_ratio = typename decltype(other)::ratio;
+        val_ = other.val_*OTHER_ratio::num/OTHER_ratio::den*ratio::den/ratio::num;
+        return *this;
+    }
+
     constexpr static std::string_view name() noexcept{
         if constexpr(UNIT_ENUM<info::name.size())
             return std::string_view(info::name[UNIT_ENUM]);
@@ -90,9 +150,8 @@ struct Unit final{
     constexpr static const char* c_abbreviation() noexcept{
         if constexpr(UNIT_ENUM<info::abbr.size())
             return info::abbr[UNIT_ENUM];
-        else return ""
+        else return ""std::get_time()
     }
-    
 };
 
 namespace units{
