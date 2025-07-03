@@ -351,34 +351,14 @@ using level_value_t = std::variant<std::monostate,
                                     quantity<vorticity_t>>;
 
 inline std::ostream& operator<<(std::ostream& stream,const level_value_t& val){
-    switch (val.index())
+    auto print = [&stream](auto&& item)->std::ostream&
     {
-    case 0:
-        return stream<<"NaN";
-        break;
-    case 1:
-        stream<<std::get<1>(val);
-        break;
-    case 2:
-        stream<<std::get<2>(val);
-        break;
-    case 3:
-        stream<<std::get<3>(val);
-        break;
-    case 4:
-        stream<<std::get<4>(val);
-        break;
-    case 5:
-        stream<<std::get<5>(val);
-        break;
-    case 6:
-        stream<<std::get<6>(val);
-        break;
-    default:
-        break;
-    }
-    
-    return stream;
+        if constexpr (!std::is_same_v<decltype(item),std::monostate>)
+            stream<<item;
+        else stream<<"NaN";
+        return stream;
+    };
+    return std::visit(print,val);
 }
 
 template<uint8_t>
@@ -661,8 +641,6 @@ inline level_value_t convert_level<12>(LevelsTags octet_10,int16_t octet_value){
         }
     }
 }
-
-
 
 struct Level{
     level_value_t octet_11;

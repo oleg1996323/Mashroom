@@ -7,7 +7,11 @@
 #include "data/info.h"
 #include "message.h"
 #include <path_process.h>
-#include <units.h>
+#include <boost/units/systems/information/byte.hpp>
+#include <boost/units/systems/information/nat.hpp>
+
+using info_units = boost::units::information::hu::byte::info;
+using info_quantity = boost::units::quantity<info_units>;
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -17,7 +21,7 @@ GribDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
-units::information::gigabytes file_sz_limits_{std::numeric_limits<int32_t>::max()};
+info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<int32_t>::max())*info_units{};
 int cpus = 1;
 DataFormat output_format_ = DataFormat::NONE;
 bool host_ref_only = false;
@@ -63,10 +67,9 @@ void set_host_ref_only(){
 /**
  * @brief Sets the maximum allowed size when receiving part of data remotely via a host.
  */
-void set_max_cap_size(units::Information auto info_unit){
-    if(sz=0)
+void set_max_cap_size(const info_quantity& info_sz){
+    if(info_sz.value()==0)
         return;
-    else max_cap_sz_.first = sz;
-    max_cap_sz_.second = info_unit;
+    else file_sz_limits_ = info_sz;
 }
 };
