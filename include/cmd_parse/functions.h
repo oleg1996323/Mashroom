@@ -24,8 +24,18 @@ std::optional<T> from_chars(std::string_view s,ErrorCode& err, Args... args) noe
     return number;
 }
 std::string get_string_mode(MODE mode);
-std::vector<std::string> split(const std::string& str,const char* delim) noexcept;
-std::vector<std::string_view> split(std::string_view str,const char* delim) noexcept;
+template<typename T>
+std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
+    std::vector<T> result;
+    size_t beg_pos = 0;
+    size_t pos = 0;
+    while(pos!=std::string::npos){
+        pos = str.find_first_of(delimiter,beg_pos);
+        result.push_back(str.substr(beg_pos,pos-beg_pos));
+        beg_pos=pos+1;
+    }
+    return result;
+}
 std::optional<TimeOffset> get_time_offset_from_token(std::string_view token, ErrorCode& err);
 std::optional<utc_tp> get_date_from_token(std::string_view token,ErrorCode& err);
 std::vector<SearchParamTableVersion> post_parsing_parameters_aliases_def(Organization center,const std::vector<std::pair<uint8_t,std::string_view>>& alias_params_by_tab_ver,std::set<int>& error_pos);

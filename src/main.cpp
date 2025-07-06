@@ -19,12 +19,12 @@ int main(int argc, char* argv[]){
         std::cout<<"Invalid args. Abort."<<std::endl;
         exit(1);
     }
-    if(argc==2 && std::string_view(argv[1])=="launch"){
+    if(argc==2 && std::string_view(argv[1],std::strlen(argv[1])+1)=="launch"){
         hProgram = std::make_unique<Mashroom>(Mashroom());
         while(hProgram->read_command(std::cin)){}
     }
     else{
-        std::vector<std::string_view> commands;
+        std::vector<const char*> commands;
         commands.reserve(argc);
 
         for (int i = 1; i < argc; ++i) {

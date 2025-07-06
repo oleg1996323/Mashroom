@@ -107,9 +107,6 @@ struct std::equal_to<network::server::Config>{
     bool operator()(std::string_view lhs,const network::server::Config& rhs) const{
         return lhs==rhs.name_;
     }
-    bool operator()(std::string_view lhs,network::server::Config&& rhs) const{
-        return lhs==rhs.name_;
-    }
 };
 
 template<>
@@ -168,6 +165,7 @@ class Config{
     bool add_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool add_user_config(const std::string& name,const std::vector<std::string>& commands);
     bool add_server_config(network::server::Config&&);
+    bool setup_server_config(network::server::Config&&);
     bool change_user_config(std::string_view name,const std::vector<std::string_view>& commands);
     bool change_user_config(const std::string& name,const std::vector<std::string>& commands);
     bool remove_user_config(const std::string& name);
@@ -187,9 +185,8 @@ class Config{
     bool has_server_config(const std::string& name) const{
         return server_configs_.contains(name);
     }
-    bool set_current_server_config(std::string_view name) const;
-    bool set_current_server_config(const std::string& name) const;
-    bool set_current_server_config(network::server::Config&& config);
+    bool set_current_server_config(std::string_view name) const noexcept;
+    bool set_current_server_config(const std::string& name) const noexcept;
     const std::unordered_map<std::string,std::vector<std::string>> get_user_configs() const;
     const std::vector<std::string>& get_user_config(const std::string& name) const;
     const std::vector<std::string>& get_user_config(std::string_view name) const;

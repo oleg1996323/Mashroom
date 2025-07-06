@@ -200,6 +200,13 @@ bool Config::add_server_config(network::server::Config&& set){
     }
     return false;
 }
+bool Config::setup_server_config(network::server::Config&& set){
+    if(server_configs_.contains(set) && set){
+        server_configs_.insert(std::move(set));
+        return true;
+    }
+    return false;
+}
 bool Config::remove_server_config(std::string_view name){
     if(name=="default")
         return false;
@@ -265,12 +272,12 @@ bool Config::set_current_server_config(std::string_view name) const{
     }
     return false;
 }
-bool Config::set_current_server_config(const std::string& name) const{
+bool Config::set_current_server_config(const std::string& name) const noexcept{
     return set_current_server_config(std::string_view(name));
 }
-bool Config::set_current_server_config(network::server::Config&& config){
-    if(config){
-        server_configs_.insert(std::move(config));
+bool Config::set_current_server_config(std::string_view name) const noexcept{
+    if(server_configs_.contains(name)){
+        server_config_ = *server_configs_.find(name);
         return true;
     }
     return false;

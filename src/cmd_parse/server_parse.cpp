@@ -3,228 +3,156 @@
 #include <sys/application.h>
 #include <sys/config.h>
 #include <sys/log_err.h>
+#include <boost/program_options.hpp>
+
+
 
 using namespace translate::token;
 
-ErrorCode server_settings_parse(std::string_view key, std::string_view arg,network::server::Settings& set){
-    ErrorCode err;
-    switch(translate_from_txt<ServerConfigCommands>(key)){
-        case ServerConfigCommands::HOST:{
-            std::string arg_string;
-            arg_string = arg;
-            if(network::is_correct_address(arg))
-                set.host=arg;
-            else return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,arg);
-            break;
-        }
-        case ServerConfigCommands::SERVICE:{
-            std::vector<std::string_view> servname_protocol = split(arg,":");
-            if(servname_protocol.empty()){
-                err=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"service definition error",AT_ERROR_ACTION::CONTINUE,arg);
-                return err;
+namespace parse{
+    ErrorCode add_addresses(const std::vector<std::string>& addrs,network::server::Config& config) noexcept{
+        for(auto addr : addrs){
+            {
+                sockaddr_in tmp;
+                int res = inet_pton(AF_INET,addr.data(),&tmp);
+                if(res>0)
+                    config.accepted_addresses_.insert(std::string(addr));
             }
-            else if(servname_protocol.size()==1){
-                std::string service;
-                service = servname_protocol.front();
-                auto serv =getservbyname(service.c_str(),NULL);
-                if(!serv){
-                    std::optional<short> port = from_chars<short>(arg,err);
-                    if(!port.has_value() || err!=ErrorCode::NONE){
-                        err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"service definition",AT_ERROR_ACTION::CONTINUE,arg);
-                        return err;
-                    }
-                }
-                else{
-                    set.service=arg;
-                    set.protocol=serv->s_proto;
-                    break;
-                }
+            {
+                sockaddr_in6 tmp;
+                int res = inet_pton(AF_INET6,addr.data(),&tmp);
+                if(res>0)
+                    config.accepted_addresses_.insert(std::string(addr));
+                else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"invalid address",AT_ERROR_ACTION::CONTINUE,addr);
             }
-            else if(servname_protocol.size()==2){
-                std::string service;
-                service = servname_protocol.front();
-                std::string protocol;
-                protocol = servname_protocol.back();
-                auto serv =getservbyname(service.c_str(),protocol.c_str());
-                if(!serv){
-                    err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"service definition",AT_ERROR_ACTION::CONTINUE,arg);
-                    return err;
-                }
-                else{
-                    set.service=arg;
-                    set.protocol=serv->s_proto;
-                    break;
-                }
-            }
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"incorrect port",AT_ERROR_ACTION::CONTINUE,arg);
-            break;
         }
-        case ServerConfigCommands::PORT:{
-            std::optional<short> port = from_chars<short>(arg,err);
-            if(!port.has_value() || err!=ErrorCode::NONE){
-                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition",AT_ERROR_ACTION::CONTINUE,arg);
-                return err;
-            }
-            else set.port = arg;
-            break;
-        }
-        case ServerConfigCommands::TIMEOUT:{
-            auto timeout = from_chars<int>(arg,err);
-            if(!timeout.has_value() || err!=ErrorCode::NONE || timeout.value()<network::server::min_timeout_seconds)
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"timeout definition",AT_ERROR_ACTION::CONTINUE,arg);
-            else set.timeout_seconds_ = timeout.value();
-            break;
-        }
-        case ServerConfigCommands::PROTOCOL:{
-            if(!getprotobyname(std::string(arg).c_str())){
-                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"protocol definition",AT_ERROR_ACTION::CONTINUE,arg);
-                return err; 
-            }
-            else set.protocol = arg;
-            break;
-        }
-        default:{
-            err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined server setting argument",AT_ERROR_ACTION::CONTINUE,arg);
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode add_notifier(const std::vector<std::string>& input) noexcept{
+        auto actions = ServerAction::instance().descriptor();
+        actions.add(ServerConfig::instance().descriptor());
+        ErrorCode err = ServerConfig::instance().parse(input);
+        if(err!=ErrorCode::NONE){
+            ServerConfig::config().reset();
             return err;
         }
+        else if(!Application::config().add_server_config(std::move(*ServerConfig::config().release())))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config already exists",AT_ERROR_ACTION::CONTINUE,input);
+        else return ErrorCode::NONE;
     }
-    return err;
-}
 
-ErrorCode server_parse(const std::vector<std::string_view>& input){
-    std::vector<std::string_view> commands_saved;
-    std::string_view config_name;
-    ErrorCode err = ErrorCode::NONE; 
-    switch(translate_from_txt<ServerAction>(input.at(0))){
-        case ServerAction::ADD:{
-            network::server::Config config;
-            err = server_config(std::vector<std::string_view>(input.begin()+1,input.end()),config);
-            if(err!=ErrorCode::NONE)
-                return err;
-            else Application::config().add_server_config(std::move(config));
-            break;
+    ErrorCode setup_notifier(const std::vector<std::string>& input) noexcept{
+        auto actions = ServerAction::instance().descriptor();
+        actions.add(ServerConfig::instance().descriptor());
+        ErrorCode err = ServerConfig::instance().parse(input);
+        if(err!=ErrorCode::NONE){
+            ServerConfig::config().reset();
+            return err;
         }
-        case ServerAction::SET:{
-            if(input.size()<2){
-                err=ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"not defined server config name",AT_ERROR_ACTION::CONTINUE);
-                return err;
-            }
-            if(input.size()>2){
-                err=ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                return err;
-            }
-            if(!Application::config().set_current_server_config(input.at(1))){
-                err=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config name don't exists",AT_ERROR_ACTION::CONTINUE,input.at(1));
-                return err;
-            }
-            break;
+        else if(!Application::config().setup_server_config(std::move(*ServerConfig::config().release())))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config doesn't exists",AT_ERROR_ACTION::CONTINUE,input);
+        else return ErrorCode::NONE;
+    }
+
+    ErrorCode set_notifier(const std::string& input) noexcept{
+        if(!Application::config().set_current_server_config(input))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config name don't exists",AT_ERROR_ACTION::CONTINUE,input);
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode remove_notifier(const std::vector<std::string>& input) noexcept{
+        if(input.empty())
+            return ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server config name must be indicated",AT_ERROR_ACTION::CONTINUE);
+        if(std::count(input.begin(),input.end(),"default")!=0)
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (indicated \"default\")",AT_ERROR_ACTION::CONTINUE,input.at(1));
+        for(std::string_view conf_name:input){
+            if(!Application::config().remove_server_config(input.at(1)))
+                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (config don't exists)",AT_ERROR_ACTION::CONTINUE,input.at(1));
         }
-        case ServerAction::REMOVE:
-            if(input.size()>1){
-                if(input.size()>2){
-                    err = ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"only server config name must be indicated",AT_ERROR_ACTION::CONTINUE);
-                    return err;
-                }
-                else
-                    if(!Application::config().remove_server_config(input.at(1))){
-                        err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (indicated \"default\" or config don't exists)",AT_ERROR_ACTION::CONTINUE,input.at(1));
-                        return err;
-                    }
-            }
-            else {
-                err = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server config name must be indicated",AT_ERROR_ACTION::CONTINUE);
-                return err;
-            }
-            break;
-        case ServerAction::LAUNCH:
-            if(hProgram)
+    }
+    ErrorCode launch_notifier(const std::string& name) noexcept{
+        if(hProgram){
+            if(name.empty())
                 hProgram->launch_server();
-            break;
-        case ServerAction::SHUTDOWN:
-            break;
-        case ServerAction::CLOSE:
-            if(hProgram)
-                hProgram->close_server();
-            break;
-        case ServerAction::COLLAPSE:
-            if(hProgram)
-                hProgram->collapse_server();
-            break;
-        case ServerAction::GET_CURRENT_CONFIG:
-            Application::config().get_current_server_config().print_server_config(std::cout);
-            break;
-        default:
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined server mode argument",AT_ERROR_ACTION::CONTINUE,input.at(0));
+            else{
+                if(!Application::config().set_current_server_config(name))
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (config don't exists)",AT_ERROR_ACTION::CONTINUE,name);
+            }
+        }
+        else return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"errorness program initialization. Could not launch server",AT_ERROR_ACTION::ABORT);
+        return ErrorCode::NONE;
     }
-    return err;
-}
 
-ErrorCode server_config(const std::vector<std::string_view>& input,network::server::Config& config){
-    ErrorCode err = ErrorCode::NONE;
-    int i=0;
-    if(input.size()>1){
-        if(translate_from_txt<ServerConfigCommands>(input.at(i))!=ServerConfigCommands::NAME){
-            err=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server adding config. Must be \"-name <config-name>\"",AT_ERROR_ACTION::CONTINUE,input.at(i));
-            return err;
+    ErrorCode shutdown_notifier(bool wait) noexcept{
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode closing_notifier(bool wait) noexcept{
+        if(hProgram)
+            hProgram->close_server(wait);
+        else return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Nothing to close",AT_ERROR_ACTION::CONTINUE);
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode get_current_config() noexcept{
+        Application::config().get_current_server_config().print_server_config(std::cout);
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode host_notifier(const std::string& input,network::server::Settings& set) noexcept{   
+        if(network::is_correct_address(input)){
+            set.host=input;
+            return ErrorCode::NONE;
         }
-        else{
-            ++i;
-            config.name_ = input.at(i++);
-            assert(!config.name_.contains(' '));
+        else return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,input);
+    }
+
+    ErrorCode port_notifier(int input,network::server::Settings& set) noexcept{
+        if(!input<1024 || input>std::numeric_limits<uint16_t>::max())
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition. Must be bigger than 1024",AT_ERROR_ACTION::CONTINUE,input);
+        return ErrorCode::NONE;
+    }
+
+    ErrorCode timeout_notifier(int timeout,network::server::Settings& set) noexcept{
+        if(timeout<0)
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"timeout definition",AT_ERROR_ACTION::CONTINUE,timeout);
+        else set.timeout_seconds_ = timeout;
+    }
+
+    ErrorCode protocol_notifier(const std::string& input,network::server::Settings& set) noexcept{
+        if(!getprotobyname(input.c_str()))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"protocol definition",AT_ERROR_ACTION::CONTINUE,input);
+        else set.protocol = input;
+    }
+
+    ErrorCode ServerConfig::__parse__(const std::vector<std::string>& args) noexcept{
+        ErrorCode err_;
+        po::variables_map vm;
+        auto parse_result = try_parse(descriptor(),args);
+        if(!parse_result.has_value())
+            return parse_result.error();
+        err_ = try_notify(vm);
+        if(err_!=ErrorCode::NONE)
+            return err_;
+        config()->name_ = vm.at("name").as<std::string>();
+
+        err_ = host_notifier(vm.at("host").as<std::string>(),config()->settings_);
+        if(err_!=ErrorCode::NONE)
+            return err_;
+        if(vm.contains("accepted-addresses")){
+            err_=add_addresses(vm.at("accepted-addresses").as<std::vector<std::string>>(),*config());
         }
-    }
-    else{
-        err = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server adding config",AT_ERROR_ACTION::CONTINUE);
-        return err;
-    }
-    for(;i<input.size()-1;++i){
-        switch(translate_from_txt<ServerConfigCommands>(input.at(i++))){
-            case ServerConfigCommands::ACCEPTED_ADDRESSES:{
-                if(input.at(i).starts_with("[") && input.at(i).ends_with("]")){
-                    std::vector<std::string_view> addresses = split(input.at(i),";");
-                    for(auto addr : addresses){
-                        {
-                            sockaddr_in tmp;
-                            int res = inet_pton(AF_INET,input.at(i).data(),&tmp);
-                            if(res>0){
-                                config.accepted_addresses_.insert(std::string(addr));
-                                break;
-                            }
-                        }
-                        {
-                            sockaddr_in6 tmp;
-                            int res = inet_pton(AF_INET6,input.at(i).data(),&tmp);
-                            if(res>0){
-                                config.accepted_addresses_.insert(std::string(addr));
-                                break;
-                            }
-                        }
-                    }
-                }
-                else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"accepted addresses",AT_ERROR_ACTION::CONTINUE,input.at(i));
-                break;
-            }
-            case ServerConfigCommands::HOST:
-            case ServerConfigCommands::PORT:
-            case ServerConfigCommands::SERVICE:
-            case ServerConfigCommands::TIMEOUT:
-            case ServerConfigCommands::PROTOCOL:
-                err = server_settings_parse(input.at(i-1),input.at(i),config.settings_);
-                if(err!=ErrorCode::NONE)
-                    return err;
-                break;
-            case ServerConfigCommands::NAME:{
-                err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server adding config. Name already defined",AT_ERROR_ACTION::CONTINUE,input.at(i-1));
-                return err;
-            }
-            default:
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined server config argument",AT_ERROR_ACTION::CONTINUE,input.at(2));
+
+        err_ = port_notifier(vm.at("port").as<int>(),config()->settings_);
+        if(err_!=ErrorCode::NONE)
+            return err_;
+
+        if(vm.contains("timeout")){
+            err_=timeout_notifier(vm.at("timeout").as<int>(),config()->settings_);
+            if(err_!=ErrorCode::NONE)
+                return err_;
         }
+        return ErrorCode::NONE;
     }
-    if(!config){
-        err = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server adding config. Not full config settings definition",AT_ERROR_ACTION::CONTINUE);
-        return err;
-    }
-    return err;
 }

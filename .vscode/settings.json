@@ -122,7 +122,8 @@
         "without structs": "cpp",
         "error_print.h": "c",
         "table_4.h": "c",
-        "table_0.h": "c"
+        "table_0.h": "c",
+        "strstream": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.errorSquiggles": "enabled"

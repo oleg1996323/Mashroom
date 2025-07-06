@@ -86,7 +86,7 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
 }
 
-ErrorCode Mashroom::read_command(const std::vector<std::string_view>& argv){
+ErrorCode Mashroom::read_command(const std::vector<const char*>& argv){
     if(argv.size()<1){
         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Haven't arguments",AT_ERROR_ACTION::CONTINUE,"");
         return ErrorCode::COMMAND_INPUT_X1_ERROR;
@@ -163,15 +163,15 @@ ErrorCode Mashroom::read_command(const std::vector<std::string_view>& argv){
             case translate::token::ModeArgs::SERVER:
                 if(arguments.empty())
                     return ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server mode",AT_ERROR_ACTION::CONTINUE);
-                return server_parse(arguments);
+                return parse::ServerAction::parse(arguments);
                 break;
             default:{
-                if(Application::config().has_config_name(argv.at(0))){
+                if(Application::config().has_config_name(std::string_view(argv.at(0)))){
                     if(argv.size()>1){
                         ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE,argv.at(1));
                         return ErrorCode::TO_MANY_ARGUMENTS;
                     }
-                    return read_command(Application::config().get_user_config(argv.at(0))|std::ranges::views::transform([](auto& str){
+                    return read_command(Application::config().get_user_config(std::string_view(argv.at(0)))|std::ranges::views::transform([](auto& str){
                         return std::string_view(str);
                     })|std::ranges::to<std::vector<std::string_view>>());
                 }
@@ -191,8 +191,7 @@ bool Mashroom::read_command(std::istream& stream){
     std::cout.flush();
     if (!std::getline(stream, line))
         return false;
-    std::string_view view(line);
-    std::vector<std::string_view> commands=split(view," ");
+    std::vector<const char*> commands=split<const char*>(line," ");
     read_command(commands);
     return true;
 }
