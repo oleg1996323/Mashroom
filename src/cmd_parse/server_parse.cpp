@@ -1,10 +1,8 @@
-#include <cmd_parse/server_parse.h>
-#include <functions.h>
-#include <sys/application.h>
-#include <sys/config.h>
-#include <sys/log_err.h>
+#include "cmd_parse/server_parse.h"
+#include "functions.h"
+#include "sys/application.h"
 #include <boost/program_options.hpp>
-
+#include "program/mashroom.h"
 
 
 using namespace translate::token;
@@ -30,8 +28,6 @@ namespace parse{
     }
 
     ErrorCode add_notifier(const std::vector<std::string>& input) noexcept{
-        auto actions = ServerAction::instance().descriptor();
-        actions.add(ServerConfig::instance().descriptor());
         ErrorCode err = ServerConfig::instance().parse(input);
         if(err!=ErrorCode::NONE){
             ServerConfig::config().reset();
@@ -43,8 +39,6 @@ namespace parse{
     }
 
     ErrorCode setup_notifier(const std::vector<std::string>& input) noexcept{
-        auto actions = ServerAction::instance().descriptor();
-        actions.add(ServerConfig::instance().descriptor());
         ErrorCode err = ServerConfig::instance().parse(input);
         if(err!=ErrorCode::NONE){
             ServerConfig::config().reset();
@@ -126,15 +120,8 @@ namespace parse{
         else set.protocol = input;
     }
 
-    ErrorCode ServerConfig::__parse__(const std::vector<std::string>& args) noexcept{
-        ErrorCode err_;
-        po::variables_map vm;
-        auto parse_result = try_parse(descriptor(),args);
-        if(!parse_result.has_value())
-            return parse_result.error();
-        err_ = try_notify(vm);
-        if(err_!=ErrorCode::NONE)
-            return err_;
+    ErrorCode ServerConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+        config() = std::make_unique<network::server::Config>();
         config()->name_ = vm.at("name").as<std::string>();
 
         err_ = host_notifier(vm.at("host").as<std::string>(),config()->settings_);

@@ -8,6 +8,7 @@
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "functions.h"
+#include <boost/program_options.hpp>
 
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
@@ -100,5 +101,39 @@ namespace parse{
                 return unit.value()*static_cast<double>(size.value());
             }
         }
+    }
+}
+
+#include <boost/regex.hpp>
+
+using namespace std;
+
+void boost::program_options::validate(boost::any& v,
+              const std::vector<std::string>& values,
+              info_quantity* target_type, int)
+{
+    static regex r("^(-?(0|[1-9][0-9]*)(\\.[0-9]+)?)[ ]*([a-zA-Z]+)$");
+    using namespace boost::program_options;
+
+    // Make sure no previous assignment to 'a' was made.
+    validators::check_first_occurrence(v);
+    // Extract the first string from 'values'. If there is more than
+    // one string, it's an error, and exception will be thrown.
+    const string& s = validators::get_single_string(values);
+
+    // Do regex match and convert the interesting part to
+    // int.
+    smatch match;
+    if (regex_match(s, match, r)) {
+        auto sz_res = parse::info_size(lexical_cast<std::string_view>(match[1]));
+        if(sz_res.has_value()){
+            auto unit_res = parse::info_size_unit(lexical_cast<std::string_view>(match[4]));
+            if(unit_res.has_value())
+                v = any(unit_res.value()*sz_res.value());
+            else throw validation_error(validation_error::invalid_option_value);
+        }
+        else throw validation_error(validation_error::invalid_option_value);
+    } else {
+        throw validation_error(validation_error::invalid_option_value);
     }
 }

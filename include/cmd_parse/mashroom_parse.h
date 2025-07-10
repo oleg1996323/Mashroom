@@ -7,67 +7,79 @@
 #include "cmd_parse/contains_parse.h"
 #include "cmd_parse/functions.h"
 #include "cmd_parse/server_parse.h"
+#include "sys/error_code.h"
+#include "sys/error_print.h"
 #include <boost/program_options.hpp>
+#include "program/mashroom.h"
 
 namespace parse{
     namespace po = boost::program_options;
-    class Mashroom:BaseParser<parse::Mashroom>{
+    ErrorCode extract_notifier(const std::vector<std::string>& input) noexcept{
+        Extract::instance().parse(input);
+    }
+    ErrorCode capitalize_notifier(const std::vector<std::string>& input) noexcept{
+        return Capitalize::instance().parse(input);
+    }
+    ErrorCode integrity_notifier(const std::vector<std::string>& input) noexcept{
+        return Integrity::instance().parse(input);
+    }
+    ErrorCode contains_notifier(const std::vector<std::string>& input) noexcept{
+        return Contains::instance().parse(input);
+    }
+    ErrorCode config_notifier(const std::vector<std::string>& input) noexcept{
+        return Config::instance().parse(input);
+    }
+    ErrorCode save_notifier() noexcept{
+        if(!hProgram->save())
+            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"saving failed",AT_ERROR_ACTION::CONTINUE);
+        return ErrorCode::NONE;
+    }
+    ErrorCode exit_notifier(const std::string& input) noexcept{
+        if(input=="save")
+            hProgram->save();
+        exit(0);
+    }
+
+    class Mashroom:public BaseParser<parse::Mashroom>{
         Mashroom():BaseParser("Mashroom options:"){}
 
-        virtual void __init__() noexcept override final{
+        virtual void init() noexcept override final{
             descriptor_.add_options()
-            ("extract","Extract specified data.")
-            ("capitalize","Read specified files and register the contained data properties and data positions")
-            ("integrity","Check the integrity (dimensional and temporal) of capitalized data")
-            ("contains","Check if capitalized data contains the data specified by properties")
-            ("config","Permits to configure the program or server")
+            ("extract",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = extract_notifier(items);
+            }),"Extract specified data.")
+            ("capitalize",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = capitalize_notifier(items);
+            }),"Read specified files and register the contained data properties and data positions")
+            ("integrity",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = integrity_notifier(items);
+            }),"Check the integrity (dimensional and temporal) of capitalized data")
+            ("contains",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = contains_notifier(items);
+            }),"Check if capitalized data contains the data specified by properties")
+            ("config",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = config_notifier(items);
+            }),"Permits to configure the program or server")
             ("save","Save the current instance")
-            ("help","Show help")
-            ("exit","Exit from program");
+            ("help",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& items){
+                err_ = Contains::instance().parse(items);
+            }),"Show help")
+            ("exit",po::value<std::string>()->implicit_value("save")->notifier([this](const std::string& item){
+                err_ = exit_notifier(item);
+            }),"Exit from program");
             define_uniques();
         }
-        virtual ErrorCode __parse__(const std::vector<std::string>& args) noexcept override final{
-                        po::variables_map vm;
-            ErrorCode err_ = ErrorCode::NONE;
-            auto parse_result = try_parse(instance().descriptor(),args);
-            if(!parse_result.has_value())
-                return parse_result.error();
-            po::variables_map vm;
-            po::store(parse_result.value(),vm);
-            std::vector<std::string> tokens = po::collect_unrecognized(parse_result.value().options,po::collect_unrecognized_mode::include_positional);
-            auto dublicate = contains_unique_value(tokens.begin(),tokens.end(),unique_values_.begin(),unique_values_.end());
-            if(dublicate!=unique_values_.end())
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"must be unique",AT_ERROR_ACTION::CONTINUE,*dublicate);
-            if(vm.contains("extract")){
-
-            }
-            else if(vm.contains("capitalize")){
-            }
-            else if(vm.contains("integrity")){
-
-            }
-            else if(vm.contains("contains")){
-                
-            }
-            else if(vm.contains("config")){
-                
-            }
-            else if(vm.contains("save")){
-                
-            }
-            else if(vm.contains("help")){
-                
-            }
-            else if(vm.contains("exit")){
-                
+        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final{
+            if(err_!=ErrorCode::NONE)
+                return err_;
+            else if(vm.contains("save") && vm.size()==1){
+                err_ = save_notifier();
+                return err_;
             }
             else{
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,tokens.front());
+                err_=try_notify(vm);
+                return err_;
             }
-        }
-        public:
-        virtual ErrorCode parse(const std::vector<std::string>& args) noexcept override final{
-
         }
     };
 }

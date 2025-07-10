@@ -12,9 +12,9 @@ template<bool VIEW>
 struct Storage;
 template<>
 struct Storage<false>{
-    Storage(const std::string& path,TYPE type);
-    Storage(std::string&& path,TYPE type);
-    Storage(std::string_view path,TYPE type);
+    explicit Storage(const std::string& path,TYPE type);
+    explicit Storage(std::string&& path,TYPE type);
+    explicit Storage(std::string_view path,TYPE type);
     Storage(std::initializer_list<Storage<false>> list);
     Storage(const Storage<false>& other);
     Storage(const Storage<true>& other);
@@ -23,9 +23,9 @@ struct Storage<false>{
 };
 template<>
 struct Storage<true>{
-    Storage(const std::string& path,TYPE type);
-    Storage(std::string&& path,TYPE type);
-    Storage(std::string_view path,TYPE type);
+    explicit Storage(const std::string& path,TYPE type);
+    explicit Storage(std::string&& path,TYPE type);
+    explicit Storage(std::string_view path,TYPE type);
     Storage(std::initializer_list<Storage<true>> list);
     Storage(const Storage<false>& other);
     Storage(const Storage<true>& other);

@@ -27,40 +27,116 @@ enum class DataExtractMode{
 #include <boost/program_options.hpp>
 #include <vector>
 #include <expected>
+#include <functional>
 
 namespace parse{
     namespace po = boost::program_options;
+
+    namespace po = boost::program_options;
+    template<typename IterCheck,typename UniqueIter>
+    UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2){
+        bool contains_unique = false;
+        for(UniqueIter iter = unique1;iter!=unique2;++iter){
+            ptrdiff_t count = std::count(check1,check2,*iter);
+            if(count==1)
+                if(contains_unique==false)
+                    contains_unique=true;
+                else return iter;
+            else if(count>1)
+                return iter;
+            else continue;
+        }
+        return unique2;
+    }
+
+    template<typename IterCheck,typename UniqueIter,typename ConvertString>
+    UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2,ConvertString converter){
+        bool contains_unique = false;
+        for(UniqueIter iter = unique1;iter!=unique2;++iter){
+            ptrdiff_t count = std::count(check1,check2,converter(*iter));
+            if(count==1)
+                if(contains_unique==false)
+                    contains_unique=true;
+                else return iter;
+            else if(count>1)
+                return iter;
+            else continue;
+        }
+        return unique2;
+    }
 
     template<typename DerivedParser>
     class BaseParser{
         protected:
         po::options_description descriptor_;
         std::vector<std::string> unique_values_;
+        ErrorCode err_=ErrorCode::NONE;
         BaseParser(const std::string& description):descriptor_(description){
-            __init__();
+            init();
         }
         ~BaseParser() = default;
-        virtual void __init__() = 0 noexcept;
+        virtual void init() noexcept = 0 ;
 
-        virtual ErrorCode __parse__(const std::vector<std::string>& args) noexcept = 0;
+        using vars = po::variables_map;
+        
+        template<typename T>
+        void notifier(std::function<ErrorCode(T)> function){
+            err_ = function;
+        }
 
+        virtual ErrorCode execute(vars&,const std::vector<std::string>&) = 0;
+        virtual void callback() noexcept{};
         public:
 
-        static ServerAction& instance(){
+        static DerivedParser& instance() noexcept{
             static DerivedParser inst;
             return inst;
         }
 
-        const po::options_description& descriptor(){
+        const po::options_description& descriptor() noexcept{
             return descriptor_;
         }
-        virtual ErrorCode parse(const std::vector<std::string>& args) noexcept = 0;
+        ErrorCode parse(const std::vector<std::string>& args) noexcept
+        {
+            if(args.empty()){
+                err_ = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS, 
+                                            "No arguments provided",
+                                            AT_ERROR_ACTION::CONTINUE);
+                callback();
+                return err_;
+            }
 
-        void define_uniques() const{
+            auto parse_result = try_parse(instance().descriptor(),args);
+            if(!parse_result.has_value()){
+                err_ = parse_result.error();
+                callback();
+                return err_;
+            }
+            po::variables_map vm;
+            po::store(parse_result.value(),vm);
+            std::vector<std::string> tokens = po::collect_unrecognized(parse_result.value().options,po::collect_unrecognized_mode::include_positional);
+            auto dublicate = contains_unique_value(args.begin(),args.end(),unique_values_.begin(),unique_values_.end(),[](const std::string& item)
+                ->std::string_view
+            {return item.starts_with("--")?std::string_view(item).substr(2):std::string_view(item);});
+
+            if(dublicate!=unique_values_.end()){
+                err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"must be unique",AT_ERROR_ACTION::CONTINUE,*dublicate);
+                callback();
+                return err_;
+            }
+            else {
+                err_ = execute(vm,tokens);
+                callback();
+                return err_;
+            }
+        }
+
+        void define_uniques() const noexcept{
             unique_values_ = [this](){
                 std::vector<std::string> result;
                 for(auto option:descriptor_.options())
-                    result.push_back(option->long_name());
+                    if(!option->long_name().empty())
+                        result.push_back(option->long_name());
                 return result;
             }();
         }

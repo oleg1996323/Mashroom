@@ -9,7 +9,8 @@
 #include "types/coord.h"
 #include "cmd_parse/cmd_def.h"
 #include "sys/error_print.h"
-#include "capitalize.h"
+#include "types/time_interval.h"
+#include "include/def.h"
 #include <set>
 
 template <class T, class... Args>
@@ -51,7 +52,7 @@ std::optional<T> get_coord_from_token(std::string_view input, ErrorCode& err, Da
         }
         else mode = DataExtractMode::POSITION;
         Coord result;
-        std::vector<std::string_view> tokens = split(input,":");
+        std::vector<std::string_view> tokens = split<std::string_view>(input,":");
         if(!tokens.empty())
             if(tokens.size()==2){
                 auto lat = from_chars<double>(tokens[0],err);
