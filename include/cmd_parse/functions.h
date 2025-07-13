@@ -5,26 +5,39 @@
 #include <charconv>
 #include <stdexcept>
 
-#include "data/PDSdate.h"
 #include "types/coord.h"
-#include "cmd_parse/cmd_def.h"
+#include "cmd_def.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
 #include "include/def.h"
 #include <set>
+#include <type_traits>
+#include "sys/error_code.h"
+#include <expected>
 
 template <class T, class... Args>
 std::optional<T> from_chars(std::string_view s,ErrorCode& err, Args... args) noexcept{
     const char *end = s.data() + s.size();
-    T number;
-    auto result = std::from_chars(s.data(), end, number, args...);
-    if (result.ec != std::errc{} || result.ptr != end){
-        err = ErrorCode::COMMAND_INPUT_X1_ERROR;
-        return std::nullopt;
+    
+    if constexpr (std::is_enum_v<T>){
+        std::underlying_type_t<T> number;
+        auto result = std::from_chars(s.data(), end, number, args...);
+        if (result.ec != std::errc{} || result.ptr != end){
+            err = ErrorCode::COMMAND_INPUT_X1_ERROR;
+            return std::nullopt;
+        }
+        return static_cast<T>(number);
     }
-    return number;
+    else{
+        T number;
+        auto result = std::from_chars(s.data(), end, number, args...);
+        if (result.ec != std::errc{} || result.ptr != end){
+            err = ErrorCode::COMMAND_INPUT_X1_ERROR;
+            return std::nullopt;
+        }
+        return number;
+    }
 }
-std::string get_string_mode(MODE mode);
 template<typename T>
 std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
     std::vector<T> result;
@@ -32,57 +45,58 @@ std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
     size_t pos = 0;
     while(pos!=std::string::npos){
         pos = str.find_first_of(delimiter,beg_pos);
-        result.push_back(str.substr(beg_pos,pos-beg_pos));
+        result.emplace_back(str.substr(beg_pos,pos-beg_pos));
         beg_pos=pos+1;
     }
     return result;
 }
-std::optional<TimeOffset> get_time_offset_from_token(std::string_view token, ErrorCode& err);
-std::optional<utc_tp> get_date_from_token(std::string_view token,ErrorCode& err);
-std::vector<SearchParamTableVersion> post_parsing_parameters_aliases_def(Organization center,const std::vector<std::pair<uint8_t,std::string_view>>& alias_params_by_tab_ver,std::set<int>& error_pos);
 
-template<typename T>
-std::optional<T> get_coord_from_token(std::string_view input, ErrorCode& err, DataExtractMode& mode){
-    if constexpr(std::is_same_v<T,Coord>){
-        if(mode == DataExtractMode::RECT){
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "Conflict between arguments. Already choosen extraction mode by coordinate position.",
-                AT_ERROR_ACTION::ABORT,input);
-            return std::nullopt;
-        }
-        else mode = DataExtractMode::POSITION;
-        Coord result;
-        std::vector<std::string_view> tokens = split<std::string_view>(input,":");
-        if(!tokens.empty())
-            if(tokens.size()==2){
-                auto lat = from_chars<double>(tokens[0],err);
-                if(!lat.has_value())
-                    return std::nullopt;
-                auto lon = from_chars<double>(tokens[1],err);
-                if(!lon.has_value())
-                    return std::nullopt;
-                result.lat_ = lat.value();
-                result.lon_ = lon.value();
-            }
-            else{
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Error at lat-lon input",AT_ERROR_ACTION::CONTINUE,input);
-                return std::nullopt;
-            }
-        return result;
+bool case_insensitive_char_compare(char ch1,char ch2) noexcept;
+
+template<size_t NUM_ARGS>
+bool iend_with(std::string_view str,const std::array<std::string_view,NUM_ARGS>& to_match){
+    for(std::string_view possible:to_match){
+        if(str.size()<possible.size())
+            continue;
+        if(auto substr = possible.substr(str.size()-possible.size()-1);
+            std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
+            return true;
+        else continue;
     }
-    else if(std::is_same_v<T,double>){
-        if(mode == DataExtractMode::POSITION){
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "Conflict between arguments. Already choosen extraction mode by rectangle.",
-                AT_ERROR_ACTION::CONTINUE,input);
-            return std::nullopt;
-        }
-        else mode = DataExtractMode::RECT;
-        return from_chars<double>(input,err);
-    }
-    else{
-        assert(true);//incorrect type;
-    }
+    return false;
 }
 
-std::optional<Coord> get_coord_from_token(std::string_view input,ErrorCode& err);
+std::expected<boost::program_options::parsed_options,ErrorCode> try_parse(const boost::program_options::options_description& opt_desc,const std::vector<std::string>& args);
+ErrorCode try_notify(boost::program_options::variables_map& vm);
+
+template<typename IterCheck,typename UniqueIter>
+UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2){
+    bool contains_unique = false;
+    for(UniqueIter iter = unique1;iter!=unique2;++iter){
+        ptrdiff_t count = std::count(check1,check2,*iter);
+        if(count==1)
+            if(contains_unique==false)
+                contains_unique=true;
+            else return iter;
+        else if(count>1)
+            return iter;
+        else continue;
+    }
+    return unique2;
+}
+
+template<typename IterCheck,typename UniqueIter,typename ConvertString>
+UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2,ConvertString converter){
+    bool contains_unique = false;
+    for(UniqueIter iter = unique1;iter!=unique2;++iter){
+        ptrdiff_t count = std::count(check1,check2,converter(*iter));
+        if(count==1)
+            if(contains_unique==false)
+                contains_unique=true;
+            else return iter;
+        else if(count>1)
+            return iter;
+        else continue;
+    }
+    return unique2;
+}

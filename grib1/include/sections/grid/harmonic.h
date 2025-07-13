@@ -6,7 +6,6 @@
 #include "def.h"
 #include <span>
 #include "code_tables/table_10.h"
-#include "network/common/utility.h"
 #include "grid_base.h"
 
 namespace grid{
@@ -77,7 +76,7 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_C
 
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>

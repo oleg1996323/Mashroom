@@ -33,8 +33,9 @@ namespace parse{
             ServerConfig::config().reset();
             return err;
         }
-        else if(!Application::config().add_server_config(std::move(*ServerConfig::config().release())))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config already exists",AT_ERROR_ACTION::CONTINUE,input);
+        else if(std::string_view name = ServerConfig::config()->name_;
+            !Application::config().add_server_config(std::move(*ServerConfig::config().release())))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config already exists",AT_ERROR_ACTION::CONTINUE,name);
         else return ErrorCode::NONE;
     }
 
@@ -44,14 +45,16 @@ namespace parse{
             ServerConfig::config().reset();
             return err;
         }
-        else if(!Application::config().setup_server_config(std::move(*ServerConfig::config().release())))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config doesn't exists",AT_ERROR_ACTION::CONTINUE,input);
+        else if(std::string_view name = ServerConfig::config()->name_;
+            !Application::config().setup_server_config(std::move(*ServerConfig::config().release())))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config doesn't exists",AT_ERROR_ACTION::CONTINUE,name);
         else return ErrorCode::NONE;
     }
 
     ErrorCode set_notifier(const std::string& input) noexcept{
-        if(!Application::config().set_current_server_config(input))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config name don't exists",AT_ERROR_ACTION::CONTINUE,input);
+        if(std::string_view name = ServerConfig::config()->name_;
+            !Application::config().set_current_server_config(input))
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"server config name don't exists",AT_ERROR_ACTION::CONTINUE,name);
         return ErrorCode::NONE;
     }
 
@@ -141,5 +144,30 @@ namespace parse{
                 return err_;
         }
         return ErrorCode::NONE;
+    }
+
+    void ServerAction::init() noexcept{
+        descriptor_.add_options()
+                ("launch,L",po::value<std::string>()->implicit_value("")->notifier(launch_notifier),"Launch a server with named configuration or configuration which was previously set.")
+                ("shutdown,S",po::value<bool>()->default_value(true)->notifier(shutdown_notifier),"Shutdown an instance of the server with set configuration.")
+                ("close",po::value<bool>()->default_value(true)->notifier(closing_notifier),"Close a launched server instance");
+        define_uniques();
+    }
+
+    ErrorCode ServerAction::execute(vars& vm,const std::vector<std::string>& tokens) noexcept{
+        err_ = try_notify(vm);
+        if(err_!=ErrorCode::NONE)
+            return err_;
+        return ErrorCode::NONE;
+    }
+
+    void ServerConfig::init() noexcept{
+        descriptor_.add_options()
+                ("name,N",po::value<std::string>()->required(),"Name of the server configuration.")
+                ("accepted-addresses,A",po::value<std::vector<std::string>>(),"Set the accepted addresses from which the requests could be received.")
+                ("host,H",po::value<std::string>()->required(),"Sets the current host address.")
+                ("port,P",po::value<int>()->required(),"Sets the used port for server using.")
+                ("timeout,T","Sets the common timeout at transactions.")
+                ("help,h","Show help.");
     }
 }

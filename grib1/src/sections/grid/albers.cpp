@@ -2,9 +2,6 @@
 #include <sections/grid/grid.h>
 #include <format>
 #include <cassert>
-#include "network/common/utility.h"
-
-using namespace network::utility;
 
 GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}

@@ -1,5 +1,5 @@
 #include "message.h"
-#include "functional/int_pow.h"
+#include "int_pow.h"
 
 //Bit 3 is set to 1 to indicate that the original data were integers; when this is the case any non-zero reference values should be rounded to an integer value prior to placing in the GRIB BDS
 //Bit 4 is set to 1 to indicate that bits 5 to 12 are contained in octet 14 of the data section.

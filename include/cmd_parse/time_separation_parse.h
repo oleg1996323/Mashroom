@@ -16,3 +16,13 @@
 
 ErrorCode time_separation_parse(std::string_view arg, AbstractTimeSeparation& obj);
 std::string_view commands_from_time_separation(std::string_view arg,ErrorCode& err);
+
+namespace boost{
+namespace program_options{
+void validate(boost::any& v,
+              const std::vector<std::string>& values,
+              utc_tp* target_type, int);
+}
+template<>
+utc_tp lexical_cast(const std::string& input);
+}

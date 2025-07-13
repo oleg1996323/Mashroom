@@ -3,29 +3,32 @@
 #include <string>
 #include <string_view>
 #include "sys/error_code.h"
-
-ErrorCode extract_parse(const std::vector<std::string_view>& input);
-std::vector<std::string_view> commands_from_extract_parse(const std::vector<std::string_view>& input,ErrorCode& err);
-
 #include "cmd_parse/cmd_def.h"
 #include "cmd_parse/search_process_parse.h"
+#include "extract.h"
+#include "cmd_parse/time_separation_parse.h"
+#include "cmd_parse/out_format_parse.h"
 namespace parse{
-    class Extract:public BaseParser<parse::Extract>{
-        Extract():BaseParser("Capitalize options:"){}
+    class Extract:public AbstractCLIParser<parse::Extract>{
+        friend AbstractCLIParser;
+        std::unique_ptr<::Extract> hExtract;
+        Extract():AbstractCLIParser("Extract options:"){}
 
-        virtual void __init__() noexcept override final{
+        virtual void init() noexcept override final{
             descriptor_.add_options()
-            ("extoutfmt","")
-            ("extti","");
+            ("ext-out-format",po::value<::Extract::ExtractFormat>()->notifier([this](::Extract::ExtractFormat input){
+                hExtract->set_output_format(input);
+            }),"")
+            ("ext-time-interval",po::value<std::string>()->notifier([this](const std::string& input){
+                err_ = time_separation_parse(input,*hExtract);
+            }),"");
             define_uniques();
-            descriptor_.add(SearchProcess::instance().descriptor());
+            //descriptor_.add(SearchProcess::instance().descriptor());
         }
-        virtual ErrorCode __parse__(const std::vector<std::string>& args) noexcept override final{
-
+        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final{
+            hExtract = std::make_unique<::Extract>();
+            err_ = try_notify(vm);
         }
         public:
-        virtual ErrorCode parse(const std::vector<std::string>& args) noexcept override final{
-            
-        }
     };
 }

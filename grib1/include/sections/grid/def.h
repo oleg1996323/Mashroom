@@ -2,7 +2,7 @@
 #include "code_tables/table_6.h"
 #include "code_tables/table_7.h"
 #include "code_tables/table_8.h"
-#include "grib1/include/functional/byte_read.h"
+#include "byte_read.h"
 #include "types/coord.h"
 
 namespace grid{
@@ -451,7 +451,7 @@ struct GridDefinition;
 
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
 	template<bool NETWORK_ORDER>

@@ -2,13 +2,7 @@
 #include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <cmd_parse/server_parse.h>
-#include <cmd_parse/capitalize_parse.h>
-#include <cmd_parse/integrity_parse.h>
-#include <cmd_parse/extract_parse.h>
-#include <cmd_parse/config_parse.h>
-#include <cmd_parse/cmd_translator.h>
-#include <cmd_parse/functions.h>
+#include <cmd_parse/mashroom_parse.h>
 #include <network/server.h>
 #include <sys/config.h>
 #include <sys/log_err.h>
@@ -86,102 +80,8 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
 }
 
-ErrorCode Mashroom::read_command(const std::vector<const char*>& argv){
-    if(argv.size()<1){
-        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Haven't arguments",AT_ERROR_ACTION::CONTINUE,"");
-        return ErrorCode::COMMAND_INPUT_X1_ERROR;
-    }
-    std::vector<std::string_view> arguments;
-    ErrorCode err;
-    if(argv.size()>1)
-        arguments.append_range(std::vector<std::string_view>(argv.begin()+1,argv.end()));
-    {
-        switch(translate_from_txt<translate::token::ModeArgs>(argv.at(0))){
-            case translate::token::ModeArgs::CAPITALIZE:
-                if(arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_FEW_ARGUMENTS;
-                }
-                return capitalize_parse(arguments);
-                break;
-            case translate::token::ModeArgs::EXTRACT:
-                if(arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_FEW_ARGUMENTS;
-                }
-                return extract_parse(arguments);
-                break;
-            case translate::token::ModeArgs::INTEGRITY:
-                if(arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_FEW_ARGUMENTS;
-                }
-                return integrity_parse(arguments);
-                break;
-            case translate::token::ModeArgs::CONTAINS:
-                if(arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_FEW_ARGUMENTS;
-                }
-                //TODO
-                break;
-            case translate::token::ModeArgs::CONFIG:
-                if(arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_FEW_ARGUMENTS;
-                }
-                return config_parse(arguments);
-                break;
-            case translate::token::ModeArgs::HELP:
-                if(arguments.size()>1){
-                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_MANY_ARGUMENTS;
-                }
-                else if(arguments.size()==1){
-                    //help(*mode*)
-                }
-                else
-                    help();
-                break;
-            case translate::token::ModeArgs::SAVE:
-                if(!arguments.empty()){
-                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                    return ErrorCode::TO_MANY_ARGUMENTS;
-                }
-                if(!hProgram || !hProgram->save()){
-                    ErrorPrint::print_error(ErrorCode::IGNORING_VALUE_X1,"Nothing to save",AT_ERROR_ACTION::CONTINUE,argv.at(0));
-                    return ErrorCode::IGNORING_VALUE_X1;
-                }
-                break;
-            case translate::token::ModeArgs::EXIT:
-                if(argv.size()>1){
-                    ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE,argv.at(1));
-                    return ErrorCode::TO_MANY_ARGUMENTS;
-                }
-                exit(0);
-                break;
-            case translate::token::ModeArgs::SERVER:
-                if(arguments.empty())
-                    return ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,"server mode",AT_ERROR_ACTION::CONTINUE);
-                return parse::ServerAction::parse(arguments);
-                break;
-            default:{
-                if(Application::config().has_config_name(std::string_view(argv.at(0)))){
-                    if(argv.size()>1){
-                        ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE,argv.at(1));
-                        return ErrorCode::TO_MANY_ARGUMENTS;
-                    }
-                    return read_command(Application::config().get_user_config(std::string_view(argv.at(0)))|std::ranges::views::transform([](auto& str){
-                        return std::string_view(str);
-                    })|std::ranges::to<std::vector<std::string_view>>());
-                }
-                else{
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,argv.at(0));
-                    return ErrorCode::COMMAND_INPUT_X1_ERROR;
-                }
-            }
-        }
-    }  
+ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
+    parse::Mashroom::instance().parse(argv);
     return ErrorCode::NONE;
 }
 
@@ -191,7 +91,7 @@ bool Mashroom::read_command(std::istream& stream){
     std::cout.flush();
     if (!std::getline(stream, line))
         return false;
-    std::vector<const char*> commands=split<const char*>(line," ");
+    std::vector<std::string> commands=split<std::string>(line," ");
     read_command(commands);
     return true;
 }

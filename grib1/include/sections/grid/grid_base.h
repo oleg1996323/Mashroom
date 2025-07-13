@@ -2,8 +2,7 @@
 #include <vector>
 #include <span>
 #include <cinttypes>
-#include "network/common/utility.h"
-#include "functional/ibmtofloat.h"
+#include "ibmtofloat.h"
 #include "def.h"
 #include "code_tables/table_8.h"
 #include "code_tables/table_7.h"

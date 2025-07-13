@@ -3,6 +3,7 @@
 #include <expected>
 #include <boost/units/systems/information.hpp>
 #include <boost/units/systems/information/byte.hpp>
+#include <boost/units/quantity.hpp>
 #include <algorithm>
 #include <array>
 #include "sys/error_code.h"
@@ -16,124 +17,29 @@ using info_quantity = boost::units::quantity<info_units>;
 namespace parse{
 
     namespace detail{
-        bool case_insensitive_char_compare(char ch1,char ch2) noexcept{
-            return std::toupper(ch1)==std::toupper(ch2);
-        }
-
-        template<size_t NUM_ARGS>
-        bool iend_with(std::string_view str,const std::array<std::string_view,NUM_ARGS>& to_match){
-            for(std::string_view possible:to_match){
-                if(str.size()<possible.size())
-                    continue;
-                if(auto substr = possible.substr(str.size()-possible.size()-1);
-                    std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
-                    return true;
-                else continue;
-            }
-            return false;
-        }
-
-        bool is_byte(std::string_view str){
-            constexpr std::array<std::string_view,3> to_match = {"b","byte","bytes"};
-            return iend_with(str,to_match);
-        }
-        bool is_kilobyte(std::string_view str){
-            constexpr std::array<std::string_view,3> to_match = {"kb","kilobyte","kilobytes"};
-            return iend_with(str,to_match);
-        }
-        bool is_megabyte(std::string_view str){
-            constexpr std::array<std::string_view,3> to_match = {"mb","megabyte","megabytes"};
-            return iend_with(str,to_match);
-        }
-        bool is_gigabyte(std::string_view str){
-            constexpr std::array<std::string_view,3> to_match = {"gb","gigabyte","gigabytes"};
-            return iend_with(str,to_match);
-        }
-        bool is_terabyte(std::string_view str){
-            constexpr std::array<std::string_view,3> to_match = {"tb","terabyte","terabytes"};
-            return iend_with(str,to_match);
-        }
+        bool is_byte(std::string_view str) noexcept;
+        bool is_kilobyte(std::string_view str) noexcept;
+        bool is_megabyte(std::string_view str) noexcept;
+        bool is_gigabyte(std::string_view str) noexcept;
+        bool is_terabyte(std::string_view str) noexcept;
     }
 
-    std::expected<info_quantity,ErrorCode> info_unit(std::string_view str) noexcept{
-        using namespace boost::units::information;
-        using namespace detail;
-        if(is_byte(str))
-            return bytes*uint64_t(1);
-        else if(is_kilobyte(str))
-            return bytes*(uint64_t(1)<<10);
-        else if (is_megabyte(str))
-            return bytes*(uint64_t(1)<<20);
-        else if (is_gigabyte(str))
-            return bytes*(uint64_t(1)<<30);
-        else if (is_terabyte(str))
-            return bytes*(uint64_t(1)<<40);
-        else return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                        "doesn't match any information unit",AT_ERROR_ACTION::CONTINUE,str));
-    }
+    std::expected<info_quantity,ErrorCode> info_unit(std::string_view str) noexcept;
     
-    std::expected<double,ErrorCode> info_size(std::string_view str) noexcept{
-        using namespace boost::units::information;
-        using namespace detail;
-        ErrorCode code = ErrorCode::NONE;
-        auto parse_value = from_chars<double>(str,code);
-        if(parse_value.has_value() && parse_value.value()>=0)
-            return parse_value.value();
-        else return std::unexpected(code);
-    }
+    std::expected<double,ErrorCode> info_size(std::string_view str) noexcept;
 
-    std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept{
-        auto number_unit_separation = std::find_if(str.begin(),str.end(),[](const char ch){
-            return !std::isdigit(ch);
-        });
-        auto unit=info_unit(std::string_view(number_unit_separation,str.end()));
-
-        if(!unit.has_value())
-            return std::unexpected(unit.error());
-        else {
-            auto size=info_size(std::string_view(str.begin(),number_unit_separation));
-            if(!size.has_value())
-                return std::unexpected(size.error());
-            else{
-                if(std::isinf(size.value()))
-                    return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                        "too huge value",AT_ERROR_ACTION::CONTINUE,std::string_view(str.begin(),number_unit_separation)));
-                return unit.value()*static_cast<double>(size.value());
-            }
-        }
-    }
+    std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept;
 }
 
 #include <boost/regex.hpp>
 
 using namespace std;
-
-void boost::program_options::validate(boost::any& v,
-              const std::vector<std::string>& values,
-              info_quantity* target_type, int)
-{
-    static regex r("^(-?(0|[1-9][0-9]*)(\\.[0-9]+)?)[ ]*([a-zA-Z]+)$");
-    using namespace boost::program_options;
-
-    // Make sure no previous assignment to 'a' was made.
-    validators::check_first_occurrence(v);
-    // Extract the first string from 'values'. If there is more than
-    // one string, it's an error, and exception will be thrown.
-    const string& s = validators::get_single_string(values);
-
-    // Do regex match and convert the interesting part to
-    // int.
-    smatch match;
-    if (regex_match(s, match, r)) {
-        auto sz_res = parse::info_size(lexical_cast<std::string_view>(match[1]));
-        if(sz_res.has_value()){
-            auto unit_res = parse::info_size_unit(lexical_cast<std::string_view>(match[4]));
-            if(unit_res.has_value())
-                v = any(unit_res.value()*sz_res.value());
-            else throw validation_error(validation_error::invalid_option_value);
-        }
-        else throw validation_error(validation_error::invalid_option_value);
-    } else {
-        throw validation_error(validation_error::invalid_option_value);
+namespace boost{
+    template<>
+    info_quantity lexical_cast(const std::string& input);
+    namespace program_options{
+        void validate(boost::any& v,
+                    const std::vector<std::string>& values,
+                    info_quantity* target_type, int);
     }
 }

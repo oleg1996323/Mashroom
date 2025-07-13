@@ -3,7 +3,7 @@
 #include <network/common/message/msgdef.h>
 #include <optional>
 #include <program/data.h>
-#include "functional/serialization.h"
+#include "serialization.h"
 using namespace std::chrono;
 namespace fs = std::filesystem;
 namespace network{

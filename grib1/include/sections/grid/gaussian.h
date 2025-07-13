@@ -86,7 +86,7 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>:
 };
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>

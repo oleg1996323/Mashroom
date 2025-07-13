@@ -3,7 +3,7 @@
 #include <vector>
 #include <ranges>
 #include <functional>
-#include "functional/byte_read.h"
+#include "byte_read.h"
 #include "sections/def.h"
 #include <span>
 #include <stdexcept>

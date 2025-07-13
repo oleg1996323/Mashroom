@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+project(Oster-Lib)
+set(CMAKE_CXX_STANDARD 23)
+find_package(PNG REQUIRED)
+find_package(ZLIB REQUIRED)
+file(GLOB_RECURSE LIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
+
+add_library(library STATIC ${LIB_SOURCES})
+target_link_libraries(library PRIVATE ${ZLIB_LIBRARIES} ${PNG_LIBRARIES})
+target_include_directories(library INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${PNG_INCLUDE_DIRS})

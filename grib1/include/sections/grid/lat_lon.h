@@ -70,7 +70,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
     }
 };
 
-#include "functional/ibmtofloat.h"
+#include "ibmtofloat.h"
 template<>
 struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION>{
@@ -102,7 +102,7 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
 };
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>

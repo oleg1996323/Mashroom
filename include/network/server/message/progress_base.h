@@ -1,6 +1,6 @@
 #pragma once
 #include <cinttypes>
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace network{
 struct ProgressBase{

@@ -43,7 +43,7 @@ struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>:
 #endif
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>

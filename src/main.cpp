@@ -4,6 +4,7 @@
 #include <cassert>
 #include <ranges>
 #include "program/mashroom.h"
+#include "cmd_parse/mashroom_parse.h"
 
 static int progress_line = 6;
 
@@ -24,7 +25,7 @@ int main(int argc, char* argv[]){
         while(hProgram->read_command(std::cin)){}
     }
     else{
-        std::vector<const char*> commands;
+        std::vector<std::string> commands;
         commands.reserve(argc);
 
         for (int i = 1; i < argc; ++i) {

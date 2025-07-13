@@ -1,8 +1,9 @@
 #pragma once
 #include <array>
 #include <string>
+#include <string_view>
 
-constexpr std::string_view bindata_filename = "data";
+constexpr std::string_view bindata_filename = std::string_view("data");
 
 struct __Data__{
     enum class FORMAT{

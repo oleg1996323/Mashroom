@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "sections/def.h"
-#include "functional/byte_read.h"
+#include "byte_read.h"
 #include "code_tables/table_0.h"
 #include "code_tables/table_1.h"
 #include "code_tables/table_2.h"

@@ -14,7 +14,7 @@ struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>:
 };
 }
 
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>

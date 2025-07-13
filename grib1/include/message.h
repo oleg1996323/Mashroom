@@ -1,5 +1,5 @@
 #pragma once
-#include "functional/def.h"
+#include "def.h"
 #include "def.h"
 #include "sections/section_0.h"
 #include "sections/section_1.h"

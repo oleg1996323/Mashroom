@@ -28,68 +28,46 @@ enum class DataExtractMode{
 #include <vector>
 #include <expected>
 #include <functional>
+#include <span>
+#include "cmd_parse/functions.h"
 
 namespace parse{
     namespace po = boost::program_options;
 
-    namespace po = boost::program_options;
-    template<typename IterCheck,typename UniqueIter>
-    UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2){
-        bool contains_unique = false;
-        for(UniqueIter iter = unique1;iter!=unique2;++iter){
-            ptrdiff_t count = std::count(check1,check2,*iter);
-            if(count==1)
-                if(contains_unique==false)
-                    contains_unique=true;
-                else return iter;
-            else if(count>1)
-                return iter;
-            else continue;
-        }
-        return unique2;
-    }
-
-    template<typename IterCheck,typename UniqueIter,typename ConvertString>
-    UniqueIter contains_unique_value(IterCheck check1, IterCheck check2, UniqueIter unique1,UniqueIter unique2,ConvertString converter){
-        bool contains_unique = false;
-        for(UniqueIter iter = unique1;iter!=unique2;++iter){
-            ptrdiff_t count = std::count(check1,check2,converter(*iter));
-            if(count==1)
-                if(contains_unique==false)
-                    contains_unique=true;
-                else return iter;
-            else if(count>1)
-                return iter;
-            else continue;
-        }
-        return unique2;
-    }
-
-    template<typename DerivedParser>
-    class BaseParser{
-        protected:
+    struct BaseCLIParser{
+        BaseCLIParser(const std::string& description):descriptor_(description){}
+        virtual ~BaseCLIParser() = default;
         po::options_description descriptor_;
         std::vector<std::string> unique_values_;
         ErrorCode err_=ErrorCode::NONE;
-        BaseParser(const std::string& description):descriptor_(description){
-            init();
+        static std::unordered_map<std::string_view,const BaseCLIParser&> descriptors_table_;
+        po::option_description& add_parse_instance(po::option_description& option,const BaseCLIParser& base) const{
+            descriptors_table_.insert({option.long_name(),base});
+            return option;
         }
-        ~BaseParser() = default;
+    };
+
+    template<typename DerivedParser>
+    class AbstractCLIParser:public BaseCLIParser{
+        protected:
+        
+        AbstractCLIParser(const std::string& description):BaseCLIParser(description){}
+        virtual ~AbstractCLIParser() = default;
         virtual void init() noexcept = 0 ;
 
         using vars = po::variables_map;
-        
-        template<typename T>
-        void notifier(std::function<ErrorCode(T)> function){
-            err_ = function;
-        }
 
         virtual ErrorCode execute(vars&,const std::vector<std::string>&) = 0;
         virtual void callback() noexcept{};
+        
         public:
-
         static DerivedParser& instance() noexcept{
             static DerivedParser inst;
+            static bool initialized = false;
+            if(!initialized){
+                inst.init();
+                initialized = true;
+            }
             return inst;
         }
 
@@ -131,7 +109,7 @@ namespace parse{
             }
         }
 
-        void define_uniques() const noexcept{
+        void define_uniques() noexcept{
             unique_values_ = [this](){
                 std::vector<std::string> result;
                 for(auto option:descriptor_.options())
@@ -140,50 +118,8 @@ namespace parse{
                 return result;
             }();
         }
+        virtual std::expected<po::options_description,ErrorCode> get_help(const std::string& key,const std::span<std::string>& args) const noexcept{
+            return descriptor_;
+        }
     };
-
-
-    std::expected<po::parsed_options,ErrorCode> try_parse(const po::options_description& opt_desc,const std::vector<std::string>& args){
-        try{
-            po::parsed_options parsed = po::command_line_parser(args).options(opt_desc).allow_unregistered().run();
-            return parsed;
-        }
-        catch(const po::multiple_occurrences& err){
-            return std::unexpected(ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,err.what(),AT_ERROR_ACTION::CONTINUE));
-        }
-        catch(const po::ambiguous_option& err){
-            return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE,err.get_option_name()));
-        }
-        catch(const po::required_option& err){
-            return std::unexpected(ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,err.what(),AT_ERROR_ACTION::CONTINUE));
-        }
-        catch(const po::unknown_option& err){
-            return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE,err.get_option_name()));
-        }
-        catch(const po::error& err){
-            return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE));
-        }
-    }
-
-    ErrorCode try_notify(po::variables_map& vm){
-        try{
-            po::notify(vm);
-            return ErrorCode::NONE;
-        }
-        catch(const po::multiple_occurrences& err){
-            return ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,err.what(),AT_ERROR_ACTION::CONTINUE);
-        }
-        catch(const po::ambiguous_option& err){
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE,err.get_option_name());
-        }
-        catch(const po::required_option& err){
-            return ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS,err.what(),AT_ERROR_ACTION::CONTINUE);
-        }
-        catch(const po::unknown_option& err){
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE,err.get_option_name());
-        }
-        catch(const po::error& err){
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
-        }
-    }
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "def.h"
-#include "functional/serialization.h"
+#include "serialization.h"
 
 namespace grid{
 

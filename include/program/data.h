@@ -1,5 +1,5 @@
 #pragma once
-#include "data/info.h"
+#include "data/sublimed_info.h"
 #include <filesystem>
 #include <chrono>
 #include <algorithm>
@@ -9,11 +9,10 @@
 #include <map>
 #include <set>
 #include "data/def.h"
-#include "data/info.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
 #include "cmd_parse/cmd_translator.h"
-#include "./include/def.h"
+#include "def.h"
 #include <path_process.h>
 
 using namespace std::chrono;

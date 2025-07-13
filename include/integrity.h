@@ -4,7 +4,7 @@
 #include <vector>
 #include <thread>
 #include "sys/error_print.h"
-#include "data/info.h"
+#include "data/sublimed_info.h"
 #include "message.h"
 #include "def.h"
 

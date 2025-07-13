@@ -5,7 +5,7 @@
 #include "cmd_parse/functions.h"
 #include "sys/application.h"
 #include "data/info.h"
-#include "functional/directories.h"
+#include "directories.h"
 #include "def.h"
 #include "message.h"
 #include "program/mashroom.h"

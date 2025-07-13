@@ -3,9 +3,11 @@
 #include <cassert>
 #include <network/common/def.h>
 #include <boost/json.hpp>
+#include <ranges>
 
 namespace fs = std::filesystem;
-
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 namespace network::server{
     Config get_default_server_config(){
         Config config_;
@@ -264,13 +266,6 @@ const network::server::Config& Config::get_server_config(const std::string& name
 }
 const network::server::Config& Config::get_current_server_config() const{
     return server_config_;
-}
-bool Config::set_current_server_config(std::string_view name) const{
-    if(server_configs_.contains(name)){
-        server_config_ = *server_configs_.find(name);
-        return true;
-    }
-    return false;
 }
 bool Config::set_current_server_config(const std::string& name) const noexcept{
     return set_current_server_config(std::string_view(name));

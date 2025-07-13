@@ -1,7 +1,7 @@
 #pragma once
-#include "functional/ibmtofloat.h"
-#include "functional/floattoieee.h"
-#include "functional/byte_read.h"
+#include "ibmtofloat.h"
+#include "floattoieee.h"
+#include "byte_read.h"
 
 #ifndef DEF_T62_NCEP_TABLE
 #define DEF_T62_NCEP_TABLE	rean

@@ -5,7 +5,7 @@
 #include "network/common/def.h"
 #include "program/data.h"
 #include "network/common/message/cashed_data.h"
-#include "functional/serialization.h"
+#include "serialization.h"
 #include "buffer.h"
 #include "msgdef.h"
 

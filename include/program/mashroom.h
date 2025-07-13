@@ -56,7 +56,7 @@ class Mashroom{
     ~Mashroom(){
         save();
     }
-    static ErrorCode read_command(const std::vector<const char*>& argv);
+    static ErrorCode read_command(const std::vector<std::string>& argv);
     /**
      * @brief Suspend active server
      * @todo Expand to different server specified by type (data,cadastre,measurement etc)

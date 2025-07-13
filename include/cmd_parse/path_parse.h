@@ -1,13 +1,18 @@
 #pragma once
 #include "path_process.h"
 #include <boost/program_options.hpp>
-
-namespace po = boost::program_options;
-
 #include <boost/regex.hpp>
+#include <boost/any.hpp>
+#include <boost/lexical_cast.hpp>
 
-using namespace std;
+namespace boost{
 
-void boost::program_options::validate(boost::any& v,
+namespace program_options{
+
+template<>
+void validate(boost::any& v,
               const std::vector<std::string>& values,
-              path::Storage<true>* target_type, int);
+                std::vector<path::Storage<true>>*,int);
+}
+
+}

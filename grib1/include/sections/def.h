@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include "functional/byte_read.h"
-#include "functional/def.h"
+#include "byte_read.h"
+#include "def.h"
 
 constexpr unsigned sec_0_min_sz = 8;
 constexpr unsigned sec_1_min_sz = 40;

@@ -1,203 +1,104 @@
-#include <search_process_parse.h>
+#include "cmd_parse/search_process_parse.h"
 
-ErrorCode search_process_parse(std::string_view option,std::string_view arg, AbstractSearchProcess& obj,std::vector<std::pair<uint8_t,std::string_view>>& aliases_parameters){
-    ErrorCode err = ErrorCode::NONE;
-    switch (translate_from_txt<translate::token::Command>(option))
-    {
-        case translate::token::Command::THREADS:{
-            auto tmp_proc_num = from_chars<long>(arg,err);
-            if(!tmp_proc_num.has_value())
-                break;
-            obj.set_using_processor_cores(tmp_proc_num.value());
-            break;
-        }
-        /** \brief Set user defined path(s) where iteratively (if file is not capitalized) or 
-         *  directly (by file message pointers) search or  set user defined host(s) in the way
-         *  to request the searched data
-         * 
-         */
-        case translate::token::Command::IN_PATH:{
-            std::vector<std::string_view> tokens;
-            if(arg.starts_with('[') && arg.ends_with(']'))
-                tokens = split(arg.substr(1,arg.size()-1),",");
-            else
-                tokens.push_back(arg);
-            for(auto token:tokens){
-                if(token.starts_with("path:"))
-                    obj.add_in_path(token.substr(4));
-                else if(token.starts_with("host:"))
-                    obj.add_search_host(token.substr(5));
-                else{
-                    ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg);
-                    err = ErrorCode::COMMAND_INPUT_X1_ERROR;
-                    break;
-                }
+namespace parse{
+    std::expected<Organization,ErrorCode> center_notifier(const std::string& input){
+        ErrorCode err_;
+        std::optional<Organization> center_int = from_chars<Organization>(input,err_);
+        //if abbreviation
+        if(!center_int.has_value()){
+            if(auto center = abbr_to_center(input);center.has_value())
+                return center.value();
+            else {
+                err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                    "invalid center value",AT_ERROR_ACTION::CONTINUE,input);
+                return std::unexpected(err_);
             }
-            break;
         }
-        case translate::token::Command::OUT_PATH:{ //TODO: swap this block with IN_PATH
-            err = obj.set_out_path(arg);
-            if(err!=ErrorCode::NONE)
-                break;
-            else return err;
-            break;
-        }
-        case translate::token::Command::DATE_FROM:{
-            auto date = get_date_from_token(arg,err);
-            if(!date.has_value())
-                break;
-            obj.set_from_date(date.value());
-            break;
-        }
-        case translate::token::Command::DATE_TO:{
-            auto date = get_date_from_token(arg,err);
-            if(!date.has_value())
-                break;
-            obj.set_to_date(date.value());
-            break;
-        }
-        // case translate::token::Command::LAT_TOP:{
-        //     try{
-        //         rect.y1 = get_coord_from_token<double>(arg,mode_extract);
-        //     }
-        //     catch(const std::invalid_argument& err){
-        //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,arg);
-        //     }
-        //     break;
-        // }
-        // case translate::token::Command::LAT_BOT:{
-        //     try{
-        //         rect.y2 = get_coord_from_token<double>(arg,mode_extract);
-        //     }
-        //     catch(const std::invalid_argument& err){
-        //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,arg);
-        //     }
-        //     break;
-        // }
-        // case translate::token::Command::LON_LEFT:{
-        //     try{
-        //         rect.x1 = get_coord_from_token<double>(arg,mode_extract);
-        //     }
-        //     catch(const std::invalid_argument& err){
-        //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,arg);
-        //     }
-        //     break;
-        // }
-        // case translate::token::Command::LON_RIG:{
-        //     try{
-        //         rect.x2 = get_coord_from_token<double>(arg,mode_extract);
-        //     }
-        //     catch(const std::invalid_argument& err){
-        //         ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"cannot convert to double value",AT_ERROR_ACTION::ABORT,arg);
-        //     }
-        //     break;
-        // }
-        case translate::token::Command::CENTER:{
-            //if number is inputed
-            std::optional<uint8_t> center_int = from_chars<uint8_t>(arg,err);
-            std::optional<Organization> center;
-            //if abbreviation
-            if(!center_int.has_value())
-                center = abbr_to_center(arg);
-            else
-                center = (Organization)center_int.value();
-            if(!center.has_value()){
-                break;
+        else
+            return center_int.value();
+    }
+
+    void SearchProcess::init() noexcept{
+        descriptor_.add_options()
+        ("j",po::value<int>()->notifier([this](int input){
+            search_proc_->set_using_processor_cores(input);
+        }),"Number of used threads. Number may be discarded to the maximal physical number threads")
+        ("outp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& paths){
+            assert(search_proc_);
+            for(auto& path:paths)
+                if(err_ = search_proc_->add_in_path(path);err_!=ErrorCode::NONE)
+                    return;
+        }),"Output path. May be directory or file path")
+        ("inp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& paths) noexcept{
+            assert(search_proc_);
+            for(auto& path:paths){
+                err_ = search_proc_->add_in_path(path);
+                if(err_!=ErrorCode::NONE)
+                    return;
             }
-            obj.set_center(center.value());
-            break;
-        }
-        case translate::token::Command::TABLE_VERSION:{
-            auto table_version=from_chars<int>(arg,err);
-            if(!table_version.has_value())
-                break;
-            if(table_version.value()<0){
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid table version definition",AT_ERROR_ACTION::CONTINUE,arg);
-                break;
-            }
-            //hExtract.set_table_version((uint8_t)table_version.value()); //TODO make parameter optional (if undefined - check all parameters from table)
-            break;
-        }
-        case translate::token::Command::PARAMETERS:{
-            auto parameters_input = split(arg,",");
-            for(const auto& param:parameters_input){
-                auto parameter_tv = split(param,":");
-                if(parameter_tv.size()!=2){
-                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid parameter-definition input",AT_ERROR_ACTION::CONTINUE,param);
-                    break;
-                }
-                auto table_version = from_chars<int>(parameter_tv.at(0),err);
-                if(!table_version.has_value())
-                    break;
-                auto parameter = from_chars<int>(parameter_tv.at(1),err);
-                if(parameter.has_value()){
-                    if(parameter.value()<0 || table_version.value()<0){
-                        return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid parameter number definition",AT_ERROR_ACTION::CONTINUE,arg);
-                        break;
+        }),"Specify the input paths")
+        ("datefrom",po::value<utc_tp>()->notifier([this](utc_tp input){
+            search_proc_->set_from_date(input);
+        }),"")
+        ("dateto",po::value<utc_tp>()->notifier([this](utc_tp input){
+            search_proc_->set_to_date(input);
+        }),"")
+        ("pos",po::value<Coord>()->notifier([this](const Coord& input){
+            search_proc_->set_position(input);
+        }),"")
+        ("lattop",po::value<Lat>(),"Top latitude of rectangle")
+        ("latbot",po::value<Lat>(),"Latitude bottom of rectangle")
+        ("lonleft",po::value<Lon>(),"Left-side longitude of rectangle")
+        ("lonrig",po::value<Lon>(),"Right-side longitude of rectangle")
+        ("center",po::value<std::string>(),"Specify the center that released the data")
+        ("tabv-param",po::value<std::vector<SearchParamTableVersion>>()->notifier(
+            [this](const std::vector<SearchParamTableVersion>& input){
+                for(auto& param_tv:input)
+                    search_proc_->add_parameter(param_tv);
+        }),"Specify the expected parameters to process")
+        ("tabv-pname",po::value<std::vector<std::string>>()->notifier(
+            [this](const std::vector<std::string>& input){
+                if(!search_proc_->get_center().has_value())
+                    err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+                    "undefined center (must be previously defined)",AT_ERROR_ACTION::ABORT);
+                for(auto& param_tv:input){
+                    auto param = parse::parameter_tv::param_by_tv_abbr(search_proc_->get_center().value(),param_tv);
+                    if(!param.has_value()){
+                        err_=param.error();
+                        return;
                     }
-                    obj.add_parameter(SearchParamTableVersion{ .param_=(uint8_t)parameter.value(),
-                                                                    .t_ver_=(uint8_t)table_version.value()}); //add parameter
+                    else search_proc_->add_parameter(param.value());
                 }
-                else
-                    aliases_parameters.push_back({table_version.value(),parameter_tv.at(1)});
-            }
-            break;
-        }
-        case translate::token::Command::COLLECTION:{
-            //combination of tab_ver, center etc
-            break;
-        }
-        case translate::token::Command::TIME_FCST:{
-            //<, <=, =, >=, > with these operands
-            break;
-        }
-        case translate::token::Command::POSITION:{
-            auto coord_tmp = get_coord_from_token(arg,err);
-            if(!coord_tmp.has_value()){
-                break;
-            }
-            obj.set_position(coord_tmp.value());
-            break;
-        }
-        case translate::token::Command::GRID_TYPE:{
-            auto grid_tmp = from_chars<int>(arg,err);
-            if(!grid_tmp.has_value()){
-                break;
-            }
-            if(!grid_tmp.has_value() || grid_tmp.value()<0){
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid grid type",AT_ERROR_ACTION::CONTINUE,arg);
-                break;
-            }
-            obj.set_grid_respresentation((RepresentationType)grid_tmp.value());
-            break;
-        }
-        default:
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Invalid argument: argv["+std::string(arg)+"]",AT_ERROR_ACTION::CONTINUE,arg);
-            break;
+        }),"Specify the expected parameters to process by table version and parameter name")
+        ("collection",po::value<std::vector<std::string>>()/** @todo*/,"Specify by name of collection")
+        ("time_fcst",po::value<std::string>(),"Specify the forecast time of the released data")
+        ("grid",po::value<RepresentationType>()->notifier([this](RepresentationType input){
+            search_proc_->set_grid_respresentation(input);
+        }),"Specify the expected grid type");
+        define_uniques();
     }
-    if(err!=ErrorCode::NONE)
-        return err;
-    if(!obj.get_center().has_value())
-        return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"Center",AT_ERROR_ACTION::CONTINUE);
-    if(!aliases_parameters.empty()){
-        std::set<int> error_pos;
-        auto result = post_parsing_parameters_aliases_def(obj.get_center().value(),aliases_parameters,error_pos);
-        if(!error_pos.empty()){
-            std::string error_aliases;
-            for(int pos:error_pos)
-                error_aliases+=""s+aliases_parameters.at(pos).second.data()+",";
-            error_aliases.pop_back();
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Parameter alias definition error",AT_ERROR_ACTION::CONTINUE,error_aliases);
-        }
-        else{
-            for(auto& param:result){
-                obj.add_parameter(std::move(param));
-            }
-        }
-    }
-    return err;
-}
 
-void commands_from_search_process(std::string_view option,std::string_view arg,AbstractSearchProcess& obj,std::vector<std::pair<uint8_t,std::string_view>>& aliases_parameters, ErrorCode& err){
-    err = search_process_parse(option,arg,obj,aliases_parameters);
+    ErrorCode SearchProcess::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+        if(vm.contains("center")){
+            auto center_res = center_notifier(vm.at("center").as<std::string>());
+            if(center_res.has_value())
+                search_proc_->set_center(center_res.value());
+            else{
+                err_ = center_res.error();
+                return err_;
+            }
+        }
+        err_=try_notify(vm);
+        return err_;
+    }
+
+    ErrorCode SearchProcess::parse(::AbstractSearchProcess* ptr,const std::vector<std::string>& args){
+        if(ptr==nullptr)
+            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+                "zero pointer passed. Abort.",AT_ERROR_ACTION::ABORT);
+        else{
+            search_proc_ = ptr;
+            return AbstractCLIParser::parse(args);
+        }
+    }
 }

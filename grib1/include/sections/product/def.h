@@ -1,6 +1,6 @@
 #pragma once
-#include "functional/def.h"
-#include "functional/byte_read.h"
+#include "def.h"
+#include "byte_read.h"
 /* version 3.4 of grib headers  w. ebisuzaki */
 /* this version is incomplete */
 /* add center DWD    Helmut P. Frank */
