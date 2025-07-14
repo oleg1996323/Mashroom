@@ -1,14 +1,14 @@
 #pragma once
 #include <stdio.h>
-#include "include/def.h"
+#include "definitions/def.h"
 #include "sections/section_1.h"
 #include <unordered_map>
 #include <thread>
 #include <filesystem>
 #include <format>
 #include "sys/application.h"
-#include "data/common.h"
-#include "data/info.h"
+#include "data//common.h"
+#include "data//info.h"
 #include "serialization.h"
 #include "network/client.h"
 #include "network/server.h"
@@ -93,9 +93,9 @@ using ExtractedData = std::unordered_map<CommonDataProperties, std::vector<Extra
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
-#include <abstractsearchprocess.h>
-#include <abstracttimeseparation.h>
-#include <abstractthreadinterruptor.h>
+#include "proc/interfaces/abstractsearchprocess.h"
+#include "proc/interfaces/abstracttimeseparation.h"
+#include "proc/interfaces/abstractthreadinterruptor.h"
 #include <netdb.h>
 #include <program/data.h>
 

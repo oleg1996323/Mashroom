@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum {
+enum class ErrorCodeData{
     NONE_ERR,
     DATA_EMPTY,
     OPEN_ERROR,
@@ -12,7 +12,7 @@ typedef enum {
     READ_END_ERR,
     LEN_UNCONSIST,
     MISS_END_SECTION
-}ErrorCodeData;
+};
 
 static const char* err_code_data[11]={
     "Correct",

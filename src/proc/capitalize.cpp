@@ -1,4 +1,4 @@
-#include "capitalize.h"
+#include "proc/capitalize.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -6,10 +6,10 @@
 #include "sys/application.h"
 #include "data/info.h"
 #include "directories.h"
-#include "def.h"
+#include "definitions/def.h"
 #include "message.h"
 #include "program/mashroom.h"
-#include <path_process.h>
+#include "definitions/path_process.h"
 #include "network/common/message/message_process.h"
 #include <format>
 bool Capitalize::check_format(std::string_view fmt){

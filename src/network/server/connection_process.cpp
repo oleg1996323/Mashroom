@@ -1,7 +1,7 @@
 #include "network/server/connection_process.h"
 #include "network/server.h"
-#include "extract.h"
-#include "capitalize.h"
+#include "proc/extract.h"
+#include "proc/capitalize.h"
 
 using namespace network::connection;
 Process<Server>::Process(int connection_socket,const ConnectionPool& pool):

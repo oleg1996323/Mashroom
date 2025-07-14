@@ -1,4 +1,4 @@
-#include "data/grib/info.h"
+#include "data//info.h"
 
 namespace fs = std::filesystem;
 void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept{
@@ -142,8 +142,13 @@ void SublimedGribDataInfo::serialize(std::ofstream& file){
             //data-sequence size
             file.write(reinterpret_cast<const char*>(&data_sz),sizeof(data_sz));
             //data
-            for(const auto& sublimed_data:grib_info.second)
-                sublimed_data.serialize(file);
+            for(const auto& sublimed_data:grib_info.second){
+                /** @todo Make serialization directly without bufferisation */
+                std::vector<char> buffer;
+                buffer.reserve(serialization::serial_size(sublimed_data));
+                serialization::serialize_native(sublimed_data,buffer);
+                file.write(buffer.data(),buffer.size());
+            }
         }
     }
     file.close();
@@ -229,7 +234,7 @@ void SublimedGribDataInfo::serialize(std::vector<char>& buf) const{
             buf.insert(buf.end(),(const char*)&data_sz,(const char*)&data_sz+sizeof(data_sz));
             //data
             for(const auto& sublimed_data:grib_info.second)
-                sublimed_data.serialize(buf);
+                serialization::serialize_native(sublimed_data);
         }
     }
 }

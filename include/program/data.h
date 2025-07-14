@@ -8,12 +8,14 @@
 #include <unordered_set>
 #include <map>
 #include <set>
+#include "data/info.h"
 #include "data/def.h"
+#include "data/sublimed_info.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
 #include "cmd_parse/cmd_translator.h"
-#include "def.h"
-#include <path_process.h>
+#include "definitions/def.h"
+#include "definitions/path_process.h"
 
 using namespace std::chrono;
 using namespace std::string_literals;

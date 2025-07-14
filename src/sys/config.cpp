@@ -1,4 +1,4 @@
-#include "sys/config.h"
+#include "config.h"
 #include "cmd_parse/functions.h"
 #include <cassert>
 #include <network/common/def.h>

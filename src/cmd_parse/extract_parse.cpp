@@ -6,7 +6,7 @@
 #include "cmd_parse/cmd_translator.h"
 #include "functions.h"
 #include "data/info.h"
-#include "extract.h"
+#include "proc/extract.h"
 #include "code_tables/table_0.h"
 #include "search_process_parse.h"
 

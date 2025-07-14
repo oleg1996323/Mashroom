@@ -13,33 +13,22 @@
 #include "common.h"
 #include "sections/grid/grid.h"
 #include "def.h"
-#include "data/msg.h"
+#include "msg.h"
 #include "cmd_parse/cmd_translator.h"
 #include "sys/error_print.h"
 #include <sys/error_code.h>
-#include <def.h>
-#include <grib1/include/def.h>
 #include <cassert>
 #include <cstring>
 #include <netinet/in.h>
-#include <network/common/utility.h>
+#include "network/common/utility.h"
+#include "grib/capitalize_data_info.h"
+#include "sublimed_info.h"
 using namespace std::string_literals;
-
-
-struct GribCapitalizeDataInfo
-{
-    std::optional<GridInfo> grid_data;
-    ptrdiff_t buf_pos_;
-    std::chrono::system_clock::time_point date_time = std::chrono::system_clock::time_point::max();
-    ErrorCodeData err=NONE_ERR;
-};
-
-
 
 class SublimedGribDataInfo;
 
 #include <string_view>
-#include "path_process.h"
+#include "definitions/path_process.h"
 namespace fs = std::filesystem;
 class GribDataInfo{
     public:
@@ -47,7 +36,7 @@ class GribDataInfo{
     using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
-    ErrorCodeData err = NONE_ERR;
+    ErrorCodeData err = ErrorCodeData::NONE_ERR;
     friend class Capitalize;
     friend class Integrity;
     friend class Extract;
@@ -77,7 +66,7 @@ class GribDataInfo{
     SublimedGribDataInfo sublime();
 };
 #include <unordered_set>
-#include <path_process.h>
+#include "definitions/path_process.h"
 class SublimedGribDataInfo
 {
     public:

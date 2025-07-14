@@ -1,4 +1,4 @@
-#include "integrity.h"
+#include "proc/integrity.h"
 #include <ranges>
 #include <future>
 #include <thread>
@@ -11,9 +11,9 @@
 #include <ranges>
 #include <numeric>
 #include <format>
-#include <path_process.h>
-#include <network/client.h>
-#include <program/mashroom.h>
+#include "definitions/path_process.h"
+#include "network/client.h"
+#include "program/mashroom.h"
 #include "sys/error_print.h"
 
 using namespace std::chrono;
@@ -108,7 +108,7 @@ ErrorCode Integrity::execute(){ //TODO: add search from match if in path not def
     return result;
 }
 
-#include "./include/def.h"
+#include "definitions/def.h"
 #include "grib1/include/message.h"
 #include "data/msg.h"
 void Integrity::__process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) {

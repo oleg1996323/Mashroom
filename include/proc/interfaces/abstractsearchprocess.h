@@ -1,18 +1,18 @@
 #pragma once
 #include <string_view>
 #include <optional>
-#include <code_tables/table_0.h>
-#include <code_tables/table_4.h>
-#include <sys/error_code.h>
-#include <sys/error_print.h>
-#include <sys/log_err.h>
-#include <sys/application.h>
-#include <include/def.h>
-#include <types/time_interval.h>
+#include "code_tables/table_0.h"
+#include "code_tables/table_4.h"
+#include "sys/error_code.h"
+#include "sys/error_print.h"
+#include "sys/log_err.h"
+#include "sys/application.h"
+#include "definitions/def.h"
+#include "types/time_interval.h"
 #include <filesystem>
 #include <thread>
 #include <netdb.h>
-#include <path_process.h>
+#include "definitions/path_process.h"
 
 namespace fs = std::filesystem;
 

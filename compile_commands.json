@@ -201,247 +201,242 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client.cpp.o -c /home/oster/Mashroom/src/network/client.cpp",
-  "file": "/home/oster/Mashroom/src/network/client.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client/connection_process.cpp.o -c /home/oster/Mashroom/src/network/client/connection_process.cpp",
-  "file": "/home/oster/Mashroom/src/network/client/connection_process.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client/request_scheduler.cpp.o -c /home/oster/Mashroom/src/network/client/request_scheduler.cpp",
-  "file": "/home/oster/Mashroom/src/network/client/request_scheduler.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/def.cpp.o -c /home/oster/Mashroom/src/network/common/def.cpp",
-  "file": "/home/oster/Mashroom/src/network/common/def.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/message/buffer.cpp.o -c /home/oster/Mashroom/src/network/common/message/buffer.cpp",
-  "file": "/home/oster/Mashroom/src/network/common/message/buffer.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/message/msgdef.cpp.o -c /home/oster/Mashroom/src/network/common/message/msgdef.cpp",
-  "file": "/home/oster/Mashroom/src/network/common/message/msgdef.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/utility.cpp.o -c /home/oster/Mashroom/src/network/common/utility.cpp",
-  "file": "/home/oster/Mashroom/src/network/common/utility.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server.cpp.o -c /home/oster/Mashroom/src/network/server.cpp",
-  "file": "/home/oster/Mashroom/src/network/server.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/connection_pool.cpp.o -c /home/oster/Mashroom/src/network/server/connection_pool.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/connection_pool.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/connection_process.cpp.o -c /home/oster/Mashroom/src/network/server/connection_process.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/connection_process.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/message/data_reply.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_extract_part.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_extract_part.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_extract_part.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_finfo.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_finfo.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_finfo.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_fpart.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_fpart.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_fpart.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/message.cpp.o -c /home/oster/Mashroom/src/network/server/message/message.cpp",
-  "file": "/home/oster/Mashroom/src/network/server/message/message.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/aux/process_bar.cpp.o -c /home/oster/Mashroom/src/cmd_parse/aux/process_bar.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/aux/process_bar.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/capitalize_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/cmd_def.cpp.o -c /home/oster/Mashroom/src/cmd_parse/cmd_def.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/cmd_def.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/config_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/config_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/config_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/coord_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/coord_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/coord_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/extract_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/extract_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/extract_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/functions.cpp.o -c /home/oster/Mashroom/src/cmd_parse/functions.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/functions.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/grid_type_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/grid_type_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/grid_type_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/information_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/information_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/information_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/integrity_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/integrity_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/integrity_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/mashroom_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/mashroom_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/mashroom_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/out_format_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/out_format_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/out_format_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/param_tablev_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/param_tablev_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/param_tablev_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/path_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/path_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/path_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/search_process_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/search_process_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/search_process_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/server_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/server_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/server_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/time_separation_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/time_separation_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/time_separation_parse.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/capitalize.cpp.o -c /home/oster/Mashroom/src/capitalize.cpp",
-  "file": "/home/oster/Mashroom/src/capitalize.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/contains.cpp.o -c /home/oster/Mashroom/src/contains.cpp",
-  "file": "/home/oster/Mashroom/src/contains.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/def.cpp.o -c /home/oster/Mashroom/src/data/def.cpp",
-  "file": "/home/oster/Mashroom/src/data/def.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/grib/info.cpp.o -c /home/oster/Mashroom/src/data/grib/info.cpp",
-  "file": "/home/oster/Mashroom/src/data/grib/info.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/sublimed_info.cpp.o -c /home/oster/Mashroom/src/data/sublimed_info.cpp",
-  "file": "/home/oster/Mashroom/src/data/sublimed_info.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/extract.cpp.o -c /home/oster/Mashroom/src/extract.cpp",
-  "file": "/home/oster/Mashroom/src/extract.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/help.cpp.o -c /home/oster/Mashroom/src/help.cpp",
-  "file": "/home/oster/Mashroom/src/help.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/integrity.cpp.o -c /home/oster/Mashroom/src/integrity.cpp",
-  "file": "/home/oster/Mashroom/src/integrity.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/path_process.cpp.o -c /home/oster/Mashroom/src/path_process.cpp",
-  "file": "/home/oster/Mashroom/src/path_process.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/clients_handler.cpp.o -c /home/oster/Mashroom/src/program/clients_handler.cpp",
-  "file": "/home/oster/Mashroom/src/program/clients_handler.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/data.cpp.o -c /home/oster/Mashroom/src/program/data.cpp",
-  "file": "/home/oster/Mashroom/src/program/data.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/mashroom.cpp.o -c /home/oster/Mashroom/src/program/mashroom.cpp",
-  "file": "/home/oster/Mashroom/src/program/mashroom.cpp"
-},
-{
-  "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/sys/application.cpp.o -c /home/oster/Mashroom/src/sys/application.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dsystem_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/system.dir/src/sys/application.cpp.o -c /home/oster/Mashroom/src/sys/application.cpp",
   "file": "/home/oster/Mashroom/src/sys/application.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/sys/config.cpp.o -c /home/oster/Mashroom/src/sys/config.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dsystem_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/system.dir/src/sys/config.cpp.o -c /home/oster/Mashroom/src/sys/config.cpp",
   "file": "/home/oster/Mashroom/src/sys/config.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/sys/error_print.cpp.o -c /home/oster/Mashroom/src/sys/error_print.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dsystem_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/system.dir/src/sys/error_print.cpp.o -c /home/oster/Mashroom/src/sys/error_print.cpp",
   "file": "/home/oster/Mashroom/src/sys/error_print.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/sys/log_err.cpp.o -c /home/oster/Mashroom/src/sys/log_err.cpp",
-  "file": "/home/oster/Mashroom/src/sys/log_err.cpp"
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client.cpp.o -c /home/oster/Mashroom/src/network/client.cpp",
+  "file": "/home/oster/Mashroom/src/network/client.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DAPP_DATA_RELATION_DIR=\\\"/data\\\" -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include  -lzip -static-libstdc++ -g -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client/connection_process.cpp.o -c /home/oster/Mashroom/src/network/client/connection_process.cpp",
+  "file": "/home/oster/Mashroom/src/network/client/connection_process.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/client/request_scheduler.cpp.o -c /home/oster/Mashroom/src/network/client/request_scheduler.cpp",
+  "file": "/home/oster/Mashroom/src/network/client/request_scheduler.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/def.cpp.o -c /home/oster/Mashroom/src/network/common/def.cpp",
+  "file": "/home/oster/Mashroom/src/network/common/def.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/message/buffer.cpp.o -c /home/oster/Mashroom/src/network/common/message/buffer.cpp",
+  "file": "/home/oster/Mashroom/src/network/common/message/buffer.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/message/msgdef.cpp.o -c /home/oster/Mashroom/src/network/common/message/msgdef.cpp",
+  "file": "/home/oster/Mashroom/src/network/common/message/msgdef.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/common/utility.cpp.o -c /home/oster/Mashroom/src/network/common/utility.cpp",
+  "file": "/home/oster/Mashroom/src/network/common/utility.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server.cpp.o -c /home/oster/Mashroom/src/network/server.cpp",
+  "file": "/home/oster/Mashroom/src/network/server.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/connection_pool.cpp.o -c /home/oster/Mashroom/src/network/server/connection_pool.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/connection_pool.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/connection_process.cpp.o -c /home/oster/Mashroom/src/network/server/connection_process.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/connection_process.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/message/data_reply.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_extract_part.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_extract_part.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_extract_part.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_finfo.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_finfo.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_finfo.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/data_reply_fpart.cpp.o -c /home/oster/Mashroom/src/network/server/message/data_reply_fpart.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/message/data_reply_fpart.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dweb_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/network -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/web.dir/src/network/server/message/message.cpp.o -c /home/oster/Mashroom/src/network/server/message/message.cpp",
+  "file": "/home/oster/Mashroom/src/network/server/message/message.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/aux/process_bar.cpp.o -c /home/oster/Mashroom/src/cmd_parse/aux/process_bar.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/aux/process_bar.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/capitalize_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/cmd_def.cpp.o -c /home/oster/Mashroom/src/cmd_parse/cmd_def.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/cmd_def.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/config_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/config_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/config_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/coord_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/coord_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/coord_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/extract_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/extract_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/extract_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/functions.cpp.o -c /home/oster/Mashroom/src/cmd_parse/functions.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/functions.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/grid_type_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/grid_type_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/grid_type_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/information_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/information_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/information_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/integrity_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/integrity_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/integrity_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/mashroom_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/mashroom_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/mashroom_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/out_format_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/out_format_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/out_format_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/param_tablev_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/param_tablev_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/param_tablev_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/path_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/path_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/path_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/search_process_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/search_process_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/search_process_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/server_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/server_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/server_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/time_separation_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/time_separation_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/time_separation_parse.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/def.cpp.o -c /home/oster/Mashroom/src/data/def.cpp",
+  "file": "/home/oster/Mashroom/src/data/def.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/grib/info.cpp.o -c /home/oster/Mashroom/src/data/grib/info.cpp",
+  "file": "/home/oster/Mashroom/src/data/grib/info.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/data/sublimed_info.cpp.o -c /home/oster/Mashroom/src/data/sublimed_info.cpp",
+  "file": "/home/oster/Mashroom/src/data/sublimed_info.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/definitions/path_process.cpp.o -c /home/oster/Mashroom/src/definitions/path_process.cpp",
+  "file": "/home/oster/Mashroom/src/definitions/path_process.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/capitalize.cpp.o -c /home/oster/Mashroom/src/proc/capitalize.cpp",
+  "file": "/home/oster/Mashroom/src/proc/capitalize.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/contains.cpp.o -c /home/oster/Mashroom/src/proc/contains.cpp",
+  "file": "/home/oster/Mashroom/src/proc/contains.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/extract.cpp.o -c /home/oster/Mashroom/src/proc/extract.cpp",
+  "file": "/home/oster/Mashroom/src/proc/extract.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/help.cpp.o -c /home/oster/Mashroom/src/proc/help.cpp",
+  "file": "/home/oster/Mashroom/src/proc/help.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/integrity.cpp.o -c /home/oster/Mashroom/src/proc/integrity.cpp",
+  "file": "/home/oster/Mashroom/src/proc/integrity.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/clients_handler.cpp.o -c /home/oster/Mashroom/src/program/clients_handler.cpp",
+  "file": "/home/oster/Mashroom/src/program/clients_handler.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/data.cpp.o -c /home/oster/Mashroom/src/program/data.cpp",
+  "file": "/home/oster/Mashroom/src/program/data.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/program/mashroom.cpp.o -c /home/oster/Mashroom/src/program/mashroom.cpp",
+  "file": "/home/oster/Mashroom/src/program/mashroom.cpp"
+},
+{
+  "directory": "/home/oster/Mashroom",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DAPP_DATA_RELATION_DIR=\\\"/data\\\" -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom.dir/src/main.cpp.o -c /home/oster/Mashroom/src/main.cpp",
   "file": "/home/oster/Mashroom/src/main.cpp"
 }
 ]

@@ -8,11 +8,11 @@
 #include <cctype>
 #include <ranges>
 #include <fstream>
-#include "error_code.h"
-#include "err_msg.h"
-#include "error_print.h"
-#include "help.h"
-#include "application.h"
+#include "sys/error_code.h"
+#include "sys/err_msg.h"
+#include "sys/error_print.h"
+#include "proc/help.h"
+#include "sys/application.h"
 #include "data.h"
 #include "network/server.h"
 #include "program/clients_handler.h"

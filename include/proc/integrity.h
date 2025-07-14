@@ -5,6 +5,7 @@
 #include <thread>
 #include "sys/error_print.h"
 #include "data/sublimed_info.h"
+#include "data/info.h"
 #include "message.h"
 #include "def.h"
 
@@ -33,8 +34,8 @@ static constexpr const char* missed_data = "missed.txt";
 static constexpr const char* access_data = "accessible.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 
-#include <abstractsearchprocess.h>
-#include <abstracttimeseparation.h>
+#include "proc/interfaces/abstractsearchprocess.h"
+#include "proc/interfaces/abstracttimeseparation.h"
 class Integrity:public AbstractSearchProcess,public AbstractTimeSeparation{
     private:
     GribDataInfo data_;

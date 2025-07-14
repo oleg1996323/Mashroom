@@ -5,9 +5,9 @@
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
 #include "cmd_parse/cmd_translator.h"
-#include "capitalize.h"
+#include "proc/capitalize.h"
 #include "cmd_parse/functions.h"
-#include "capitalize.h"
+#include "proc/capitalize.h"
 #include "information_parse.h"
 #include "cmd_parse/cmd_def.h"
 

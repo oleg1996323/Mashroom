@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include "code_tables/table_6.h"
 #include "types/coord.h"
-#include "data/grib/common.h"
+#include "data/common.h"
 
 enum class TimeSeparation{
     HOUR,

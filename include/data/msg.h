@@ -22,7 +22,7 @@ struct GribMsgDataInfo
     TimeFrame t_unit;
     Organization center;
     uint8_t table_version;
-    ErrorCodeData err = NONE_ERR;
+    ErrorCodeData err = ErrorCodeData::NONE_ERR;
 
     GribMsgDataInfo(GridInfo&& grid_data_,
         utc_tp&& date_,

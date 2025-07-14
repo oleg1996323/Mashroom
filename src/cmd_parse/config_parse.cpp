@@ -3,7 +3,7 @@
 
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include "capitalize.h"
+#include "proc/capitalize.h"
 #include "sys/application.h"
 #include "sys/config.h"
 #include "cmd_parse/cmd_def.h"

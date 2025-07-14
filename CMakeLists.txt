@@ -32,43 +32,48 @@ load_eccode_header(
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
-file(GLOB_RECURSE CLparse ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
-file(GLOB_RECURSE Network ${CMAKE_SOURCE_DIR}/src/network/**.cpp)
+file(GLOB_RECURSE CLparse_SOURCES ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
+file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/network/**.cpp)
+file(GLOB_RECURSE Sys_SOURCES ${CMAKE_SOURCE_DIR}/src/sys/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
-list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd_parse)/")
+list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd_parse|sys)/")
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
 #including other build-modules
 include(modules-linkage.cmake)
 
+#build main lib
+add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
+target_link_libraries(Mashroom_lib PUBLIC system clip web grib1reader Boost::program_options Boost::json)
+target_include_directories(Mashroom_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
+message(STATUS ${Sys_SOURCES})
+
+#build system module
+add_library(system SHARED ${Sys_SOURCES})
+target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include)
+target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
+
 #build web part
-add_library(web SHARED ${Network})
+add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/network 
                                     ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(web PUBLIC library)
+target_link_libraries(web PUBLIC system library)
 
 #build command line interpreter parse
-add_library(clip SHARED ${CLparse})
+add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse 
                                     ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(clip PUBLIC library)
-
-#build main lib
-add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PRIVATE clip web library grib1reader PRIVATE Boost::program_options Boost::json)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(clip PUBLIC system library)
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
-target_include_directories(Mashroom PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)
-
-target_compile_definitions(Mashroom PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}" $<$<BOOL:${LOG_ON}>:LOG_ON> $<$<BOOL:${PERMANENT_GET}>:PERMANENT_GET> 
-                        APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
-target_compile_definitions(Mashroom_lib PRIVATE LOG_DIR="${LOG_DIRECTORY}" PRIVATE CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")                
+target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
+                
                     
 set_target_properties(Mashroom Mashroom_lib grib1reader library clip web
                     PROPERTIES

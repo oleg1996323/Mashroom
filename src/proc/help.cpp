@@ -1,10 +1,10 @@
-#include "help.h"
+#include "proc/help.h"
 #include "cmd_translator.h"
 #include <iostream>
 #include <iomanip>
 #include <string_view>
 #include <sstream>
-#include "integrity.h"
+#include "proc/integrity.h"
 
 using namespace translate::token;
 

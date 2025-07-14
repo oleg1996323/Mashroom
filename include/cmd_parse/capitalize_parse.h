@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "sys/error_code.h"
-#include "capitalize.h"
+#include "proc/capitalize.h"
 #include "cmd_parse/information_parse.h"
 #include <tuple>
 #include "cmd_parse/cmd_def.h"

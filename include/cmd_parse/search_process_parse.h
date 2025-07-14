@@ -11,8 +11,8 @@
 #include "functions.h"
 #include "data/sublimed_info.h"
 #include "code_tables/table_0.h"
-#include "abstractsearchprocess.h"
-#include "abstractcommandholder.h"
+#include "proc/interfaces/abstractsearchprocess.h"
+#include "proc/interfaces/abstractcommandholder.h"
 #include "types/time_interval.h"
 #include "cmd_parse/grid_type_parse.h"
 

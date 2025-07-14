@@ -2,11 +2,12 @@
 #include <filesystem>
 #include <string>
 #include <thread>
-#include "def.h"
+#include "definitions/def.h"
 #include "sys/error_code.h"
 #include "data/sublimed_info.h"
+#include "data/info.h"
 #include "message.h"
-#include "path_process.h"
+#include "definitions/path_process.h"
 #include <boost/units/systems/information/byte.hpp>
 #include <boost/units/systems/information/nat.hpp>
 

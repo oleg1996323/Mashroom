@@ -4,12 +4,12 @@
 #include "sections/section_1.h"
 #include "code_tables/table_6.h"
 #include "types/time_interval.h"
-#include "data/common.h"
+#include "data/info.h"
 #include <filesystem>
-#include <data/info.h>
-#include <abstractsearchprocess.h>
-#include <abstracttimeseparation.h>
-#include <program/mashroom.h>
+#include "data/sublimed_info.h"
+#include "proc/interfaces/abstractsearchprocess.h"
+#include "proc/interfaces/abstracttimeseparation.h"
+#include "program/mashroom.h"
 namespace fs = std::filesystem;
 
 struct FoundDataInfo{
@@ -31,7 +31,7 @@ struct ContainOutputFilter{
     bool grid_info = true;
     bool time_interval = true;
 };
-#include <abstractthreadinterruptor.h>
+#include "proc/interfaces/abstractthreadinterruptor.h"
 class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     std::vector<FoundDataInfo> data_; //make_templated further
     ContainOutputFilter filter_;

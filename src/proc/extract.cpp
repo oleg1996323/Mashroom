@@ -9,10 +9,10 @@
 #include <map>
 #include <regex>
 #include "program/mashroom.h"
-#include "extract.h"
+#include "proc/extract.h"
 #include "compressor.h"
 #include <iostream>
-#include "extract.h"
+#include "proc/extract.h"
 #include "def.h"
 #include "message.h"
 #include "int_pow.h"

@@ -517,7 +517,11 @@ namespace serialization{
     template<max_serial_size_concept T>
     struct Max_serial_size<std::optional<T>>{
         constexpr size_t operator()(const std::optional<T>& val) noexcept{
-            return min_serial_size<std::optional<T>>()+max_serial_size<T>();
+            if constexpr (std::is_default_constructible_v<T>)
+                return min_serial_size<std::optional<T>>(std::optional<T>{})+max_serial_size<T>(T{});
+            else if(requires{max_serial_size<T>();})
+                return min_serial_size<std::optional<T>>(std::optional<T>{})+max_serial_size<T>();
+            else static_assert(false);
         }
     };
 
