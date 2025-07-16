@@ -185,8 +185,11 @@ void SublimedGribDataInfo::deserialize(std::ifstream& file){
                     file.read(reinterpret_cast<char*>(&data_sz),sizeof(data_sz));
                     seq.resize(data_sz);
                     //data
+                    using namespace serialization;
                     for(int m=0;m<data_sz;++m)
-                        seq.at(m).deserialize(file);
+                        if(SerializationEC err = deserialize_from_file(seq.at(m),file);
+                            err!=SerializationEC::NONE)
+                            return ErrorCode::DESERIALIZATION_ERROR;
                 }
             }
             add_data(to_add);
@@ -201,7 +204,9 @@ void SublimedGribDataInfo::deserialize(std::ifstream& file){
 #include <cstring>
 void SublimedGribDataInfo::serialize(std::vector<char>& buf) const{
     using namespace translate::token;
+    using namespace serialization;
     int token = (int)__Data__::FORMAT::GRIB;
+    
     buf.insert(buf.end(),(const char*)&token,(const char*)&token+sizeof(token));
     int dont_exists = 0;
     for(const auto& [path,filedata]:info_){
@@ -234,7 +239,7 @@ void SublimedGribDataInfo::serialize(std::vector<char>& buf) const{
             buf.insert(buf.end(),(const char*)&data_sz,(const char*)&data_sz+sizeof(data_sz));
             //data
             for(const auto& sublimed_data:grib_info.second)
-                serialization::serialize_native(sublimed_data);
+                serialization::serialize_native(sublimed_data, buf);
         }
     }
 }

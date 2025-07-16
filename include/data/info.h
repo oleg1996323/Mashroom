@@ -23,6 +23,7 @@
 #include "network/common/utility.h"
 #include "grib/capitalize_data_info.h"
 #include "sublimed_info.h"
+#include "serialization.h
 using namespace std::string_literals;
 
 class SublimedGribDataInfo;
@@ -70,8 +71,19 @@ class GribDataInfo{
 class SublimedGribDataInfo
 {
     public:
-    using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
-    
+    using sublimed_data_t = std::unordered_map<path::Storage<true>,
+    std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    template<bool,auto>
+    friend struct serialization::Serialize;
+    template<bool,auto>
+    friend struct serialization::Deserialize;
+    template<auto>
+    friend struct serialization::Serial_size;
+    template<auto>
+    friend struct serialization::Min_serial_size;
+    template<auto>
+    friend struct serialization::Max_serial_size;
+
     private:
     sublimed_data_t info_;
     std::unordered_set<path::Storage<false>> paths_;
@@ -132,3 +144,66 @@ class SublimedGribDataInfo
         add_data(grib_data.sublime());
     }
 };
+
+namespace serialization{
+    template<>
+    struct Serialize<true,SublimedGribDataInfo>{
+        using type = SublimedGribDataInfo;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            serialize<true>(__Data__::FORMAT::GRIB,buf);
+            serialize<true>(std::count_if(msg.info_.begin(),msg.info_.end(),[](const auto& pair){
+                        return fs::exists(pair.first.path_);
+                    }),buf);
+            for(const auto& [path,filedata]:   std::views::all(msg.info_)|
+                                    std::views::filter([](const auto& pair){
+                                        const auto& pathstore = std::get<0>(pair);
+                                        return fs::exists(pathstore.path_) || 
+                                        pathstore.type_==path::TYPE::HOST;
+                                    }))
+            {
+                serialize<true>(path.type_,buf);
+                serialize<true>(path.path_,buf);
+                serialize<true>(filedata.size(),buf);
+                for(const auto& [cmn_props,sublimed_info]:filedata){
+                    serialize<true>(*cmn_props.get(),buf);
+                    serialize<true>(sublimed_info,buf);
+                }
+            }
+        }
+    };
+
+    template<>
+    struct Deserialize<true,SublimedGribDataInfo>{
+        using type = SublimedGribDataInfo;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            __Data__::FORMAT tokens_f;
+            deserialize<true>(tokens_f,buf);
+            msg.
+        }
+    };
+
+    template<>
+    struct Serial_size<SublimedGribDataInfo>{
+        using type = SublimedGribDataInfo;
+        size_t operator()(const type& msg) noexcept{
+                std::views::all(msg.info_) | std::views::filter(fs::exists);
+            return serial_size(msg.grid_data,msg.buf_pos_,msg.from,msg.to,msg.discret);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<SublimedGribDataInfo>{
+        using type = SublimedGribDataInfo;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.grid_data,msg.buf_pos_,msg.from,msg.to,msg.discret);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<SublimedGribDataInfo>{
+        using type = SublimedGribDataInfo;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.grid_data,msg.buf_pos_,msg.from,msg.to,msg.discret);
+        }
+    };
+}

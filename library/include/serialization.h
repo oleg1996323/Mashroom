@@ -11,6 +11,7 @@
 #include <tuple>
 #include <utility>
 #include <cstring>
+#include <fstream>
 
 namespace serialization{
     
@@ -18,9 +19,11 @@ namespace serialization{
         NONE,
         BUFFER_SIZE_LESSER,
         UNMATCHED_TYPE,
-        BUFFER_OVERFLOW
+        BUFFER_OVERFLOW,
+        FILE_WRITING_ERROR,
+        UNEXPECTED_EOF,
+        FILE_READING_ERROR
     };
-
 }
 
 namespace serialization{
@@ -45,9 +48,64 @@ namespace serialization{
     template<typename T>
     SerializationEC serialize_network(const T& val,std::vector<char>& buf) noexcept;
     template<typename T>
-    SerializationEC deserialize_native(const T& to_deserialize,std::span<const char> buf) noexcept;
+    SerializationEC deserialize_native(T& to_deserialize,std::span<const char> buf) noexcept;
     template<typename T>
-    SerializationEC deserialize_network(const T& to_deserialize,std::span<const char> buf) noexcept;
+    SerializationEC deserialize_network(T& to_deserialize,std::span<const char> buf) noexcept;
+    template<typename T>
+    SerializationEC serialize_to_file(const T& val,std::ofstream& fstream) noexcept{
+        if constexpr(std::is_integral_v<std::decay_t<T>>)
+            fstream.write(static_cast<const char*>(&val),sizeof(val));
+        else if(std::is_pointer_v<std::decay_t<T>>)
+            fstream.write(val,sizeof(val));
+        else{
+            SerializationEC err;
+            std::vector<char> buf;
+            uint32_t sz = serial_size(val);
+            err = serialize_to_file(sz,fstream);
+            if(err!=SerializationEC::NONE)
+                return err;
+            buf.reserve(serial_size(val));
+            if(err = serialize_native(val,buf); err!=SerializationEC::NONE)
+                return err;
+            fstream.write(buf.data(),buf.size());
+        }
+        if(fstream.fail())
+            return SerializationEC::FILE_WRITING_ERROR;
+        return SerializationEC::NONE;
+    }
+    template<typename T>
+    SerializationEC deserialize_from_file(T& val,std::ifstream& fstream) noexcept{
+        if constexpr(std::is_integral_v<std::decay_t<T>>)
+            fstream.read(static_cast<const char*>(&val),sizeof(val));
+        else if(std::is_pointer_v<std::decay_t<T>>)
+            fstream.read(val,sizeof(val));
+        else{
+            SerializationEC err;
+            uint32_t sz = 0;
+            err = deserialize_from_file(sz,fstream);
+            if(fstream.eof())
+                return SerializationEC::UNEXPECTED_EOF;
+            else if(fstream.fail())
+                return SerializationEC::FILE_READING_ERROR;
+            else if(sz<min_serial_size(val))
+                return SerializationEC::BUFFER_SIZE_LESSER;
+            std::vector<char> buf;
+            buf.resize(sz);
+            fstream.read(buf.data(),sz);
+            if(fstream.eof())
+                return SerializationEC::UNEXPECTED_EOF;
+            else if(fstream.fail())
+                return SerializationEC::FILE_READING_ERROR;
+            err = deserialize_native(val,buf);
+            if(err!=SerializationEC::NONE)
+                return err;
+        }
+        if(fstream.eof())
+            return SerializationEC::UNEXPECTED_EOF;
+        else if(fstream.fail())
+            return SerializationEC::FILE_READING_ERROR;
+        return SerializationEC::NONE;
+    }
 
     template<typename T>
     size_t serial_size(const T& val) noexcept;
@@ -67,9 +125,9 @@ namespace serialization{
     template<typename T,typename... ARGS>
     SerializationEC serialize_network(const T& val,std::vector<char>& buf,ARGS&&... args) noexcept;
     template<typename T,typename... ARGS>
-    SerializationEC deserialize_native(const T& to_deserialize,std::span<const char> buf,ARGS&&... args) noexcept;
+    SerializationEC deserialize_native(T& to_deserialize,std::span<const char> buf,ARGS&&... args) noexcept;
     template<typename T,typename... ARGS>
-    SerializationEC deserialize_network(const T& to_deserialize,std::span<const char> buf,ARGS&&... args) noexcept;
+    SerializationEC deserialize_network(T& to_deserialize,std::span<const char> buf,ARGS&&... args) noexcept;
 
     template<typename... ARGS>
     size_t serial_size(const ARGS&... val) noexcept;
