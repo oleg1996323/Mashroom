@@ -18,6 +18,6 @@ namespace network{
         std::vector<char>& buffer(){
             return __buffer__();
         }
-        ~__MessageBuffer__();
+        virtual ~__MessageBuffer__();
     };
 }

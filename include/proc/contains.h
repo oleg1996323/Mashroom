@@ -80,14 +80,14 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     }
 };
 
-bool contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
     std::optional<RepresentationType> grid_type = {},
     std::optional<Organization> center = {},
     std::optional<uint8_t> table_version = {},
     std::optional<TimeFrame> fcst = {});
 
-bool contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
     const CommonDataProperties& data,std::optional<RepresentationType> grid_type = {});
 
-bool contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
     Organization center, uint8_t table_version, uint8_t parameter,std::optional<RepresentationType> grid_type = {});

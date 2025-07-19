@@ -24,9 +24,9 @@ namespace parse{
 
     class Mashroom:public AbstractCLIParser<parse::Mashroom>{
         friend AbstractCLIParser;
-        Mashroom():AbstractCLIParser("Mashroom options:"){}
+        Mashroom():AbstractCLIParser("Mashroom options"){}
         virtual void init() noexcept override final;
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
-        void print_help(std::ostream& os,const std::span<std::string>& args) const noexcept;
+        void print_help(std::ostream& os,const std::string& option,std::span<const std::string> args) const noexcept;
     };
 }

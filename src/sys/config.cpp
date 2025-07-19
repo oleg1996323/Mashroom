@@ -237,10 +237,10 @@ bool Config::remove_user_config(std::string_view name){
     }
     return false;
 }
-bool change_user_config(std::string_view name,const std::vector<std::string_view>& commands){
+bool Config::change_user_config(std::string_view name,const std::vector<std::string_view>& commands){
     assert(false);
 }
-bool change_user_config(const std::string& name,const std::vector<std::string>& commands){
+bool Config::change_user_config(const std::string& name,const std::vector<std::string>& commands){
     assert(false);
 }
 const std::unordered_map<std::string,std::vector<std::string>> Config::get_user_configs() const{

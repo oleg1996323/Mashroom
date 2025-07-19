@@ -34,32 +34,119 @@ enum class DataExtractMode{
 namespace parse{
     namespace po = boost::program_options;
 
-    struct BaseCLIParser{
+    template<typename T>
+    class AbstractCLIParser;
+
+    class BaseCLIParser{
+        public:
+        template<typename T>
+        friend class AbstractCLIParser;
         BaseCLIParser(const std::string& description):descriptor_(description){}
         virtual ~BaseCLIParser() = default;
         po::options_description descriptor_;
         std::vector<std::string> unique_values_;
         ErrorCode err_=ErrorCode::NONE;
-        static std::unordered_map<std::string_view,const BaseCLIParser&> descriptors_table_;
-        po::option_description& add_parse_instance(po::option_description& option,const BaseCLIParser& base) const{
-            descriptors_table_.insert({option.long_name(),base});
-            return option;
+        static inline std::unordered_map<std::string_view,const BaseCLIParser&> descriptors_table_;
+        BaseCLIParser& add_options_instances(const char *name, const boost::program_options::value_semantic *s,const BaseCLIParser& base) noexcept{
+            auto desc = new po::option_description(name,s);
+            descriptors_table_.insert({desc->long_name(),base});
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+
+        BaseCLIParser& add_options_instances(const char *name, const boost::program_options::value_semantic *s, const char *description,const BaseCLIParser& base) noexcept{
+            auto desc = new po::option_description(name,s,description);
+            descriptors_table_.insert({desc->long_name(),base});
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+        BaseCLIParser& add_options_instances(const char *name, const char *description,const BaseCLIParser& base) noexcept{
+            auto desc = new po::option_description(name,new po::untyped_value(true),description);
+            descriptors_table_.insert({desc->long_name(),base});
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+        BaseCLIParser& add_options(const char *name, const boost::program_options::value_semantic *s) noexcept{
+            auto desc = new po::option_description(name,s);
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+        BaseCLIParser& add_options(const char *name, const boost::program_options::value_semantic *s, const char *description) noexcept{
+            auto desc = new po::option_description(name,s,description);
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+        BaseCLIParser& add_options(const char *name, const char *description) noexcept{
+            auto desc = new po::option_description(name,new po::untyped_value(true),description);
+            descriptor_.add(boost::shared_ptr<po::option_description>(desc));
+            return *this;
+        }
+        BaseCLIParser& operator()(const char *name, const char *description) noexcept{
+            return add_options(name,description);
+        }
+        BaseCLIParser& operator()(const char *name, const char *description,const BaseCLIParser& base) noexcept{
+            return add_options_instances(name,description,base);
+        }
+        BaseCLIParser& operator()(const char *name, const boost::program_options::value_semantic *s, const char *description) noexcept{
+            return add_options(name,s,description);
+        }
+        BaseCLIParser& operator()(const char *name, const boost::program_options::value_semantic *s) noexcept{
+            return add_options(name,s);
+        }
+        BaseCLIParser& operator()(const char *name, const boost::program_options::value_semantic *s, const char *description,const BaseCLIParser& base) noexcept{
+            return add_options_instances(name,s,description,base);
+        }
+        BaseCLIParser& operator()(const char *name, const boost::program_options::value_semantic *s,const BaseCLIParser& base) noexcept{
+            return add_options_instances(name,s,base);
         }
     };
 
     template<typename DerivedParser>
     class AbstractCLIParser:public BaseCLIParser{
         protected:
-        
         AbstractCLIParser(const std::string& description):BaseCLIParser(description){}
         virtual ~AbstractCLIParser() = default;
         virtual void init() noexcept = 0 ;
 
         using vars = po::variables_map;
 
-        virtual ErrorCode execute(vars&,const std::vector<std::string>&) = 0;
+        virtual ErrorCode execute(vars&,const std::vector<std::string>&) noexcept = 0;
         virtual void callback() noexcept{};
-        
+        void print_help(std::ostream& stream, std::span<po::option> args) const{
+            const po::options_description* current = &descriptor_;
+            for(const po::option& arg:args){
+                if(descriptors_table_.contains(arg.string_key)){
+                    if(!arg.value.empty()){
+                        ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                        return;
+                    }
+                    else if(current->find_nothrow(arg.string_key,false)!=nullptr){
+                        current = &descriptors_table_.at(arg.string_key).descriptor_;
+                        continue;
+                    }
+                    else{
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg.string_key);
+                        return;
+                    }
+                }
+                else{
+                    if(!arg.value.empty()){
+                        ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
+                        return;
+                    }
+                    else if(auto* option = current->find_nothrow(arg.string_key,false); option!=nullptr){
+                        stream<<option->format_name()<<" "<<option->description()<<std::endl;
+                        return;
+                    }
+                    else{
+                        ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,arg.string_key);
+                        return;
+                    }
+                }
+            }
+            current->print(stream);
+            return;
+        }
         public:
         static DerivedParser& instance() noexcept{
             static DerivedParser inst;
@@ -84,11 +171,20 @@ namespace parse{
                 return err_;
             }
 
-            auto parse_result = try_parse(instance().descriptor(),args);
+            std::expected<boost::program_options::parsed_options, ErrorCode> parse_result = try_parse(instance().descriptor(),args);
             if(!parse_result.has_value()){
                 err_ = parse_result.error();
                 callback();
                 return err_;
+            }
+            if(parse_result.value().options.front().string_key=="help"){
+                if(!parse_result.value().options.front().unregistered){
+                    if(parse_result.value().options.size()>1)
+                        print_help(std::cout,std::span(parse_result.value().options).subspan(1));
+                    else descriptor_.print(std::cout);
+                    return ErrorCode::NONE;
+                }
+                else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
             }
             po::variables_map vm;
             po::store(parse_result.value(),vm);
@@ -118,8 +214,7 @@ namespace parse{
                 return result;
             }();
         }
-        virtual std::expected<po::options_description,ErrorCode> get_help(const std::string& key,const std::span<std::string>& args) const noexcept{
-            return descriptor_;
-        }
+
+        
     };
 }

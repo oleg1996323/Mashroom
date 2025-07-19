@@ -12,7 +12,7 @@ namespace parse{
     class Capitalize:public AbstractCLIParser<parse::Capitalize>{
         friend AbstractCLIParser;
         std::unique_ptr<::Capitalize> hCapitalize;
-        Capitalize():AbstractCLIParser("Capitalize options:"){}
+        Capitalize():AbstractCLIParser("Capitalize options"){}
 
         virtual void init() noexcept override final;
         public:

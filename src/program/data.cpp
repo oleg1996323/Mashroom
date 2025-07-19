@@ -11,9 +11,10 @@ inline bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
                     RepresentationType rep_t,
                     Coord pos)
 {
+    using namespace serialization;
     for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
         if(path.type_==path::TYPE::FILE)
-            matched.serialize(buf);
+            serialize_native(matched,buf);
     for(const SearchParamTableVersion& param:parameters){
         ///@todo
     }
@@ -22,10 +23,11 @@ inline bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
 
 template<>
 void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
+    using namespace serialization;
     std::ifstream file(fn,std::ios::binary);
     if(!file.is_open())
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
-    grib_.grib_data_.deserialize(file);
+    deserialize_from_file(grib_.grib_data_,file);
     for(auto& [filename,file_data]:grib_.grib_data_.data()){
         for(auto& [common,grib_data]:file_data){
             // std::cout<<"Added to \"by common\":"<<*grib_.by_common_data_[common].insert(filename).first<<std::endl;
@@ -44,12 +46,13 @@ void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
 
 template<>
 void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
+    using namespace serialization;
     if(!fs::create_directories(dir) && !fs::is_directory(dir))
         ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());
     fs::path save_file = dir/filename_by_type(Data::FORMAT::GRIB);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
-    grib_.grib_data_.serialize(file);
+    SerializationEC err = serialize_to_file(grib_.grib_data_,file);
     files_.insert(save_file);
     file.close();
 }

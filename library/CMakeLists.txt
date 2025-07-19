@@ -7,5 +7,5 @@ file(GLOB_RECURSE LIB_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 
 add_library(library STATIC ${LIB_SOURCES})
 target_link_libraries(library PRIVATE ${ZLIB_LIBRARIES} ${PNG_LIBRARIES})
-target_include_directories(library INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_include_directories(library PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${PNG_INCLUDE_DIRS})

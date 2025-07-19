@@ -52,5 +52,6 @@ namespace parse{
         if(vm.contains("cap_ref"))
             hCapitalize->set_host_ref_only();
         err_ = try_notify(vm);
+        return err_;
     }
 }

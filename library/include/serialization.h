@@ -52,60 +52,9 @@ namespace serialization{
     template<typename T>
     SerializationEC deserialize_network(T& to_deserialize,std::span<const char> buf) noexcept;
     template<typename T>
-    SerializationEC serialize_to_file(const T& val,std::ofstream& fstream) noexcept{
-        if constexpr(std::is_integral_v<std::decay_t<T>>)
-            fstream.write(static_cast<const char*>(&val),sizeof(val));
-        else if(std::is_pointer_v<std::decay_t<T>>)
-            fstream.write(val,sizeof(val));
-        else{
-            SerializationEC err;
-            std::vector<char> buf;
-            uint32_t sz = serial_size(val);
-            err = serialize_to_file(sz,fstream);
-            if(err!=SerializationEC::NONE)
-                return err;
-            buf.reserve(serial_size(val));
-            if(err = serialize_native(val,buf); err!=SerializationEC::NONE)
-                return err;
-            fstream.write(buf.data(),buf.size());
-        }
-        if(fstream.fail())
-            return SerializationEC::FILE_WRITING_ERROR;
-        return SerializationEC::NONE;
-    }
+    SerializationEC serialize_to_file(const T& val,std::ofstream& fstream) noexcept;
     template<typename T>
-    SerializationEC deserialize_from_file(T& val,std::ifstream& fstream) noexcept{
-        if constexpr(std::is_integral_v<std::decay_t<T>>)
-            fstream.read(static_cast<const char*>(&val),sizeof(val));
-        else if(std::is_pointer_v<std::decay_t<T>>)
-            fstream.read(val,sizeof(val));
-        else{
-            SerializationEC err;
-            uint32_t sz = 0;
-            err = deserialize_from_file(sz,fstream);
-            if(fstream.eof())
-                return SerializationEC::UNEXPECTED_EOF;
-            else if(fstream.fail())
-                return SerializationEC::FILE_READING_ERROR;
-            else if(sz<min_serial_size(val))
-                return SerializationEC::BUFFER_SIZE_LESSER;
-            std::vector<char> buf;
-            buf.resize(sz);
-            fstream.read(buf.data(),sz);
-            if(fstream.eof())
-                return SerializationEC::UNEXPECTED_EOF;
-            else if(fstream.fail())
-                return SerializationEC::FILE_READING_ERROR;
-            err = deserialize_native(val,buf);
-            if(err!=SerializationEC::NONE)
-                return err;
-        }
-        if(fstream.eof())
-            return SerializationEC::UNEXPECTED_EOF;
-        else if(fstream.fail())
-            return SerializationEC::FILE_READING_ERROR;
-        return SerializationEC::NONE;
-    }
+    SerializationEC deserialize_from_file(T& val,std::ifstream& fstream) noexcept;
 
     template<typename T>
     size_t serial_size(const T& val) noexcept;
@@ -153,6 +102,14 @@ namespace serialization{
 
     template<typename T>
     concept common_types_concept = numeric_types_concept<T> || std::is_class_v<T>;
+
+    /**
+     * @details Serialization for weak pointer is not implemented due to uncertainty in assignment to shared pointer
+     */
+    template<typename T>
+    concept smart_pointer_concept = 
+    std::is_same_v<T, std::unique_ptr<typename T::element_type, typename T::deleter_type>> ||
+    std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 
     template<typename T>
     concept serialize_concept = 
@@ -224,20 +181,27 @@ namespace serialization{
             else if constexpr (time_point_concept<T>){
                 using Rep = decltype(val.time_since_epoch().count());
                 Rep time_count = val.time_since_epoch().count();
-                if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
-                    time_count = std::byteswap(time_count);
-                const auto* begin = reinterpret_cast<const char*>(&time_count);
-                buf.insert(buf.end(), begin, begin + sizeof(time_count));
+                // if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
+                //     time_count = std::byteswap(time_count);
+                // const auto* begin = reinterpret_cast<const char*>(&time_count);
+                // buf.insert(buf.end(), begin, begin + sizeof(time_count));
+                serialize<NETWORK_ORDER>(val,buf,time_count);
                 return SerializationEC::NONE;
             }
-            else if constexpr (time_point_concept<T>){
+            else if constexpr (duration_concept<T>){
                 using Rep = decltype(val.count());
                 Rep time_count = val.count();
-                if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
-                    time_count = std::byteswap(time_count);
-                const auto* begin = reinterpret_cast<const char*>(&time_count);
-                buf.insert(buf.end(), begin, begin + sizeof(time_count));
+                // if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
+                //     time_count = std::byteswap(time_count);
+                // const auto* begin = reinterpret_cast<const char*>(&time_count);
+                // buf.insert(buf.end(), begin, begin + sizeof(time_count));
+                serialize<NETWORK_ORDER>(val,buf,time_count);
                 return SerializationEC::NONE;
+            }
+            else if constexpr (smart_pointer_concept<T>){
+                if(val)
+                    serialize<NETWORK_ORDER>(val,buf,true,*val);
+                else serialize<NETWORK_ORDER>(val,buf,false);
             }
             else{
                 static_assert(false,"serialize unspecified");
@@ -315,6 +279,30 @@ namespace serialization{
                 else
                     return code;
             }
+            else if constexpr (smart_pointer_concept<T>){
+                bool has_value = false;
+                auto code = deserialize<NETWORK_ORDER>(has_value,buf);
+                if(code!=SerializationEC::NONE)
+                    return code;
+                else {
+                    if(has_value){
+                        if constexpr (requires{std::is_same_v<T,std::unique_ptr<typename T::element_type,
+                                                            typename T::deleter_type>>;})
+                            to_deserialize = std::make_unique<typename T::element_type>();
+                        else
+                            to_deserialize = std::make_shared<typename T::element_type>();
+                        code = deserialize<NETWORK_ORDER>(*to_deserialize,buf);
+                            if(code!=SerializationEC::NONE)
+                                return code;
+                            else return SerializationEC::NONE;
+                        
+                    }
+                    else {
+                        to_deserialize.reset();
+                        return SerializationEC::NONE;
+                    }
+                }
+            }
             else {
                 static_assert(false,"deserialize unspecified operator()");
                 return SerializationEC::NONE;
@@ -335,6 +323,8 @@ namespace serialization{
                 return sizeof(val.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(val.count());
+            else if constexpr (smart_pointer_concept<T>)
+                return sizeof(bool)+serial_size(typename T::element_type{});
             else {
                 static_assert(false,"serial_size unspecified operator()");
                 return 0;
@@ -357,6 +347,8 @@ namespace serialization{
                 return sizeof(T{}.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(T{}.count());
+            else if constexpr (smart_pointer_concept<T>)
+                return sizeof(bool);
             else{
                 static_assert(false,"min_serial_size unspecified operator()");
                 return 0;
@@ -383,6 +375,9 @@ namespace serialization{
                 return sizeof(T{}.time_since_epoch().count());
             else if constexpr (duration_concept<T>)
                 return sizeof(T{}.count());
+            else if constexpr (smart_pointer_concept<T>)
+                return max_serial_size(T{}) == std::numeric_limits<size_t>::max()?
+                        max_serial_size(T{}):max_serial_size(T{})+sizeof(bool);
             else{
                 static_assert(false,"max_serial_size unspecified operator()");
                 return 0;
@@ -510,6 +505,62 @@ namespace serialization{
             return deserialize_network(val,buf,args...);
         else return deserialize_native(val,buf,args...);
     }
+
+    template<typename T>
+    SerializationEC serialize_to_file(const T& val,std::ofstream& fstream) noexcept{
+        if constexpr(std::is_integral_v<std::decay_t<T>>)
+            fstream.write(reinterpret_cast<const char*>(&val),sizeof(val));
+        else if constexpr(std::is_pointer_v<std::decay_t<T>>)
+            fstream.write(reinterpret_cast<const char*>(val),sizeof(val));
+        else{
+            SerializationEC err;
+            std::vector<char> buf;
+            uint32_t sz = serial_size(val);
+            err = serialize_to_file(sz,fstream);
+            if(err!=SerializationEC::NONE)
+                return err;
+            buf.reserve(serial_size(val));
+            if(err = serialize_native(val,buf); err!=SerializationEC::NONE)
+                return err;
+            fstream.write(buf.data(),buf.size());
+        }
+        if(fstream.fail())
+            return SerializationEC::FILE_WRITING_ERROR;
+        return SerializationEC::NONE;
+    }
+    template<typename T>
+    SerializationEC deserialize_from_file(T& val,std::ifstream& fstream) noexcept{
+        if constexpr(std::is_integral_v<std::decay_t<T>>)
+            fstream.read(reinterpret_cast<char*>(&val),sizeof(val));
+        else if constexpr(std::is_pointer_v<std::decay_t<T>>)
+            fstream.read(reinterpret_cast<char*>(val),sizeof(val));
+        else{
+            SerializationEC err;
+            uint32_t sz = 0;
+            err = deserialize_from_file(sz,fstream);
+            if(fstream.eof())
+                return SerializationEC::UNEXPECTED_EOF;
+            else if(fstream.fail())
+                return SerializationEC::FILE_READING_ERROR;
+            else if(sz<min_serial_size(val))
+                return SerializationEC::BUFFER_SIZE_LESSER;
+            std::vector<char> buf;
+            buf.resize(sz);
+            fstream.read(buf.data(),sz);
+            if(fstream.eof())
+                return SerializationEC::UNEXPECTED_EOF;
+            else if(fstream.fail())
+                return SerializationEC::FILE_READING_ERROR;
+            err = deserialize_native(val,buf);
+            if(err!=SerializationEC::NONE)
+                return err;
+        }
+        if(fstream.eof())
+            return SerializationEC::UNEXPECTED_EOF;
+        else if(fstream.fail())
+            return SerializationEC::FILE_READING_ERROR;
+        return SerializationEC::NONE;
+    }
     
     template<bool NETWORK_ORDER,typename T>
     requires serialize_concept<std::optional<T>>
@@ -626,8 +677,14 @@ namespace serialization{
         size_t operator()(const T& range) noexcept{
             constexpr size_t size_sz = sizeof(T{}.size());
             size_t total = size_sz;
-            for(const auto& item:range)
-                total+=serial_size(item);
+            if constexpr(requires{  typename T::key_type;
+                                    typename T::mapped_type;})
+                for(const auto& [key,val]:range){
+                    total+=serial_size(key)+serial_size(val);
+                }
+            else
+                for(const auto& item:range)
+                    total+=serial_size(item);
             return total;
         }
     };

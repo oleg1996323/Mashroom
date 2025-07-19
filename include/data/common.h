@@ -167,3 +167,47 @@ struct std::equal_to<CommonDataProperties>
         return lhs==rhs;
     }
 };
+
+#include "serialization.h"
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,CommonDataProperties>{
+        using type = CommonDataProperties;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,CommonDataProperties>{
+        using type = CommonDataProperties;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+        }
+    };
+
+    template<>
+    struct Serial_size<CommonDataProperties>{
+        using type = CommonDataProperties;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<CommonDataProperties>{
+        using type = CommonDataProperties;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+        }
+    };
+
+    template<>
+    struct Max_serial_size<CommonDataProperties>{
+        using type = CommonDataProperties;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+        }
+    };
+}

@@ -67,6 +67,7 @@ namespace parse{
             if(!Application::config().remove_server_config(input.at(1)))
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (config don't exists)",AT_ERROR_ACTION::CONTINUE,input.at(1));
         }
+        return ErrorCode::NONE;
     }
     ErrorCode launch_notifier(const std::string& name) noexcept{
         if(hProgram){
@@ -115,12 +116,14 @@ namespace parse{
         if(timeout<0)
             return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"timeout definition",AT_ERROR_ACTION::CONTINUE,timeout);
         else set.timeout_seconds_ = timeout;
+        return ErrorCode::NONE;
     }
 
     ErrorCode protocol_notifier(const std::string& input,network::server::Settings& set) noexcept{
         if(!getprotobyname(input.c_str()))
             return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"protocol definition",AT_ERROR_ACTION::CONTINUE,input);
         else set.protocol = input;
+        return ErrorCode::NONE;
     }
 
     ErrorCode ServerConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{

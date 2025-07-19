@@ -12,9 +12,6 @@
 #include "code_tables/table_0.h"
 #include "proc/interfaces/abstracttimeseparation.h"
 
-ErrorCode time_separation_parse(std::string_view arg, AbstractTimeSeparation& obj);
-std::string_view commands_from_time_separation(std::string_view arg,ErrorCode& err);
-
 namespace boost{
 namespace program_options{
 void validate(boost::any& v,
@@ -23,4 +20,6 @@ void validate(boost::any& v,
 }
 template<>
 utc_tp lexical_cast(const std::string& input);
+template<>
+TimeOffset lexical_cast(const std::string& input);
 }

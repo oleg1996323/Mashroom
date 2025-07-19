@@ -2,18 +2,19 @@
 #include "data/msg.h"
 #include "message.h"
 #include "int_pow.h"
+#include <expected>
 
-bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
+std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
     const CommonDataProperties& data,std::optional<RepresentationType> grid_type){
     HGrib1 grib;
     if(!is_correct_pos(&coord))
-        throw std::invalid_argument("Invalid position");
-    if(!grib.open_grib(from))
-        throw std::runtime_error("Unable to open file "s+from.c_str());
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
+    if(grib.open_grib(from)!=ErrorCodeData::NONE_ERR)
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
     do{
         const auto& msg = grib.message();
         if(!msg.has_value())
-            throw std::runtime_error("Message undefined");
+            return std::unexpected(ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE));
         GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
                                     std::move(msg.value().get().section_1_.date()),
                                     grib.current_message_position(),
@@ -41,13 +42,13 @@ bool contains(const fs::path& from,const std::chrono::system_clock::time_point& 
     }while(grib.next_message());
 }
 
-bool contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
+std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
     Organization center, uint8_t table_version, uint8_t parameter,std::optional<RepresentationType> grid_type){
     HGrib1 grib;
     if(!is_correct_pos(&coord))
-        throw std::invalid_argument("Invalid position");
-    if(!grib.open_grib(from))
-        throw std::runtime_error("Unable to open file "s+from.c_str());
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
+    if(grib.open_grib(from)!=ErrorCodeData::NONE_ERR)
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
     do{
         const auto msg = grib.message();
         if(!msg.has_value())
@@ -75,6 +76,9 @@ bool contains(const fs::path& from,const std::chrono::system_clock::time_point& 
     }while(grib.next_message());
 }
 
+/**
+ * @brief Specify to check contents of only integral spacial and temporal data
+ */
 void Contains::set_integral_only(bool integral){
     integral_only_ = integral;
 }

@@ -9,10 +9,11 @@ namespace parse{
     class Contains:public AbstractCLIParser<parse::Contains>{
         friend AbstractCLIParser;
         std::unique_ptr<::Contains> hContains;
-        Contains():AbstractCLIParser("Contains options:"){}
+        Contains():AbstractCLIParser("Contains options"){}
 
         virtual void init() noexcept override final{
-            // descriptor_.add(SearchProcess::instance().descriptor());
+            descriptor_.add(SearchProcess::instance().descriptor());
+            define_uniques();
         }
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final{
             return SearchProcess::instance().parse(hContains.get(),args);

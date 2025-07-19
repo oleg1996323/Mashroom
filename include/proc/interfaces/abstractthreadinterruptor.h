@@ -10,4 +10,5 @@ class AbstractThreadInterruptor{
     std::stop_token token() const{
         return stop_token_;
     }
+    ~AbstractThreadInterruptor() = default;
 };

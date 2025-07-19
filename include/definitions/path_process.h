@@ -78,3 +78,47 @@ struct std::equal_to<path::Storage<VIEW>>{
         return lhs.path_==rhs.path_ && lhs.type_==rhs.type_;
     }
 };
+
+#include "serialization.h"
+
+namespace serialization{
+    template<bool NETWORK_ORDER,bool VIEW>
+    struct Serialize<NETWORK_ORDER,path::Storage<VIEW>>{
+        using type = path::Storage<VIEW>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.type_,msg.path_);
+        }
+    };
+
+    template<bool NETWORK_ORDER, bool VIEW>
+    struct Deserialize<NETWORK_ORDER,path::Storage<VIEW>>{
+        using type = path::Storage<VIEW>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.type_,msg.path_);
+        }
+    };
+
+    template<bool VIEW>
+    struct Serial_size<path::Storage<VIEW>>{
+        using type = path::Storage<VIEW>;
+        size_t operator()(const type& msg) noexcept{
+            return serial_size(msg.type_,msg.path_);
+        }
+    };
+
+    template<bool VIEW>
+    struct Min_serial_size<path::Storage<VIEW>>{
+        using type = path::Storage<VIEW>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return min_serial_size(msg.type_,msg.path_);
+        }
+    };
+
+    template<bool VIEW>
+    struct Max_serial_size<path::Storage<VIEW>>{
+        using type = path::Storage<VIEW>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return max_serial_size(msg.type_,msg.path_);
+        }
+    };
+}

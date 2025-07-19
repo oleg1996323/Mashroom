@@ -141,6 +141,9 @@ constexpr const char* uc_filename = "usr.txt";
 constexpr const char* sc_filename = "server.txt";
 
 class Config{
+    struct ConfigSettings{
+
+    };  
     mutable network::server::Config server_config_;
     std::unordered_map<std::string,std::vector<std::string>> configs_;
     std::unordered_set<network::server::Config> server_configs_;

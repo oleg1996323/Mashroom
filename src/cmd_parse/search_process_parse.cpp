@@ -19,8 +19,7 @@ namespace parse{
     }
 
     void SearchProcess::init() noexcept{
-        descriptor_.add_options()
-        ("j",po::value<int>()->notifier([this](int input){
+        add_options("j",po::value<int>()->notifier([this](int input){
             search_proc_->set_using_processor_cores(input);
         }),"Number of used threads. Number may be discarded to the maximal physical number threads")
         ("outp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& paths){

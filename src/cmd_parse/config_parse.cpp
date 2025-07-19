@@ -106,13 +106,15 @@ namespace parse{
     ConfigCommandsArguments::ConfigCommandsArguments():AbstractCLIParser("Config arguments:"){}
 
     void ConfigCommandsArguments::init() noexcept{
-        descriptor_.add_options()
-        ("name,N",po::value<std::string>(),"Configure the program")
-        ("capupd-time-interval,C",po::value<std::string>()/*add notifier parsing TimeInterval*/,"")
-        ("checkupd-time-interval,U",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
+        add_options("name,N",po::value<std::string>()->required(),"Configure the program")
+        ("cap-upd-time-interval",po::value<std::string>()/*add notifier parsing TimeInterval*/,"");
+        ("mashroom-upd-time-interval,U",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
         define_uniques();
     }
     ErrorCode ConfigCommandsArguments::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+        /**
+         * @todo add new config Settings (see /sys)
+         */
         if(vm.contains("add")){
             
         }
@@ -138,13 +140,12 @@ namespace parse{
     Config::Config():AbstractCLIParser("Config options:"){}
 
     void Config::init() noexcept{
-        descriptor_.add_options()
-        ("add,A",po::value<std::vector<std::string>>(),"Configure the program")
+        add_options("add,A",po::value<std::vector<std::string>>(),"Configure the program")
         ("remove,R",po::value<std::string>()->notifier([this](const std::string& name){
             err_ = remove_user_config_notifier(name);
         }),"")
-        ("redefine",po::value<std::string>(),"")
-        ("server","Configure the server settings");
+        ("redefine",po::value<std::string>(),"");
+        add_options_instances("server","Configure the server settings",ServerAction::instance());
         define_uniques();
     }
     ErrorCode Config::execute(vars& vm,const std::vector<std::string>& args) noexcept{
