@@ -75,7 +75,7 @@ target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
                 
                     
-set_target_properties(Mashroom Mashroom_lib grib1reader library clip web
+set_target_properties(Mashroom Mashroom_lib grib1reader library clip web system
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
                     LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/shared/Debug"
