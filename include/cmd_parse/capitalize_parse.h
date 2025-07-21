@@ -19,7 +19,8 @@ namespace parse{
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
 
         virtual void callback() noexcept override final{
-            
+            if(err_!=ErrorCode::NONE)
+                hCapitalize.reset();
         }
     };
 }

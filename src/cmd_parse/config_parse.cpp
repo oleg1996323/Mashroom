@@ -17,101 +17,16 @@
 
 using namespace translate::token;
 
-ErrorCode config_parse(const std::vector<std::string_view>& input){
-    std::vector<std::string_view> commands_saved;
-    ConfigAction action = ConfigAction::UNDEF;
-    std::string_view config_name;
-    ErrorCode err = ErrorCode::NONE; 
-    switch(translate_from_txt<ConfigAction>(input.at(0))){
-        case ConfigAction::ADD:
-            if(action==ConfigAction::UNDEF)
-                action = ConfigAction::ADD;
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-        case ConfigAction::REMOVE :{
-            if(action==ConfigAction::UNDEF)
-                action = ConfigAction::REMOVE;
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-        }
-        case ConfigAction::ADDSET:{
-            if(action==ConfigAction::UNDEF)
-                action = ConfigAction::ADDSET;
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-        }
-        case ConfigAction::SET:{
-            if(action==ConfigAction::UNDEF)
-                action = ConfigAction::SET;
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-            if(!input.at(1).starts_with('-'))
-                config_name = input.at(1);
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-            if(app().config().has_config_name(input.at(1)))
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Already defined user-commands config name",AT_ERROR_ACTION::CONTINUE,input.at(1));
-            break;
-        }
-        case ConfigAction::REDEFINE :{
-            if(action==ConfigAction::UNDEF){
-                action = ConfigAction::REDEFINE;
-            }
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Unknown argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-            if(!input.at(1).starts_with('-'))
-                config_name = input.at(1);
-            else
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-        }
-        case ConfigAction::GET:{
-            if(input.size()>1)
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,input.at(1)); 
-            if(input.at(1)=="."){
-                for(auto& [name,commands]:app().config().get_user_configs()){
-                    std::cout<<name<<"-> ";
-                    for(const std::string& command:commands){
-                        std::cout<<command<<' ';
-                    }
-                    std::cout.seekp(-1);
-                    std::cout<<std::endl;
-                }
-            }
-            else if(!input.at(1).starts_with('-')){
-                if(!app().config().has_config_name(input.at(1)))
-                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"User-commands config name doesn't exists",AT_ERROR_ACTION::CONTINUE,input.at(1));
-                std::cout<<input.at(1)<<"-> ";
-                for(auto& command:app().config().get_user_config(input.at(1))){
-                    std::cout<<command<<' ';
-                    std::cout.seekp(-1);
-                    std::cout<<std::endl;
-                }
-            }
-            else 
-                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,input.at(1));
-
-            }
-        default:{
-            ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"Undefined mode argument",AT_ERROR_ACTION::CONTINUE,input.at(0));
-            return ErrorCode::COMMAND_INPUT_X1_ERROR;
-        }
-    }
-    if(err!=ErrorCode::NONE)
-        return err;
-    Application::config().add_user_config(config_name,commands_saved);
-    return err;
-}
-
 namespace parse{
-    ConfigCommandsArguments::ConfigCommandsArguments():AbstractCLIParser("Config arguments:"){}
+    UserConfig::UserConfig():AbstractCLIParser("Config arguments:"){}
 
-    void ConfigCommandsArguments::init() noexcept{
+    void UserConfig::init() noexcept{
         add_options("name,N",po::value<std::string>()->required(),"Configure the program")
         ("cap-upd-time-interval",po::value<std::string>()/*add notifier parsing TimeInterval*/,"");
-        ("mashroom-upd-time-interval,U",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
+        ("mashroom-upd-time-interval",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
         define_uniques();
     }
-    ErrorCode ConfigCommandsArguments::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+    ErrorCode UserConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         /**
          * @todo add new config Settings (see /sys)
          */
@@ -121,7 +36,7 @@ namespace parse{
     }
 
     ErrorCode add_user_config_notifier(const std::vector<std::string>& args){
-        return ConfigCommandsArguments::instance().parse(args);
+        return UserConfig::instance().parse(args);
     }
     ErrorCode remove_user_config_notifier(const std::string& name){
         if(!Application::config().remove_user_config(name))
@@ -130,10 +45,16 @@ namespace parse{
         return ErrorCode::NONE;
     }
 
-    ErrorCode redefine_user_config_notifier(const std::string& name,const std::vector<std::string>& commands){
-        if(!Application::config().change_user_config(name,commands))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "config name doesn't exists",AT_ERROR_ACTION::CONTINUE,name);
+    ErrorCode redefine_user_config_notifier(const std::vector<std::string>& args){
+        UserConfig::instance().parse(args);
+        if(UserConfig::instance().settings()){
+            if(!Application::config().change_user_config(
+                        *UserConfig::instance().settings()))
+                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                    "config name doesn't exists",
+                    AT_ERROR_ACTION::CONTINUE,UserConfig::instance().settings()->name_);
+        }
+        else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;
     }
 
@@ -144,7 +65,9 @@ namespace parse{
         ("remove,R",po::value<std::string>()->notifier([this](const std::string& name){
             err_ = remove_user_config_notifier(name);
         }),"")
-        ("redefine",po::value<std::string>(),"");
+        ("redefine",po::value<std::vector<std::string>>(),"")
+        ("get-config",po::value<std::string>(),"Print the confguration with indicated name")
+        ("print-all-configs","Print all accessible configurations");
         add_options_instances("server","Configure the server settings",ServerAction::instance());
         define_uniques();
     }
@@ -152,7 +75,21 @@ namespace parse{
         if(vm.contains("add"))
             return add_user_config_notifier(args);
         else if(vm.contains("redefine"))
-            return redefine_user_config_notifier(vm.at("redefine").as<std::string>(),args);
+            return redefine_user_config_notifier(vm.at("redefine").as<std::vector<std::string>>());
+        else if(vm.contains("get-config")){
+            if(app().config().has_config_name(vm.at("get-config").as<std::string>()))
+                std::cout<<to_json(app().config().
+                get_user_config(vm.at("get-config").as<std::string>()))<<
+                std::endl;
+            else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,
+                "",AT_ERROR_ACTION::CONTINUE,vm.at("get-config").as<std::string>());
+            return ErrorCode::NONE;
+        }
+        else if(vm.contains("print-all-configs")){
+            for(auto& config:app().config().get_user_configs())
+                std::cout<<to_json(config)<<std::endl;
+            return ErrorCode::NONE;
+        }
         else if(vm.contains("server"))
             return ServerAction::instance().parse(args);
         else

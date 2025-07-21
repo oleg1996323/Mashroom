@@ -135,7 +135,7 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 	}
 }
 
-void Capitalize::execute(){
+void Capitalize::execute() noexcept{
 	if(!hProgram)
 		hProgram= std::make_unique<Mashroom>(Mashroom());
 	for(const path::Storage<false>& path:in_path_){

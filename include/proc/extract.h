@@ -94,14 +94,13 @@ using namespace std::string_literals;
 namespace fs = std::filesystem;
 
 #include "proc/interfaces/abstractsearchprocess.h"
-#include "proc/interfaces/abstracttimeseparation.h"
 #include "proc/interfaces/abstractthreadinterruptor.h"
 #include <netdb.h>
 #include <program/data.h>
 
 
 
-class Extract : public AbstractSearchProcess, public AbstractTimeSeparation, public AbstractThreadInterruptor
+class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
 {
 public:
     enum class ExtractFormat : uint
@@ -114,7 +113,7 @@ public:
     };
 
 private:
-    std::string directory_format = std::string("{:%Y") + fs::path::preferred_separator + "%m}";
+    std::string path_format = std::string("{:%Y") + fs::path::preferred_separator + "%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
     ExtractFormat output_format_ = ExtractFormat::DEFAULT;
     void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
@@ -125,9 +124,9 @@ private:
     template <typename... ARGS>
     fs::path __generate_directory__(ARGS &&...args); // TODO expand extract division
 public:
-    virtual ErrorCode execute() override final;
+    virtual ErrorCode execute() noexcept override final;
 
-    virtual ErrorCode properties_integrity() const override final
+    virtual ErrorCode properties_integrity() const noexcept override final
     {
         /*  input path and host are checked in AbstractSearchProcess corresponding methods
          */
@@ -196,35 +195,35 @@ public:
         else
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "empty parameters", AT_ERROR_ACTION::CONTINUE);
     }
-    virtual void __set_offset_time_interval__() override final
+    std::string get_dir_file_outp_format() const noexcept
     {
         std::string file_format_tmp;
         std::string dir_format_tmp;
-        if (diff_time_interval_.hours_ > std::chrono::seconds(0))
+        if (t_off_.hours_ > std::chrono::seconds(0))
         {
             file_format_tmp += "S%_M%_H%_";
             dir_format_tmp += "S%" + fs::path::preferred_separator;
             dir_format_tmp += "M%" + fs::path::preferred_separator;
             dir_format_tmp += "H%" + fs::path::preferred_separator;
         }
-        else if (diff_time_interval_.hours_ > minutes(0))
+        else if (t_off_.hours_ > minutes(0))
         {
             file_format_tmp += "M%_H%_";
             dir_format_tmp += "M%" + fs::path::preferred_separator;
             dir_format_tmp += "H%" + fs::path::preferred_separator;
         }
-        else if (diff_time_interval_.hours_ > hours(0))
+        else if (t_off_.hours_ > hours(0))
         {
             file_format_tmp += "H%_";
             dir_format_tmp += "H%" + fs::path::preferred_separator;
         }
-        if (diff_time_interval_.days_ > days(0))
+        if (t_off_.days_ > days(0))
         {
             file_format_tmp += "d%_m%_";
             dir_format_tmp += "d%" + fs::path::preferred_separator;
             dir_format_tmp += "m%" + fs::path::preferred_separator;
         }
-        else if (diff_time_interval_.months_ > months(0))
+        else if (t_off_.months_ > months(0))
         {
             file_format_tmp += "m%_";
             dir_format_tmp += "m%" + fs::path::preferred_separator;
@@ -234,7 +233,7 @@ public:
         std::reverse(file_format_tmp.begin(), file_format_tmp.end());
         std::reverse(dir_format_tmp.begin(), dir_format_tmp.end());
         file_format_tmp = "{}_{}_{:" + file_format_tmp + "}";
-        directory_format = "{:" + dir_format_tmp + "}";
+        return "{:"s + dir_format_tmp + "}"s;
     }
 };
 
@@ -260,5 +259,5 @@ fs::path Extract::__generate_name__(Extract::ExtractFormat format, ARGS &&...arg
 template <typename... ARGS>
 fs::path Extract::__generate_directory__(ARGS &&...args)
 {
-    return out_path_ / std::vformat(directory_format, std::make_format_args(args...));
+    return out_path_ / std::vformat(path_format, std::make_format_args(args...));
 }

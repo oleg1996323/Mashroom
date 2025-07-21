@@ -164,19 +164,22 @@ namespace parse{
         ErrorCode parse(const std::vector<std::string>& args) noexcept
         {
             if(args.empty()){
-                err_ = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS, 
+                ErrorCode err = ErrorPrint::print_error(ErrorCode::TO_FEW_ARGUMENTS, 
                                             "No arguments provided",
                                             AT_ERROR_ACTION::CONTINUE);
                 callback();
-                return err_;
+                return err;
             }
 
             std::expected<boost::program_options::parsed_options, ErrorCode> parse_result = try_parse(instance().descriptor(),args);
             if(!parse_result.has_value()){
-                err_ = parse_result.error();
+                ErrorCode err = parse_result.error();
                 callback();
-                return err_;
+                return err;
             }
+            if(parse_result.value().options.front().unregistered)
+                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
+                
             if(parse_result.value().options.front().string_key=="help"){
                 if(!parse_result.value().options.front().unregistered){
                     if(parse_result.value().options.size()>1)
@@ -184,24 +187,29 @@ namespace parse{
                     else descriptor_.print(std::cout);
                     return ErrorCode::NONE;
                 }
-                else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
+                else{
+                    callback();
+                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
+                }
             }
             po::variables_map vm;
             po::store(parse_result.value(),vm);
+            if(vm.empty())
+                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,args.front());
             std::vector<std::string> tokens = po::collect_unrecognized(parse_result.value().options,po::collect_unrecognized_mode::include_positional);
             auto dublicate = contains_unique_value(args.begin(),args.end(),unique_values_.begin(),unique_values_.end(),[](const std::string& item)
                 ->std::string_view
             {return item.starts_with("--")?std::string_view(item).substr(2):std::string_view(item);});
 
             if(dublicate!=unique_values_.end()){
-                err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"must be unique",AT_ERROR_ACTION::CONTINUE,*dublicate);
+                ErrorCode err = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"must be unique",AT_ERROR_ACTION::CONTINUE,*dublicate);
                 callback();
-                return err_;
+                return err;
             }
             else {
-                err_ = execute(vm,tokens);
+                ErrorCode err = execute(vm,tokens);
                 callback();
-                return err_;
+                return err;
             }
         }
 

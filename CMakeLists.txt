@@ -44,7 +44,7 @@ include(modules-linkage.cmake)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC system clip web grib1reader Boost::program_options Boost::json)
+target_link_libraries(Mashroom_lib PUBLIC system clip web grib1reader)
 target_include_directories(Mashroom_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 message(STATUS ${Sys_SOURCES})
 
@@ -67,7 +67,7 @@ target_include_directories(clip PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse 
                                     ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(clip PUBLIC system library)
+target_link_libraries(clip PUBLIC system library Boost::program_options)
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)

@@ -33,18 +33,16 @@ namespace parse{
         }),"Extract specified data.",Extract::instance())
         ("capitalize",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = capitalize_notifier(items);
-        }),"Read specified files and register the contained data properties and data positions",Capitalize::instance())
+        }),"Read specified files and register the contained data properties and data positions. Organize the data by defined hierarchy from unique massive archive.",Capitalize::instance())
         ("integrity",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = integrity_notifier(items);
-        }),"Check the integrity (dimensional and temporal) of capitalized data",Integrity::instance())
+        }),"Check the integrity (dimensional and temporal) of capitalized data and detect the corrupted files of different format.",Integrity::instance())
         ("contains",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = contains_notifier(items);
         }),"Check if capitalized data contains the data specified by properties",Contains::instance())
-        ("config",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
-            err_ = config_notifier(items);
-        }),"Permits to configure the program or server",Config::instance()).
+        ("config",po::value<std::vector<std::string>>()->zero_tokens(),"Permits to configure the program or server",Config::instance()).
         add_options("save","Save the current instance")
-        ("help","Show help")
+        ("help,H","Show help")
         ("exit",po::value<std::string>()->implicit_value("save")->notifier([this](const std::string& item){
             err_ = exit_notifier(item);
         }),"Exit from program");
@@ -56,6 +54,9 @@ namespace parse{
         else if(vm.contains("save") && vm.size()==1){
             err_ = save_notifier();
             return err_;
+        }
+        else if(vm.contains("config")){
+            return config_notifier(args);
         }
         // else if(vm.contains("help")){
         //     if(vm.size()==2){

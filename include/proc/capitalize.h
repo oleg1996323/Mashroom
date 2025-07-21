@@ -30,7 +30,7 @@ std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<Gri
 const GribDataInfo& __capitalize_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);
-void execute();
+void execute() noexcept;
 
 ErrorCode add_in_path(const path::Storage<false>& path);
 ErrorCode set_dest_dir(std::string_view dest_directory);

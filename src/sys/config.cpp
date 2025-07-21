@@ -4,6 +4,7 @@
 #include <network/common/def.h>
 #include <boost/json.hpp>
 #include <ranges>
+#include "directories.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -32,92 +33,50 @@ namespace network::server{
     }
 }
 #include <boost/json/parser.hpp>
-void Config::read(){
+#include "boost_functional/json.h"
+void Config::read_user_config() noexcept{
     using namespace boost;
-    if(!fs::exists(config_mashroom_dir))
-        if(!fs::create_directories(config_mashroom_dir))
-            ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::ABORT,config_mashroom_dir.c_str());
-    if(fs::exists(config_mashroom_dir/uc_filename)){
-        config_file.open(config_mashroom_dir/uc_filename,std::ios::in);
-        if(!config_file.is_open())
-            return;
-        {
-            json::stream_parser parser;
-            json::error_code err_code;
-            std::array<char,1024*4> buffer;
-            while(config_file.good()){
-                config_file.read(buffer.data(),buffer.size());
-                parser.write(buffer.data(),config_file.gcount(),err_code);
-                if(err_code)
-                    ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,""s+(config_mashroom_dir/uc_filename).c_str()+" reading error",AT_ERROR_ACTION::ABORT);
-            }
-            if(!parser.done())
-                return;
-            else
-                parser.finish();
-            json::value root = parser.release();
-            if(root.is_object()){
-                for(const auto& [name,commands]:root.as_object()){
-                    auto& commands_conf = configs_[name];
-                    if(commands.is_array()){
-                        commands_conf.reserve(commands.as_array().size());
-                        for(const auto& command:commands.as_array())
-                            commands_conf.push_back(command.as_string().data());
-                    }
-                }
-            }
-        }
-        config_file.close();
+    std::expected<json::value,std::error_code> root = parse_json(
+        sys_settings_.config_dir/uc_filename);
+    if(!root.has_value()){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,root.error().message(),AT_ERROR_ACTION::CONTINUE);
+        return;
     }
-    if(fs::exists(config_mashroom_dir/sc_filename)){
-        server_file.open(config_mashroom_dir/sc_filename,std::ios::in);
-        if(!server_file.is_open())
-            return;
-        {
-            json::stream_parser parser;
-            json::error_code err_code;
-            std::array<char,1024*4> buffer;
-            while(server_file.good()){
-                server_file.read(buffer.data(),buffer.size());
-                parser.write(buffer.data(),server_file.gcount(),err_code);
-                if(err_code)
-                    ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,""s+(config_mashroom_dir/sc_filename).c_str()+" reading error",AT_ERROR_ACTION::ABORT);
-            }
-            if(!parser.done())
-                return;
-            else
-                parser.finish();
-            json::value root = parser.release();
-            std::string last_config;
-            if(root.is_object()){
-                auto& name_configs = root.as_object();
-                if(name_configs.contains("last"))
-                    last_config=name_configs.at("last").as_string();
-                if(name_configs.contains("configs") && name_configs.at("configs").is_object())
-                    for(const auto& [name,config]:name_configs.at("configs").as_object()){
-                        network::server::Config config_tmp;
-                        config_tmp.name_=name;
-                        auto& c = config.as_object();
-                        if(c.contains("host"))
-                            config_tmp.settings_.host=c.at("host").as_string();
-                        if(c.contains("service"))
-                            config_tmp.settings_.service=c.at("service").as_string();
-                        if(c.contains("port"))
-                            config_tmp.settings_.port=c.at("port").as_string();
-                        if(c.contains("protocol"))
-                            config_tmp.settings_.protocol=c.at("protocol").as_string();
-                        if(c.contains("timeout"))
-                            config_tmp.settings_.timeout_seconds_=c.at("timeout").as_int64();
-                        if(c.contains("accaddr"))
-                            for(auto& accaddr:c.at("accaddr").as_array())
-                                config_tmp.accepted_addresses_.insert(accaddr.as_string().data());
-                        server_configs_.insert(std::move(config_tmp));
-                    }
-                if(!last_config.empty())
-                    server_config_ = get_server_config(last_config);
-            }
+    if(root.value().is_array()){
+        for(const auto& settings_val:root.value().as_array()){
+            auto settings = from_json<user::Settings>(settings_val);
+            if(settings.has_value())
+                configs_.insert(std::move(settings.value()));
+            else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+                        "configuration corrupted",AT_ERROR_ACTION::CONTINUE);
         }
-        server_file.close();
+    }
+}
+
+void Config::read_server_config() noexcept{
+    using namespace boost;
+    std::expected<json::value,std::error_code> root = parse_json(
+                    sys_settings_.server_config_dir/sc_filename);
+    if(!root.has_value()){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,root.error().message(),AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
+    std::string last_config;
+    if(root.value().is_object()){
+        auto& name_configs = root.value().as_object();
+        if(name_configs.contains("last"))
+            last_config=name_configs.at("last").as_string();
+        if(name_configs.contains("configs") && name_configs.at("configs").is_object())
+            for(const auto& config:name_configs.at("configs").as_array()){
+                auto res = from_json<network::server::Config>(config);
+                if(!res.has_value())
+                    ErrorPrint::print_error(ErrorCode::DESERIALIZATION_ERROR,
+                        "server configuration corrupted",AT_ERROR_ACTION::CONTINUE);
+                else
+                    server_configs_.insert(std::move(res.value()));
+            }
+        if(!last_config.empty())
+            server_config_ = get_server_config(last_config);
     }
     if(!server_config_)
         server_config_ = network::server::get_default_server_config();
@@ -125,74 +84,105 @@ void Config::read(){
         server_configs_.insert(server_config_);
 }
 void Config::save(){
-    write();
+    write_user_config();
+    write_server_config();
 }
-void Config::write(){
+void Config::write_user_config(){
     using namespace boost;
-    if(!config_file.is_open()){
-        config_file.open(config_mashroom_dir/uc_filename,std::ios::out|std::ios::trunc);
-        if(!config_file.is_open())
-            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Error at writing to the user-config file.",AT_ERROR_ACTION::ABORT,(config_mashroom_dir/uc_filename).c_str());
+    if(!directory_accessible(sys_settings_.config_dir)){
+        ErrorPrint::print_error(ErrorCode::CANNOT_ACCESS_PATH_X1,"",AT_ERROR_ACTION::CONTINUE,(sys_settings_.config_dir).string());
+        return;
+    }
+    std::ofstream file(sys_settings_.config_dir/uc_filename,std::ios::out|std::ios::trunc);
+    if(!file.is_open()){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+            "Error at writing to the user-config file.",
+            AT_ERROR_ACTION::CONTINUE,(sys_settings_.config_dir/uc_filename).c_str());
+        return;
     }
     {
         json::value val;
-        auto& obj = val.emplace_object();
-        for(auto& [name,commands]:configs_){
-            json::array arr;
-            for(const std::string& command:commands)
-                arr.emplace_back(command);
-            obj[name]=arr;
+        auto& configs = val.emplace_object();
+        for(auto& settings:configs_){
+            configs[settings.name_]=to_json(settings);
         }
-        config_file<<val.as_object();
-        config_file.flush();
-        std::cout<<"Saved user configurations to "<<config_mashroom_dir/uc_filename<<std::endl;
-        config_file.close();
+        file<<val.as_object();
+        file.flush();
+        std::cout<<"Saved user configurations to "<<
+        sys_settings_.config_dir/uc_filename<<std::endl;
+        file.close();
     }
-    
-    if(!server_file.is_open()){
-        server_file.open(config_mashroom_dir/sc_filename,std::ios::out|std::ios::trunc);
-        if(!server_file.is_open())
-            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Error at writing to the server-config file.",AT_ERROR_ACTION::ABORT,(config_mashroom_dir/sc_filename).c_str());
+}
+void Config::write_server_config(){
+    using namespace boost;
+    if(!directory_accessible(sys_settings_.server_config_dir)){
+        ErrorPrint::print_error(ErrorCode::CANNOT_ACCESS_PATH_X1,"",AT_ERROR_ACTION::CONTINUE,(sys_settings_.server_config_dir).string());
+        return;
+    }
+    std::ofstream file(sys_settings_.server_config_dir/sc_filename,std::ios::out|std::ios::trunc);
+    if(!file.is_open()){
+        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+            "Error at writing to the server-config file.",
+            AT_ERROR_ACTION::CONTINUE,(sys_settings_.server_config_dir/sc_filename).c_str());
+        return;
     }
     {
         json::value val;
         auto& last_configs = val.emplace_object();
         last_configs["last"]=server_config_.name_;
-        auto& obj = last_configs["configs"].emplace_object();
-        for(auto& s_conf:server_configs_){
-            auto& name_conf = obj[s_conf.name_].emplace_object();
-            name_conf["host"]=s_conf.settings_.host;
-            name_conf["service"]=s_conf.settings_.service;
-            name_conf["port"]=s_conf.settings_.port;
-            name_conf["protocol"]=s_conf.settings_.protocol;
-            name_conf["timeout"]=s_conf.settings_.timeout_seconds_;
-            auto& accaddr = name_conf["accaddr"].emplace_array();
-        for(const std::string& addr:s_conf.accepted_addresses_)
-            accaddr.emplace_back(addr);
-        }
-        server_file<<val.as_object();
-        server_file.flush();
-        std::cout<<"Saved server configurations to "<<config_mashroom_dir/sc_filename<<std::endl;
-        server_file.close();
+        auto& configs = last_configs["configs"].emplace_array();
+        for(auto& s_conf:server_configs_)
+            configs.emplace_back(to_json(s_conf));
+        file<<val.as_object();
+        file.flush();
+        std::cout<<"Saved server configurations to "<<sys_settings_.server_config_dir/sc_filename<<std::endl;
+        file.close();
     }
     
 }
-bool Config::add_user_config(const std::string& name,const std::vector<std::string>& commands){
-    if(!configs_.contains(name)){
-        configs_[name] = commands;
-        save();
-        return true;
+
+ErrorCode Config::set_log_directory(const fs::path& path) noexcept{
+    if(!fs::exists(path))
+        if(fs::create_directories(path))
+            return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+        else{
+            sys_settings_.log_dir = path;
+            return ErrorCode::NONE;
+        }
+    else {
+        sys_settings_.log_dir = path;
+        return ErrorCode::NONE;
     }
-    else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::CONTINUE,name);
-    return false;
 }
-bool Config::add_user_config(std::string_view name,const std::vector<std::string_view>& commands){
-    if(!configs_.contains(name.data())){
-        configs_[name.data()] = std::vector<std::string>({commands.begin(),commands.end()});
+#include "directories.h"
+ErrorCode Config::set_config_directory(const fs::path& path) noexcept{
+    if(!directory_accessible(path))
+        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+    else{
+        sys_settings_.config_dir = path;
+        return ErrorCode::NONE;
+    }
+}
+ErrorCode Config::set_server_config_directory(const fs::path& path) noexcept{
+    if(!directory_accessible(path))
+        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+    else{
+        sys_settings_.server_config_dir = path;
+        return ErrorCode::NONE;
+    }
+}
+
+bool Config::add_user_config(const user::Settings& settings){
+    if(settings.name_.empty()){
+        ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"config settings name",AT_ERROR_ACTION::CONTINUE);
+        return false;
+    }
+    if(!configs_.contains(settings.name_)){
+        configs_.insert(settings);
         save();
         return true;
     }
-    else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::CONTINUE,name);
+    else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::CONTINUE,settings.name_);
     return false;
 }
 bool Config::add_server_config(network::server::Config&& set){
@@ -224,37 +214,44 @@ bool Config::remove_server_config(const std::string& name){
     return remove_server_config(std::string_view(name));
 }
 bool Config::remove_user_config(const std::string& name){
-    if(has_config_name(name)){
-        configs_.erase(name);
-        return true;
-    }
-    return false;
+    return remove_user_config(std::string_view(name));
 }
 bool Config::remove_user_config(std::string_view name){
     if(has_config_name(name)){
-        configs_.erase(name.data());
+        auto found = configs_.find(name);
+        configs_.erase(found);
         return true;
     }
+    else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,name);
     return false;
 }
-bool Config::change_user_config(std::string_view name,const std::vector<std::string_view>& commands){
-    assert(false);
+bool Config::change_user_config(const user::Settings& settings){
+    if(has_config_name(settings.name_)){
+        configs_.insert(settings);
+        return true;
+    }
+    else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,settings.name_);
+    return false;
 }
-bool Config::change_user_config(const std::string& name,const std::vector<std::string>& commands){
-    assert(false);
-}
-const std::unordered_map<std::string,std::vector<std::string>> Config::get_user_configs() const{
+const std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual> Config::get_user_configs() const{
     return configs_;
 }
-const std::vector<std::string>& Config::get_user_config(const std::string& name) const{
-    if(has_config_name(name))
-        return configs_.at(name);
-    else return empty_config_;
+const user::Settings& Config::get_user_config(const std::string& name) const{
+    return get_user_config(std::string_view(name));
 }
-const std::vector<std::string>& Config::get_user_config(std::string_view name) const{
-    if(has_config_name(name))
-        return configs_.at(name.data());
-    else return empty_config_;
+const user::Settings& Config::get_user_config(std::string_view name) const{
+    if(name.empty()){
+        ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"configuration name",AT_ERROR_ACTION::CONTINUE);
+        return empty_config_;
+    }
+    if(has_config_name(name)){
+        auto found = configs_.find(name);
+        return *found;
+    }
+    else{
+        ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,name);
+        return empty_config_;
+    }
 }
 const network::server::Config& Config::get_server_config(std::string_view name) const{
     if(has_server_config(name))

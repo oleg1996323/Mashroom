@@ -145,8 +145,9 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
     return ErrorCode::NONE;
 }
 
-ErrorCode Extract::execute(){
+ErrorCode Extract::execute() noexcept{
     if(hProgram){
+        path_format = get_dir_file_outp_format();
         auto matched = hProgram->data().match(props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
@@ -185,7 +186,7 @@ ErrorCode Extract::execute(){
 
         std::vector<int> rows;
         rows.resize(col_vals_.size());
-        utc_tp file_end_time = __get_next_period__(current_time);
+        utc_tp file_end_time = t_off_.get_next_tp(current_time);
         std::ofstream out;
         fs::path out_f_name;
         cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
@@ -213,7 +214,7 @@ ErrorCode Extract::execute(){
                     if(err!=ErrorCode::NONE)
                         return err;
                 }
-                file_end_time = __get_next_period__(current_time);
+                file_end_time = t_off_.get_next_tp(current_time);
             }
             out<<std::format("{:%Y/%m/%d %H:%M:%S}",time_point_cast<std::chrono::seconds>(current_time))<<'\t';
             for(int col=0;col<col_vals_.size();++col){

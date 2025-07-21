@@ -10,7 +10,7 @@
 #include "cmd_parse/cmd_translator.h"
 #include "functions.h"
 #include "code_tables/table_0.h"
-#include "proc/interfaces/abstracttimeseparation.h"
+#include "types/time_interval.h"
 
 namespace boost{
 namespace program_options{

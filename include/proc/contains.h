@@ -8,7 +8,6 @@
 #include <filesystem>
 #include "data/sublimed_info.h"
 #include "proc/interfaces/abstractsearchprocess.h"
-#include "proc/interfaces/abstracttimeseparation.h"
 #include "program/mashroom.h"
 namespace fs = std::filesystem;
 
@@ -37,7 +36,7 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     ContainOutputFilter filter_;
     bool integral_only_; //search only integral time-series in searching time interval
     public:
-    virtual ErrorCode execute() override final{
+    virtual ErrorCode execute() noexcept override final{
         if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 
                 props_.from_date_==utc_tp() && 
@@ -73,7 +72,7 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
         return ErrorCode::NONE;
     }
     void set_integral_only(bool integral);
-    virtual ErrorCode properties_integrity() const override final{
+    virtual ErrorCode properties_integrity() const noexcept override final{
         if(out_path_.empty())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;

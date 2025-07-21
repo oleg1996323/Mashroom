@@ -35,17 +35,17 @@ static constexpr const char* access_data = "accessible.txt";
 static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 
 #include "proc/interfaces/abstractsearchprocess.h"
-#include "proc/interfaces/abstracttimeseparation.h"
-class Integrity:public AbstractSearchProcess,public AbstractTimeSeparation{
+class Integrity:public AbstractSearchProcess{
     private:
     GribDataInfo data_;
+    TimeOffset t_off_;
     std::vector<std::pair<fs::path,ErrorCodeData>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
     int cpus = 1;
     void __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr);
     public:
-    virtual ErrorCode execute() override final;
-    ErrorCode properties_integrity() const{
+    virtual ErrorCode execute() noexcept override final;
+    virtual ErrorCode properties_integrity() const noexcept override final{
         if(is_correct_interval(props_.from_date_,props_.to_date_))
             return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
         if(!props_.position_.has_value())
@@ -54,21 +54,21 @@ class Integrity:public AbstractSearchProcess,public AbstractTimeSeparation{
             return ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;
     }
-    virtual void __set_offset_time_interval__() override final{
+    void get_time_format() noexcept{
         std::string time_format_tmp;
-        if(diff_time_interval_.hours_>std::chrono::seconds(0)){
+        if(t_off_.hours_>std::chrono::seconds(0)){
             time_format_tmp+="S%:M%:H% ";
         }
-        else if(diff_time_interval_.hours_>minutes(0)){
+        else if(t_off_.hours_>minutes(0)){
             time_format_tmp+="M%:H% ";
         }
-        else if(diff_time_interval_.hours_>hours(0)){
+        else if(t_off_.hours_>hours(0)){
             time_format_tmp+="H% ";
         }
-        if(diff_time_interval_.days_>days(0)){
+        if(t_off_.days_>days(0)){
             time_format_tmp+="d%/m%/";
         }
-        else if(diff_time_interval_.months_>months(0)){
+        else if(t_off_.months_>months(0)){
             time_format_tmp+="m%/";
         }
         time_format_tmp+="Y%";

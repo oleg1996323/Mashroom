@@ -18,7 +18,7 @@
 
 using namespace std::chrono;
 
-ErrorCode Integrity::execute(){ //TODO: add search from match if in path not defined
+ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in path not defined
     ErrorCode result = ErrorCode::NONE;
     std::vector<fs::directory_entry> entries;
     for(auto& path:in_path_){
@@ -79,11 +79,11 @@ ErrorCode Integrity::execute(){ //TODO: add search from match if in path not def
     for(const auto& [filename,file_data]:sublimed_grib_data.data()){
         for(const auto& [cmn,sublimed_data_seq]:file_data){
             for(const auto& sublimed_data:sublimed_data_seq){
-                utc_tp beg_period = __get_begin_period__(sublimed_data.from,props_.from_date_);
+                utc_tp beg_period = t_off_.get_null_aligned_tp(sublimed_data.from,props_.from_date_);
                 utc_tp end_period;
                 decltype(sublimed_data.discret) discretion =    duration_cast<std::chrono::seconds>(sublimed_data.discret)>utc_diff(0)?
                                                                 duration_cast<std::chrono::seconds>(sublimed_data.discret):std::chrono::seconds(1);
-                end_period = __get_next_period__(sublimed_data.from)-discretion;
+                end_period = t_off_.get_next_tp(sublimed_data.from)-discretion;
                 if(sublimed_data.from<=beg_period){
                     if(sublimed_data.to<end_period)
                         accessible_data<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<"-"<<

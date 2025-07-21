@@ -13,8 +13,6 @@ using utc_diff = std::chrono::system_clock::duration;
 
 #include <boost/program_options.hpp>
 
-
-
 struct TimeOffset{
     years years_ = years(0);
     months months_ = months(0);
@@ -22,6 +20,34 @@ struct TimeOffset{
     hours hours_ = hours(0);
     minutes minutes_ = minutes(0);
     std::chrono::seconds seconds_ = std::chrono::seconds(0);
+    template<bool NETWORK_ORDER>
+    friend struct serialization::Serialize;
+    template<bool NETWORK_ORDER>
+    friend struct serialization::Deserialize;
+    friend struct serialization::Serial_size<TimeOffset>;
+    friend struct serialization::Max_serial_size<TimeOffset>;
+    friend struct serialization::Min_serial_size<TimeOffset>;
+    public:
+    TimeOffset() noexcept = default;
+    explicit TimeOffset(years y,months mo,days d,hours h,minutes m,std::chrono::seconds s) noexcept;
+    TimeOffset(const TimeOffset& other) noexcept;
+    TimeOffset(TimeOffset&& other) noexcept;
+    TimeOffset& operator=(const TimeOffset& other) noexcept;
+    TimeOffset& operator=(TimeOffset&& other) noexcept;
+
+    /**
+     * @return Next time-point from current time-point by set time-offset
+     */
+    utc_tp get_next_tp(utc_tp current_time) const noexcept;
+    /**
+     * @return The time-point aligned to the lesser defined time-unit
+     */
+    utc_tp get_null_aligned_tp(utc_tp current_time, utc_tp from_initial_interval) const noexcept;
+
+    inline bool is_set() const noexcept{
+        return years_!=years(0) || months_!=months(0) || days_!=days(0) ||
+                hours_!=hours(0) || minutes_!=minutes(0) || seconds_!=std::chrono::seconds(0);
+    }
 };
 
 struct TimeInterval{
@@ -96,42 +122,13 @@ namespace serialization{
             return max_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
-
-    // template<bool NETWORK_ORDER = true>
-    // void serialize(const TimeOffset& off, std::vector<char>& buf) noexcept{
-    //     auto years_int = off.years_.count();
-    //     auto months_int = off.months_.count();
-    //     auto days_int = off.days_.count();
-    //     auto hours_int = off.hours_.count();
-    //     auto minutes_int = off.minutes_.count();
-    //     auto seconds_int = off.seconds_.count();
-    //     if constexpr(NETWORK_ORDER && is_little_endian()){
-    //         years_int = std::byteswap(years_int);
-    //         months_int = std::byteswap(months_int);
-    //         days_int = std::byteswap(days_int);
-    //         hours_int = std::byteswap(hours_int);
-    //         minutes_int = std::byteswap(minutes_int);
-    //         seconds_int = std::byteswap(seconds_int);
-    //     }
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(years_int),reinterpret_cast<const char*>(years_int)+sizeof(years_int));
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(months_int),reinterpret_cast<const char*>(months_int)+sizeof(months_int));
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(days_int),reinterpret_cast<const char*>(days_int)+sizeof(days_int));
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(hours_int),reinterpret_cast<const char*>(hours_int)+sizeof(hours_int));
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(minutes_int),reinterpret_cast<const char*>(minutes_int)+sizeof(minutes_int));
-    //     buf.insert(buf.end(),reinterpret_cast<const char*>(seconds_int),reinterpret_cast<const char*>(seconds_int)+sizeof(seconds_int));
-    // }
-
-    // template<>
-    // constexpr size_t serial_size(const TimeOffset& val) noexcept{
-    //     return sizeof(TimeOffset::years_.count())+sizeof(TimeOffset::months_.count())+sizeof(TimeOffset::days_.count())+
-    //             sizeof(TimeOffset::hours_.count())+sizeof(TimeOffset::minutes_.count())+sizeof(TimeOffset::seconds_.count());
-    // }
-    // template<>
-    // constexpr size_t min_serial_size(const TimeOffset& val) noexcept{
-    //     return serial_size(val);
-    // }
-    // template<>
-    // constexpr size_t max_serial_size(const TimeOffset& val) noexcept{
-    //     return serial_size(val);
-    // }
 }
+
+#include "boost_functional/json.h"
+#include <expected>
+
+template<>
+boost::json::value to_json(const TimeOffset& val);
+
+template<>
+std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val);
