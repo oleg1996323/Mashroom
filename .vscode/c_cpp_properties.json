@@ -26,7 +26,7 @@
                 "${workspaceFolder}/grib1/include/**"
             ],
             "defines": [],
-            "cStandard": "c17",
+            "cStandard": "c23",
             "cppStandard": "c++23",
             "intelliSenseMode": "linux-gcc-x64",
             "compilerPath": "/home/oster/gcc/gcc-install/bin/g++",

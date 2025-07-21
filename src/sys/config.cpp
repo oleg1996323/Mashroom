@@ -5,6 +5,7 @@
 #include <boost/json.hpp>
 #include <ranges>
 #include "directories.h"
+#include "proj.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
