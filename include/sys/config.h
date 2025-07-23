@@ -15,14 +15,13 @@
 #include "config/system.h"
 namespace fs = std::filesystem;
 
-
-
 #include "types/time_interval.h"
 
 class Config{   
     private:
     sys::Settings sys_settings_;
     mutable network::server::Config server_config_;
+    mutable user::Settings user_config_;
     std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual> configs_;
     std::unordered_set<network::server::Config> server_configs_;
     inline static const user::Settings empty_config_{};
@@ -68,6 +67,7 @@ class Config{
     const std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual>  get_user_configs() const;
     const user::Settings& get_user_config(const std::string& name) const;
     const user::Settings& get_user_config(std::string_view name) const;
+    const user::Settings& get_current_user_config() const;
     const network::server::Config& get_server_config(std::string_view name) const;
     const network::server::Config& get_server_config(const std::string& name) const;
     const network::server::Config& get_current_server_config() const;

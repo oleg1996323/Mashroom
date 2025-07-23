@@ -19,25 +19,6 @@
 #include "data/info.h"
 #include "generated/code_tables/eccodes_tables.h"
 
-Extract::ExtractFormat operator|(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
-    return (Extract::ExtractFormat)((int)lhs|(int)(rhs));
-}
-Extract::ExtractFormat operator&(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
-    return (Extract::ExtractFormat)((int)lhs&(int)(rhs));
-}
-Extract::ExtractFormat& operator|=(Extract::ExtractFormat& lhs,Extract::ExtractFormat rhs){
-    return lhs=lhs|rhs;
-}
-Extract::ExtractFormat& operator&=(Extract::ExtractFormat& lhs,Extract::ExtractFormat rhs){
-    return lhs=lhs&rhs;
-}
-Extract::ExtractFormat operator^(Extract::ExtractFormat lhs,Extract::ExtractFormat rhs){
-    return (Extract::ExtractFormat)((int)lhs^(int)(rhs));
-}
-Extract::ExtractFormat operator~(Extract::ExtractFormat val){
-    return (Extract::ExtractFormat)(~((int)val));
-}
-
 namespace fs = std::filesystem;
 using namespace std::chrono;
 void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const SublimedDataInfo& positions){
@@ -201,8 +182,8 @@ ErrorCode Extract::execute() noexcept{
             if(current_time>=file_end_time || !out.is_open()){
                 if(out.is_open()){
                     out.close();
-                    if(static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_)&
-                    static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::ARCHIVED)){
+                    if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
+                    static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
                         cmprs.add_file(out_path_,out_f_name);              
                     }
                 }
@@ -233,8 +214,8 @@ ErrorCode Extract::execute() noexcept{
         }
         if(out.is_open()){
             out.close();
-            if(static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_)&
-            static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::ARCHIVED)){
+            if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
+            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
                 cmprs.add_file(out_path_,out_f_name);              
             }
         }

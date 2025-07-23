@@ -53,14 +53,14 @@ message(STATUS ${Sys_SOURCES})
 add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
-
+target_link_libraries(system PUBLIC library)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/network 
                                     ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(web PUBLIC system library)
+target_link_libraries(web PUBLIC system)
 
 #build command line interpreter parse
 add_library(clip SHARED ${CLparse_SOURCES})
@@ -68,7 +68,7 @@ target_include_directories(clip PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse 
                                     ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(clip PUBLIC system library Boost::program_options)
+target_link_libraries(clip PUBLIC system Boost::program_options)
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)

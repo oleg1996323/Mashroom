@@ -21,7 +21,7 @@ namespace parse{
     UserConfig::UserConfig():AbstractCLIParser("Config arguments:"){}
 
     void UserConfig::init() noexcept{
-        add_options("name,N",po::value<std::string>()->required(),"Configure the program")
+        add_options("name,N",po::value<std::string>(),"Configure the program")
         ("cap-upd-time-interval",po::value<std::string>()/*add notifier parsing TimeInterval*/,"");
         ("mashroom-upd-time-interval",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
         define_uniques();
@@ -30,8 +30,24 @@ namespace parse{
         /**
          * @todo add new config Settings (see /sys)
          */
-        if(vm.contains("add")){
-            
+        if(!settings_)
+            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"undefined user-configuration's object",AT_ERROR_ACTION::CONTINUE);
+
+        if(vm.contains("name")){
+            settings_->name_ = vm.at("name").as<std::string>();
+        }
+        else{
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"configuration name",AT_ERROR_ACTION::CONTINUE);
+        }
+        try{
+            if(vm.contains("cap-upd-time-interval"))
+                settings_->capitalize_update_ti_ = vm.at("cap-upd-time-interval").as<TimeOffset>();
+            if(vm.contains("mashroom-upd-time-interval"))
+                settings_->mashroom_update_ti_ = vm.at("mashroom-upd-time-interval").as<TimeOffset>();
+            return ErrorCode::NONE;
+        }
+        catch(const std::invalid_argument& err){
+            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,err.what());
         }
     }
 

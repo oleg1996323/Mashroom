@@ -26,7 +26,7 @@ add_custom_command(
     BYPRODUCTS ${CMAKE_CURRENT_LIST_DIR}/organizations.dat
 )
 
-find_package(PythonInterp 3.6 REQUIRED)
+find_package(Python3 REQUIRED)
 
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables/table_0.h"

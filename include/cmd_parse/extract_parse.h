@@ -14,17 +14,17 @@ namespace parse{
         std::unique_ptr<::Extract> hExtract;
         Extract():AbstractCLIParser("Extract options"){}
 
-        virtual void init() noexcept override final{
-            add_options("ext-out-format",po::value<::Extract::ExtractFormat>()->notifier([this](::Extract::ExtractFormat input){
-                hExtract->set_output_format(input);
-            }),"")
-            ("ext-time-interval",po::value<TimeOffset>()->notifier([this](const auto& input){
-                hExtract->set_offset_time_interval(input);
-            }),"");
-            descriptor_.add(SearchProcess::instance().descriptor());
-            define_uniques();
-        }
+        virtual void init() noexcept override final;
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final{
+            if(vm.contains("center")){
+                auto center_res = center_notifier(vm.at("center").as<std::string>());
+                if(center_res.has_value())
+                    hExtract->set_center(center_res.value());
+                else{
+                    err_ = center_res.error();
+                    return err_;
+                }
+            }
             hExtract = std::make_unique<::Extract>();
             err_ = try_notify(vm);
             return err_;

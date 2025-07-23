@@ -20,7 +20,6 @@ namespace fs = std::filesystem;
 class AbstractSearchProcess{
     protected:
     SearchProperties props_;
-    TimeOffset t_off_ = TimeOffset(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
     fs::path out_path_;
     std::unordered_set<path::Storage<false>> in_path_;
     float progress_ = 0;
@@ -29,14 +28,12 @@ class AbstractSearchProcess{
     AbstractSearchProcess() = default;
     AbstractSearchProcess(const AbstractSearchProcess& other) noexcept:
     props_(other.props_),
-    t_off_(other.t_off_),
     out_path_(other.out_path_),
     in_path_(other.in_path_),
     progress_(other.progress_),
     cpus(other.cpus){}
     AbstractSearchProcess(AbstractSearchProcess&& other) noexcept:
     props_(std::move(other.props_)),
-    t_off_(std::move(other.t_off_)),
     out_path_(std::move(other.out_path_)),
     in_path_(std::move(other.in_path_)),
     progress_(other.progress_),
@@ -44,7 +41,6 @@ class AbstractSearchProcess{
     AbstractSearchProcess& operator=(const AbstractSearchProcess& other) noexcept{
         if(this!=&other){
             props_ = other.props_;
-            t_off_ = other.t_off_;
             out_path_ = other.out_path_;
             in_path_ = other.in_path_;
             progress_ = other.progress_;
@@ -55,7 +51,6 @@ class AbstractSearchProcess{
     AbstractSearchProcess& operator=(AbstractSearchProcess&& other) noexcept{
         if(this!=&other){
             props_ = std::move(other.props_);
-            t_off_ = std::move(other.t_off_);
             out_path_ = std::move(other.out_path_);
             in_path_ = std::move(other.in_path_);
             progress_ = std::move(other.progress_);
@@ -182,11 +177,4 @@ class AbstractSearchProcess{
 
     //
     virtual ErrorCode execute() noexcept = 0;
-
-    ErrorCode set_offset_time_interval(const std::optional<TimeOffset>& t_off) noexcept{
-        if(!t_off.has_value())
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"time offset",AT_ERROR_ACTION::CONTINUE);
-        t_off_ = t_off.value();
-        return ErrorCode::NONE;
-    }
 };

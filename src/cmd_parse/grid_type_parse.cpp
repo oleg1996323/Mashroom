@@ -12,10 +12,10 @@ void boost::program_options::validate(boost::any& v,const std::vector<std::basic
     v = lexical_cast<RepresentationType>(s);
 }
 
+#include "parsing.h"
 template<>
 RepresentationType boost::lexical_cast(const std::string& input){
-    ErrorCode err;
-    auto grid_tmp = from_chars<int>(input,err);
+    auto grid_tmp = from_chars<int>(input);
     if(!grid_tmp.has_value() || grid_tmp.value()<0){
         throw boost::bad_lexical_cast();
     }

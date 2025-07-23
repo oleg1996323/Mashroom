@@ -2,16 +2,14 @@
 
 namespace parse{
     std::expected<Organization,ErrorCode> center_notifier(const std::string& input){
-        ErrorCode err_;
-        std::optional<Organization> center_int = from_chars<Organization>(input,err_);
+        std::optional<Organization> center_int = from_chars<Organization>(input);
         //if abbreviation
         if(!center_int.has_value()){
             if(auto center = abbr_to_center(input);center.has_value())
                 return center.value();
             else {
-                err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                    "invalid center value",AT_ERROR_ACTION::CONTINUE,input);
-                return std::unexpected(err_);
+                return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                    "invalid center value",AT_ERROR_ACTION::CONTINUE,input));
             }
         }
         else
@@ -22,13 +20,13 @@ namespace parse{
         add_options("j",po::value<int>()->notifier([this](int input){
             search_proc_->set_using_processor_cores(input);
         }),"Number of used threads. Number may be discarded to the maximal physical number threads")
-        ("outp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& paths){
+        ("outp",po::value<std::vector<std::string>>()->required()->notifier([this](const std::vector<std::string>& paths){
             assert(search_proc_);
             for(auto& path:paths)
                 if(err_ = search_proc_->add_in_path(path);err_!=ErrorCode::NONE)
                     return;
         }),"Output path. May be directory or file path")
-        ("inp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& paths) noexcept{
+        ("inp",po::value<std::vector<std::string>>()->required()->notifier([this](const std::vector<std::string>& paths) noexcept{
             assert(search_proc_);
             for(auto& path:paths){
                 err_ = search_proc_->add_in_path(path);

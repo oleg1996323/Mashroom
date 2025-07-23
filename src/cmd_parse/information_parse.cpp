@@ -45,11 +45,12 @@ namespace parse{
     std::expected<double,ErrorCode> info_size(std::string_view str) noexcept{
         using namespace boost::units::information;
         using namespace detail;
-        ErrorCode code = ErrorCode::NONE;
-        auto parse_value = from_chars<double>(str,code);
+        auto parse_value = from_chars<double>(str);
         if(parse_value.has_value() && parse_value.value()>=0 && std::isinf(parse_value.value()))
             return parse_value.value();
-        else return std::unexpected(code);
+        else return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                        "doesn't match number (expected floating-point number)",
+                        AT_ERROR_ACTION::CONTINUE,str));
     }
 
     std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept{

@@ -132,3 +132,12 @@ boost::json::value to_json(const TimeOffset& val);
 
 template<>
 std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val);
+
+template<>
+utc_tp boost::lexical_cast(const std::string& input);
+template<>
+TimeOffset boost::lexical_cast(const std::string& input);
+template<>
+std::string boost::lexical_cast(const utc_tp& input);
+template<>
+std::string boost::lexical_cast(const TimeOffset& input);

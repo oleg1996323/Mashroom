@@ -43,13 +43,21 @@ void Config::read_user_config() noexcept{
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,root.error().message(),AT_ERROR_ACTION::CONTINUE);
         return;
     }
-    if(root.value().is_array()){
-        for(const auto& settings_val:root.value().as_array()){
-            auto settings = from_json<user::Settings>(settings_val);
-            if(settings.has_value())
-                configs_.insert(std::move(settings.value()));
-            else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
-                        "configuration corrupted",AT_ERROR_ACTION::CONTINUE);
+    std::string last = "";
+    if(root.value().is_object()){
+        auto& registered = root.value().as_object();
+        if(registered.contains("last") && registered.at("last").is_string())
+            last = registered.at("last").as_string();
+        if(registered.contains("configs") && registered.at("configs").is_array())
+            for(const auto& settings_val:registered.at("configs").as_array()){
+                auto settings = from_json<user::Settings>(settings_val);
+                if(settings.has_value())
+                    configs_.insert(std::move(settings.value()));
+                else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
+                            "configuration corrupted",AT_ERROR_ACTION::CONTINUE);
+            }
+        if(last.empty() || !configs_.contains(last)){
+            user_config_ = *configs_.insert(user::default_config()).first;
         }
     }
 }
@@ -253,6 +261,9 @@ const user::Settings& Config::get_user_config(std::string_view name) const{
         ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,name);
         return empty_config_;
     }
+}
+const user::Settings& Config::get_current_user_config() const{
+    return user_config_;
 }
 const network::server::Config& Config::get_server_config(std::string_view name) const{
     if(has_server_config(name))

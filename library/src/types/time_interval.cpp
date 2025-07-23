@@ -176,3 +176,81 @@ std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val
     }
     return result;
 }
+
+#include "parsing.h"
+#include <iostream>
+
+template<>
+TimeOffset boost::lexical_cast(const std::string& input){
+    using namespace std::string_literals;
+    TimeOffset result;
+    std::vector<std::string_view> tokens = split<std::string_view>(std::string_view(input),":");
+    if(!tokens.empty()){
+        for(std::string_view token:tokens){
+            auto tmp(from_chars<int>(token.substr(1)));
+            if(!tmp.has_value())
+                throw std::invalid_argument(input);
+            else{
+                if(tmp.value()<0){
+                    throw std::invalid_argument("Invalid time offset token input "s+std::string(token));
+                }
+                else if(tmp.value()==0){
+                    std::cout<<"Ignored value: "s<<token<<std::endl;
+                    continue;
+                }
+            }
+            if(token.size()>0){
+                if(token.starts_with("h"))
+                    result.hours_ = hours(tmp.value());
+                else if(token.starts_with("y"))
+                    result.years_ = years(tmp.value());
+                else if(token.starts_with("m"))
+                    result.months_ = months(tmp.value());
+                else if(token.starts_with("d"))
+                    result.days_ = days(tmp.value());
+                else{
+                    std::cout<<"Unknown time offset token"<<std::endl;
+                    throw std::invalid_argument(input);
+                }
+            }
+            else{
+                std::cout<<"Missed time offset token"<<std::endl;
+                throw std::invalid_argument(input);
+            }
+        }
+        return result;
+    }
+    else{
+        std::cout<<"Empty string at time offset definition"<<std::endl;
+        throw std::invalid_argument(input);
+    }
+}
+
+template<>
+utc_tp boost::lexical_cast(const std::string& input){
+    std::istringstream s(input);
+    s.imbue(std::locale("en_US.utf-8"));
+    utc_tp tp;
+    s>>std::chrono::parse("{:%D-%T}",tp);
+    if(s.fail())
+        throw boost::bad_lexical_cast();
+    return tp;
+}
+
+template<>
+std::string boost::lexical_cast(const utc_tp& input){
+    return std::format("{:%D-%T}",input);
+}
+template<>
+std::string boost::lexical_cast(const TimeOffset& input){
+    std::string result;
+    if(input.years_.count()>0)
+        result+="y"+std::to_string(input.years_.count());
+    if(input.months_.count()>0)
+        result+="m"+std::to_string(input.months_.count());
+    if(input.days_.count()>0)
+        result+="d"+std::to_string(input.days_.count());
+    if(input.hours_.count()>0)
+        result+="h"+std::to_string(input.hours_.count());    
+    return result;
+}

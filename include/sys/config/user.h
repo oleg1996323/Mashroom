@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include "types/time_interval.h"
 #include <expected>
+#include "sys/outputdatafileformats.h"
 
 namespace user{
     struct Settings{
@@ -16,7 +17,25 @@ namespace user{
          * @brief time-interval between Mashroom updates
          */
         TimeOffset mashroom_update_ti_;
+        OutputDataFileFormats default_format_ = OutputDataFileFormats::BIN_F|
+                                                OutputDataFileFormats::ARCHIVED;
     };
+    
+    static Settings default_config() noexcept{
+        return Settings{.name_="default",
+                        .capitalize_update_ti_=TimeOffset(years(0),
+                                                months(0),
+                                                days(7),
+                                                hours(0),
+                                                minutes(0),
+                                                std::chrono::seconds(0)),
+                        .mashroom_update_ti_=TimeOffset(years(0),
+                                                months(0),
+                                                days(7),
+                                                hours(0),
+                                                minutes(0),
+                                                std::chrono::seconds(0))};
+    }
 
     using SettingsHash = std::hash<Settings>;
     using SettingsEqual = std::equal_to<Settings>;

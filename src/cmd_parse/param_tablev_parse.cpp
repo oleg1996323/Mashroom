@@ -14,10 +14,9 @@ void ::boost::program_options::validate(boost::any& v,const std::vector<std::str
     for(auto& s:values){
         auto parameter_tv = split<std::string_view>(s,":");
         if(parameter_tv.size()==2){
-            ErrorCode err;
-            auto table_version = from_chars<int>(parameter_tv.at(0),err);
+            auto table_version = from_chars<int>(parameter_tv.at(0));
             if(table_version.has_value()){
-                auto parameter = from_chars<int>(parameter_tv.at(1),err);
+                auto parameter = from_chars<int>(parameter_tv.at(1));
                 if(parameter.has_value()){
                     if(parameter.value()<0 || table_version.value()<0)
                         throw po::validation_error(po::validation_error::invalid_option_value,s);
@@ -37,8 +36,7 @@ void ::boost::program_options::validate(boost::any& v,const std::vector<std::str
 std::expected<SearchParamTableVersion,ErrorCode> parse::parameter_tv::param_by_tv_abbr(Organization center,std::string_view input){
     auto tv_abbr = split<std::string_view>(input,":");
     if(tv_abbr.size()==2){
-        ErrorCode err;
-        auto table_version = from_chars<int>(tv_abbr.at(0),err);
+        auto table_version = from_chars<int>(tv_abbr.at(0));
         if(table_version.has_value()){
             for(int i=0;i<256;++i){
                 auto tab_ptr = parameter_table(center,

@@ -7,9 +7,9 @@
 
 namespace boost{
     template<>
-    ::Extract::ExtractFormat lexical_cast(const std::string& input);
+    ::OutputDataFileFormats lexical_cast(const std::string& input);
     namespace program_options{
         void validate(boost::any& v,const std::vector<std::basic_string<char>>& values,
-                                        Extract::ExtractFormat* target_type,int);
+                                        OutputDataFileFormats* target_type,int);
     }
 }

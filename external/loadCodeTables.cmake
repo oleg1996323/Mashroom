@@ -10,7 +10,7 @@ function(load_eccode_header)
         endif()
     endforeach()
 
-    find_package(PythonInterp 3.6 REQUIRED)
+    find_package(Python3 REQUIRED)
 
     # Полные пути
     get_filename_component(FULL_PYTHON_SCRIPT "${ARG_PYTHON_AUTOGEN_DIR}/loadCodeTables.py" ABSOLUTE)

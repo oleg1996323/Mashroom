@@ -103,27 +103,39 @@ namespace fs = std::filesystem;
 class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
 {
 public:
-    enum class ExtractFormat : uint
-    {
-        DEFAULT = 0,
-        TXT_F = 1,
-        BIN_F = (1 << 1),
-        GRIB_F = (1 << 2),
-        ARCHIVED = (1 << 3)
-    };
 
 private:
+    TimeOffset t_off_ = TimeOffset(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
     std::string path_format = std::string("{:%Y") + fs::path::preferred_separator + "%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
-    ExtractFormat output_format_ = ExtractFormat::DEFAULT;
+    OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
     ErrorCode __create_dir_for_file__(const fs::path &out_f_name);
     ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result);
     template <typename... ARGS>
-    fs::path __generate_name__(Extract::ExtractFormat format, ARGS &&...args);
+    fs::path __generate_name__(OutputDataFileFormats format, ARGS &&...args);
     template <typename... ARGS>
     fs::path __generate_directory__(ARGS &&...args); // TODO expand extract division
 public:
+    Extract() = default;
+    Extract(const Extract& other)=delete;
+    Extract(Extract&& other) noexcept:
+    AbstractSearchProcess(other),
+    t_off_(std::move(other.t_off_)),
+    path_format(std::move(other.path_format)),
+    file_format(std::move(other.file_format)),
+    output_format_(std::move(output_format_)){}
+    Extract& operator=(const Extract& other)=delete;
+    Extract& operator=(Extract&& other) noexcept{
+        if(this!=&other){
+            AbstractSearchProcess::operator=(other);
+            t_off_ = std::move(other.t_off_);
+            path_format = std::move(other.path_format);
+            file_format = std::move(other.file_format);
+            output_format_ = std::move(output_format_);
+        }
+        return *this;
+    }
     virtual ErrorCode execute() noexcept override final;
 
     virtual ErrorCode properties_integrity() const noexcept override final
@@ -158,13 +170,19 @@ public:
             return ErrorPrint::print_error(ErrorCode::INCORRECT_RECT, "Rectangle zone in extraction is not defined or is defined incorrectly", AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;
     }
-    void set_output_format(ExtractFormat format)
+    void set_output_format(OutputDataFileFormats format)
     {
         output_format_ = format;
     }
-    ExtractFormat output_format() const
+    OutputDataFileFormats output_format() const
     {
         return output_format_;
+    }
+    ErrorCode set_offset_time_interval(const std::optional<TimeOffset>& t_off) noexcept{
+        if(!t_off.has_value())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"time offset",AT_ERROR_ACTION::CONTINUE);
+        t_off_ = t_off.value();
+        return ErrorCode::NONE;
     }
     ErrorCode set_by_request(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &form)
     {
@@ -237,20 +255,13 @@ public:
     }
 };
 
-Extract::ExtractFormat operator|(Extract::ExtractFormat lhs, Extract::ExtractFormat rhs);
-Extract::ExtractFormat operator&(Extract::ExtractFormat lhs, Extract::ExtractFormat rhs);
-Extract::ExtractFormat &operator|=(Extract::ExtractFormat &lhs, Extract::ExtractFormat rhs);
-Extract::ExtractFormat &operator&=(Extract::ExtractFormat &lhs, Extract::ExtractFormat rhs);
-Extract::ExtractFormat operator^(Extract::ExtractFormat lhs, Extract::ExtractFormat rhs);
-Extract::ExtractFormat operator~(Extract::ExtractFormat val);
-
 template <typename... ARGS>
-fs::path Extract::__generate_name__(Extract::ExtractFormat format, ARGS &&...args)
+fs::path Extract::__generate_name__(OutputDataFileFormats format, ARGS &&...args)
 {
-    if (static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_) &
-            static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::TXT_F) ||
-        static_cast<std::underlying_type_t<Extract::ExtractFormat>>(output_format_) &
-            static_cast<std::underlying_type_t<Extract::ExtractFormat>>(Extract::ExtractFormat::DEFAULT))
+    if (static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) &
+            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::TXT_F) ||
+        static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) &
+            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::DEFAULT))
     {
         return std::vformat(file_format + ".txt", std::make_format_args(args...));
     }
