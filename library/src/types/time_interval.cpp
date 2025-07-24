@@ -200,13 +200,13 @@ TimeOffset boost::lexical_cast(const std::string& input){
                 }
             }
             if(token.size()>0){
-                if(token.starts_with("h"))
+                if(iend_with(token,"h"))
                     result.hours_ = hours(tmp.value());
-                else if(token.starts_with("y"))
+                else if(iend_with(token,"y"))
                     result.years_ = years(tmp.value());
-                else if(token.starts_with("m"))
+                else if(iend_with(token,"m"))
                     result.months_ = months(tmp.value());
-                else if(token.starts_with("d"))
+                else if(iend_with(token,"d"))
                     result.days_ = days(tmp.value());
                 else{
                     std::cout<<"Unknown time offset token"<<std::endl;
@@ -245,12 +245,12 @@ template<>
 std::string boost::lexical_cast(const TimeOffset& input){
     std::string result;
     if(input.years_.count()>0)
-        result+="y"+std::to_string(input.years_.count());
+        result+=std::to_string(input.years_.count())+"y";
     if(input.months_.count()>0)
-        result+="m"+std::to_string(input.months_.count());
+        result+=std::to_string(input.months_.count())+"m";
     if(input.days_.count()>0)
-        result+="d"+std::to_string(input.days_.count());
+        result+=std::to_string(input.days_.count())+"d";
     if(input.hours_.count()>0)
-        result+="h"+std::to_string(input.hours_.count());    
+        result+=std::to_string(input.hours_.count())+"h";    
     return result;
 }

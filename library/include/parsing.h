@@ -41,15 +41,25 @@ std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
 
 bool case_insensitive_char_compare(char ch1,char ch2) noexcept;
 
-template<size_t NUM_ARGS>
-bool iend_with(std::string_view str,const std::array<std::string_view,NUM_ARGS>& to_match){
-    for(std::string_view possible:to_match){
+#include <unordered_set>
+bool iend_with(std::string_view str,const std::ranges::common_range auto& to_match){
+    if constexpr(std::ranges::common_range<typename decltype(to_match)::value_type>){
+        for(std::string_view possible:to_match){
+            if(str.size()<possible.size())
+                continue;
+            if(auto substr = possible.substr(str.size()-possible.size()-1);
+                std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
+                return true;
+            else continue;
+        }
+    }
+    else{
         if(str.size()<possible.size())
-            continue;
+            false;
         if(auto substr = possible.substr(str.size()-possible.size()-1);
             std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
             return true;
-        else continue;
+        else false;
     }
     return false;
 }
