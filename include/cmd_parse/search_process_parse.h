@@ -36,3 +36,8 @@ namespace parse{
         ErrorCode parse(::AbstractSearchProcess* ptr,const std::vector<std::string>& args);
     };
 }
+
+void validate(boost::any& v,
+              const std::vector<std::string>& values,
+              utc_tp* target_type, int);
+

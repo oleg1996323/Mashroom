@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef GRIB
+#include "code_tables/cast/center.h"
+#endif
+
 #ifndef MODE_ENUM
 #define MODE_ENUM
 enum class MODE{

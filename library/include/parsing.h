@@ -43,8 +43,8 @@ bool case_insensitive_char_compare(char ch1,char ch2) noexcept;
 
 #include <unordered_set>
 bool iend_with(std::string_view str,const std::ranges::common_range auto& to_match){
-    if constexpr(std::ranges::common_range<typename decltype(to_match)::value_type>){
-        for(std::string_view possible:to_match){
+    if constexpr(std::ranges::common_range<typename std::decay_t<decltype(to_match)>::value_type>){
+        for(const typename std::decay_t<decltype(to_match)>::value_type& possible:to_match){
             if(str.size()<possible.size())
                 continue;
             if(auto substr = possible.substr(str.size()-possible.size()-1);
@@ -54,12 +54,22 @@ bool iend_with(std::string_view str,const std::ranges::common_range auto& to_mat
         }
     }
     else{
-        if(str.size()<possible.size())
+        if(str.size()<to_match.size())
             false;
-        if(auto substr = possible.substr(str.size()-possible.size()-1);
+        if(auto substr = to_match.substr(str.size()-to_match.size()-1);
             std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
             return true;
         else false;
     }
     return false;
 }
+
+// bool iend_with(std::string_view str,const char to_match[]){
+//     if(std::strlen(to_match))
+//         false;
+//     if(auto substr = to_match.substr(str.size()-to_match.size()-1);
+//         std::equal(substr.begin(),substr.end(),str.begin(),str.end(),case_insensitive_char_compare))
+//         return true;
+//     else false;
+//     return false;
+// }

@@ -45,7 +45,7 @@ include(modules-linkage.cmake)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC system clip web grib1reader)
+target_link_libraries(Mashroom_lib PUBLIC system clip web PRIVATE grib1reader)
 target_include_directories(Mashroom_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 message(STATUS ${Sys_SOURCES})
 

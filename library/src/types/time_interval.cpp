@@ -200,13 +200,13 @@ TimeOffset boost::lexical_cast(const std::string& input){
                 }
             }
             if(token.size()>0){
-                if(iend_with(token,"h"))
+                if(iend_with(token,std::string_view("h")))
                     result.hours_ = hours(tmp.value());
-                else if(iend_with(token,"y"))
+                else if(iend_with(token,std::string_view("y")))
                     result.years_ = years(tmp.value());
-                else if(iend_with(token,"m"))
+                else if(iend_with(token,std::string_view("m")))
                     result.months_ = months(tmp.value());
-                else if(iend_with(token,"d"))
+                else if(iend_with(token,std::string_view("d")))
                     result.days_ = days(tmp.value());
                 else{
                     std::cout<<"Unknown time offset token"<<std::endl;

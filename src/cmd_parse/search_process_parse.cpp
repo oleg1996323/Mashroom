@@ -1,19 +1,26 @@
 #include "cmd_parse/search_process_parse.h"
+#include <ranges>
 
 namespace parse{
     std::expected<Organization,ErrorCode> center_notifier(const std::string& input){
-        std::optional<Organization> center_int = from_chars<Organization>(input);
+        split<std::string>(input,"; ");
+        auto centers = multitoken_approx_match_center(split<std::string>(input,"; "));
         //if abbreviation
-        if(!center_int.has_value()){
-            if(auto center = abbr_to_center(input);center.has_value())
-                return center.value();
-            else {
-                return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+        if(centers.empty())
+            return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
                     "invalid center value",AT_ERROR_ACTION::CONTINUE,input));
-            }
+        else if(centers.size()==1)
+            return centers.front();
+        else{
+            std::cout<<"Matched more than 1 center:"<<std::endl;
+            auto txt_centers = std::views::transform(centers,[](Organization org)
+            {
+                return std::string_view(center_to_abbr(org));
+            });
+            for(auto org:std::views::join_with(txt_centers,"; "))
+                std::cout<<org<<std::endl;
+            return std::unexpected(ErrorCode::INTERNAL_ERROR);
         }
-        else
-            return center_int.value();
     }
 
     void SearchProcess::init() noexcept{
