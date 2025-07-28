@@ -7,15 +7,12 @@
 #include "sys/application.h"
 #include "sys/config.h"
 #include "cmd_parse/cmd_def.h"
-#include "cmd_translator.h"
 #include "cmd_parse/functions.h"
 #include "functions.h"
 #include "cmd_parse/capitalize_parse.h"
 #include "cmd_parse/integrity_parse.h"
 #include "cmd_parse/extract_parse.h"
 #include <boost/program_options.hpp>
-
-using namespace translate::token;
 
 namespace parse{
     UserConfig::UserConfig():AbstractCLIParser("Config arguments:"){}

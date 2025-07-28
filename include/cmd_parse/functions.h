@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include "types/coord.h"
-#include "cmd_def.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
 #include "definitions/def.h"
@@ -16,7 +15,7 @@
 #include <expected>
 #include "parsing.h"
 
-
+std::expected<boost::program_options::variables_map,ErrorCode> try_store(const boost::program_options::parsed_options& options);
 std::expected<boost::program_options::parsed_options,ErrorCode> try_parse(const boost::program_options::options_description& opt_desc,const std::vector<std::string>& args);
 ErrorCode try_notify(boost::program_options::variables_map& vm);
 

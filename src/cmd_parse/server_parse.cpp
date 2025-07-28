@@ -5,8 +5,6 @@
 #include "program/mashroom.h"
 
 
-using namespace translate::token;
-
 namespace parse{
     ErrorCode add_addresses(const std::vector<std::string>& addrs,network::server::Config& config) noexcept{
         for(auto addr : addrs){

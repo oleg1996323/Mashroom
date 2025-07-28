@@ -31,7 +31,7 @@ find_package(Python3 REQUIRED)
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables/table_0.h"
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/organizations.dat "${CMAKE_CURRENT_LIST_DIR}/organizations_gen.py"
-    COMMAND ${PYTHON_EXECUTABLE}
+    COMMAND ${Python3_EXECUTABLE} 
             "${CMAKE_CURRENT_LIST_DIR}/organizations_gen.py"
             "--src=${CMAKE_CURRENT_LIST_DIR}"
             "--out=${CMAKE_CURRENT_SOURCE_DIR}/grib1/include/generated/code_tables"

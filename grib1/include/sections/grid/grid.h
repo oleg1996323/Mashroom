@@ -233,22 +233,22 @@ int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept;
 #include <array>
 #include <string_view>
 
-constexpr std::string_view grid_to_text(RepresentationType rep_t){
+constexpr std::string_view grid_to_text(RepresentationType rep_t) noexcept{
     switch(rep_t){
         case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
-            return "WGS";
+            return "Cylindr (no modifications)";
             break;
         case RepresentationType::ROTATED_LAT_LON:
-            return "Rotated WGS";
+            return "Rotated Cylindr";
             break;
         case RepresentationType::STRETCHED_LAT_LON:
-            return "Stretched WGS";
+            return "Stretched Cylindr";
             break;
         case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON:
-            return "Stretched and rotated WGS";
+            return "Stretched and rotated Cylindr";
             break;
         case RepresentationType::GAUSSIAN:
-            return "Gaussian";
+            return "Gaussian (no modifications)";
             break;
         case RepresentationType::ROTATED_GAUSSIAN_LAT_LON:
             return "Rotated Gaussian";
@@ -260,13 +260,13 @@ constexpr std::string_view grid_to_text(RepresentationType rep_t){
             return "Stretched and rotated Gaussian";
             break;
         case RepresentationType::ALBERS_EQUAL_AREA:
-            return "Albers system";
+            return "Albers";
             break;
         case RepresentationType::GNOMONIC:
-            return "Gnomonic system";
+            return "Gnomonic";
             break;
         case RepresentationType::LAMBERT:
-            return "Lambert system";
+            return "Lambert";
             break;
         case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL:
             return "Oblique Lambert conic";
@@ -275,7 +275,7 @@ constexpr std::string_view grid_to_text(RepresentationType rep_t){
             return "Mercator";
             break;
         case RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS:
-            return "Spherical harmonic coefficients";
+            return "Spherical harmonic coefficients (no modifications)";
             break;
         case RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS:
             return "Rotated spherical harmonic coefficients";
@@ -287,7 +287,7 @@ constexpr std::string_view grid_to_text(RepresentationType rep_t){
             return "Stretched and rotated spherical harmonic coefficients";
             break;
         case RepresentationType::MILLERS_CYLINDR:
-            return "Millers system";
+            return "Millers";
             break;
         case RepresentationType::SIMPLE_POLYCONIC:
             return "Simple polyconic";
@@ -302,24 +302,24 @@ constexpr std::string_view grid_to_text(RepresentationType rep_t){
             return "UTM";
             break;
         default:{
-            throw std::invalid_argument("Unknown coordinate system");
+            return std::string_view();
         }
     }
 }
 
-constexpr std::string_view grid_to_abbr(RepresentationType rep_t){
+constexpr std::string_view grid_to_abbr(RepresentationType rep_t) noexcept{
     switch(rep_t){
         case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:
-            return "WGS";
+            return "Cylindr";
             break;
         case RepresentationType::ROTATED_LAT_LON:
-            return "rWGS";
+            return "rCylindr";
             break;
         case RepresentationType::STRETCHED_LAT_LON:
-            return "sWGS";
+            return "sCylindr";
             break;
         case RepresentationType::STRETCHED_AND_ROTATED_LAT_LON:
-            return "srWGS";
+            return "srCylindr";
             break;
         case RepresentationType::GAUSSIAN:
             return "Gauss";
@@ -343,7 +343,7 @@ constexpr std::string_view grid_to_abbr(RepresentationType rep_t){
             return "Lambert";
             break;
         case RepresentationType::OBLIQUE_LAMBERT_CONFORMAL:
-            return "LambertCon";
+            return "LambertConformal";
             break;
         case RepresentationType::MERCATOR:
             return "Merc";
@@ -376,9 +376,16 @@ constexpr std::string_view grid_to_abbr(RepresentationType rep_t){
             return "UTM";
             break;
         default:{
-            throw std::invalid_argument("Unknown coordinate system");
+            return std::string_view();
         }
     }
+}
+
+std::optional<RepresentationType> abbr_to_grid(const std::ranges::range auto& input) noexcept{
+    for(int i=0;i<256;++i)
+        if(grid_to_abbr(static_cast<RepresentationType>(i))==input)
+            return static_cast<RepresentationType>(i);
+    return std::nullopt;
 }
 
 namespace serialization{

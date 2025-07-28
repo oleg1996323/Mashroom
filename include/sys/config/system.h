@@ -3,6 +3,7 @@
 
 constexpr const char* uc_filename = "config.json";
 constexpr const char* sc_filename = "server.json";
+constexpr const char* cli_history_filename = "clihist.txt";
 
 namespace sys{
     namespace fs = std::filesystem;
@@ -16,5 +17,6 @@ namespace sys{
         fs::path log_dir = fs::current_path();
         fs::path config_dir = get_config_dir();
         fs::path server_config_dir = get_config_dir();
+        fs::path system_files_dir = fs::current_path();
     };
 }

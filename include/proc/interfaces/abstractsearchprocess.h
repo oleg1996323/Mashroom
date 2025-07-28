@@ -96,6 +96,12 @@ class AbstractSearchProcess{
     void add_parameter(const SearchParamTableVersion& value){
         props_.parameters_.insert(value);
     }
+    void add_set_of_parameters(std::unordered_set<SearchParamTableVersion>&& set){
+        props_.parameters_.insert(std::make_move_iterator(set.begin()),std::make_move_iterator(set.end()));
+    }
+    void add_set_of_parameters(const std::unordered_set<SearchParamTableVersion>& set){
+        props_.parameters_.insert(set.begin(),set.end());
+    }
     void add_parameter(SearchParamTableVersion&& value){
         props_.parameters_.insert(std::move(value));
     }

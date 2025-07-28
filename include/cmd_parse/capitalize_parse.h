@@ -4,10 +4,10 @@
 #include <string>
 #include "sys/error_code.h"
 #include "proc/capitalize.h"
-#include "cmd_parse/information_parse.h"
+#include "information_parse.h"
 #include <tuple>
 #include "cmd_parse/cmd_def.h"
-#include "cmd_parse/path_parse.h"
+#include "path_parse.h"
 namespace parse{
     class Capitalize:public AbstractCLIParser<parse::Capitalize>{
         friend AbstractCLIParser;
@@ -17,10 +17,5 @@ namespace parse{
         virtual void init() noexcept override final;
         public:
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
-
-        virtual void callback() noexcept override final{
-            if(err_!=ErrorCode::NONE)
-                hCapitalize.reset();
-        }
     };
 }

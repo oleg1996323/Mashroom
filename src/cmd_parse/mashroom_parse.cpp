@@ -28,7 +28,8 @@ namespace parse{
     }
 
     void Mashroom::init() noexcept{
-        add_options_instances("extract",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
+        add_options_instances
+        ("extract",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = extract_notifier(items);
         }),"Extract specified data.",Extract::instance())
         ("capitalize",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
@@ -58,23 +59,18 @@ namespace parse{
         else if(vm.contains("config")){
             return config_notifier(args);
         }
-        // else if(vm.contains("help")){
-        //     if(vm.size()==2){
-        //         for(auto& var:args)
-        //             std::cout<<var<<std::endl;
-        //         const std::string& option = std::ranges::find_if_not(vm,[](const auto& option){
-        //             return option.first=="help";
-        //         })->first;
-        //         print_help(std::cout,option,std::span(args));
-        //         return ErrorCode::NONE;
-        //     }
-        //     else if(vm.size()>2)
-        //         return ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-        //     else{
-        //         descriptor_.print(std::cout);
-        //         return ErrorCode::NONE;
-        //     }
-        // }
+        else if(vm.contains("extract")){
+            return extract_notifier(args);
+        }
+        else if(vm.contains("capitalize")){
+            return capitalize_notifier(args);
+        }
+        else if(vm.contains("integrity")){
+            return integrity_notifier(args);
+        }
+        else if(vm.contains("contains")){
+            return contains_notifier(args);
+        }
         else{
             err_=try_notify(vm);
             return err_;

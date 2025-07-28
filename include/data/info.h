@@ -14,7 +14,6 @@
 #include "sections/grid/grid.h"
 #include "def.h"
 #include "msg.h"
-#include "cmd_parse/cmd_translator.h"
 #include "sys/error_print.h"
 #include <sys/error_code.h>
 #include <cassert>

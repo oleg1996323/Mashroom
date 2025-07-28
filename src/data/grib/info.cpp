@@ -29,7 +29,6 @@ void GribDataInfo::swap(GribDataInfo& other) noexcept{
     std::swap(info_,other.info_);
 }
 #include "sys/error_print.h"
-#include "cmd_parse/cmd_translator.h"
 #include "sections/section_1.h"
 using namespace std::string_literals;
 

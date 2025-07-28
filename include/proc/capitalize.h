@@ -10,6 +10,7 @@
 #include "definitions/path_process.h"
 #include <boost/units/systems/information/byte.hpp>
 #include <boost/units/systems/information/nat.hpp>
+#include "sys/internaldatafileformats.h"
 
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
@@ -24,7 +25,7 @@ fs::path dest_directory_;
 std::string_view output_order_;
 info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<int32_t>::max())*info_units{};
 int cpus = 1;
-DataFormat output_format_ = DataFormat::NONE;
+InternalDateFileFormats output_format_ = InternalDateFileFormats::NATIVE;
 bool host_ref_only = false;
 std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
 const GribDataInfo& __capitalize_file__(const fs::path& file);
@@ -40,13 +41,13 @@ ErrorCode set_output_order(std::string_view order){
     output_order_ = order;
     return ErrorCode::NONE;
 }
-void set_output_type(DataFormat format){
+void set_output_format(InternalDateFileFormats format){
     output_format_ = format;
 }
 const GribDataInfo& get_result() const{
     return result;
 }
-DataFormat output_format() const{
+InternalDateFileFormats output_format() const{
     return output_format_;
 }
 void clear_result(){

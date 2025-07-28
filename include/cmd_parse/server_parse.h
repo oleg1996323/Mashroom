@@ -1,6 +1,5 @@
 #pragma once
 #include "network/server.h"
-#include "cmd_parse/cmd_translator.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "sys/config.h"

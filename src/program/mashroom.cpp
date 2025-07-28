@@ -6,6 +6,7 @@
 #include <network/server.h>
 #include <sys/config.h>
 #include <sys/log_err.h>
+#include "CLI/CLInavig.h"
 
 namespace fs = std::filesystem;
 
@@ -85,14 +86,8 @@ ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
     return ErrorCode::NONE;
 }
 
-bool Mashroom::read_command(std::istream& stream){
-    std::string line;
-    std::cout<<">> ";
-    std::cout.flush();
-    if (!std::getline(stream, line))
-        return false;
-    std::vector<std::string> commands=split<std::string>(line," ");
-    read_command(commands);
+bool Mashroom::read_command(){
+    read_command(std::ranges::split_view(CLIHandler::instance().input(std::string_view(">>")),' ')|std::ranges::to<std::vector<std::string>>());
     return true;
 }
 void Mashroom::collapse_server(bool wait_processes){

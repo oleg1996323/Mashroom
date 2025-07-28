@@ -7,24 +7,24 @@
 #include "cmd_def.h"
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
-#include "cmd_parse/cmd_translator.h"
 #include "functions.h"
 #include "data/sublimed_info.h"
 #include "code_tables/table_0.h"
 #include "proc/interfaces/abstractsearchprocess.h"
 #include "types/time_interval.h"
-#include "cmd_parse/grid_type_parse.h"
+#include "grid_type_parse.h"
 
 #include "cmd_parse/cmd_def.h"
 #include "sections/section_1.h"
-#include "cmd_parse/param_tablev_parse.h"
-#include "cmd_parse/path_parse.h"
-#include "cmd_parse/coord_parse.h"
-#include "cmd_parse/time_separation_parse.h"
+#include "param_tablev_parse.h"
+#include "path_parse.h"
+#include "coord_parse.h"
+#include "time_separation_parse.h"
 #include <expected>
 namespace parse{
 
-    std::expected<Organization,ErrorCode> center_notifier(const std::string& input);
+    std::expected<Organization,ErrorCode> center_notifier(const std::vector<std::string>& input) noexcept;
+    std::expected<RepresentationType,ErrorCode> grid_notifier(const std::vector<std::string>& input) noexcept;
 
     class SearchProcess:public AbstractCLIParser<parse::SearchProcess>{
         friend AbstractCLIParser;

@@ -47,6 +47,9 @@ class Config{
     bool remove_server_config(std::string_view name);
     bool remove_server_config(const std::string& name);
     void save();
+    const sys::Settings& system_settings() const{
+        return sys_settings_;
+    }
     bool has_config_name(const std::string& name) const{
         return configs_.contains(name);
     }

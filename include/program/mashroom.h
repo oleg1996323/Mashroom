@@ -11,11 +11,11 @@
 #include "sys/error_code.h"
 #include "sys/err_msg.h"
 #include "sys/error_print.h"
-#include "proc/help.h"
 #include "sys/application.h"
 #include "data.h"
 #include "network/server.h"
 #include "program/clients_handler.h"
+#include "concepts.h"
 
 
 namespace fs = std::filesystem;
@@ -70,7 +70,7 @@ class Mashroom{
     void shutdown_server(bool wait_processes = false); //further will be lot of servers (data,cadastre,measurement etc)
     void deploy_server(); //further will be lot of servers (data,cadastre,measurement etc)
     void launch_server(); //further will be lot of servers (data,cadastre,measurement etc)
-    bool read_command(std::istream& stream);
+    bool read_command();
     ErrorCode connect(const std::string& host);
 
     template<network::Client_MsgT::type MSG_T, typename... ARGS>

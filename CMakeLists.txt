@@ -66,7 +66,8 @@ target_link_libraries(web PUBLIC system)
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse 
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse
                                     ${grib1_INCLUDES} ${library_INCLUDES})
 target_link_libraries(clip PUBLIC system Boost::program_options)
 

@@ -1,6 +1,5 @@
 #include "cmd_parse/integrity_parse.h"
 #include "sys/error_print.h"
-#include "cmd_parse/cmd_translator.h"
 #include "cmd_parse/functions.h"
 #include "search_process_parse.h"
 

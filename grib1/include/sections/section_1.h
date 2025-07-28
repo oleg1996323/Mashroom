@@ -55,4 +55,3 @@ struct ProductDefinitionSection
 	std::string_view param_comment() const noexcept;
 };
 
-const ParmTable* parameter_table(Organization center, unsigned char table_version, unsigned char param_num);

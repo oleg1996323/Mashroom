@@ -28,7 +28,7 @@ function(load_eccode_header)
     # Кастомная команда
     add_custom_command(
         OUTPUT ${GENERATED_HEADER} ${GENERATED_SOURCE}
-        COMMAND ${PYTHON_EXECUTABLE} 
+        COMMAND ${Python3_EXECUTABLE} 
             "${FULL_PYTHON_SCRIPT}"
             "--src=${FULL_SOURCE_DIR}"
             "--out=${FULL_OUTPUT_DIR}"

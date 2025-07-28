@@ -1,0 +1,67 @@
+--extract --center=European
+--exit
+--extract --center=European
+--exit
+--extract --center=European
+--extract --center=European Cent
+--extract --center=European Cent --grid=Cyl
+--extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1
+--extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
+--exit
+--extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
+--exit
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
+--exit
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --parameters="wind 100"
+--extract --center=European Centre --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --parameters="wind 100"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --parameters="wind 100"
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40 lon40
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40.4 lon40.4
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40 lon40
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40-lon40
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat50-lon60
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat50.5-lon60.5
+--extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lon50.5-lat60.5
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lon50.5-lat60.5
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind 100
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind 100m
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100m
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100 meters
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed
+--exit
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100 meters
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="wind speed 100 meters"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100 met"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=\"Wind speed 100\"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind"
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--help --capitalize 
+--help
+clear
+--exit
+--help
+--help --capitalize 
+--help --config
+--help --extract
+--exit
+
+--help --extract
+--help --capitalize 
+--extract
+--help --capitalize 
+--help --capital
+--help --capitalize
+--exit

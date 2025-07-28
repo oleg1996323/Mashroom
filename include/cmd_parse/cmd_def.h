@@ -1,7 +1,8 @@
 #pragma once
 
 #ifndef GRIB
-#include "code_tables/cast/center.h"
+#include "cast/center.h"
+#include "cast/grid.h"
 #endif
 
 #ifndef MODE_ENUM
@@ -115,7 +116,9 @@ namespace parse{
         using vars = po::variables_map;
 
         virtual ErrorCode execute(vars&,const std::vector<std::string>&) noexcept = 0;
-        virtual void callback() noexcept{};
+        virtual void callback() noexcept{
+            err_=ErrorCode::NONE;
+        };
         void print_help(std::ostream& stream, std::span<po::option> args) const{
             const po::options_description* current = &descriptor_;
             for(const po::option& arg:args){
@@ -135,8 +138,7 @@ namespace parse{
                 }
                 else{
                     if(!arg.value.empty()){
-                        ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
-                        return;
+                        continue;
                     }
                     else if(auto* option = current->find_nothrow(arg.string_key,false); option!=nullptr){
                         stream<<option->format_name()<<" "<<option->description()<<std::endl;
@@ -196,9 +198,10 @@ namespace parse{
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
                 }
             }
-            po::variables_map vm;
-            po::store(parse_result.value(),vm);
-            if(vm.empty())
+            auto vm_res = try_store(parse_result.value());
+            if(!vm_res.has_value())
+                return vm_res.error();
+            if(vm_res.value().empty())
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,args.front());
             std::vector<std::string> tokens = po::collect_unrecognized(parse_result.value().options,po::collect_unrecognized_mode::include_positional);
             auto dublicate = contains_unique_value(args.begin(),args.end(),unique_values_.begin(),unique_values_.end(),[](const std::string& item)
@@ -211,7 +214,7 @@ namespace parse{
                 return err;
             }
             else {
-                ErrorCode err = execute(vm,tokens);
+                ErrorCode err = execute(vm_res.value(),tokens);
                 callback();
                 return err;
             }

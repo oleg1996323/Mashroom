@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "generated/code_tables/eccodes_tables.h"
 #include "code_tables/table_4.h"
+#include "paramtablev.h"
 
 void PDStimes(int time_range, int p1, int p2, int time_unit) {
 
@@ -446,7 +447,3 @@ std::string_view ProductDefinitionSection::param_comment() const noexcept{
 	return parameter_table(center(),table_version(),IndicatorOfParameter())->comment;
 }
 #endif
-
-const ParmTable* parameter_table(Organization center, unsigned char table_version, unsigned char param_num){
-	return parameter_table((unsigned char)center,table_version,param_num);
-}

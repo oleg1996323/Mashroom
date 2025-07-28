@@ -13,7 +13,6 @@
 #include "data/sublimed_info.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
-#include "cmd_parse/cmd_translator.h"
 #include "definitions/def.h"
 #include "definitions/path_process.h"
 

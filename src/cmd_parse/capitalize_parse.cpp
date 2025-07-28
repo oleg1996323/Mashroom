@@ -4,12 +4,12 @@
 #include <iostream>
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
-#include "cmd_parse/cmd_translator.h"
 #include "proc/capitalize.h"
 #include "cmd_parse/functions.h"
 #include "proc/capitalize.h"
 #include "information_parse.h"
 #include "cmd_parse/cmd_def.h"
+#include "internal_format_parse.h"
 
 namespace fs = std::filesystem;
 
@@ -37,8 +37,16 @@ namespace parse{
             else err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
                 "invalid capitalize directories order",AT_ERROR_ACTION::CONTINUE,order);
         }),"")
-        ("cap-format",po::value<std::string>()->notifier([this](const std::string& order){
-            err_ = hCapitalize->set_output_order(order);
+        ("cap-format",po::value<InternalDateFileFormats>()->value_name("["+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::NATIVE)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::TEXT)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::BINARY)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::GRIB)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::HGT)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::IEEE)+"|"+
+            boost::lexical_cast<std::string>(InternalDateFileFormats::NETCDF)+"]"
+            )->default_value(InternalDateFileFormats::NATIVE)->notifier([this](InternalDateFileFormats order){
+            hCapitalize->set_output_format(order);
         }),"")
         ("cap-ref","")
         ("cap-part-memsize",po::value<info_quantity>()->notifier([this](const info_quantity& memory_size){
