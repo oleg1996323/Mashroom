@@ -18,7 +18,7 @@ struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
     std::optional<utc_tp> to;   // requested to Date
     std::optional<Coord> pos;   // requested position (in WGS)
     std::optional<RepresentationType> rep_t;
-    std::optional<TimeOffset> time_off_;
+    std::optional<TimePeriod> time_off_;
     size_t parameter_size = 0;
     std::vector<SearchParamTableVersion> parameters_;
 };

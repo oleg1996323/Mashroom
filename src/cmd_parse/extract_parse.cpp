@@ -123,16 +123,16 @@ namespace parse{
             if(err_==ErrorCode::NONE)
                 hExtract->set_output_format(input);
         }),"Sets the format of the output file(s) containing the extracted data")
-        ("ext-time-interval",po::value<TimeOffset>()->default_value(TimeOffset(years(0),
+        ("ext-time-period",po::value<TimePeriod>()->default_value(TimePeriod(years(0),
                                                                     months(1),
                                                                     days(0),
                                                                     hours(0),
                                                                     minutes(0),
-                                                                    std::chrono::seconds(0)))->notifier([this](const TimeOffset& input){
+                                                                    std::chrono::seconds(0)))->notifier([this](const TimePeriod& input){
                                                                         if(err_==ErrorCode::NONE)
                                                                             err_=hExtract->set_offset_time_interval(input);
                                                                     }),
-        "Sets the time interval to be extracted in different files. E.g. you choose 1 day time-interval, all extracted data will be separated by files");
+        "Sets the time-period to be extracted in different files. E.g. you choose 1 day time-period, all extracted data will be separated by files");
         define_uniques();
     }
 

@@ -1,5 +1,5 @@
 #include "types/time_interval.h"
-TimeOffset::TimeOffset(years y,months mo,days d,hours h,minutes m,std::chrono::seconds s) noexcept:
+TimePeriod::TimePeriod(years y,months mo,days d,hours h,minutes m,std::chrono::seconds s) noexcept:
     years_(y),
     months_(mo),
     days_(d),
@@ -32,7 +32,7 @@ TimeOffset::TimeOffset(years y,months mo,days d,hours h,minutes m,std::chrono::s
         }
     }
 }
-TimeOffset::TimeOffset(const TimeOffset& other) noexcept{
+TimePeriod::TimePeriod(const TimePeriod& other) noexcept{
     if(this!=&other){
         years_ = other.years_;
         months_ = other.months_;
@@ -42,7 +42,7 @@ TimeOffset::TimeOffset(const TimeOffset& other) noexcept{
         seconds_ = other.seconds_;
     }
 }
-TimeOffset::TimeOffset(TimeOffset&& other) noexcept{
+TimePeriod::TimePeriod(TimePeriod&& other) noexcept{
     if(this!=&other){
         years_ = std::move(other.years_);
         months_ = std::move(other.months_);
@@ -52,7 +52,7 @@ TimeOffset::TimeOffset(TimeOffset&& other) noexcept{
         seconds_ = std::move(other.seconds_);
     }
 }
-TimeOffset& TimeOffset::operator=(const TimeOffset& other) noexcept{
+TimePeriod& TimePeriod::operator=(const TimePeriod& other) noexcept{
     if(this!=&other){
         years_ = other.years_;
         months_ = other.months_;
@@ -63,7 +63,7 @@ TimeOffset& TimeOffset::operator=(const TimeOffset& other) noexcept{
     }
     return *this;
 }
-TimeOffset& TimeOffset::operator=(TimeOffset&& other) noexcept{
+TimePeriod& TimePeriod::operator=(TimePeriod&& other) noexcept{
     if(this!=&other){
         years_ = std::move(other.years_);
         months_ = std::move(other.months_);
@@ -78,7 +78,7 @@ TimeOffset& TimeOffset::operator=(TimeOffset&& other) noexcept{
 /**
  * @return Next time-point from current time-point by set time-offset
  */
-utc_tp TimeOffset::get_next_tp(utc_tp current_time) const noexcept{
+utc_tp TimePeriod::get_next_tp(utc_tp current_time) const noexcept{
     using namespace std::chrono;
     auto ymd = year_month_day(floor<days>(current_time));
     ymd+=years_;
@@ -90,7 +90,7 @@ utc_tp TimeOffset::get_next_tp(utc_tp current_time) const noexcept{
 /**
  * @return The time-point aligned to the lesser defined time-unit
  */
-utc_tp TimeOffset::get_null_aligned_tp(utc_tp current_time, utc_tp from_initial_interval) const noexcept{
+utc_tp TimePeriod::get_null_aligned_tp(utc_tp current_time, utc_tp from_initial_interval) const noexcept{
     using namespace std::chrono;
     auto ymd_current = year_month_day(floor<days>(current_time));
     auto ymd_initial = year_month_day(floor<days>(from_initial_interval));
@@ -149,7 +149,7 @@ utc_tp TimeOffset::get_null_aligned_tp(utc_tp current_time, utc_tp from_initial_
 }
 
 template<>
-boost::json::value to_json(const TimeOffset& val){
+boost::json::value to_json(const TimePeriod& val){
     boost::json::object result;
     result["years"] = val.years_.count();
     result["months"] = val.months_.count();
@@ -161,8 +161,8 @@ boost::json::value to_json(const TimeOffset& val){
 }
 
 template<>
-std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val){
-    TimeOffset result;
+std::expected<TimePeriod,std::exception> from_json(const boost::json::value& val){
+    TimePeriod result;
     try{
         result.years_=years(val.at("years").as_int64());
         result.months_=months(val.at("months").as_int64());
@@ -181,9 +181,9 @@ std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val
 #include <iostream>
 
 template<>
-TimeOffset boost::lexical_cast(const std::string& input){
+TimePeriod boost::lexical_cast(const std::string& input){
     using namespace std::string_literals;
-    TimeOffset result;
+    TimePeriod result;
     std::vector<std::string_view> tokens = split<std::string_view>(std::string_view(input),":");
     if(!tokens.empty()){
         for(std::string_view token:tokens){
@@ -242,7 +242,7 @@ std::string boost::lexical_cast(const utc_tp& input){
     return std::format("{:%D-%T}",input);
 }
 template<>
-std::string boost::lexical_cast(const TimeOffset& input){
+std::string boost::lexical_cast(const TimePeriod& input){
     std::string result;
     if(input.years_.count()>0)
         result+=std::to_string(input.years_.count())+"y";

@@ -16,14 +16,14 @@ std::expected<user::Settings,std::exception> from_json(const boost::json::value&
     try{
         result.name_ = val.at("name").as_string();
         {
-            std::expected<TimeOffset, std::exception> json_res = from_json<TimeOffset>(
+            std::expected<TimePeriod, std::exception> json_res = from_json<TimePeriod>(
                 val.at("mashroom-update-ti"));
             if(json_res.has_value())
                 result.mashroom_update_ti_ = std::move(json_res.value());
             else return std::unexpected(json_res.error());
         }
         {
-            std::expected<TimeOffset, std::exception> json_res = from_json<TimeOffset>(
+            std::expected<TimePeriod, std::exception> json_res = from_json<TimePeriod>(
                 val.at("capitalize-update-ti"));
             if(json_res.has_value())
                 result.capitalize_update_ti_ = std::move(json_res.value());

@@ -10,26 +10,26 @@ namespace user{
     struct Settings{
         std::string name_;
         /**
-         * @brief time-interval between capitalize updates
+         * @brief time-period between capitalize updates
          */
-        TimeOffset capitalize_update_ti_;
+        TimePeriod capitalize_update_ti_;
         /**
-         * @brief time-interval between Mashroom updates
+         * @brief time-period between Mashroom updates
          */
-        TimeOffset mashroom_update_ti_;
+        TimePeriod mashroom_update_ti_;
         OutputDataFileFormats default_format_ = OutputDataFileFormats::BIN_F|
                                                 OutputDataFileFormats::ARCHIVED;
     };
     
     static Settings default_config() noexcept{
         return Settings{.name_="default",
-                        .capitalize_update_ti_=TimeOffset(years(0),
+                        .capitalize_update_ti_=TimePeriod(years(0),
                                                 months(0),
                                                 days(7),
                                                 hours(0),
                                                 minutes(0),
                                                 std::chrono::seconds(0)),
-                        .mashroom_update_ti_=TimeOffset(years(0),
+                        .mashroom_update_ti_=TimePeriod(years(0),
                                                 months(0),
                                                 days(7),
                                                 hours(0),

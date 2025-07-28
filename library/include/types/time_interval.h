@@ -13,7 +13,7 @@ using utc_diff = std::chrono::system_clock::duration;
 
 #include <boost/program_options.hpp>
 
-struct TimeOffset{
+struct TimePeriod{
     years years_ = years(0);
     months months_ = months(0);
     days days_ = days(0);
@@ -24,16 +24,16 @@ struct TimeOffset{
     friend struct serialization::Serialize;
     template<bool NETWORK_ORDER>
     friend struct serialization::Deserialize;
-    friend struct serialization::Serial_size<TimeOffset>;
-    friend struct serialization::Max_serial_size<TimeOffset>;
-    friend struct serialization::Min_serial_size<TimeOffset>;
+    friend struct serialization::Serial_size<TimePeriod>;
+    friend struct serialization::Max_serial_size<TimePeriod>;
+    friend struct serialization::Min_serial_size<TimePeriod>;
     public:
-    TimeOffset() noexcept = default;
-    explicit TimeOffset(years y,months mo,days d,hours h,minutes m,std::chrono::seconds s) noexcept;
-    TimeOffset(const TimeOffset& other) noexcept;
-    TimeOffset(TimeOffset&& other) noexcept;
-    TimeOffset& operator=(const TimeOffset& other) noexcept;
-    TimeOffset& operator=(TimeOffset&& other) noexcept;
+    TimePeriod() noexcept = default;
+    explicit TimePeriod(years y,months mo,days d,hours h,minutes m,std::chrono::seconds s) noexcept;
+    TimePeriod(const TimePeriod& other) noexcept;
+    TimePeriod(TimePeriod&& other) noexcept;
+    TimePeriod& operator=(const TimePeriod& other) noexcept;
+    TimePeriod& operator=(TimePeriod&& other) noexcept;
 
     /**
      * @return Next time-point from current time-point by set time-offset
@@ -89,36 +89,36 @@ std::pair<uint16_t,uint16_t> interval_intersection_pos(const TimeInterval& to_se
 namespace serialization{
 
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,TimeOffset>{
-        auto operator()(const TimeOffset& val,std::vector<char>& buf) noexcept{
+    struct Serialize<NETWORK_ORDER,TimePeriod>{
+        auto operator()(const TimePeriod& val,std::vector<char>& buf) noexcept{
             return serialize<NETWORK_ORDER>(val,buf,val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,TimeOffset>{
-        auto operator()(TimeOffset& val,std::span<const char> buf) noexcept{
+    struct Deserialize<NETWORK_ORDER,TimePeriod>{
+        auto operator()(TimePeriod& val,std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<>
-    struct Serial_size<TimeOffset>{
-        size_t operator()(const TimeOffset& val) noexcept{
+    struct Serial_size<TimePeriod>{
+        size_t operator()(const TimePeriod& val) noexcept{
             return serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<>
-    struct Min_serial_size<TimeOffset>{
-        constexpr size_t operator()(const TimeOffset& val) noexcept{
+    struct Min_serial_size<TimePeriod>{
+        constexpr size_t operator()(const TimePeriod& val) noexcept{
             return min_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
      
     template<>
-    struct Max_serial_size<TimeOffset>{
-        constexpr size_t operator()(const TimeOffset& val) noexcept{
+    struct Max_serial_size<TimePeriod>{
+        constexpr size_t operator()(const TimePeriod& val) noexcept{
             return max_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
@@ -128,16 +128,16 @@ namespace serialization{
 #include <expected>
 
 template<>
-boost::json::value to_json(const TimeOffset& val);
+boost::json::value to_json(const TimePeriod& val);
 
 template<>
-std::expected<TimeOffset,std::exception> from_json(const boost::json::value& val);
+std::expected<TimePeriod,std::exception> from_json(const boost::json::value& val);
 
 template<>
 utc_tp boost::lexical_cast(const std::string& input);
 template<>
-TimeOffset boost::lexical_cast(const std::string& input);
+TimePeriod boost::lexical_cast(const std::string& input);
 template<>
 std::string boost::lexical_cast(const utc_tp& input);
 template<>
-std::string boost::lexical_cast(const TimeOffset& input);
+std::string boost::lexical_cast(const TimePeriod& input);

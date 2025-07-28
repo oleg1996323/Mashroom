@@ -38,7 +38,7 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 class Integrity:public AbstractSearchProcess{
     private:
     GribDataInfo data_;
-    TimeOffset t_off_;
+    TimePeriod t_off_;
     std::vector<std::pair<fs::path,ErrorCodeData>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
     int cpus = 1;

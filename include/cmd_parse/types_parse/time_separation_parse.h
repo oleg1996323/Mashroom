@@ -20,5 +20,5 @@ void validate(boost::any& v,
 template<>
 utc_tp lexical_cast(const std::string& input);
 template<>
-TimeOffset lexical_cast(const std::string& input);
+TimePeriod lexical_cast(const std::string& input);
 }

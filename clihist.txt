@@ -65,3 +65,8 @@ clear
 --help --capital
 --help --capitalize
 --exit
+--help
+-h --extract
+-h --config
+-h --config --add
+--exit

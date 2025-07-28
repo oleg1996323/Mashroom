@@ -15,12 +15,12 @@
 #include <boost/program_options.hpp>
 
 namespace parse{
-    UserConfig::UserConfig():AbstractCLIParser("Config arguments:"){}
+    UserConfig::UserConfig():AbstractCLIParser("Config arguments"){}
 
     void UserConfig::init() noexcept{
         add_options("name,N",po::value<std::string>(),"Configure the program")
-        ("cap-upd-time-interval",po::value<std::string>()/*add notifier parsing TimeInterval*/,"");
-        ("mashroom-upd-time-interval",po::value<std::string>(),"Sets the time interval of Mashroom's updates");
+        ("cap-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().capitalize_update_ti_),"Sets the time period of capitalize update");
+        ("mashroom-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().mashroom_update_ti_),"Sets the time period of Mashroom's updates");
         define_uniques();
     }
     ErrorCode UserConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
@@ -37,10 +37,10 @@ namespace parse{
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"configuration name",AT_ERROR_ACTION::CONTINUE);
         }
         try{
-            if(vm.contains("cap-upd-time-interval"))
-                settings_->capitalize_update_ti_ = vm.at("cap-upd-time-interval").as<TimeOffset>();
-            if(vm.contains("mashroom-upd-time-interval"))
-                settings_->mashroom_update_ti_ = vm.at("mashroom-upd-time-interval").as<TimeOffset>();
+            if(vm.contains("cap-upd-time-period"))
+                settings_->capitalize_update_ti_ = vm.at("cap-upd-time-period").as<TimePeriod>();
+            if(vm.contains("mashroom-upd-time-period"))
+                settings_->mashroom_update_ti_ = vm.at("mashroom-upd-time-period").as<TimePeriod>();
             return ErrorCode::NONE;
         }
         catch(const std::invalid_argument& err){
@@ -74,7 +74,8 @@ namespace parse{
     Config::Config():AbstractCLIParser("Config options:"){}
 
     void Config::init() noexcept{
-        add_options("add,A",po::value<std::vector<std::string>>(),"Configure the program")
+        add_options_instances("add,A",po::value<std::vector<std::string>>(),"Configure the program",UserConfig::instance());
+        add_options
         ("remove,R",po::value<std::string>()->notifier([this](const std::string& name){
             err_ = remove_user_config_notifier(name);
         }),"")

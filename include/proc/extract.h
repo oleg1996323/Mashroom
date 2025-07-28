@@ -105,7 +105,7 @@ class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
 public:
 
 private:
-    TimeOffset t_off_ = TimeOffset(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
+    TimePeriod t_off_ = TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
     std::string path_format = std::string("{:%Y") + fs::path::preferred_separator + "%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
@@ -178,7 +178,7 @@ public:
     {
         return output_format_;
     }
-    ErrorCode set_offset_time_interval(const std::optional<TimeOffset>& t_off) noexcept{
+    ErrorCode set_offset_time_interval(const std::optional<TimePeriod>& t_off) noexcept{
         if(!t_off.has_value())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"time offset",AT_ERROR_ACTION::CONTINUE);
         t_off_ = t_off.value();
