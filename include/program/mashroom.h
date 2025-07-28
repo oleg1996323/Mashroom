@@ -16,6 +16,7 @@
 #include "network/server.h"
 #include "program/clients_handler.h"
 #include "concepts.h"
+#include <boost/algorithm/string.hpp>
 
 
 namespace fs = std::filesystem;
@@ -87,12 +88,12 @@ class Mashroom{
             std::string buffer;
             std::getline(std::cin,buffer);
 
-            if(buffer=="yes"){
+            if(boost::iequals(buffer,std::string_view("yes"))){
                 data_.save();
                 __write_initial_data_file__();
                 return true;
             }
-            else if(buffer=="no")
+            else if(boost::iequals(buffer,std::string_view("no")))
                 return false;
             else{
                 ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"please write \"yes\" if you want to save changes; else write \"no\"",AT_ERROR_ACTION::CONTINUE,buffer);
@@ -101,9 +102,11 @@ class Mashroom{
         }
         else return false;
     }
+    static Mashroom& instance(){
+        static Mashroom inst;
+        return inst;
+    }
 };
-
-inline std::unique_ptr<Mashroom> hProgram;
 
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
 ErrorCode Mashroom::request(const std::string& host,ARGS&&... args){

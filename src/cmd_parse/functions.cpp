@@ -19,6 +19,12 @@ std::expected<po::variables_map,ErrorCode> try_store(const po::parsed_options& o
     catch(const po::error& err){
         return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,err.what(),AT_ERROR_ACTION::CONTINUE));
     }
+    catch(const boost::bad_lexical_cast& err){
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,err.what(),AT_ERROR_ACTION::CONTINUE));
+    }
+    catch(const po::validation_error& err){
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,err.what(),AT_ERROR_ACTION::CONTINUE));
+    }
 }
 
 std::expected<po::parsed_options,ErrorCode> try_parse(const po::options_description& opt_desc,const std::vector<std::string>& args){

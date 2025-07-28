@@ -68,15 +68,12 @@ namespace parse{
         return ErrorCode::NONE;
     }
     ErrorCode launch_notifier(const std::string& name) noexcept{
-        if(hProgram){
-            if(name.empty())
-                hProgram->launch_server();
-            else{
-                if(!Application::config().set_current_server_config(name))
-                    return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (config don't exists)",AT_ERROR_ACTION::CONTINUE,name);
-            }
+        if(name.empty())
+            Mashroom::instance().launch_server();
+        else{
+            if(!Application::config().set_current_server_config(name))
+                return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"removing server config failed (config don't exists)",AT_ERROR_ACTION::CONTINUE,name);
         }
-        else return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"errorness program initialization. Could not launch server",AT_ERROR_ACTION::ABORT);
         return ErrorCode::NONE;
     }
 
@@ -85,9 +82,7 @@ namespace parse{
     }
 
     ErrorCode closing_notifier(bool wait) noexcept{
-        if(hProgram)
-            hProgram->close_server(wait);
-        else return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Nothing to close",AT_ERROR_ACTION::CONTINUE);
+        Mashroom::instance().close_server(wait);
         return ErrorCode::NONE;
     }
 

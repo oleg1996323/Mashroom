@@ -136,7 +136,7 @@ void Server::__launch__(Server* server){
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server->server_socket_, &ev) == -1) {
         perror("epoll_ctl: server socket");
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
-        hProgram->collapse_server(server);
+        Mashroom::instance().collapse_server(server);
     }
     server->server_interruptor = eventfd(0,EFD_NONBLOCK);
     if(server->server_interruptor==-1){

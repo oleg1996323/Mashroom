@@ -43,7 +43,7 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
                 time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
                 !props_.grid_type_.has_value() &&
                 !props_.parameters_.empty()){
-            for(auto& [file,file_data]:hProgram->data().data()){
+            for(auto& [file,file_data]:Mashroom::instance().data().data()){
                 for(auto& [common,info_seq]:file_data)
                     for(auto& info:info_seq){
                         if(stop_token_.stop_requested())

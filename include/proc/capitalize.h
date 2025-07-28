@@ -23,7 +23,7 @@ GribDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
-info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<int32_t>::max())*info_units{};
+info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{};
 int cpus = 1;
 InternalDateFileFormats output_format_ = InternalDateFileFormats::NATIVE;
 bool host_ref_only = false;
@@ -73,5 +73,8 @@ void set_max_cap_size(const info_quantity& info_sz){
     if(info_sz.value()==0)
         return;
     else file_sz_limits_ = info_sz;
+}
+info_quantity get_max_cap_size() const{
+    return file_sz_limits_;
 }
 };

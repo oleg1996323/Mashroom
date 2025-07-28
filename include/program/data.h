@@ -66,7 +66,7 @@ class Data:public __Data__{
     void __read__(const fs::path& filename);
     template<Data::FORMAT>
     void __write__(const fs::path& filename){
-        assert(false);
+        
     }
 
     template <size_t I=0>

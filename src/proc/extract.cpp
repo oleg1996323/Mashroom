@@ -127,97 +127,95 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
 }
 
 ErrorCode Extract::execute() noexcept{
-    if(hProgram){
-        path_format = get_dir_file_outp_format();
-        auto matched = hProgram->data().match(props_.center_.value(),
-                                                props_.fcst_unit_,
-                                                props_.parameters_,
-                                                TimeInterval{props_.from_date_,props_.to_date_},
-                                                props_.grid_type_.value(),
-                                                props_.position_.value());
-        ExtractedData result;
-        for(auto& [path,positions]:matched){   
-            if(path.type_!=path::TYPE::FILE || !fs::is_regular_file(path.path_)){
-                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-                continue;
-            }
-            if(!fs::exists(path.path_)){
-                ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-                continue;
-            }
-            std::cout<<"Extracting from "<<path<<std::endl;
-            std::sort(positions.buf_pos_.begin(),positions.buf_pos_.end());
-            if(stop_token_.stop_requested())
-                return ErrorCode::INTERRUPTED;
-            __extract__(path.path_,result,positions);
-            if(stop_token_.stop_requested())
-                return ErrorCode::INTERRUPTED;
+    path_format = get_dir_file_outp_format();
+    auto matched = Mashroom::instance().data().match(props_.center_.value(),
+                                            props_.fcst_unit_,
+                                            props_.parameters_,
+                                            TimeInterval{props_.from_date_,props_.to_date_},
+                                            props_.grid_type_.value(),
+                                            props_.position_.value());
+    ExtractedData result;
+    for(auto& [path,positions]:matched){   
+        if(path.type_!=path::TYPE::FILE || !fs::is_regular_file(path.path_)){
+            ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            continue;
         }
-        utc_tp current_time = utc_tp::max();
-        size_t max_length = 0;
-        std::vector<decltype(result)::mapped_type*> col_vals_;
-        for(auto& [cmn_data,values]:result){
-            std::sort(values.begin(),values.end(),std::less());
-            if(!values.empty()){
-                current_time = std::min(values.front().time_date,current_time);
-                col_vals_.push_back(&values);
-            }
-            max_length = std::max(max_length,values.size());
+        if(!fs::exists(path.path_)){
+            ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            continue;
         }
+        std::cout<<"Extracting from "<<path<<std::endl;
+        std::sort(positions.buf_pos_.begin(),positions.buf_pos_.end());
+        if(stop_token_.stop_requested())
+            return ErrorCode::INTERRUPTED;
+        __extract__(path.path_,result,positions);
+        if(stop_token_.stop_requested())
+            return ErrorCode::INTERRUPTED;
+    }
+    utc_tp current_time = utc_tp::max();
+    size_t max_length = 0;
+    std::vector<decltype(result)::mapped_type*> col_vals_;
+    for(auto& [cmn_data,values]:result){
+        std::sort(values.begin(),values.end(),std::less());
+        if(!values.empty()){
+            current_time = std::min(values.front().time_date,current_time);
+            col_vals_.push_back(&values);
+        }
+        max_length = std::max(max_length,values.size());
+    }
 
-        std::vector<int> rows;
-        rows.resize(col_vals_.size());
-        utc_tp file_end_time = t_off_.get_next_tp(current_time);
-        std::ofstream out;
-        fs::path out_f_name;
-        cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
-        for(int row=0;row<max_length;++row){
-            if(stop_token_.stop_requested())
-                return ErrorCode::INTERRUPTED;
-            //if current_time>file_end_time
-            current_time = utc_tp::max();
-            for(int col=0;col<col_vals_.size();++col)
-                if(rows[col]<col_vals_[col]->size())
-                    current_time = std::min((*col_vals_.at(col))[rows.at(col)].time_date,current_time);
-            if(current_time>=file_end_time || !out.is_open()){
-                if(out.is_open()){
-                    out.close();
-                    if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
-                    static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
-                        cmprs.add_file(out_path_,out_f_name);              
-                    }
+    std::vector<int> rows;
+    rows.resize(col_vals_.size());
+    utc_tp file_end_time = t_off_.get_next_tp(current_time);
+    std::ofstream out;
+    fs::path out_f_name;
+    cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
+    for(int row=0;row<max_length;++row){
+        if(stop_token_.stop_requested())
+            return ErrorCode::INTERRUPTED;
+        //if current_time>file_end_time
+        current_time = utc_tp::max();
+        for(int col=0;col<col_vals_.size();++col)
+            if(rows[col]<col_vals_[col]->size())
+                current_time = std::min((*col_vals_.at(col))[rows.at(col)].time_date,current_time);
+        if(current_time>=file_end_time || !out.is_open()){
+            if(out.is_open()){
+                out.close();
+                if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
+                static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
+                    cmprs.add_file(out_path_,out_f_name);              
                 }
-                out_f_name/=__generate_directory__(current_time);
-                out_f_name/=__generate_name__(output_format_,center_to_abbr(props_.center_.value()),
-                grid_to_abbr(props_.grid_type_.value()),current_time);
-                {
-                    auto err = __create_file_and_write_header__(out,out_f_name,result);
-                    if(err!=ErrorCode::NONE)
-                        return err;
-                }
-                file_end_time = t_off_.get_next_tp(current_time);
             }
-            out<<std::format("{:%Y/%m/%d %H:%M:%S}",time_point_cast<std::chrono::seconds>(current_time))<<'\t';
-            for(int col=0;col<col_vals_.size();++col){
-                if(rows[col]<col_vals_[col]->size()){
-                    if((*col_vals_[col])[rows[col]].time_date==current_time){
-                        out<<std::left<<std::setw(10)<<(*col_vals_[col])[rows[col]].value<<'\t';
-                        ++rows[col];
-                    }
-                    else{
-                        out<<std::left<<std::setw(10)<<"NaN"<<'\t';
-                    }
-                }
-                else out<<std::left<<std::setw(10)<<"NaN"<<'\t';
+            out_f_name/=__generate_directory__(current_time);
+            out_f_name/=__generate_name__(output_format_,center_to_abbr(props_.center_.value()),
+            grid_to_abbr(props_.grid_type_.value()),current_time);
+            {
+                auto err = __create_file_and_write_header__(out,out_f_name,result);
+                if(err!=ErrorCode::NONE)
+                    return err;
             }
-            out<<std::endl;
+            file_end_time = t_off_.get_next_tp(current_time);
         }
-        if(out.is_open()){
-            out.close();
-            if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
-            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
-                cmprs.add_file(out_path_,out_f_name);              
+        out<<std::format("{:%Y/%m/%d %H:%M:%S}",time_point_cast<std::chrono::seconds>(current_time))<<'\t';
+        for(int col=0;col<col_vals_.size();++col){
+            if(rows[col]<col_vals_[col]->size()){
+                if((*col_vals_[col])[rows[col]].time_date==current_time){
+                    out<<std::left<<std::setw(10)<<(*col_vals_[col])[rows[col]].value<<'\t';
+                    ++rows[col];
+                }
+                else{
+                    out<<std::left<<std::setw(10)<<"NaN"<<'\t';
+                }
             }
+            else out<<std::left<<std::setw(10)<<"NaN"<<'\t';
+        }
+        out<<std::endl;
+    }
+    if(out.is_open()){
+        out.close();
+        if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
+        static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
+            cmprs.add_file(out_path_,out_f_name);              
         }
     }
     return ErrorCode::NONE;

@@ -23,6 +23,8 @@ namespace parse{
             constexpr std::array<std::string_view,3> to_match = {"tb","terabyte","terabytes"};
             return iend_with(str,to_match);
         }
+
+        std::array<std::string_view,5> units = {"B","KB","MB","GB","TB"};
     }
 
     std::expected<info_quantity,ErrorCode> info_unit(std::string_view str) noexcept{
@@ -101,4 +103,15 @@ info_quantity boost::lexical_cast(const std::string& input){
     } else {
         throw boost::bad_lexical_cast();
     }
+}
+
+template<>
+std::string boost::lexical_cast(const info_quantity& input){
+    double val=input.value();
+    int power = 0;
+    while(val/1024>1 && power<4){
+        val/=1024;
+        ++power;
+    }
+    return std::to_string(val)+" "+std::string(parse::detail::units.at(power));
 }

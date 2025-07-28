@@ -70,3 +70,14 @@ clear
 -h --config
 -h --config --add
 --exit
+--help --capitalize
+--capitalize --inp=/home/oster/grib_files
+--capitalize --inp dir=/home/oster/grib_files
+--save
+--capitalize --inp dir=/home/oster/grib_files
+--save
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--save
+--extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--capitalize --inp dir=/home/oster/grib_files
+--save

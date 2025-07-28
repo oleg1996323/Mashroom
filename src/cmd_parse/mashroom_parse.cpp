@@ -17,13 +17,12 @@ namespace parse{
         return Config::instance().parse(input);
     }
     ErrorCode save_notifier() noexcept{
-        if(!hProgram->save())
-            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"saving failed",AT_ERROR_ACTION::CONTINUE);
+        ::Mashroom::instance().save();
         return ErrorCode::NONE;
     }
     ErrorCode exit_notifier(const std::string& input) noexcept{
         if(input=="save")
-            hProgram->save();
+            ::Mashroom::instance().save();
         exit(0);
     }
 

@@ -136,8 +136,6 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 }
 
 void Capitalize::execute() noexcept{
-	if(!hProgram)
-		hProgram= std::make_unique<Mashroom>(Mashroom());
 	for(const path::Storage<false>& path:in_path_){
 		switch(path.type_){
 			case path::TYPE::DIRECTORY:
@@ -155,15 +153,15 @@ void Capitalize::execute() noexcept{
 				break;
 			case path::TYPE::HOST:
 				if(host_ref_only)
-					hProgram->request<network::Client_MsgT::CAPITALIZE_REF>(path.path_);
-				else hProgram->request<network::Client_MsgT::CAPITALIZE>(path.path_);
+					Mashroom::instance().request<network::Client_MsgT::CAPITALIZE_REF>(path.path_);
+				else Mashroom::instance().request<network::Client_MsgT::CAPITALIZE>(path.path_);
 				break;
 			default:{
 				continue;
 			}
 		}
 	}
-	hProgram->add_data(result);
+	Mashroom::instance().add_data(result);
 }
 
 ErrorCode Capitalize::add_in_path(const path::Storage<false>& path){

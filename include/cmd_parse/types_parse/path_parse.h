@@ -9,10 +9,15 @@ namespace boost{
 
 namespace program_options{
 
-template<>
-void validate(boost::any& v,
-              const std::vector<std::string>& values,
-                std::vector<path::Storage<true>>*,int);
+// template<>
+// void validate(boost::any& v,
+//               const std::vector<std::string>& values,
+//                 std::vector<path::Storage<false>>*,int);
 }
 
+template<>
+std::vector<path::Storage<false>> boost::lexical_cast(const std::vector<std::string>& input);
+
+template<>
+path::Storage<false> lexical_cast(const std::string& input);
 }

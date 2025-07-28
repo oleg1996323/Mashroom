@@ -37,6 +37,8 @@ using namespace std;
 namespace boost{
     template<>
     info_quantity lexical_cast(const std::string& input);
+    template<>
+    std::string lexical_cast(const info_quantity& input);
     namespace program_options{
         void validate(boost::any& v,
                     const std::vector<std::string>& values,
