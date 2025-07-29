@@ -175,7 +175,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,CommonDataProperties>{
         using type = CommonDataProperties;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
-            return serialize<NETWORK_ORDER>(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
@@ -183,7 +183,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,CommonDataProperties>{
         using type = CommonDataProperties;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            return deserialize<NETWORK_ORDER>(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
@@ -210,4 +210,9 @@ namespace serialization{
             return max_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
+
+static_assert(requires{requires serialize_concept<CommonDataProperties>;});
+static_assert(requires{requires serialize_concept<std::shared_ptr<CommonDataProperties>>;});
+static_assert(requires{requires deserialize_concept<CommonDataProperties>;});
+static_assert(requires{requires deserialize_concept<std::shared_ptr<CommonDataProperties>>;});
 }

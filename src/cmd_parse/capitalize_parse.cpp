@@ -10,6 +10,7 @@
 #include "information_parse.h"
 #include "cmd_parse/cmd_def.h"
 #include "internal_format_parse.h"
+#include "filesystem.h"
 
 namespace fs = std::filesystem;
 
@@ -25,7 +26,7 @@ namespace parse{
         }),"Output path. Must be defined if cap-overwrite is set true. If the path does not exist and can be created, it will be created. Else the capitalization process will not begin.")
         ("inp",po::value<std::vector<path::Storage<false>>>()->value_name("dir:DIR|file:FILE|host:HOST")->required()->notifier([this](const std::vector<path::Storage<false>>& paths){
             for(auto& path:paths){
-                err_ = hCapitalize->add_in_path(path);
+                hCapitalize->add_in_path(path);
                 if(err_!=ErrorCode::NONE)
                     return;
             }

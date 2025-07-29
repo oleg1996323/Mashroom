@@ -36,7 +36,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_FILEINFO>>{
         using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEINFO>;
-        SerializationEC operator()(const type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename_,msg.file_sz_);
         }
     };

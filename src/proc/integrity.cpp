@@ -79,26 +79,26 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
     for(const auto& [filename,file_data]:sublimed_grib_data.data()){
         for(const auto& [cmn,sublimed_data_seq]:file_data){
             for(const auto& sublimed_data:sublimed_data_seq){
-                utc_tp beg_period = t_off_.get_null_aligned_tp(sublimed_data.from,props_.from_date_);
+                utc_tp beg_period = t_off_.get_null_aligned_tp(sublimed_data.from_,props_.from_date_);
                 utc_tp end_period;
-                decltype(sublimed_data.discret) discretion =    duration_cast<std::chrono::seconds>(sublimed_data.discret)>utc_diff(0)?
-                                                                duration_cast<std::chrono::seconds>(sublimed_data.discret):std::chrono::seconds(1);
-                end_period = t_off_.get_next_tp(sublimed_data.from)-discretion;
-                if(sublimed_data.from<=beg_period){
-                    if(sublimed_data.to<end_period)
-                        accessible_data<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<"-"<<
-                        std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<std::endl;
-                    else missing_log<<sublimed_data.to<<"-"<<end_period<<std::endl;
+                decltype(sublimed_data.discret_) discretion =    duration_cast<std::chrono::seconds>(sublimed_data.discret_)>utc_diff(0)?
+                                                                duration_cast<std::chrono::seconds>(sublimed_data.discret_):std::chrono::seconds(1);
+                end_period = t_off_.get_next_tp(sublimed_data.from_)-discretion;
+                if(sublimed_data.from_<=beg_period){
+                    if(sublimed_data.to_<end_period)
+                        accessible_data<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from_))<<"-"<<
+                        std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from_))<<std::endl;
+                    else missing_log<<sublimed_data.to_<<"-"<<end_period<<std::endl;
                 }
                 else {
                     missing_log<<std::vformat(this->time_result_format,std::make_format_args(beg_period))<<"-"<<
-                        std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<std::endl;
-                    if(sublimed_data.to<end_period)
-                        missing_log<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.to))<<"-"<<
+                        std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from_))<<std::endl;
+                    if(sublimed_data.to_<end_period)
+                        missing_log<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.to_))<<"-"<<
                         std::vformat(this->time_result_format,std::make_format_args(end_period))<<std::endl;
                 }
-                accessible_data<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<"-"<<
-                std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from))<<std::endl;
+                accessible_data<<std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from_))<<"-"<<
+                std::vformat(this->time_result_format,std::make_format_args(sublimed_data.from_))<<std::endl;
             }
         }
     }

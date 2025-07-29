@@ -12,6 +12,7 @@ template<bool VIEW>
 struct Storage;
 template<>
 struct Storage<false>{
+    Storage() = default;
     explicit Storage(const std::string& path,TYPE type);
     explicit Storage(std::string&& path,TYPE type);
     explicit Storage(std::string_view path,TYPE type);
@@ -23,6 +24,7 @@ struct Storage<false>{
 };
 template<>
 struct Storage<true>{
+    Storage()=default;
     explicit Storage(const std::string& path,TYPE type);
     explicit Storage(std::string&& path,TYPE type);
     explicit Storage(std::string_view path,TYPE type);
@@ -82,7 +84,7 @@ struct std::equal_to<path::Storage<VIEW>>{
 #include "serialization.h"
 
 namespace serialization{
-    template<bool NETWORK_ORDER,bool VIEW>
+    template<bool NETWORK_ORDER, bool VIEW>
     struct Serialize<NETWORK_ORDER,path::Storage<VIEW>>{
         using type = path::Storage<VIEW>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
@@ -90,9 +92,9 @@ namespace serialization{
         }
     };
 
-    template<bool NETWORK_ORDER, bool VIEW>
-    struct Deserialize<NETWORK_ORDER,path::Storage<VIEW>>{
-        using type = path::Storage<VIEW>;
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,path::Storage<false>>{
+        using type = path::Storage<false>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.type_,msg.path_);
         }

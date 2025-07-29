@@ -60,9 +60,9 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
                         if(filter_.forecast_time)
                             std::cout<<"forecast-time "<<(int)common->fcst_unit_.value()<<std::endl;
                         if(filter_.grid_info)
-                            std::cout<<info.grid_data->print_grid_info()<<std::endl;
+                            std::cout<<info.grid_data_->print_grid_info()<<std::endl;
                         if(filter_.time_interval)
-                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.from,info.to)<<std::endl;
+                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.from_,info.to_)<<std::endl;
                     }
             }
         }

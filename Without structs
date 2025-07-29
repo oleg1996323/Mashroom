@@ -37,7 +37,7 @@ namespace serialization{
 
     template<typename T>
     concept serialize_concept = 
-    requires(const std::decay_t<T>& val, const std::vector<char>& buf){
+    requires(const std::decay_t<T>& val, std::vector<char>& buf){
         { serialize<true,std::decay_t<T>>(val, buf) } -> std::same_as<SerializationEC>;
         requires noexcept (serialize<true,std::decay_t<T>>(val, buf));
     };
@@ -264,7 +264,7 @@ namespace serialization{
     }
 
     template<typename... ARGS>
-    requires ((serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    requires ((serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>0)
     static size_t serial_size(const ARGS&...  val) noexcept{
         return (serial_size(val) + ...);
     }
@@ -286,7 +286,7 @@ namespace serialization{
     }
 
     template<typename... ARGS>
-    requires ((min_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    requires ((min_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>0)
     constexpr size_t min_serial_size(const std::decay<ARGS>&... val) noexcept{
         return (min_serial_size(val) + ...);
     }
@@ -308,7 +308,7 @@ namespace serialization{
     }
 
     template<typename... ARGS>
-    requires ((max_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>1)
+    requires ((max_serial_size_concept<ARGS> && ...) && sizeof...(ARGS)>0)
     constexpr size_t max_serial_size(const std::decay<ARGS>&... val) noexcept{
         return (max_serial_size(val) + ...);
     }

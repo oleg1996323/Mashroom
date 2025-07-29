@@ -66,23 +66,13 @@ class Data:public __Data__{
     void __read__(const fs::path& filename);
     template<Data::FORMAT>
     void __write__(const fs::path& filename){
-        
+
     }
 
-    template <size_t I=0>
-    void __write_all__(){
-        if constexpr (I < data_types.size()) {
-            if(unsaved_.contains((FORMAT)(I+1))){
-                __write__<data_types[I]>(data_directory_);
-                unsaved_.erase((FORMAT)(I+1));
-            }
-            __write_all__<I + 1>();
-        }
-    }
+    template <size_t I>
+    void __write_all__();
     public:
-        void save(){
-            __write_all__<0>();
-        }
+        void save();
         Data():data_directory_(fs::path(get_current_dir_name())/"data"/"bin"){}
         Data(const fs::path& data_dir):data_directory_(data_dir){}
         Data(Data&& other):
@@ -108,9 +98,9 @@ class Data:public __Data__{
         bool unsaved() const{
             return !unsaved_.empty();
         }
-        const std::unordered_set<path::Storage<false>> paths() const{
-            return grib_.grib_data_.paths();
-        }
+        // const std::unordered_set<path::Storage<false>> paths() const{
+        //     return grib_.grib_data_.paths();
+        // }
         auto data() const{
             return grib_.grib_data_.data();
         }

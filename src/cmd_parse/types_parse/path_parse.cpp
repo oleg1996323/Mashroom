@@ -1,4 +1,5 @@
 #include "path_parse.h"
+#include "filesystem.h"
 
 namespace po = boost::program_options;
 
@@ -24,12 +25,15 @@ std::vector<path::Storage<false>> boost::lexical_cast(const std::vector<std::str
 
 template<>
 path::Storage<false> boost::lexical_cast(const std::string& input){
+    using namespace std::string_literals;
     static regex r("^(dir|host|file)=(.+)$");
     using namespace boost::program_options;
     boost::smatch match;
     if (boost::regex_match(input, match, r)) {
         auto type = match[1].str();
         auto path = match[2].str();
+        if(path.starts_with("~"s+fs::separator()))
+            path = std::string(getenv("HOME"))+fs::separator()+path.substr(2);
         if(type=="dir")
             return path::Storage<false>(path,path::TYPE::DIRECTORY);
         else if(type=="file")

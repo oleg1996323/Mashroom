@@ -43,7 +43,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
-            return serialize<NETWORK_ORDER>(msg,msg.type_msg_,msg.data_sz_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.type_msg_,msg.data_sz_);
         }
     };
 
@@ -52,7 +52,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            return deserialize<NETWORK_ORDER>(msg,msg.type_msg_,msg.data_sz_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.type_msg_,msg.data_sz_);
         }
     };
 
@@ -275,7 +275,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,MsgImpl<MSG_T>>{
         using type = MsgImpl<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.base,msg.additional_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
 

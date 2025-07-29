@@ -240,7 +240,7 @@ namespace serialization{
                 return SerializationEC::NONE;
             deserialize<NETWORK_ORDER>(T,buf);
             
-            auto visitor = [&buf](auto&& arg){
+            auto visitor = [&buf](auto& arg){
                 static_assert(serialization::deserialize_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)

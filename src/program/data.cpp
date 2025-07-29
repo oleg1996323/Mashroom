@@ -36,8 +36,8 @@ void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
             // std::cout<<"Table version: "<<(int)common->table_version_.value()<<std::endl;
             grib_.by_common_data_[common].insert(filename);
             for(const auto& sub_data:grib_data){
-                grib_.by_date_[TimeInterval{sub_data.from,sub_data.to}].insert(filename);
-                grib_.by_grid_[sub_data.grid_data].insert(filename);
+                grib_.by_date_[TimeInterval{sub_data.from_,sub_data.to_}].insert(filename);
+                grib_.by_grid_[sub_data.grid_data_].insert(filename);
             }
         }
     }
@@ -142,11 +142,11 @@ std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
         for(const auto& [common,data_seq]:grib_.grib_data_.data().at(fn))
             if(common->center_==center)
                 for(const auto& d:data_seq){
-                    if(d.grid_data.has_value() &&
-                    d.grid_data.value().rep_type==rep_t &&
-                    intervals_intersect(d.from,d.to,time_interval.from_,time_interval.to_) &&
-                    pos_in_grid(pos,d.grid_data.value())){
-                        auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from,d.to},d.discret);
+                    if(d.grid_data_.has_value() &&
+                    d.grid_data_.value().rep_type==rep_t &&
+                    intervals_intersect(d.from_,d.to_,time_interval.from_,time_interval.to_) &&
+                    pos_in_grid(pos,d.grid_data_.value())){
+                        auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from_,d.to_},d.discret_);
                         ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
                     }
                 }
@@ -234,16 +234,16 @@ std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     for(auto& [fn,ptrs]:result){
         for(const auto& [common,data]:grib_.grib_data_.data().find(fn)->second)
             for(const auto& d:data){
-                if(d.grid_data.has_value() && 
-                    d.grid_data.value().rep_type==rep_t && 
-                    intervals_intersect(d.from,d.to,time_interval.from_,time_interval.to_) && 
-                    pos_in_grid(pos,d.grid_data.value())){
-                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from,d.to},d.discret);
+                if(d.grid_data_.has_value() && 
+                    d.grid_data_.value().rep_type==rep_t && 
+                    intervals_intersect(d.from_,d.to_,time_interval.from_,time_interval.to_) && 
+                    pos_in_grid(pos,d.grid_data_.value())){
+                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from_,d.to_},d.discret_);
                     ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
-                    ptrs.from = d.from;
-                    ptrs.to = d.to;
-                    ptrs.discret = d.discret;
-                    ptrs.grid_data = d.grid_data;
+                    ptrs.from_ = d.from_;
+                    ptrs.to_ = d.to_;
+                    ptrs.discret_ = d.discret_;
+                    ptrs.grid_data_ = d.grid_data_;
                 }
             }
     }
@@ -257,8 +257,8 @@ void Data::add_data(SublimedGribDataInfo& grib_data){
         for(auto& [common,grib_data]:grib_.grib_data_.data().find(filename)->second){
             grib_.by_common_data_[common].insert(tmp_view);
             for(const auto& sub_data:grib_data){
-                grib_.by_date_[TimeInterval{sub_data.from,sub_data.to}].insert(tmp_view);
-                grib_.by_grid_[sub_data.grid_data].insert(tmp_view);
+                grib_.by_date_[TimeInterval{sub_data.from_,sub_data.to_}].insert(tmp_view);
+                grib_.by_grid_[sub_data.grid_data_].insert(tmp_view);
             }
         }
     }
@@ -272,4 +272,19 @@ void Data::add_data(SublimedGribDataInfo&& grib_data){
 
 void Data::add_data(GribDataInfo& grib_data){
     add_data(grib_data.sublime());
+}
+
+template <size_t I=0>
+void Data::__write_all__(){
+    if constexpr (I < data_types.size()) {
+        if(unsaved_.contains((FORMAT)(I+1))){
+            __write__<data_types[I]>(data_directory_);
+            unsaved_.erase((FORMAT)(I+1));
+        }
+        __write_all__<I + 1>();
+    }
+}
+
+void Data::save(){
+    __write_all__<0>();
 }

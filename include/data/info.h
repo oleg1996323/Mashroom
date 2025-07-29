@@ -23,6 +23,7 @@
 #include "grib/capitalize_data_info.h"
 #include "sublimed_info.h"
 #include "serialization.h"
+#include "data/common.h"
 using namespace std::string_literals;
 
 class SublimedGribDataInfo;
@@ -33,7 +34,7 @@ namespace fs = std::filesystem;
 class GribDataInfo{
     public:
     using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribCapitalizeDataInfo>>>;
-    using sublimed_data_t = std::unordered_map<path::Storage<true>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
     ErrorCodeData err = ErrorCodeData::NONE_ERR;
@@ -70,7 +71,7 @@ class GribDataInfo{
 class SublimedGribDataInfo
 {
     public:
-    using sublimed_data_t = std::unordered_map<path::Storage<true>,
+    using sublimed_data_t = std::unordered_map<path::Storage<false>,
     std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     template<bool,auto>
     friend struct serialization::Serialize;
@@ -85,57 +86,49 @@ class SublimedGribDataInfo
 
     private:
     sublimed_data_t info_;
-    std::unordered_set<path::Storage<false>> paths_;
     public:
     SublimedGribDataInfo() = default;
     SublimedGribDataInfo(SublimedGribDataInfo&& other):
-    info_(std::move(other.info_)),paths_(std::move(other.paths_)){}
+    info_(std::move(other.info_)){}
     SublimedGribDataInfo(const SublimedGribDataInfo&) = delete;
     const sublimed_data_t& data() const{
         return info_;
     }
-    // void serialize(std::ofstream& file);
-    // void deserialize(std::ifstream& file);
-    const std::unordered_set<path::Storage<false>>& paths() const{
-        return paths_;
-    }
-    // void serialize(std::vector<char>& buf) const;
-    // void deserialize(std::vector<char>& buf) const;
     void add_data(SublimedGribDataInfo& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
-            auto found = paths_.find(path);
-            if(found==paths_.end())
-                info_[*paths_.emplace(path).first].swap(file_data);
+            auto found = info_.find(path);
+            if(found==info_.end())
+                info_[path].swap(file_data);
             else 
-                info_[*paths_.insert(*found).first].swap(file_data);
+                info_[found->first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t& grib_data){
         for(auto& [path,file_data]:grib_data){
-            auto found = paths_.find(path);
-            if(found==paths_.end())
-                info_[*paths_.emplace(path).first].swap(file_data);
+            auto found = info_.find(path);
+            if(found==info_.end())
+                info_[path].swap(file_data);
             else 
-                info_[*paths_.insert(*found).first].swap(file_data);
+                info_[found->first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo&& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
-            auto found = paths_.find(path);
-            if(found==paths_.end())
-                info_[*paths_.emplace(path).first].swap(file_data);
+            auto found = info_.find(path);
+            if(found==info_.end())
+                info_[path].swap(file_data);
             else 
-                info_[*paths_.insert(*found).first].swap(file_data);
+                info_[found->first].swap(file_data);
         }
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t&& grib_data){
         for(auto& [path,file_data]:grib_data){
-            auto found = paths_.find(path);
-            if(found==paths_.end()){
-                info_[*paths_.emplace(path).first].swap(file_data);
+            auto found = info_.find(path);
+            if(found==info_.end()){
+                info_[path].swap(file_data);
             }
             else{
-                info_[*paths_.insert(*found).first].swap(file_data);
+                info_[found->first].swap(file_data);
             }
         }        
     }
@@ -149,7 +142,9 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
-            serialize<NETWORK_ORDER>(__Data__::FORMAT::GRIB,buf);
+            SerializationEC err = SerializationEC::NONE;
+            auto type_enum = __Data__::FORMAT::GRIB;
+            serialize<NETWORK_ORDER>(type_enum,buf);
             size_t info_sz = 0;
             auto existing_paths = std::views::all(msg.info_)|
                                     std::views::filter([&info_sz](const auto& pair){
@@ -161,12 +156,15 @@ namespace serialization{
                                         }
                                         else return false;
                                     });
-            serialize<NETWORK_ORDER>(info_sz,buf);
+            err = serialize<NETWORK_ORDER>(info_sz,buf);
             for(const auto& [path,filedata]: existing_paths)
             {
-                serialize<NETWORK_ORDER>(path,buf,path.type_,path.path_);
-                serialize<NETWORK_ORDER>(filedata,buf);
+                if(err==SerializationEC::NONE)
+                    err = serialize<NETWORK_ORDER>(path,buf);
+                if(err==SerializationEC::NONE)
+                    err = serialize<NETWORK_ORDER>(filedata,buf);
             }
+            return err;
         }
     };
 
@@ -174,11 +172,12 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
-            __Data__::FORMAT tokens_f;
-            deserialize<NETWORK_ORDER>(tokens_f,buf);
-            if(SerializationEC err = deserialize<NETWORK_ORDER>(msg.info_,buf);err!=SerializationEC::NONE)
-                return err;
-            else return SerializationEC::NONE;
+            SerializationEC err=SerializationEC::NONE;
+            auto enum_type = __Data__::FORMAT::GRIB;
+            err = deserialize<NETWORK_ORDER>(enum_type,buf);
+            if(err==SerializationEC::NONE)
+                err = deserialize<NETWORK_ORDER>(msg.info_,buf);
+            return err;
         }
     };
 
@@ -215,4 +214,9 @@ namespace serialization{
             return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };
+    static_assert(serialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
+    static_assert(deserialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
 }
+
+//@todo make possible serialization
+static_assert(requires{requires std::ranges::common_range<GribDataInfo::sublimed_data_t>;});
