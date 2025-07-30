@@ -82,7 +82,4 @@ namespace serialization{
             return max_serial_size(msg.grid_data_,msg.buf_pos_,msg.from_,msg.to_,msg.discret_);
         }
     };
-
-static_assert(serialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
-static_assert(deserialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
 }

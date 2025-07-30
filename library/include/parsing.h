@@ -42,8 +42,8 @@ std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
 bool case_insensitive_char_compare(char ch1,char ch2) noexcept;
 
 #include <unordered_set>
-bool iend_with(std::string_view str,const std::ranges::common_range auto& to_match){
-    if constexpr(std::ranges::common_range<typename std::decay_t<decltype(to_match)>::value_type>){
+bool iend_with(std::string_view str,const std::ranges::range auto& to_match){
+    if constexpr(std::ranges::range<typename std::decay_t<decltype(to_match)>::value_type>){
         for(const typename std::decay_t<decltype(to_match)>::value_type& possible:to_match){
             if(str.size()<possible.size())
                 continue;

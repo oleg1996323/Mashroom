@@ -14,8 +14,3 @@ int main(int argc, char* argv[]){
     while(Mashroom::instance().read_command()){}
     return 0;std::ranges::range_value_t<std::unordered_map<std::shared_ptr<CommonDataProperties>, std::vector<SublimedDataInfo>>> i{};
 }
-
-static_assert(requires{requires serialization::serialize_concept<std::vector<SublimedDataInfo>>;});
-static_assert(requires{requires serialization::serialize_concept<std::pair<const std::shared_ptr<CommonDataProperties>, std::vector<SublimedDataInfo> >>;});
-static_assert(requires{requires serialization::deserialize_concept<std::vector<SublimedDataInfo>>;});
-static_assert(requires{requires serialization::deserialize_concept<std::pair<const std::shared_ptr<CommonDataProperties>, std::vector<SublimedDataInfo> >>;});

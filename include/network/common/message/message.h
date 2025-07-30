@@ -261,46 +261,41 @@ namespace network{
 }
 
 namespace serialization{
-    template<bool NETWORK_ORDER,template <auto> class MsgImpl,auto MSG_T>
-    requires MessageConcept<MSG_T,MsgImpl>
-    struct Serialize<NETWORK_ORDER,MsgImpl<MSG_T>>{
-        using type = MsgImpl<MSG_T>;
+    template<bool NETWORK_ORDER,auto MSG_T>
+    struct Serialize<NETWORK_ORDER,network::Message<MSG_T>>{
+        using type = network::Message<MSG_T>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
 
-    template<bool NETWORK_ORDER,template <auto> class MsgImpl,auto MSG_T>
-    requires MessageConcept<MSG_T,MsgImpl>
-    struct Deserialize<NETWORK_ORDER,MsgImpl<MSG_T>>{
-        using type = MsgImpl<MSG_T>;
+    template<bool NETWORK_ORDER,auto MSG_T>
+    struct Deserialize<NETWORK_ORDER,network::Message<MSG_T>>{
+        using type = network::Message<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
 
-    template<template <auto> class MsgImpl,auto MSG_T>
-    requires MessageConcept<MSG_T,MsgImpl>
-    struct Serial_size<MsgImpl<MSG_T>>{
-        using type = MsgImpl<MSG_T>;
+    template<auto MSG_T>
+    struct Serial_size<network::Message<MSG_T>>{
+        using type = network::Message<MSG_T>;
         size_t operator()(const type& msg) noexcept{
             return serial_size(msg.base_,msg.additional_);
         }
     };
 
-    template<template <auto> class MsgImpl,auto MSG_T>
-    requires MessageConcept<MSG_T,MsgImpl>
-    struct Min_serial_size<MsgImpl<MSG_T>>{
-        using type = MsgImpl<MSG_T>;
+    template<auto MSG_T>
+    struct Min_serial_size<network::Message<MSG_T>>{
+        using type = network::Message<MSG_T>;
         constexpr size_t operator()(const type& msg) noexcept{
             return min_serial_size(msg.base_,msg.additional_);
         }
     };
 
-    template<template <auto> class MsgImpl,auto MSG_T>
-    requires MessageConcept<MSG_T,MsgImpl>
-    struct Max_serial_size<MsgImpl<MSG_T>>{
-        using type = MsgImpl<MSG_T>;
+    template<auto MSG_T>
+    struct Max_serial_size<network::Message<MSG_T>>{
+        using type = network::Message<MSG_T>;
         constexpr size_t operator()(const type& msg) noexcept{
             return max_serial_size(msg.base_,msg.additional_);
         }

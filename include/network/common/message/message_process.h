@@ -198,7 +198,7 @@ namespace network{
         if(err_ = hmsg_.emplace_message<Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);err_!=ErrorCode::NONE)
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         auto& msg = hmsg_.get<Server_MsgT::DATA_REPLY_FILEINFO>();
-        serialization::SerializationEC code = serialization::serialize_network(msg,msg.__buffer__());
+        serialization::SerializationEC code = serialization::serialize_network(msg,msg.buffer());
         if(err_ = send(sock,std::span<const char>(msg.buffer())); err_!=ErrorCode::NONE){
             if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
                 close(sock);

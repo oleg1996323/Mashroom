@@ -220,7 +220,7 @@ namespace serialization{
         using type = MessageHandler<S>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             auto visitor = [&buf](auto&& arg){
-                static_assert(serialization::serialize_concept<std::decay_t<decltype(arg)>>);
+                static_assert(serialization::serialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return serialization::SerializationEC::UNMATCHED_TYPE;
@@ -241,7 +241,7 @@ namespace serialization{
             deserialize<NETWORK_ORDER>(T,buf);
             
             auto visitor = [&buf](auto& arg){
-                static_assert(serialization::deserialize_concept<std::decay_t<decltype(arg)>>);
+                static_assert(serialization::deserialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return serialization::SerializationEC::UNMATCHED_TYPE;

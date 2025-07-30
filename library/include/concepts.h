@@ -11,10 +11,10 @@ concept common_types_concept = numeric_types_concept<T> || std::is_class_v<T>;
 
 template<typename T>
 concept pair_concept = requires(const T&){
-    std::decay_t<T>::first;
-    std::decay_t<T>::second;
-    requires std::is_same_v<std::pair<typename std::decay_t<T>::first,
-    typename std::decay_t<T>::second>,std::decay_t<T>>;
+    typename std::decay_t<T>::first_type;
+    typename std::decay_t<T>::second_type;
+    requires std::is_same_v<std::pair<typename std::decay_t<T>::first_type,
+    typename std::decay_t<T>::second_type>, std::remove_cv_t<std::decay_t<T>>>;
 };
 
 /**
@@ -54,7 +54,7 @@ template<typename T>
 concept AssociativeContainer = requires(const T& cont){
     typename std::decay_t<T>::key_type;
     typename std::decay_t<T>::mapped_type;
-    requires std::ranges::common_range<std::decay_t<T>>;
+    requires std::ranges::range<std::decay_t<T>>;
 };
 
 template<typename T>

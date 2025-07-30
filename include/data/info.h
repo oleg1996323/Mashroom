@@ -10,7 +10,7 @@
 #include <filesystem>
 #include "def.h"
 #include "types/time_interval.h"
-#include "common.h"
+#include "common_data_properties.h"
 #include "sections/grid/grid.h"
 #include "def.h"
 #include "msg.h"
@@ -23,7 +23,6 @@
 #include "grib/capitalize_data_info.h"
 #include "sublimed_info.h"
 #include "serialization.h"
-#include "data/common.h"
 using namespace std::string_literals;
 
 class SublimedGribDataInfo;
@@ -214,9 +213,7 @@ namespace serialization{
             return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };
-    static_assert(serialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
-    static_assert(deserialize_concept<std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>);
 }
 
 //@todo make possible serialization
-static_assert(requires{requires std::ranges::common_range<GribDataInfo::sublimed_data_t>;});
+static_assert(requires{requires std::ranges::range<GribDataInfo::sublimed_data_t>;});

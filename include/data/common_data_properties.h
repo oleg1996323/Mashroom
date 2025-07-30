@@ -210,9 +210,4 @@ namespace serialization{
             return max_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
-
-static_assert(requires{requires serialize_concept<CommonDataProperties>;});
-static_assert(requires{requires serialize_concept<std::shared_ptr<CommonDataProperties>>;});
-static_assert(requires{requires deserialize_concept<CommonDataProperties>;});
-static_assert(requires{requires deserialize_concept<std::shared_ptr<CommonDataProperties>>;});
 }

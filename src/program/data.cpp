@@ -1,5 +1,4 @@
 #include "program/data.h"
-#include "sections/section_1.h"
 
 template<>
 inline bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
@@ -53,7 +52,9 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
     SerializationEC err = serialize_to_file(grib_.grib_data_,file);
-    files_.insert(save_file);
+    if(err==SerializationEC::NONE)
+        files_.insert(save_file);
+    else ErrorPrint::print_error(ErrorCode::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
     file.close();
 }
 void Data::read(const fs::path& filename){
