@@ -184,7 +184,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.xsp,msg.ysp,msg.as_factor);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.xsp,msg.ysp,msg.s_factor);
         }
     };
 

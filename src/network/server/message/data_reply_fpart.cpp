@@ -2,7 +2,7 @@
 #include "sys/error_print.h"
 
 namespace network{
-    MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>::MessageAdditional(ErrorCode& err,
+    MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>::MessageAdditional(ErrorCode& err,
                                         const fs::path& filename,
                                         uint64_t file_part_sz,uint64_t offset,
                                         uint32_t chunk,

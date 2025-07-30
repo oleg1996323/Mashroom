@@ -1,7 +1,7 @@
 #include <network/server/message/data_reply_finfo.h>
 
 namespace network{
-// bool MessageAdditional<Server_MsgT::DATA_REPLY_FILEINFO>::sendto(int sock,const fs::path& file_send){
+// bool MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>::sendto(int sock,const fs::path& file_send){
 //     if(sock<0)
 //         return false;
 //     if(file_send.empty() || !fs::exists(file_send) || !fs::is_regular_file(file_send))

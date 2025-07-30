@@ -21,9 +21,9 @@ Process<Server>::~Process(){
     }
 }
 ErrorCode Process<Server>::__send_error_and_close_connection__(ErrorCode err, const char* message) const{
-    Message<Server_MsgT::ERROR> msg_err;
+    Message<network::Server_MsgT::ERROR> msg_err;
     fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
-    if(err = mprocess_.send_message<Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
         close();
         return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
     }
@@ -32,7 +32,7 @@ ErrorCode Process<Server>::__send_error_and_close_connection__(ErrorCode err, co
 }
 ErrorCode Process<Server>::__send_error_and_continue__(ErrorCode err,const char* message) const{
     fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
-    if(err = mprocess_.send_message<Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
         close();
         return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
     }
@@ -100,7 +100,7 @@ ErrorCode Process<Server>::__execute_heavy_process__(Client_MsgT::type msg_t) co
         ErrorCode err;
         switch(msg_t){
             case Client_MsgT::DATA_REQUEST:{
-                Message<Client_MsgT::DATA_REQUEST> msg;
+                Message<network::Client_MsgT::DATA_REQUEST> msg;
                 Extract hExtract;
                 //hExtract.set_by_request();
                 if(err!=ErrorCode::NONE){
@@ -122,14 +122,14 @@ ErrorCode Process<Server>::__execute_heavy_process__(Client_MsgT::type msg_t) co
                         if(fs::file_size(hExtract.out_path())==0)
                             return __send_error_and_continue__(ErrorCode::DATA_NOT_FOUND,"");
                         else{
-                            if(err = mprocess_.send_message<Server_MsgT::DATA_REPLY_FILEINFO>(sock_,pool_.server_status(),hExtract.out_path(),0,fs::file_size(hExtract.out_path())); err!=ErrorCode::NONE)
+                            if(err = mprocess_.send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(sock_,pool_.server_status(),hExtract.out_path(),0,fs::file_size(hExtract.out_path())); err!=ErrorCode::NONE)
                                 __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"");
                             return err;
-                            if(err = mprocess_.receive_message<Client_MsgT::TRANSACTION>(sock_);err!=ErrorCode::NONE){
+                            if(err = mprocess_.receive_message<network::Client_MsgT::TRANSACTION>(sock_);err!=ErrorCode::NONE){
                                 __send_error_and_continue__(ErrorCode::RECEIVING_MESSAGE_ERROR,"");
                                 return err;
                             }
-                            auto& msg = mprocess_.get_received_message<Client_MsgT::TRANSACTION>().value().get();
+                            auto& msg = mprocess_.get_received_message<network::Client_MsgT::TRANSACTION>().value().get();
                             if(msg.additional().op_status_!=Transaction::ACCEPT)
                                 return ErrorPrint::print_error(ErrorCode::TRANSACTION_REFUSED,"",AT_ERROR_ACTION::CONTINUE);
                             else return ErrorCode::NONE;
@@ -173,7 +173,7 @@ ErrorCode Process<Server>::__execute_light_process__(Client_MsgT::type msg_t) co
 }
 ErrorCode Process<Server>::send_status_message(server::Status status) const{
     translating_ = true;
-    if(ErrorCode err = mprocess_.send_message<Server_MsgT::SERVER_STATUS>(sock_,pool_.server_status());err!=ErrorCode::NONE){
+    if(ErrorCode err = mprocess_.send_message<network::Server_MsgT::SERVER_STATUS>(sock_,pool_.server_status());err!=ErrorCode::NONE){
         __send_error_and_continue__(ErrorCode::SERVER_ERROR,"");
         return err;
     }

@@ -9,7 +9,7 @@
 
 namespace network{
 template<>
-struct MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>{
+struct MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>{
     server::Status status_;
     uint64_t file_part_sz_ = 0;
     uint64_t offset_ = 0;
@@ -45,40 +45,40 @@ bool next_chunk(SendingFileInstance& a_t);
 namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>>{
-        using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>;
+    struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.file_part_sz_,msg.offset_,msg.file_hash_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>>{
-        using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>;
+    struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.file_part_sz_,msg.offset_,msg.file_hash_);
         }
     };
 
     template<>
-    struct Serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>>{
-        using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>;
+    struct Serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>;
         size_t operator()(const type& msg) noexcept{
             return serial_size(msg.status_,msg.file_part_sz_,msg.offset_,msg.file_hash_);
         }
     };
 
     template<>
-    struct Min_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>>{
-        using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>;
+    struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>;
         constexpr size_t operator()(const type& msg) noexcept{
             return min_serial_size(msg.status_,msg.file_part_sz_,msg.offset_,msg.file_hash_);
         }
     };
 
     template<>
-    struct Max_serial_size<MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>>{
-        using type = MessageAdditional<Server_MsgT::DATA_REPLY_FILEPART>;
+    struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>;
         constexpr size_t operator()(const type& msg) noexcept{
             return max_serial_size(msg.status_,msg.file_part_sz_,msg.offset_,msg.file_hash_);
         }

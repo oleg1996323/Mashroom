@@ -645,6 +645,22 @@ struct GridBase<SIMPLE_POLYCONIC>{
     GridBase(unsigned char* buffer){}
 };
 
+template<>
+struct GridBase<RepresentationType::UTM>{
+    constexpr static size_t section_size(){
+        return 0;
+    }
+    constexpr static uint8_t begin_byte(){
+        return 6;
+    }
+
+    bool operator==(const GridBase& other) const{
+        return true;
+    }
+
+    GridBase(unsigned char* buffer){}
+};
+
 template<RepresentationType REP_T,GridModification MOD>
 struct GridDefinitionBase{
     constexpr static RepresentationType type(){

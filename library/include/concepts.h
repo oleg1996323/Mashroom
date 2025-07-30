@@ -22,8 +22,11 @@ concept pair_concept = requires(const T&){
  */
 template<typename T>
 concept smart_pointer_concept = 
-std::is_same_v<T, std::unique_ptr<typename T::element_type, typename T::deleter_type>> ||
-std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
+requires(T ptr) {
+    typename T::element_type;
+    { ptr.get() } -> std::convertible_to<typename T::element_type*>;
+    { bool(ptr) } -> std::convertible_to<bool>;
+};
 
 template<typename T>
 concept time_point_concept = requires (const T& time){

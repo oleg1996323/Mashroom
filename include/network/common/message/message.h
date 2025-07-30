@@ -180,25 +180,25 @@ namespace network{
     template<>
     struct list_message<Side::CLIENT>{
         using type = std::variant<std::monostate,
-                        Message<Client_MsgT::DATA_REQUEST>,
-                        Message<Client_MsgT::SERVER_STATUS>,
-                        Message<Client_MsgT::CAPITALIZE>,
-                        Message<Client_MsgT::CAPITALIZE_REF>,
-                        Message<Client_MsgT::TRANSACTION>>;
+                        Message<network::Client_MsgT::DATA_REQUEST>,
+                        Message<network::Client_MsgT::SERVER_STATUS>,
+                        Message<network::Client_MsgT::CAPITALIZE>,
+                        Message<network::Client_MsgT::CAPITALIZE_REF>,
+                        Message<network::Client_MsgT::TRANSACTION>>;
     };
 
     template<>
     struct list_message<Side::SERVER>{
         using type =    std::variant<std::monostate,
-                        Message<Server_MsgT::DATA_REPLY_FILEINFO>,
-                        Message<Server_MsgT::SERVER_STATUS>,
-                        Message<Server_MsgT::DATA_REPLY_CAPITALIZE>,
-                        Message<Server_MsgT::ERROR>,
-                        Message<Server_MsgT::PROGRESS>,
-                        Message<Server_MsgT::DATA_REPLY_FILEPART>,
-                        Message<Server_MsgT::VERSION>,
-                        Message<Server_MsgT::DATA_REPLY_CAPITALIZE_REF>,
-                        Message<Server_MsgT::DATA_REPLY_EXTRACT>>;
+                        Message<network::Server_MsgT::DATA_REPLY_FILEINFO>,
+                        Message<network::Server_MsgT::SERVER_STATUS>,
+                        Message<network::Server_MsgT::DATA_REPLY_CAPITALIZE>,
+                        Message<network::Server_MsgT::ERROR>,
+                        Message<network::Server_MsgT::PROGRESS>,
+                        Message<network::Server_MsgT::DATA_REPLY_FILEPART>,
+                        Message<network::Server_MsgT::VERSION>,
+                        Message<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>,
+                        Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>;
     };
 
     constexpr Side get_side(MessageEnumConcept_t auto msg_t){

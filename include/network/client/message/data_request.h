@@ -135,7 +135,7 @@ namespace serialization
 
 namespace network{    
     template<>
-    struct MessageAdditional<Client_MsgT::DATA_REQUEST>:public ExtractForm{
+    struct MessageAdditional<network::Client_MsgT::DATA_REQUEST>:public ExtractForm{
         public:
         using variant::variant;
         MessageAdditional(ErrorCode& err){
@@ -149,42 +149,47 @@ namespace network{
 namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,MessageAdditional<Client_MsgT::DATA_REQUEST>>{
-        using type = MessageAdditional<Client_MsgT::DATA_REQUEST>;
+    struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
+        using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             return serialize<NETWORK_ORDER,ExtractForm>(msg,buf);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,MessageAdditional<Client_MsgT::DATA_REQUEST>>{
-        using type = MessageAdditional<Client_MsgT::DATA_REQUEST>;
+    struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
+        using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER,ExtractForm>(msg,buf);
         }
     };
 
     template<>
-    struct Serial_size<MessageAdditional<Client_MsgT::DATA_REQUEST>>{
-        using type = MessageAdditional<Client_MsgT::DATA_REQUEST>;
+    struct Serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
+        using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         size_t operator()(const type& msg) noexcept{
             return serial_size<ExtractForm>(msg);
         }
     };
 
     template<>
-    struct Min_serial_size<MessageAdditional<Client_MsgT::DATA_REQUEST>>{
-        using type = MessageAdditional<Client_MsgT::DATA_REQUEST>;
+    struct Min_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
+        using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         constexpr size_t operator()(const type& msg) noexcept{
             return min_serial_size<ExtractForm>(msg);
         }
     };
 
     template<>
-    struct Max_serial_size<MessageAdditional<Client_MsgT::DATA_REQUEST>>{
-        using type = MessageAdditional<Client_MsgT::DATA_REQUEST>;
+    struct Max_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
+        using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         constexpr size_t operator()(const type& msg) noexcept{
             return max_serial_size<ExtractForm>(msg);
         }
     };
 }
+
+static_assert(serialization::deserialize_concept<true,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
+static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
+static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
+static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);

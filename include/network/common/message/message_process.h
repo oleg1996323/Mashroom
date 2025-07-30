@@ -150,13 +150,13 @@ namespace network{
     // /// @return 
     // template<>
     // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<Server_MsgT::ERROR>(Socket sock,ErrorCode err,server::Status status){
-    //     if(ErrorCode err = hmsg_.emplace_message<Server_MsgT::ERROR>(err_);err!=ErrorCode::NONE){
+    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::ERROR>(Socket sock,ErrorCode err,server::Status status){
+    //     if(ErrorCode err = hmsg_.emplace_message<network::Server_MsgT::ERROR>(err_);err!=ErrorCode::NONE){
     //         hmsg_.clear();
     //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
     //     }
     //     else
-    //         return __send__<Server_MsgT::ERROR>(sock);
+    //         return __send__<network::Server_MsgT::ERROR>(sock);
     // }
 
     // /// @brief 
@@ -166,41 +166,41 @@ namespace network{
     // /// @return 
     // template<>
     // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<Server_MsgT::SERVER_STATUS>(Socket sock,server::Status status){
-    //     if(ErrorCode err = hmsg_.emplace_message<Server_MsgT::SERVER_STATUS>(status);err!=ErrorCode::NONE){
+    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::SERVER_STATUS>(Socket sock,server::Status status){
+    //     if(ErrorCode err = hmsg_.emplace_message<network::Server_MsgT::SERVER_STATUS>(status);err!=ErrorCode::NONE){
     //         hmsg_.clear();
     //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
     //     }
-    //     else return __send__<Server_MsgT::SERVER_STATUS>(sock);
+    //     else return __send__<network::Server_MsgT::SERVER_STATUS>(sock);
     // }
 
     // template<>
     // template<>
-    // inline ErrorCode MessageProcess<Side::CLIENT>::send_message<Client_MsgT::TRANSACTION>(Socket sock, Transaction transaction)
+    // inline ErrorCode MessageProcess<Side::CLIENT>::send_message<network::Client_MsgT::TRANSACTION>(Socket sock, Transaction transaction)
     // {
-    //     err_ = hmsg_.emplace_message<Client_MsgT::TRANSACTION>(transaction);
+    //     err_ = hmsg_.emplace_message<network::Client_MsgT::TRANSACTION>(transaction);
     //     if(err_!=ErrorCode::NONE){
     //         hmsg_.clear();
     //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
     //     }
-    //     else return __send__<Client_MsgT::TRANSACTION>(sock);
+    //     else return __send__<network::Client_MsgT::TRANSACTION>(sock);
     // }
 
     template<>
     template<>
-    inline ErrorCode MessageProcess<Side::SERVER>::send_message<Server_MsgT::DATA_REPLY_FILEINFO>(
+    inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(
                 Socket sock,
                 server::Status status,
                 const fs::path& path,
                 uint64_t offset,
                 uint64_t size)
     {
-        if(err_ = hmsg_.emplace_message<Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);err_!=ErrorCode::NONE)
+        if(err_ = hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);err_!=ErrorCode::NONE)
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-        auto& msg = hmsg_.get<Server_MsgT::DATA_REPLY_FILEINFO>();
+        auto& msg = hmsg_.get<network::Server_MsgT::DATA_REPLY_FILEINFO>();
         serialization::SerializationEC code = serialization::serialize_network(msg,msg.buffer());
         if(err_ = send(sock,std::span<const char>(msg.buffer())); err_!=ErrorCode::NONE){
-            if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
+            if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
                 close(sock);
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         }
@@ -215,7 +215,7 @@ namespace network{
     // /// @return success or failure of sending
     // template<>
     // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<Server_MsgT::DATA_REPLY_FILEPART>(
+    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::DATA_REPLY_FILEPART>(
     //                 Socket sock,
     //                 server::Status status,
     //                 uint32_t chunk,
@@ -223,22 +223,22 @@ namespace network{
     //                 uint64_t offset,
     //                 uint64_t size)
     // {
-    //     if(err_ = send_message<Server_MsgT::DATA_REPLY_FILEINFO>(sock,status,path,offset,size); err_!=ErrorCode::NONE){
-    //         if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
+    //     if(err_ = send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(sock,status,path,offset,size); err_!=ErrorCode::NONE){
+    //         if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
     //             close(sock);
     //         return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
     //     }
-    //     if(err_ = receive_message<Client_MsgT::TRANSACTION>(sock);err_!=ErrorCode::NONE){
-    //         if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
+    //     if(err_ = receive_message<network::Client_MsgT::TRANSACTION>(sock);err_!=ErrorCode::NONE){
+    //         if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
     //             close(sock);
     //         return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
     //     }
     //     assert(recv_hmsg_.msg_type() == Client_MsgT::TRANSACTION);
-    //     auto& transaction_ = recv_hmsg_.get<Client_MsgT::TRANSACTION>();
+    //     auto& transaction_ = recv_hmsg_.get<network::Client_MsgT::TRANSACTION>();
     //     if(transaction_.additional_.op_status_==Transaction::ACCEPT){
     //         SendingFileInstance Ifile(path,chunk,offset);
     //         if(Ifile.err_!=ErrorCode::NONE){
-    //             if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
+    //             if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
     //                 close(sock);
     //             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
     //         }
@@ -248,7 +248,7 @@ namespace network{
     //                 send(sock,std::span<const char>(Ifile.from_mapping_,Ifile.from_mapping_+Ifile.chunk_));
     //             }
     //             if(Ifile.err_!=ErrorCode::NONE){
-    //                 if(err_ = send_message<Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
+    //                 if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
     //                     close(sock);
     //                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
     //             }

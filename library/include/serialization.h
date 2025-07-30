@@ -136,7 +136,7 @@ namespace serialization{
 
     template<bool NETWORK_ORDER,typename T>
     struct Serialize{
-        SerializationEC operator()(const T& val,std::vector<char> buf) noexcept{
+        SerializationEC operator()(const T& val,std::vector<char>& buf) noexcept{
             if constexpr (numeric_types_concept<T>){
                 if constexpr (std::is_integral_v<T> || std::is_enum_v<T>){
                     using RawType = RawType_t<T>;
@@ -181,7 +181,7 @@ namespace serialization{
             }
             else if constexpr (smart_pointer_concept<T>){
                 if(val)
-                    return serialize<NETWORK_ORDER>(val,buf,true,*val);
+                    return serialize<NETWORK_ORDER>(val,buf,true,*(val.get()));
                 else return serialize<NETWORK_ORDER>(val,buf,false);
             }
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
@@ -525,9 +525,9 @@ namespace serialization{
     }
     
     template<bool NETWORK_ORDER,typename T>
-    requires (serialize_concept<NETWORK_ORDER,std::optional<T>>)
+    requires (serialize_concept<NETWORK_ORDER,T>)
     struct Serialize<NETWORK_ORDER,std::optional<T>>{
-        SerializationEC operator()(const T& val,std::vector<char> buf) noexcept{
+        SerializationEC operator()(const std::optional<T>& val,std::vector<char>& buf) noexcept{
             SerializationEC err = serialize<NETWORK_ORDER>(val.has_value(),buf);
             if(err!=SerializationEC::NONE)
                 return err;
@@ -595,7 +595,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,std::ranges::range T>
     requires serialize_concept<NETWORK_ORDER,std::ranges::range_value_t<T>>
     struct Serialize<NETWORK_ORDER,T>{
-        SerializationEC operator()(const T& range,std::vector<char> buf) noexcept{
+        SerializationEC operator()(const T& range,std::vector<char>& buf) noexcept{
             SerializationEC err = serialize<NETWORK_ORDER>(range.size(),buf);
             for(const auto& item:range){
                 err = serialize<NETWORK_ORDER>(item,buf);
@@ -620,10 +620,12 @@ namespace serialization{
                 return code;
             
             for (size_t i = 0; i < range_sz; ++i) {
-                std::ranges::range_value_t<std::decay_t<T>> item{};
+                std::ranges::range_value_t<T> item{};
                 code = deserialize<NETWORK_ORDER>(item, buf);
                 if (code != SerializationEC::NONE) return code;
-                to_deserialize.insert(std::move(item));
+                if constexpr(is_associative_container_v<T>)
+                    to_deserialize.insert(std::move(item));
+                else to_deserialize.insert(to_deserialize.end(),std::move(item));
             }
             return SerializationEC::NONE;
         }

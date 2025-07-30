@@ -394,7 +394,6 @@ namespace serialization{
         using type = GridInfo;
         SerializationEC operator()(const type& grid_val, std::vector<char>& buf) noexcept{
             auto visitor = [&buf,&grid_val](auto&& arg){
-                static_assert(serialization::serialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>){
                     auto rep_type = RepresentationType::UNDEF_GRID;
@@ -489,3 +488,8 @@ namespace serialization{
         }
     };
 }
+
+static_assert(serialization::serialize_concept<true,GridInfo>);
+static_assert(serialization::serialize_concept<false,GridInfo>);
+static_assert(serialization::serialize_concept<true,std::optional<GridInfo>>);
+static_assert(serialization::serialize_concept<false,std::optional<GridInfo>>);

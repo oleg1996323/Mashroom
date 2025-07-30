@@ -9,11 +9,53 @@
 namespace grid{
 template<>
 struct GridDefinition<RepresentationType::UTM>:
-    GridDefinitionBase<RepresentationType::MERCATOR,GridModification::NONE>{
+    GridDefinitionBase<RepresentationType::UTM,GridModification::NONE>{
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::UTM>& other) const{
         return GridDefinitionBase::operator==(other);
     }
 };
+}
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<UTM>>{
+        using type = grid::GridBase<UTM>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+            return SerializationEC::NONE;
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<UTM>>{
+        using type = grid::GridBase<UTM>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+            return SerializationEC::NONE;
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<UTM>>{
+        using type = grid::GridBase<UTM>;
+        size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<UTM>>{
+        using type = grid::GridBase<UTM>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<UTM>>{
+        using type = grid::GridBase<UTM>;
+        constexpr size_t operator()(const type& msg) noexcept{
+            return 0;
+        }
+    };
 }

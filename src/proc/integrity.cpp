@@ -58,7 +58,7 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                 __process_core__(entries);
             }
             case path::TYPE::HOST:{
-                Mashroom::instance().request<Client_MsgT::CAPITALIZE_REF>(path.path_);
+                Mashroom::instance().request<network::Client_MsgT::CAPITALIZE_REF>(path.path_);
             }
             default:{
 

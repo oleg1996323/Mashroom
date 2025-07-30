@@ -38,7 +38,7 @@ namespace network{
         ErrorCode connect();
         bool is_connected() const;
         ErrorCode disconnect();
-        template<Client_MsgT::type T,typename... ARGS>
+        template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(ARGS&&... args) const{
             return process_.send<T>(std::forward<ARGS>(args)...);
         }
