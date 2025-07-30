@@ -12,15 +12,51 @@ template<>
     struct MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE>
     {
         struct BaseCapitalizeResult{
-            const Data::TYPE data_type;
-            const Data::FORMAT data_format;
+            Data::TYPE data_type;
+            Data::FORMAT data_format;
             std::vector<char> buffer_;
+            BaseCapitalizeResult()=default;
+            BaseCapitalizeResult(const BaseCapitalizeResult& other):
+            data_type(other.data_type),
+            data_format(other.data_format),
+            buffer_(other.buffer_){}
+            BaseCapitalizeResult(BaseCapitalizeResult&& other):
+            data_type(other.data_type),
+            data_format(other.data_format),
+            buffer_(std::move(other.buffer_)){}
+            BaseCapitalizeResult& operator=(const BaseCapitalizeResult& other){
+                if(this!=&other){
+                    data_type=other.data_type;
+                    data_format=other.data_format;
+                    buffer_=other.buffer_;
+                }
+                return *this;
+            }
+            BaseCapitalizeResult& operator=(BaseCapitalizeResult&& other){
+                if(this!=&other){
+                    data_type=other.data_type;
+                    data_format=other.data_format;
+                    buffer_=std::move(other.buffer_);
+                }
+                return *this;
+            }
         };
 
         std::vector<BaseCapitalizeResult> blocks_;
         public:
         MessageAdditional(ErrorCode& err,Data::ACCESS access, const std::vector<std::pair<Data::TYPE,Data::FORMAT>>& to_match){}
         MessageAdditional(const MessageAdditional& other):blocks_(other.blocks_){}
+        MessageAdditional(MessageAdditional&& other) noexcept:blocks_(std::move(other.blocks_)){}
+        MessageAdditional& operator=(const MessageAdditional& other){
+            if(this!=&other)
+                blocks_ = other.blocks_;
+            return *this;
+        }
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept{
+            if(this!=&other)
+                blocks_ = std::move(other.blocks_);
+            return *this;
+        }
         MessageAdditional() = default;
         bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
     };

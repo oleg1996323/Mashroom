@@ -5,7 +5,10 @@ namespace network{
     template<>
     struct MessageAdditional<network::Client_MsgT::CAPITALIZE>{
         MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
 

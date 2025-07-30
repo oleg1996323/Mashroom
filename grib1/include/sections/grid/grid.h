@@ -489,7 +489,7 @@ namespace serialization{
     };
 }
 
-static_assert(serialization::serialize_concept<true,GridInfo>);
-static_assert(serialization::serialize_concept<false,GridInfo>);
-static_assert(serialization::serialize_concept<true,std::optional<GridInfo>>);
-static_assert(serialization::serialize_concept<false,std::optional<GridInfo>>);
+static_assert(requires {requires serialization::serialize_concept<true,GridInfo>;});
+static_assert(requires {requires serialization::serialize_concept<false,GridInfo>;});
+static_assert(requires {requires serialization::serialize_concept<true,std::optional<GridInfo>>;});
+static_assert(requires {requires serialization::serialize_concept<false,std::optional<GridInfo>>;});

@@ -11,6 +11,11 @@ struct MessageAdditional<network::Server_MsgT::VERSION>{
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),
     version_(other.version_){}
+    MessageAdditional(MessageAdditional&& other):
+    status_(other.status_),
+    version_(other.version_){}
+    MessageAdditional& operator=(const MessageAdditional& other) = default;
+    MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     MessageAdditional() = default;
 };
 }

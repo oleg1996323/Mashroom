@@ -6,7 +6,10 @@ namespace network{
     struct MessageAdditional<network::Client_MsgT::CAPITALIZE_REF>{
         public:
         MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
 

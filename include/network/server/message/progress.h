@@ -12,6 +12,23 @@ struct MessageAdditional<network::Server_MsgT::PROGRESS>{
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),
     prog_(other.prog_){}
+    MessageAdditional(MessageAdditional&& other):
+    status_(other.status_),
+    prog_(other.prog_){}
+    MessageAdditional& operator=(const MessageAdditional& other){
+        if(this!=&other){
+            status_ = other.status_;
+            prog_ = other.prog_;
+        }
+        return *this;
+    }
+    MessageAdditional& operator=(MessageAdditional&& other) noexcept{
+        if(this!=&other){
+            status_ = std::move(other.status_);
+            prog_ = std::move(other.prog_);
+        }
+        return *this;
+    }
     MessageAdditional() = default;
 };
 }

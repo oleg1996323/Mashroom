@@ -24,6 +24,29 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>{
     file_part_sz_(other.file_part_sz_),
     offset_(other.offset_),
     file_hash_(other.file_hash_){}
+    MessageAdditional(MessageAdditional&& other):
+    status_(other.status_),
+    file_part_sz_(other.file_part_sz_),
+    offset_(other.offset_),
+    file_hash_(other.file_hash_){}
+    MessageAdditional& operator=(const MessageAdditional& other) {
+        if(this!=&other){
+            status_ = other.status_;
+            file_part_sz_ = other.file_part_sz_;
+            offset_ = other.offset_;
+            file_hash_ = other.file_hash_;
+        }
+        return *this;
+    }
+    MessageAdditional& operator=(MessageAdditional&& other) noexcept{
+        if(this!=&other){
+            status_ = std::move(other.status_);
+            file_part_sz_ = std::move(other.file_part_sz_);
+            offset_ = std::move(other.offset_);
+            file_hash_ = std::move(other.file_hash_);
+        }
+        return *this;
+    }
     MessageAdditional() = default;
 };
 

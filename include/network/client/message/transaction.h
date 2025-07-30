@@ -14,8 +14,12 @@ namespace network{
         Transaction op_status_ = Transaction::DECLINE;
         MessageAdditional(const MessageAdditional& other):
         op_hash_(other.op_hash_),op_status_(other.op_status_){}
+        MessageAdditional(MessageAdditional&& other):
+        op_hash_(other.op_hash_),op_status_(other.op_status_){}
         MessageAdditional(ErrorCode& err,Transaction op_status):op_status_(op_status){}
         MessageAdditional() = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
 

@@ -85,3 +85,5 @@ clear
 --save
 --capitalize --inp dir=~/cdsapi
 --save
+--capitalize --inp dir=/home/oster/grib_files
+--save

@@ -142,7 +142,10 @@ namespace network{
 
         }
         MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
 

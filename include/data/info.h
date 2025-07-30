@@ -8,14 +8,6 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include "def.h"
-#include "types/time_interval.h"
-#include "common_data_properties.h"
-#include "sections/grid/grid.h"
-#include "def.h"
-#include "msg.h"
-#include "sys/error_print.h"
-#include <sys/error_code.h>
 #include <cassert>
 #include <cstring>
 #include <netinet/in.h>
@@ -23,6 +15,14 @@
 #include "grib/capitalize_data_info.h"
 #include "sublimed_info.h"
 #include "serialization.h"
+#include "def.h"
+#include "types/time_interval.h"
+#include "common_data_properties.h"
+#include "sections/grid/grid.h"
+#include "def.h"
+#include "msg.h"
+#include "sys/error_print.h"
+#include "sys/error_code.h"
 using namespace std::string_literals;
 
 class SublimedGribDataInfo;
@@ -217,3 +217,13 @@ namespace serialization{
 
 //@todo make possible serialization
 static_assert(requires{requires std::ranges::range<GribDataInfo::sublimed_data_t>;});
+
+static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<CommonDataProperties> const, std::vector<SublimedDataInfo, std::allocator<SublimedDataInfo>>>>);
+static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<CommonDataProperties> const, std::vector<SublimedDataInfo, std::allocator<SublimedDataInfo>>>>);
+static_assert(requires {requires serialization::serialize_concept<true,std::optional<GribDataInfo::sublimed_data_t>>;});
+static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribDataInfo::sublimed_data_t>>;});
+static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfo>>);
+static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfo>>);
+static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
+static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
+//std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>

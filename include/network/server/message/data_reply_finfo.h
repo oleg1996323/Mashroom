@@ -19,6 +19,26 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>{
     status_(other.status_),
     filename_(other.filename_),
     file_sz_(other.file_sz_){}
+    MessageAdditional(MessageAdditional&& other):
+    status_(other.status_),
+    filename_(std::move(other.filename_)),
+    file_sz_(other.file_sz_){}
+    MessageAdditional& operator=(const MessageAdditional& other) {
+        if(this!=&other){
+            status_ =other.status_;
+            filename_ = other.filename_;
+            file_sz_ = other.file_sz_;
+        }
+        return *this;
+    }
+    MessageAdditional& operator=(MessageAdditional&& other) noexcept{
+        if(this!=&other){
+            status_ = std::move(other.status_);
+            filename_ = std::move(other.filename_);
+            file_sz_ = std::move(other.file_sz_);
+        }
+        return *this;
+    }
     MessageAdditional() = default;
 };
 }

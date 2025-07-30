@@ -9,6 +9,8 @@ struct MessageAdditional<network::Server_MsgT::ERROR>{
     MessageAdditional(    ErrorCode& err,ErrorCode error_code,
                 server::Status status = server::Status::READY){}
     MessageAdditional() = default;
+    MessageAdditional& operator=(const MessageAdditional& other) = default;
+    MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
 };
 }
 
