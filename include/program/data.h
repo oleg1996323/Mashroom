@@ -97,9 +97,9 @@ class Data:public __Data__{
         bool unsaved() const{
             return !unsaved_.empty();
         }
-        // const std::unordered_set<path::Storage<false>> paths() const{
-        //     return grib_.grib_data_.paths();
-        // }
+        const std::unordered_set<path::Storage<true>>& paths() const{
+            return grib_.grib_data_.paths();
+        }
         auto data() const{
             return grib_.grib_data_.data();
         }
@@ -117,6 +117,15 @@ class Data:public __Data__{
             Coord pos
         ) const;
         std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
+            Organization center,
+            std::optional<TimeFrame> time_fcst,
+            const std::unordered_set<SearchParamTableVersion>& parameters,
+            TimeInterval time_interval,
+            RepresentationType rep_t,
+            Coord pos
+        ) const;
+        std::unordered_set<SublimedDataInfo> match(
+            path::Storage<true> path,
             Organization center,
             std::optional<TimeFrame> time_fcst,
             const std::unordered_set<SearchParamTableVersion>& parameters,

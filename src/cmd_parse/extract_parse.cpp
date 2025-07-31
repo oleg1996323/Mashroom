@@ -25,7 +25,7 @@ namespace parse{
             if(err_==ErrorCode::NONE)
                 hExtract->set_out_path(input);
         }),"Output directory where the files with extracted data will be placed")
-        ("inp",po::value<std::vector<std::string>>()->required()->notifier([this](const std::vector<std::string>& input){
+        ("inp",po::value<std::vector<std::string>>()->notifier([this](const std::vector<std::string>& input){
             if(err_==ErrorCode::NONE)
                 for(auto& path:input){
                     err_ = hExtract->add_in_path(path);

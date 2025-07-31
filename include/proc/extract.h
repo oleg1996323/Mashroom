@@ -110,6 +110,7 @@ private:
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
+    void __extract__(const fs::path& file, ExtractedData& ref_data);
     ErrorCode __create_dir_for_file__(const fs::path &out_f_name);
     ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result);
     template <typename... ARGS>

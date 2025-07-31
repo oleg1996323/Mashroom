@@ -322,6 +322,8 @@ namespace serialization{
                 return sizeof(bool)+serial_size(typename T::element_type{});
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
+            else if constexpr(pair_concept<T>)
+                return serial_size(val.first)+serial_size(val.sec);
             else {
                 static_assert(false,"serial_size unspecified operator()");
                 return 0;
@@ -342,6 +344,8 @@ namespace serialization{
                 return sizeof(bool);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
+            else if constexpr(pair_concept<T>)
+                return min_serial_size(typename T::first_type{})+min_serial_size(typename T::second_type{});
             else{
                 static_assert(false,"min_serial_size unspecified operator()");
                 return 0;
@@ -367,6 +371,8 @@ namespace serialization{
                         max_serial_size(T{}):max_serial_size(T{})+sizeof(bool);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
+            else if constexpr(pair_concept<T>)
+                return max_serial_size(typename T::first_type{})+max_serial_size(typename T::second_type{});
             else{
                 static_assert(false,"max_serial_size unspecified operator()");
                 return 0;

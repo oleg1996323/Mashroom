@@ -85,6 +85,7 @@ class SublimedGribDataInfo
 
     private:
     sublimed_data_t info_;
+    std::unordered_set<path::Storage<true>> paths_;
     public:
     SublimedGribDataInfo() = default;
     SublimedGribDataInfo(SublimedGribDataInfo&& other):
@@ -92,6 +93,10 @@ class SublimedGribDataInfo
     SublimedGribDataInfo(const SublimedGribDataInfo&) = delete;
     const sublimed_data_t& data() const{
         return info_;
+    }
+
+    const std::unordered_set<path::Storage<true>>& paths() const{
+        return paths_;
     }
     void add_data(SublimedGribDataInfo& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
@@ -104,30 +109,39 @@ class SublimedGribDataInfo
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t& grib_data){
         for(auto& [path,file_data]:grib_data){
-            auto found = info_.find(path);
-            if(found==info_.end())
-                info_[path].swap(file_data);
-            else 
-                info_[found->first].swap(file_data);
+            if(!path.path_.empty()){
+                auto found = info_.find(path);
+                if(found==info_.end())
+                    info_[path].swap(file_data);
+                else 
+                    info_[found->first].swap(file_data);
+                paths_.insert(path);
+            }
         }
     }
     void add_data(SublimedGribDataInfo&& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
-            auto found = info_.find(path);
-            if(found==info_.end())
-                info_[path].swap(file_data);
-            else 
-                info_[found->first].swap(file_data);
+            if(!path.path_.empty()){
+                auto found = info_.find(path);
+                if(found==info_.end())
+                    info_[path].swap(file_data);
+                else 
+                    info_[found->first].swap(file_data);
+                paths_.insert(path);
+            }
         }
     }
     void add_data(SublimedGribDataInfo::sublimed_data_t&& grib_data){
         for(auto& [path,file_data]:grib_data){
-            auto found = info_.find(path);
-            if(found==info_.end()){
-                info_[path].swap(file_data);
-            }
-            else{
-                info_[found->first].swap(file_data);
+            if(!path.path_.empty()){
+                auto found = info_.find(path);
+                if(found==info_.end()){
+                    info_[path].swap(file_data);
+                }
+                else{
+                    info_[found->first].swap(file_data);
+                }
+                paths_.insert(path);
             }
         }        
     }
