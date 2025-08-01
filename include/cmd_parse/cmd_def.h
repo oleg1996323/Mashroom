@@ -10,7 +10,7 @@
 enum class MODE{
     NONE,
     CHECK_ALL_IN_PERIOD,
-    CAPITALIZE,
+    INDEX,
     EXTRACT,
     CONFIG,
     HELP,

@@ -6,7 +6,7 @@ boost::json::value to_json(const user::Settings& val){
     json::object map;
     map["name"] = val.name_;
     map["mashroom-update-ti"] = to_json(val.mashroom_update_ti_);
-    map["capitalize-update-ti"] = to_json(val.capitalize_update_ti_);
+    map["index-update-ti"] = to_json(val.index_update_ti_);
     return map;
 }
 
@@ -24,9 +24,9 @@ std::expected<user::Settings,std::exception> from_json(const boost::json::value&
         }
         {
             std::expected<TimePeriod, std::exception> json_res = from_json<TimePeriod>(
-                val.at("capitalize-update-ti"));
+                val.at("index-update-ti"));
             if(json_res.has_value())
-                result.capitalize_update_ti_ = std::move(json_res.value());
+                result.index_update_ti_ = std::move(json_res.value());
             else return std::unexpected(json_res.error());
         }
     }

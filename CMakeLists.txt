@@ -41,6 +41,7 @@ list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
 #including other build-modules
+include(GoogleTest)
 include(modules-linkage.cmake)
 
 #build main lib
@@ -75,8 +76,6 @@ add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)
 target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
-                
-                    
 set_target_properties(Mashroom Mashroom_lib grib1reader library clip web system
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
@@ -85,3 +84,4 @@ set_target_properties(Mashroom Mashroom_lib grib1reader library clip web system
                     ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/lib/Release"
                     LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/shared/Release"
                     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")
+

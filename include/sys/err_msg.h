@@ -13,7 +13,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "\"{0}\" is not a directory.",
     "\"{0}\" is not a file.",
     "Format file {0} is corrupted.",
-    "Error at capitalization: file {0}, position {1}"
+    "Error at indexing: file {0}, position {1}"
 };
 
 constexpr std::array<const char*,45> err_msg={
@@ -44,7 +44,7 @@ constexpr std::array<const char*,45> err_msg={
     "Undefined file format",
     "Undefined value",
     "Integrity violated",
-    "Invalid capitalize order",
+    "Invalid index order",
     "Invalid host \"{0}\"",
     "Connection error",
     "Connection error with {0}",

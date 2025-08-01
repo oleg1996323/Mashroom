@@ -3,16 +3,16 @@
 #include <vector>
 #include <string>
 #include "sys/error_code.h"
-#include "proc/capitalize.h"
+#include "proc/index.h"
 #include "information_parse.h"
 #include <tuple>
 #include "cmd_parse/cmd_def.h"
 #include "path_parse.h"
 namespace parse{
-    class Capitalize:public AbstractCLIParser<parse::Capitalize>{
+    class Index:public AbstractCLIParser<parse::Index>{
         friend AbstractCLIParser;
-        std::unique_ptr<::Capitalize> hCapitalize;
-        Capitalize():AbstractCLIParser("Capitalize options"){}
+        std::unique_ptr<::Index> hIndex;
+        Index():AbstractCLIParser("Index options"){}
 
         virtual void init() noexcept override final;
         public:

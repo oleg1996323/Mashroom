@@ -12,7 +12,7 @@
 #include <cstring>
 #include <netinet/in.h>
 #include "network/common/utility.h"
-#include "grib/capitalize_data_info.h"
+#include "grib/index_data_info.h"
 #include "sublimed_info.h"
 #include "serialization.h"
 #include "def.h"
@@ -32,12 +32,12 @@ class SublimedGribDataInfo;
 namespace fs = std::filesystem;
 class GribDataInfo{
     public:
-    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribCapitalizeDataInfo>>>;
+    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribIndexDataInfo>>>;
     using sublimed_data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
     ErrorCodeData err = ErrorCodeData::NONE_ERR;
-    friend class Capitalize;
+    friend class Index;
     friend class Integrity;
     friend class Extract;
     public:
@@ -48,13 +48,13 @@ class GribDataInfo{
     info_(info){}
     GribDataInfo(data_t&& info):
     info_(std::move(info)){}
-    template<typename CDP = CommonDataProperties, typename GCDI = GribCapitalizeDataInfo>
-    void add_info(const path::Storage<false>& path,CDP&& cmn,GCDI&& cap_info){
-        if constexpr(std::is_same_v<std::vector<GribCapitalizeDataInfo>,std::decay_t<GCDI>>){
-            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(cap_info));
+    template<typename CDP = CommonDataProperties, typename GCDI = GribIndexDataInfo>
+    void add_info(const path::Storage<false>& path,CDP&& cmn,GCDI&& index_info){
+        if constexpr(std::is_same_v<std::vector<GribIndexDataInfo>,std::decay_t<GCDI>>){
+            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(index_info));
         }
         else
-            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(cap_info));
+            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(index_info));
     }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;

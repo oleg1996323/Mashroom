@@ -3,13 +3,13 @@
 
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include "proc/capitalize.h"
+#include "proc/index.h"
 #include "sys/application.h"
 #include "sys/config.h"
 #include "cmd_parse/cmd_def.h"
 #include "cmd_parse/functions.h"
 #include "functions.h"
-#include "cmd_parse/capitalize_parse.h"
+#include "cmd_parse/index_parse.h"
 #include "cmd_parse/integrity_parse.h"
 #include "cmd_parse/extract_parse.h"
 #include <boost/program_options.hpp>
@@ -19,7 +19,7 @@ namespace parse{
 
     void UserConfig::init() noexcept{
         add_options("name,N",po::value<std::string>(),"Configure the program")
-        ("cap-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().capitalize_update_ti_),"Sets the time period of capitalize update");
+        ("index-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().index_update_ti_),"Sets the time period of index update");
         ("mashroom-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().mashroom_update_ti_),"Sets the time period of Mashroom's updates");
         define_uniques();
     }
@@ -37,8 +37,8 @@ namespace parse{
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"configuration name",AT_ERROR_ACTION::CONTINUE);
         }
         try{
-            if(vm.contains("cap-upd-time-period"))
-                settings_->capitalize_update_ti_ = vm.at("cap-upd-time-period").as<TimePeriod>();
+            if(vm.contains("index-upd-time-period"))
+                settings_->index_update_ti_ = vm.at("index-upd-time-period").as<TimePeriod>();
             if(vm.contains("mashroom-upd-time-period"))
                 settings_->mashroom_update_ti_ = vm.at("mashroom-upd-time-period").as<TimePeriod>();
             return ErrorCode::NONE;

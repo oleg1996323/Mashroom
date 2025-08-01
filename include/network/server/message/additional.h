@@ -1,6 +1,6 @@
 #pragma once
-#include "network/server/message/capitalize.h"
-#include "network/server/message/data_reply_cap_info.h"
+#include "network/server/message/index.h"
+#include "network/server/message/data_reply_index_info.h"
 #include "network/server/message/data_reply_extract_part.h"
 #include "network/server/message/data_reply_finfo.h"
 #include "network/server/message/data_reply_fpart.h"

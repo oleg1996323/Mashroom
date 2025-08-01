@@ -1,4 +1,4 @@
-#include "proc/capitalize.h"
+#include "proc/index.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -12,7 +12,7 @@
 #include "definitions/path_process.h"
 #include "network/common/message/message_process.h"
 #include <format>
-bool Capitalize::check_format(std::string_view fmt){
+bool Index::check_format(std::string_view fmt){
 	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
 	{
 		return std::count(fmt.begin(),fmt.end(),ch)<=1;
@@ -24,7 +24,7 @@ using namespace std::string_literals;
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const std::vector<GribMsgDataInfo>& data_){
+std::vector<std::pair<fs::path, GribMsgDataInfo>> Index::__write__(const std::vector<GribMsgDataInfo>& data_){
 	std::vector<std::pair<fs::path, GribMsgDataInfo>> result;
 	for(const GribMsgDataInfo& msg_info:data_){
 		fs::path cur_path(dest_directory_);
@@ -85,9 +85,9 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Capitalize::__write__(const st
 namespace fs = std::filesystem;
 
 /**
- * @brief Execute message capitalization of concrete file.
+ * @brief Execute message indexing of concrete file.
  */
-const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
+const GribDataInfo& Index::__index_file__(const fs::path& file){
 	HGrib1 grib;
 	if(grib.open_grib(file)!=ErrorCodeData::NONE_ERR){
 		result.err = ErrorCodeData::OPEN_ERROR;
@@ -135,7 +135,7 @@ const GribDataInfo& Capitalize::__capitalize_file__(const fs::path& file){
 	}
 }
 
-void Capitalize::execute() noexcept{
+void Index::execute() noexcept{
 	for(const path::Storage<false>& path:in_path_){
 		switch(path.type_){
 			case path::TYPE::DIRECTORY:
@@ -143,18 +143,18 @@ void Capitalize::execute() noexcept{
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 						std::cout<<entry.path()<<std::endl;
-						const GribDataInfo& cap_data = __capitalize_file__(entry.path());
+						const GribDataInfo& index_data = __index_file__(entry.path());
 					}
 					else continue;
 				}
 				break;
 			case path::TYPE::FILE:
-				__capitalize_file__(path.path_);
+				__index_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
 				if(host_ref_only)
-					Mashroom::instance().request<network::Client_MsgT::CAPITALIZE_REF>(path.path_);
-				else Mashroom::instance().request<network::Client_MsgT::CAPITALIZE>(path.path_);
+					Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_);
+				else Mashroom::instance().request<network::Client_MsgT::INDEX>(path.path_);
 				break;
 			default:{
 				continue;
@@ -164,7 +164,7 @@ void Capitalize::execute() noexcept{
 	Mashroom::instance().add_data(result);
 }
 
-ErrorCode Capitalize::add_in_path(const path::Storage<false>& path){
+ErrorCode Index::add_in_path(const path::Storage<false>& path){
     if(path.path_.empty())
         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"empty path",AT_ERROR_ACTION::CONTINUE);
     switch(path.type_){
@@ -187,7 +187,7 @@ ErrorCode Capitalize::add_in_path(const path::Storage<false>& path){
     }       
     return ErrorCode::NONE;
 }
-ErrorCode Capitalize::set_dest_dir(std::string_view dest_directory){
+ErrorCode Index::set_dest_dir(std::string_view dest_directory){
     if(fs::path(dest_directory).has_extension())
         return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
     if(!fs::exists(dest_directory))

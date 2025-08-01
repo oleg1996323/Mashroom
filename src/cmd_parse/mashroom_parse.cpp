@@ -4,8 +4,8 @@ namespace parse{
     ErrorCode extract_notifier(const std::vector<std::string>& input) noexcept{
         return Extract::instance().parse(input);
     }
-    ErrorCode capitalize_notifier(const std::vector<std::string>& input) noexcept{
-        return Capitalize::instance().parse(input);
+    ErrorCode index_notifier(const std::vector<std::string>& input) noexcept{
+        return Index::instance().parse(input);
     }
     ErrorCode integrity_notifier(const std::vector<std::string>& input) noexcept{
         return Integrity::instance().parse(input);
@@ -31,15 +31,15 @@ namespace parse{
         ("extract",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = extract_notifier(items);
         }),"Extract specified data.",Extract::instance())
-        ("capitalize",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
-            err_ = capitalize_notifier(items);
-        }),"Read specified files and register the contained data properties and data positions. Organize the data by defined hierarchy from unique massive archive.",Capitalize::instance())
+        ("index",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
+            err_ = index_notifier(items);
+        }),"Read specified files and register the contained data properties and data positions. Organize the data by defined hierarchy from unique massive archive.",Index::instance())
         ("integrity",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = integrity_notifier(items);
-        }),"Check the integrity (dimensional and temporal) of capitalized data and detect the corrupted files of different format.",Integrity::instance())
+        }),"Check the integrity (dimensional and temporal) of indexd data and detect the corrupted files of different format.",Integrity::instance())
         ("contains",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = contains_notifier(items);
-        }),"Check if capitalized data contains the data specified by properties",Contains::instance())
+        }),"Check if indexd data contains the data specified by properties",Contains::instance())
         ("config",po::value<std::vector<std::string>>()->zero_tokens(),"Permits to configure the program or server",Config::instance()).
         add_options("save","Save the current instance")
         ("help,H","Show help")
@@ -61,8 +61,8 @@ namespace parse{
         else if(vm.contains("extract")){
             return extract_notifier(args);
         }
-        else if(vm.contains("capitalize")){
-            return capitalize_notifier(args);
+        else if(vm.contains("index")){
+            return index_notifier(args);
         }
         else if(vm.contains("integrity")){
             return integrity_notifier(args);

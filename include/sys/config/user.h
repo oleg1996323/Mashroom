@@ -10,9 +10,9 @@ namespace user{
     struct Settings{
         std::string name_;
         /**
-         * @brief time-period between capitalize updates
+         * @brief time-period between index updates
          */
-        TimePeriod capitalize_update_ti_;
+        TimePeriod index_update_ti_;
         /**
          * @brief time-period between Mashroom updates
          */
@@ -23,7 +23,7 @@ namespace user{
     
     static Settings default_config() noexcept{
         return Settings{.name_="default",
-                        .capitalize_update_ti_=TimePeriod(years(0),
+                        .index_update_ti_=TimePeriod(years(0),
                                                 months(0),
                                                 days(7),
                                                 hours(0),

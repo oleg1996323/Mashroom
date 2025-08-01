@@ -17,7 +17,7 @@ using info_quantity = boost::units::quantity<info_units>;
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
-class Capitalize{
+class Index{
 private:
 GribDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
@@ -28,7 +28,7 @@ int cpus = 1;
 InternalDateFileFormats output_format_ = InternalDateFileFormats::NATIVE;
 bool host_ref_only = false;
 std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
-const GribDataInfo& __capitalize_file__(const fs::path& file);
+const GribDataInfo& __index_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);
 void execute() noexcept;
@@ -37,7 +37,7 @@ ErrorCode add_in_path(const path::Storage<false>& path);
 ErrorCode set_dest_dir(std::string_view dest_directory);
 ErrorCode set_output_order(std::string_view order){
     if(!check_format(order))
-        return ErrorPrint::print_error(ErrorCode::INVALID_CAPITALIZE_ORDER,"",AT_ERROR_ACTION::CONTINUE,order);
+        return ErrorPrint::print_error(ErrorCode::INVALID_INDEX_ORDER,"",AT_ERROR_ACTION::CONTINUE,order);
     output_order_ = order;
     return ErrorCode::NONE;
 }
@@ -69,12 +69,12 @@ void set_host_ref_only(){
 /**
  * @brief Sets the maximum allowed size when receiving part of data remotely via a host.
  */
-void set_max_cap_size(const info_quantity& info_sz){
+void set_max_index_size(const info_quantity& info_sz){
     if(info_sz.value()==0)
         return;
     else file_sz_limits_ = info_sz;
 }
-info_quantity get_max_cap_size() const{
+info_quantity get_max_index_size() const{
     return file_sz_limits_;
 }
 };

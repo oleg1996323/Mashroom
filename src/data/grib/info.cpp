@@ -3,7 +3,7 @@
 namespace fs = std::filesystem;
 void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept{
     info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(GribCapitalizeDataInfo{
+    .emplace_back(GribIndexDataInfo{
         msg_info.grid_data,
         msg_info.buf_pos_,
         msg_info.date,
@@ -12,7 +12,7 @@ void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataI
 
 void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
     info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(GribCapitalizeDataInfo{
+    .emplace_back(GribIndexDataInfo{
         msg_info.grid_data,
         msg_info.buf_pos_,
         msg_info.date,
@@ -41,7 +41,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
             auto& data_seq_tmp = data_t_tmp[cmn_d];
             //placing without grid to the beginning
             //errorness structures to the end
-            std::ranges::sort(data_seq,[](const GribCapitalizeDataInfo& lhs,const GribCapitalizeDataInfo& rhs)->bool
+            std::ranges::sort(data_seq,[](const GribIndexDataInfo& lhs,const GribIndexDataInfo& rhs)->bool
             {
                 if(lhs.err!=ErrorCodeData::NONE_ERR)
                     return false;
@@ -50,7 +50,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                 else
                     return lhs.date_time<rhs.date_time;   
             });
-            assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const GribCapitalizeDataInfo& lhs,const GribCapitalizeDataInfo& rhs)
+            assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const GribIndexDataInfo& lhs,const GribIndexDataInfo& rhs)
             {
                 if(lhs.err!=ErrorCodeData::NONE_ERR)
                     return false;

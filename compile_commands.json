@@ -331,8 +331,8 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/linenoise -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/capitalize_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/capitalize_parse.cpp"
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/linenoise -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/clip.dir/src/cmd_parse/index_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/index_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/index_parse.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",
@@ -436,8 +436,8 @@
 },
 {
   "directory": "/home/oster/Mashroom",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/library -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/library/linenoise -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/capitalize.cpp.o -c /home/oster/Mashroom/src/proc/capitalize.cpp",
-  "file": "/home/oster/Mashroom/src/proc/capitalize.cpp"
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -DMashroom_lib_EXPORTS -I/home/oster/Mashroom -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/library -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/library/linenoise -I/home/oster/Mashroom/include/network  -lzip -static-libstdc++ -g -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -std=gnu++23 -o CMakeFiles/Mashroom_lib.dir/src/proc/index.cpp.o -c /home/oster/Mashroom/src/proc/index.cpp",
+  "file": "/home/oster/Mashroom/src/proc/index.cpp"
 },
 {
   "directory": "/home/oster/Mashroom",

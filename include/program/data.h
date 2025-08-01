@@ -111,20 +111,13 @@ class Data:public __Data__{
         }
         std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
             Organization center,
-            uint8_t table_version,
-            TimeInterval time_interval,
-            RepresentationType rep_t,
-            Coord pos
-        ) const;
-        std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
-            Organization center,
             std::optional<TimeFrame> time_fcst,
             const std::unordered_set<SearchParamTableVersion>& parameters,
             TimeInterval time_interval,
             RepresentationType rep_t,
             Coord pos
         ) const;
-        std::unordered_set<SublimedDataInfo> match(
+        std::vector<ptrdiff_t> match(
             path::Storage<true> path,
             Organization center,
             std::optional<TimeFrame> time_fcst,

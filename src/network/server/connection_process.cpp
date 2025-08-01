@@ -1,7 +1,7 @@
 #include "network/server/connection_process.h"
 #include "network/server.h"
 #include "proc/extract.h"
-#include "proc/capitalize.h"
+#include "proc/index.h"
 
 using namespace network::connection;
 Process<Server>::Process(int connection_socket,const ConnectionPool& pool):
@@ -64,10 +64,10 @@ ErrorCode Process<Server>::execute() const{
     else{
         switch (msg_type.value())
         {
-        case Client_MsgT::CAPITALIZE:
+        case Client_MsgT::INDEX:
             
         break;
-        case Client_MsgT::CAPITALIZE_REF:
+        case Client_MsgT::INDEX_REF:
 
         break;
         case Client_MsgT::DATA_REQUEST:

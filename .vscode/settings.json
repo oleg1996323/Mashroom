@@ -123,7 +123,9 @@
         "error_print.h": "c",
         "table_4.h": "c",
         "table_0.h": "c",
-        "strstream": "cpp"
+        "strstream": "cpp",
+        "any": "cpp",
+        "csignal": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.errorSquiggles": "enabled"

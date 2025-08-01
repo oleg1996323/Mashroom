@@ -113,47 +113,58 @@ bool Data::write(const fs::path& filename){
         break;
     }
 }
-std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
-    Organization center,
-    uint8_t table_version,
-    TimeInterval time_interval,
-    RepresentationType rep_t,
-    Coord pos
-) const{
-    std::unordered_map<path::Storage<true>,SublimedDataInfo> result;
-    for(const auto& [cmn,seq_fn]:grib_.by_common_data_){
-        if(!cmn.expired() && cmn.lock()->center_==center && cmn.lock()->table_version_==table_version){
-            for(auto fn:seq_fn)
-                result[fn];
-        }
+
+std::vector<CommonDataProperties> get_parameter_variations(Organization center,
+    std::optional<TimeFrame> time_fcst,
+    const std::unordered_set<SearchParamTableVersion>& parameters) noexcept
+{
+    std::vector<CommonDataProperties> result;
+    if(!time_fcst.has_value()){
+        if(parameters.empty())
+            result.resize(time_frame_number*256);
+        else
+            result.resize(time_frame_number*parameters.size());
     }
-    for(const auto& [date_interval,seq_fn]:grib_.by_date_)
-        if(!intervals_intersect(time_interval,date_interval))
-            for(auto fn:seq_fn)
-                result.erase(fn);
-    for(const auto& [grid,seq_fn]:grib_.by_grid_){
-        if(grid.has_value())
-            for(auto fn:seq_fn)
-                result.erase(fn);
-        if(!pos_in_grid(pos,grid.value()))
-            for(auto fn:seq_fn)
-                result.erase(fn);
+    else{
+        if(parameters.empty())
+            result.resize(256);
+        else
+            result.resize(parameters.size());
     }
-    for(auto& [fn,ptrs]:result){
-        for(const auto& [common,data_seq]:grib_.grib_data_.data().at(fn))
-            if(common->center_==center)
-                for(const auto& d:data_seq){
-                    if(d.grid_data_.has_value() &&
-                    d.grid_data_.value().rep_type==rep_t &&
-                    intervals_intersect(d.from_,d.to_,time_interval.from_,time_interval.to_) &&
-                    pos_in_grid(pos,d.grid_data_.value())){
-                        auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from_,d.to_},d.discret_);
-                        ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
+    if(!time_fcst.has_value()){
+        int time_counter = 0;
+        for(int time=0;time<256;++time)
+            if(is_time[time]){
+                if(parameters.empty()){
+                    for(int param=0;param<256;++param){
+                        for(int table_version=0;table_version<256;++table_version)
+                            result.at(time_counter*256+param)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
                     }
                 }
+                else{
+                    int param_counter = 0;
+                    for(const auto& [param,table_version]:parameters)
+                        result.at(time_counter*parameters.size()+param_counter++)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
+                }
+                ++time_counter;
+            }
+            else continue;
+    }
+    else{
+            if(is_time[time_fcst.value()] && parameters.empty()){
+                for(uint8_t param=0;param<256;++param)
+                    for(int table_version=0;table_version<256;++table_version)
+                        result.at(param) = CommonDataProperties(center,table_version,time_fcst.value(),param);
+            }
+            else{
+                uint8_t param_counter = 0;
+                for(const auto& [param,table_version]:parameters)
+                    result.at(param_counter++)=CommonDataProperties(center,table_version,time_fcst.value(),param);
+            }
     }
     return result;
 }
+
 #include <format>
 #include "definitions/def.h"
 std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
@@ -165,50 +176,7 @@ std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     Coord pos
 ) const{
     std::unordered_map<path::Storage<true>,SublimedDataInfo> result;
-    std::vector<CommonDataProperties> param_variations;
-    if(!time_fcst.has_value()){
-        if(parameters.empty())
-            param_variations.resize(time_frame_number*256);
-        else
-            param_variations.resize(time_frame_number*parameters.size());
-    }
-    else{
-        if(parameters.empty())
-            param_variations.resize(256);
-        else
-            param_variations.resize(parameters.size());
-    }
-    if(!time_fcst.has_value()){
-        int time_counter = 0;
-        for(int time=0;time<256;++time)
-            if(is_time[time]){
-                if(parameters.empty()){
-                    for(int param=0;param<256;++param){
-                        for(int table_version=0;table_version<256;++table_version)
-                            param_variations.at(time_counter*256+param)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
-                    }
-                }
-                else{
-                    int param_counter = 0;
-                    for(const auto& [param,table_version]:parameters)
-                        param_variations.at(time_counter*parameters.size()+param_counter++)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
-                }
-                ++time_counter;
-            }
-            else continue;
-    }
-    else{
-            if(is_time[time_fcst.value()] && parameters.empty()){
-                for(uint8_t param=0;param<256;++param)
-                    for(int table_version=0;table_version<256;++table_version)
-                        param_variations.at(param) = CommonDataProperties(center,table_version,time_fcst.value(),param);
-            }
-            else{
-                uint8_t param_counter = 0;
-                for(const auto& [param,table_version]:parameters)
-                    param_variations.at(param_counter++)=CommonDataProperties(center,table_version,time_fcst.value(),param);
-            }
-    }
+    std::vector<CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
     for(const auto& common:param_variations){
         auto found = grib_.by_common_data_.find(common);
         if(found!=grib_.by_common_data_.end() && !found->first.expired()){
@@ -251,7 +219,7 @@ std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
     return result;
 }
 
-std::unordered_set<SublimedDataInfo> Data::match(
+std::vector<ptrdiff_t> Data::match(
     path::Storage<true> path,
     Organization center,
     std::optional<TimeFrame> time_fcst,
@@ -261,89 +229,26 @@ std::unordered_set<SublimedDataInfo> Data::match(
     Coord pos
 ) const{
     std::vector<ptrdiff_t> result;
-    std::vector<CommonDataProperties> param_variations;
-    if(!time_fcst.has_value()){
-        if(parameters.empty())
-            param_variations.resize(time_frame_number*256);
-        else
-            param_variations.resize(time_frame_number*parameters.size());
-    }
-    else{
-        if(parameters.empty())
-            param_variations.resize(256);
-        else
-            param_variations.resize(parameters.size());
-    }
-    if(!time_fcst.has_value()){
-        int time_counter = 0;
-        for(int time=0;time<256;++time)
-            if(is_time[time]){
-                if(parameters.empty()){
-                    for(int param=0;param<256;++param){
-                        for(int table_version=0;table_version<256;++table_version)
-                            param_variations.at(time_counter*256+param)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
-                    }
-                }
-                else{
-                    int param_counter = 0;
-                    for(const auto& [param,table_version]:parameters)
-                        param_variations.at(time_counter*parameters.size()+param_counter++)=CommonDataProperties(center,table_version,(TimeFrame)time,param);
-                }
-                ++time_counter;
-            }
-            else continue;
-    }
-    else{
-            if(is_time[time_fcst.value()] && parameters.empty()){
-                for(uint8_t param=0;param<256;++param)
-                    for(int table_version=0;table_version<256;++table_version)
-                        param_variations.at(param) = CommonDataProperties(center,table_version,time_fcst.value(),param);
-            }
-            else{
-                uint8_t param_counter = 0;
-                for(const auto& [param,table_version]:parameters)
-                    param_variations.at(param_counter++)=CommonDataProperties(center,table_version,time_fcst.value(),param);
-            }
-    }
+    std::vector<CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
+    if(grib_.grib_data_.data().contains(path))
+        return result;
+    auto& file_data = grib_.grib_data_.data().at(path);
     for(const auto& common:param_variations){
-        auto found = grib_.by_common_data_.find(common);
-        if(found!=grib_.by_common_data_.end() && !found->first.expired()){
-            for(auto fn:found->second)
-                result[fn];
+        auto found = file_data.find(common);
+        if(found!=file_data.end()){
+            for(auto info:found->second){
+                if(info.grid_data_.has_value() &&
+                    info.grid_data_.value().rep_type==rep_t &&
+                    pos_in_grid(pos,info.grid_data_.value()) &&
+                    intervals_intersect(info.from_,info.to_,time_interval.from_,time_interval.to_))
+                {
+                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{info.from_,info.to_},info.discret_);
+                    result.append_range(info.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
+                }
+            }
         }
     }
-    for(const auto& [date_interval,seq_fn]:grib_.by_date_){
-        if(!intervals_intersect(time_interval,date_interval))
-            for(auto fn:seq_fn){
-                result.erase(fn);
-            }
-    }
-    for(const auto& [grid,seq_fn]:grib_.by_grid_){
-        if(!grid.has_value())
-            for(auto fn:seq_fn){
-                result.erase(fn);
-            }
-        if(!pos_in_grid(pos,grid.value()))
-            for(auto fn:seq_fn){
-                result.erase(fn);
-            }
-    }
-    for(auto& [fn,ptrs]:result){
-        for(const auto& [common,data]:grib_.grib_data_.data().find(fn)->second)
-            for(const auto& d:data){
-                if(d.grid_data_.has_value() && 
-                    d.grid_data_.value().rep_type==rep_t && 
-                    intervals_intersect(d.from_,d.to_,time_interval.from_,time_interval.to_) && 
-                    pos_in_grid(pos,d.grid_data_.value())){
-                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from_,d.to_},d.discret_);
-                    ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
-                    ptrs.from_ = d.from_;
-                    ptrs.to_ = d.to_;
-                    ptrs.discret_ = d.discret_;
-                    ptrs.grid_data_ = d.grid_data_;
-                }
-            }
-    }
+    std::sort(result.begin(),result.end());
     return result;
 }
 

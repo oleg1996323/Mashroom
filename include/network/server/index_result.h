@@ -2,7 +2,7 @@
 #include <program/data.h>
 
 namespace network::client::detail{
-    namespace capitalize{
+    namespace index{
         template<Data::TYPE,Data::FORMAT>
         struct __Message__;
 

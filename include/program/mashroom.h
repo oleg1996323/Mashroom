@@ -28,7 +28,7 @@ class Mashroom{
     std::unordered_set<fs::path> data_files_;
     std::unique_ptr<network::Server> server_;
     /** @brief Handle all clients connected to different servers at current moment
-     *  @details Filled at any kind of procedures like Extract or Capitalize (inside them methods) or
+     *  @details Filled at any kind of procedures like Extract or Index (inside them methods) or
      *  by permanent connection to these servers
      */
     network::ClientsHandler clients_;

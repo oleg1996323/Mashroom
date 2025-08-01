@@ -21,14 +21,14 @@ namespace network{
      *          a sequence of messages of MESSAGE_ID::DATA_REPLY_FILE_PART will be sent by server.
      * @details SERVER_STATUS: Message about the server status. It is sending by server automatically while the connection is established but
      *          there was nothing requeted by client.
-     * @details DATA_REPLY_CAPITALIZE: Message with information about shared data ready to be sent by capitalize request. 
+     * @details DATA_REPLY_INDEX: Message with information about shared data ready to be sent by index request. 
      *          If receiving Client send client::MESSAGE_ID::TRANSACTION with ACCEPT a sequence of messages of 
      *          MESSAGE_ID::DATA_REPLY_FILE_PART will be sent by server.
      * @details ERROR: Message with error code. This message is sent by Server when something is gone wrong.
      * @details PROGRESS: This message is sent during the entire time that the remote process is running at the Client's request.
      * @details DATA_REPLY_FILEPART: Message with file-part information and data.
      * @details VERSION: Message with the program version for backward compatibility of network transactions.
-     * @details DATA_REPLY_CAPITALIZE_REF: Message with information about hosts data owning.
+     * @details DATA_REPLY_INDEX_REF: Message with information about hosts data owning.
      * 
      */
     template<>
@@ -39,12 +39,12 @@ namespace network{
         enum type:int{
             DATA_REPLY_FILEINFO,
             SERVER_STATUS,
-            DATA_REPLY_CAPITALIZE,
+            DATA_REPLY_INDEX,
             ERROR,
             PROGRESS,
             DATA_REPLY_FILEPART,
             VERSION,
-            DATA_REPLY_CAPITALIZE_REF,
+            DATA_REPLY_INDEX_REF,
             DATA_REPLY_EXTRACT
         };
 
@@ -59,8 +59,8 @@ namespace network{
      * 
      * @details DATA_REQUEST: Client request of specified (matched) data to be extracted from server-device.
      * @details SERVER_STATUS: Request of the server status (if connection can be established).
-     * @details CAPITALIZE: Capitalize request with sharing some part of data (specified by memory (in either KB, or MB, or GB, or TB))
-     * @details CAPITALIZE_REF: Capitalize request (only references about owners and owned information)
+     * @details INDEX: Index request with sharing some part of data (specified by memory (in either KB, or MB, or GB, or TB))
+     * @details INDEX_REF: Index request (only references about owners and owned information)
      * @details TRANSACTION: Client replied message to server's transaction-request (for example, sending file)
      * 
      */
@@ -72,8 +72,8 @@ namespace network{
         enum type:int{
             DATA_REQUEST,
             SERVER_STATUS,
-            CAPITALIZE,
-            CAPITALIZE_REF,
+            INDEX,
+            INDEX_REF,
             TRANSACTION
         };
         constexpr static size_t count(){

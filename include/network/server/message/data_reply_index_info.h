@@ -4,7 +4,7 @@
 
 namespace network{
 template<>
-struct MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>
+struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>
 {
     server::Status status_;
     std::string filename;
@@ -42,47 +42,47 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>
 namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
-        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+    struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename,msg.file_sz_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
-        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+    struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
         SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename,msg.file_sz_);
         }
     };
 
     template<>
-    struct Serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
-        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+    struct Serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
         size_t operator()(const type& msg) noexcept{
             return serial_size(msg.status_,msg.filename,msg.file_sz_);
         }
     };
 
     template<>
-    struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
-        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+    struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
         constexpr size_t operator()(const type& msg) noexcept{
             return min_serial_size(msg.status_,msg.filename,msg.file_sz_);
         }
     };
 
     template<>
-    struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>{
-        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>;
+    struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
+        using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
         constexpr size_t operator()(const type& msg) noexcept{
             return max_serial_size(msg.status_,msg.filename,msg.file_sz_);
         }
     };
 }
 
-static_assert(serialization::deserialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>);
-static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>);
-static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>);
-static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_CAPITALIZE_REF>>);
+static_assert(serialization::deserialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
+static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
+static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
+static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);

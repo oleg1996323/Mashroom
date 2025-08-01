@@ -7,7 +7,7 @@
         "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
         "args": ["launch"],//["-help"],
         //"test"
-        //"-cap","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"
+        //"-index","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"
         //"-ext","-inp","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m12:y2024","-pos","40.000:45.000","-outp","dir:/home/oster/extracted_after_ch_BDS","-extfmt", "txt:zip"
         "stopAtEntry": false,
         "cwd": "${cwd}",

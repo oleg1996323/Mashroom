@@ -16,3 +16,6 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${PNG_INCLUDE_DIRS})
 
 set_target_properties(lineNoise PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
                                            ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/lib/Release")
+
+
+add_executable(serialization ${CMAKE_CURRENT_LIST_DIR}/tests/serialization.cpp)

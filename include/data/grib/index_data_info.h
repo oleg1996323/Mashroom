@@ -5,7 +5,7 @@
 #include "sections/grid/grid.h"
 #include "grib1/include/err.h"
 
-struct GribCapitalizeDataInfo
+struct GribIndexDataInfo
 {
     std::optional<GridInfo> grid_data;
     ptrdiff_t buf_pos_;
