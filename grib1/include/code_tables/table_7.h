@@ -1,5 +1,5 @@
 #pragma once
-#include "library/include/def.h"
+#include "byte_order.h"
 struct ResolutionComponentFlags
 {
     bool given_direction;

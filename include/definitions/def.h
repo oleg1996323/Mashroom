@@ -1,3 +1,3 @@
 #pragma once
-#include "paramtablev.h"
+#include "grib1/include/paramtablev.h"
 #include "properties.h"

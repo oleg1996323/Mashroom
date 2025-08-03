@@ -7,6 +7,3 @@
 [submodule "external/eccodes"]
 	path = external/eccodes
 	url = git@github.com:ecmwf/eccodes.git
-[submodule "googletest"]
-	path = googletest
-	url = git@github.com:google/googletest.git

@@ -1,0 +1,5 @@
+if(EXISTS "/home/oster/Mashroom/library/tests/build/bytes_test[1]_tests.cmake")
+  include("/home/oster/Mashroom/library/tests/build/bytes_test[1]_tests.cmake")
+else()
+  add_test(bytes_test_NOT_BUILT bytes_test_NOT_BUILT)
+endif()

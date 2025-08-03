@@ -1,5 +1,5 @@
 #pragma once
-#include "library/include/def.h"
+#include "byte_order.h"
 #include <unordered_map>
 #include <optional>
 #include "code_tables/table_4.h"

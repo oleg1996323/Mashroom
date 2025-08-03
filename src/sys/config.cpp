@@ -1,7 +1,5 @@
 #include "config.h"
-#include "cmd_parse/functions.h"
 #include <cassert>
-#include <network/common/def.h>
 #include <boost/json.hpp>
 #include <ranges>
 #include "filesystem.h"
@@ -11,6 +9,7 @@ namespace fs = std::filesystem;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 namespace network::server{
+    constexpr int min_timeout_seconds = 1;
     Config get_default_server_config(){
         Config config_;
         config_.settings_.host="10.10.10.10";

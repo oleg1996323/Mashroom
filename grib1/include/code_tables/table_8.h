@@ -1,5 +1,5 @@
 #pragma once
-#include "library/include/def.h"
+#include "byte_order.h"
 struct ScanMode
 {
     bool points_sub_i_dir;

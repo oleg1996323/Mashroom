@@ -4,7 +4,7 @@ extern "C"{
     #include "png.h"
 }
 #endif
-#include "def.h"
+#include "byte_order.h"
 #include <string>
 #include <vector>
 #include "color.h"

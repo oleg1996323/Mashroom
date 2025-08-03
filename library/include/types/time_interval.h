@@ -2,8 +2,8 @@
 #include <stdbool.h>
 #include <chrono>
 #include <unordered_map>
-#include "library/include/def.h"
-#include "library/include/serialization.h"
+#include "byte_order.h"
+#include "serialization.h"
 
 using MinTimeRange = std::chrono::duration<int64_t, std::ratio<3600L>>;
 

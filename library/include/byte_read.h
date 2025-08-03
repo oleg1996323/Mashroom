@@ -1,9 +1,8 @@
 #pragma once
 #include <cinttypes>
 #include <type_traits>
-#include "def.h"
+#include "byte_order.h"
 #include "float_conv.h"
-#ifdef __cplusplus
 
 template<typename... ARGS,bool signed_t=false>
 requires ((std::is_same_v<std::remove_cv_t<ARGS>,char> && ...) || 
@@ -40,7 +39,7 @@ inline auto read_bytes(unsigned char* ptr){
     }
     return result;
 }
-#endif
+
 #ifndef INT2
 #define INT2(a,b)   ((1-(int) ((unsigned) (a & 0x80) >> 6)) * (int) (((a & 0x7f) << 8) + b))
 #endif

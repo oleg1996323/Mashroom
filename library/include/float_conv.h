@@ -33,15 +33,15 @@ using to_float_type = to_float_type_impl<sz>::type;
 }
 
 template<typename T>
-requires std::is_floating_point_v<T>
-constexpr auto to_integer(T fl_p) noexcept{
+requires std::is_floating_point_v<std::decay_t<T>>
+constexpr auto to_integer(T&& fl_p) noexcept{
     using IntType = detail::to_integer_type<sizeof(T)>;
     return std::bit_cast<IntType>(fl_p);
 }
 
 template<typename T>
-requires std::is_integral_v<T>
-constexpr auto to_float(T integer) noexcept{
+requires std::is_integral_v<std::decay_t<T>>
+constexpr auto to_float(T&& integer) noexcept{
     using FloatType = ::detail::to_float_type<sizeof(T)>;
     return std::bit_cast<FloatType>(integer);
 }

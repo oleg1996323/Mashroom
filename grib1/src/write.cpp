@@ -1,6 +1,6 @@
 #include "stdlib.h"
 #include "stdio.h"
-#include "library/include/floattoieee.h"
+#include "floattoieee.h"
 
 int wrtieee(float *array, int n, int header, FILE *output) {
 

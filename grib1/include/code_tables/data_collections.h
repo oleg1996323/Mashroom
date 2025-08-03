@@ -16,7 +16,6 @@ typedef enum DATA_TYPE{
     GFS,
     CMIP,
     C3S,
-    CAMS,
     CMEMS,
     JRA55,
     GSM,

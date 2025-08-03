@@ -1,0 +1,53 @@
+{
+  "tests": 7,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Serialization",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SerializeInt",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 79
+        },
+        {
+          "name": "SerializeFloatingPoint",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 102
+        },
+        {
+          "name": "SerializeTimePoint",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 123
+        },
+        {
+          "name": "SerializeDuration",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 137
+        },
+        {
+          "name": "SerializeUniquePtr",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 151
+        }
+      ]
+    },
+    {
+      "name": "SerializableItems",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "SerializeNetworkBytesOrder",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 176
+        },
+        {
+          "name": "SerializeNativeBytesOrder",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 250
+        }
+      ]
+    }
+  ]
+}

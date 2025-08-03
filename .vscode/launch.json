@@ -4,7 +4,7 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/home/oster/Mashroom/bin/Debug/Mashroom",
+        "program": "/home/oster/Mashroom/library/tests/build/bytes_test",//"/home/oster/Mashroom/bin/Debug/Mashroom",
         "args": ["launch"],//["-help"],
         //"test"
         //"-index","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"
@@ -13,7 +13,7 @@
         "cwd": "${cwd}",
         "externalConsole": false,
         "MIMode": "gdb",
-        "miDebuggerPath": "/home/oster/binutils-gdb/install/bin/gdb",
+        "miDebuggerPath": "/home/oster/binutils-gdb/gdb-install/bin/gdb",
         "environment": [
             {
                 "name": "LD_LIBRARY_PATH",

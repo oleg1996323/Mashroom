@@ -1,7 +1,6 @@
 #include "types/time_interval.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "sections/section_1.h"
 
 bool is_correct_interval(const std::chrono::system_clock::time_point& from,const std::chrono::system_clock::time_point& to){
     return (to-from).count()>0;

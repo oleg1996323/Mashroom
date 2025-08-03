@@ -39,7 +39,9 @@ std::vector<T> split(std::string_view str, const char* delimiter) noexcept{
     return result;
 }
 
-bool case_insensitive_char_compare(char ch1,char ch2) noexcept;
+inline bool case_insensitive_char_compare(char ch1,char ch2) noexcept{
+    return std::toupper(ch1)==std::toupper(ch2);
+}
 
 #include <unordered_set>
 bool iend_with(std::string_view str,const std::ranges::range auto& to_match){

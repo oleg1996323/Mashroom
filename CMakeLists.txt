@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
-project(Oster-Mashroom VERSION 0.1 LANGUAGES CXX)
-find_package(Boost 1.75 REQUIRED COMPONENTS json program_options)
+project(Oster-Mashroom
+        VERSION 0.1
+        DESCRIPTION "Universal indexer, effective extractor, handler and network-sharer of different geoinformational data"
+        LANGUAGES C CXX)
+
+find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS json program_options)
 
 #configuration section
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
@@ -14,7 +18,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
 add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
-
 #adding imported submodules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
@@ -41,14 +44,14 @@ list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
 #including other build-modules
-include(GoogleTest)
-include(modules-linkage.cmake)
+find_package(GTest CONFIG REQUIRED)
+add_subdirectory(library)
+add_subdirectory(grib1)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC system clip web PRIVATE grib1reader)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
-message(STATUS ${Sys_SOURCES})
+target_link_libraries(Mashroom_lib PUBLIC gribAPI::v1 library PUBLIC system clip web)
+target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
@@ -59,24 +62,23 @@ target_link_libraries(system PUBLIC library)
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/network 
-                                    ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(web PUBLIC system)
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/network)
+
+target_link_libraries(web PUBLIC gribAPI::v1 library system)
 
 #build command line interpreter parse
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse
-                                    ${grib1_INCLUDES} ${library_INCLUDES})
-target_link_libraries(clip PUBLIC system Boost::program_options)
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse)
+target_link_libraries(clip PUBLIC gribAPI::v1 library system Boost::program_options )
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
-target_link_libraries(Mashroom PRIVATE Mashroom_lib)
+target_link_libraries(Mashroom PRIVATE Mashroom_lib library)
 target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
-set_target_properties(Mashroom Mashroom_lib grib1reader library clip web system
+set_target_properties(Mashroom Mashroom_lib grib1API library clip web system
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
                     LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/shared/Debug"

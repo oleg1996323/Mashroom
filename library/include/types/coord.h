@@ -1,5 +1,5 @@
 #pragma once
-#include "def.h"
+#include "byte_order.h"
 #include "serialization.h"
 #include "float_conv.h"
 typedef float Lat;

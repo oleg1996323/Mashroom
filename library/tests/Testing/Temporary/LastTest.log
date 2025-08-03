@@ -1,0 +1,331 @@
+Start testing: Aug 04 02:15 MSK
+----------------------------------------------------------
+1/12 Testing: Serialization.SerializeInt
+1/12 Test: Serialization.SerializeInt
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeInt" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"Serialization.SerializeInt" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SerializeInt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SerializeInt
+[       OK ] Serialization.SerializeInt (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"Serialization.SerializeInt" end time: Aug 04 02:15 MSK
+"Serialization.SerializeInt" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/12 Testing: Serialization.SerializeFloatingPoint
+2/12 Test: Serialization.SerializeFloatingPoint
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeFloatingPoint" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"Serialization.SerializeFloatingPoint" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SerializeFloatingPoint
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SerializeFloatingPoint
+[       OK ] Serialization.SerializeFloatingPoint (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"Serialization.SerializeFloatingPoint" end time: Aug 04 02:15 MSK
+"Serialization.SerializeFloatingPoint" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/12 Testing: Serialization.SerializeTimePoint
+3/12 Test: Serialization.SerializeTimePoint
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeTimePoint" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"Serialization.SerializeTimePoint" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SerializeTimePoint
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SerializeTimePoint
+[       OK ] Serialization.SerializeTimePoint (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"Serialization.SerializeTimePoint" end time: Aug 04 02:15 MSK
+"Serialization.SerializeTimePoint" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/12 Testing: Serialization.SerializeDuration
+4/12 Test: Serialization.SerializeDuration
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeDuration" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"Serialization.SerializeDuration" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SerializeDuration
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SerializeDuration
+[       OK ] Serialization.SerializeDuration (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"Serialization.SerializeDuration" end time: Aug 04 02:15 MSK
+"Serialization.SerializeDuration" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/12 Testing: Serialization.SerializeUniquePtr
+5/12 Test: Serialization.SerializeUniquePtr
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeUniquePtr" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"Serialization.SerializeUniquePtr" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SerializeUniquePtr
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SerializeUniquePtr
+/home/oster/Mashroom/library/tests/serialization.cpp:158: Failure
+Value of: std::memcmp(&reversed_1,buf.data(),sizeof(reversed_1))==0
+  Actual: false
+Expected: true
+
+/home/oster/Mashroom/library/tests/serialization.cpp:162: Failure
+Expected equality of these values:
+  check_tp
+    Which is: (ptr = 0x3897f50, value = 1.1665795231290236e-302)
+  fp_unique_
+    Which is: (ptr = 0x3897090, value = 2)
+
+[  FAILED  ] Serialization.SerializeUniquePtr (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] Serialization.SerializeUniquePtr
+
+ 1 FAILED TEST
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Failed.
+"Serialization.SerializeUniquePtr" end time: Aug 04 02:15 MSK
+"Serialization.SerializeUniquePtr" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/12 Testing: SerializableItems.SerializeNetworkBytesOrder
+6/12 Test: SerializableItems.SerializeNetworkBytesOrder
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=SerializableItems.SerializeNetworkBytesOrder" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"SerializableItems.SerializeNetworkBytesOrder" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = SerializableItems.SerializeNetworkBytesOrder
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SerializableItems
+[ RUN      ] SerializableItems.SerializeNetworkBytesOrder
+[       OK ] SerializableItems.SerializeNetworkBytesOrder (1 ms)
+[----------] 1 test from SerializableItems (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SerializableItems.SerializeNetworkBytesOrder" end time: Aug 04 02:15 MSK
+"SerializableItems.SerializeNetworkBytesOrder" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/12 Testing: SerializableItems.SerializeNativeBytesOrder
+7/12 Test: SerializableItems.SerializeNativeBytesOrder
+Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=SerializableItems.SerializeNativeBytesOrder" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"SerializableItems.SerializeNativeBytesOrder" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = SerializableItems.SerializeNativeBytesOrder
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SerializableItems
+[ RUN      ] SerializableItems.SerializeNativeBytesOrder
+[       OK ] SerializableItems.SerializeNativeBytesOrder (1 ms)
+[----------] 1 test from SerializableItems (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SerializableItems.SerializeNativeBytesOrder" end time: Aug 04 02:15 MSK
+"SerializableItems.SerializeNativeBytesOrder" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/12 Testing: BytesTest.FloatToInteger
+8/12 Test: BytesTest.FloatToInteger
+Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.FloatToInteger" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"BytesTest.FloatToInteger" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = BytesTest.FloatToInteger
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BytesTest
+[ RUN      ] BytesTest.FloatToInteger
+[       OK ] BytesTest.FloatToInteger (0 ms)
+[----------] 1 test from BytesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BytesTest.FloatToInteger" end time: Aug 04 02:15 MSK
+"BytesTest.FloatToInteger" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/12 Testing: BytesTest.DoubleToLongInteger
+9/12 Test: BytesTest.DoubleToLongInteger
+Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.DoubleToLongInteger" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"BytesTest.DoubleToLongInteger" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = BytesTest.DoubleToLongInteger
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BytesTest
+[ RUN      ] BytesTest.DoubleToLongInteger
+[       OK ] BytesTest.DoubleToLongInteger (0 ms)
+[----------] 1 test from BytesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BytesTest.DoubleToLongInteger" end time: Aug 04 02:15 MSK
+"BytesTest.DoubleToLongInteger" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/12 Testing: BytesTest.IntegerToFloat
+10/12 Test: BytesTest.IntegerToFloat
+Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.IntegerToFloat" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"BytesTest.IntegerToFloat" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = BytesTest.IntegerToFloat
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BytesTest
+[ RUN      ] BytesTest.IntegerToFloat
+[       OK ] BytesTest.IntegerToFloat (0 ms)
+[----------] 1 test from BytesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BytesTest.IntegerToFloat" end time: Aug 04 02:15 MSK
+"BytesTest.IntegerToFloat" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/12 Testing: BytesTest.LongIntegerToDouble
+11/12 Test: BytesTest.LongIntegerToDouble
+Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.LongIntegerToDouble" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"BytesTest.LongIntegerToDouble" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = BytesTest.LongIntegerToDouble
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BytesTest
+[ RUN      ] BytesTest.LongIntegerToDouble
+[       OK ] BytesTest.LongIntegerToDouble (0 ms)
+[----------] 1 test from BytesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BytesTest.LongIntegerToDouble" end time: Aug 04 02:15 MSK
+"BytesTest.LongIntegerToDouble" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/12 Testing: BytesTest.DetectLittleEndian
+12/12 Test: BytesTest.DetectLittleEndian
+Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.DetectLittleEndian" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/library/tests/build
+"BytesTest.DetectLittleEndian" start time: Aug 04 02:15 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = BytesTest.DetectLittleEndian
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BytesTest
+[ RUN      ] BytesTest.DetectLittleEndian
+[       OK ] BytesTest.DetectLittleEndian (0 ms)
+[----------] 1 test from BytesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"BytesTest.DetectLittleEndian" end time: Aug 04 02:15 MSK
+"BytesTest.DetectLittleEndian" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 04 02:15 MSK

@@ -3,7 +3,7 @@
 #include <vector>
 #include <bit>
 #include "float_conv.h"
-#include "def.h"
+#include "byte_order.h"
 #include <chrono>
 #include <cstring>
 #include <expected>
@@ -162,19 +162,23 @@ namespace serialization{
                     }
                 }
                 else{
-                    if constexpr(NETWORK_ORDER)
+                    if constexpr(NETWORK_ORDER){
                         if(is_little_endian()){
-                            auto int_val = to_integer(val);
-                            int_val = std::byteswap(int_val);
-                            val = to_float(int_val);
+                            auto to_serialize_fp = to_float(std::byteswap(to_integer(val)));
+                            buf.insert(buf.end(),reinterpret_cast<const char*>(&to_serialize_fp),
+                            reinterpret_cast<const char*>(&to_serialize_fp)+sizeof(to_serialize_fp));
                         }
-                    const auto* begin = reinterpret_cast<const char*>(&val);
-                    buf.insert(buf.end(),begin,begin+sizeof(val));
+                        else buf.insert(buf.end(),reinterpret_cast<const char*>(&val),
+                             reinterpret_cast<const char*>(&val)+sizeof(val));
+                    }
+                    else
+                        buf.insert(buf.end(),reinterpret_cast<const char*>(&val),
+                        reinterpret_cast<const char*>(&val)+sizeof(val));
                 }
                 return SerializationEC::NONE;
             }
             else if constexpr (time_point_concept<T>){
-                int64_t time_count = std::chrono::duration_cast<std::chrono::seconds>(val.time_since_epoch()).count();
+                int64_t time_count = std::chrono::duration_cast<std::chrono::nanoseconds>(val.time_since_epoch()).count();
                 // if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
                 //     time_count = std::byteswap(time_count);
                 // const auto* begin = reinterpret_cast<const char*>(&time_count);
@@ -182,7 +186,7 @@ namespace serialization{
                 return serialize<NETWORK_ORDER>(time_count,buf);
             }
             else if constexpr (duration_concept<T>){
-                int64_t time_count = std::chrono::duration_cast<std::chrono::seconds>(val).count();
+                int64_t time_count = std::chrono::duration_cast<std::chrono::nanoseconds>(val).count();
                 // if constexpr (NETWORK_ORDER && sizeof(Rep) > 1 && is_little_endian())
                 //     time_count = std::byteswap(time_count);
                 // const auto* begin = reinterpret_cast<const char*>(&time_count);
@@ -265,7 +269,7 @@ namespace serialization{
                 int64_t IntVal = 0;
                 SerializationEC code = deserialize<NETWORK_ORDER>(IntVal,buf);
                 if(code==SerializationEC::NONE)
-                    to_deserialize = T(std::chrono::duration_cast<typename T::duration>(std::chrono::seconds(IntVal)));
+                    to_deserialize = T(std::chrono::duration_cast<typename T::duration>(std::chrono::nanoseconds(IntVal)));
                 return code;
             }
             else if constexpr (duration_concept<T>){
@@ -274,7 +278,7 @@ namespace serialization{
                 int64_t IntVal = 0;
                 SerializationEC code = deserialize<NETWORK_ORDER>(IntVal,buf);
                 if(code==SerializationEC::NONE)
-                    to_deserialize = std::chrono::duration_cast<T>(std::chrono::seconds(IntVal));
+                    to_deserialize = std::chrono::duration_cast<T>(std::chrono::nanoseconds(IntVal));
                 return code;
             }
             else if constexpr (smart_pointer_concept<T>){
@@ -319,7 +323,7 @@ namespace serialization{
             else if constexpr (duration_concept<T>)
                 return sizeof(val.count());
             else if constexpr (smart_pointer_concept<T>)
-                return sizeof(bool)+serial_size(typename T::element_type{});
+                return sizeof(bool)+(val?serial_size(typename T::element_type{}):0);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
             else if constexpr(pair_concept<T>)

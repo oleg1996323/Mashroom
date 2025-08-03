@@ -1,9 +1,10 @@
 #pragma once
 #include <filesystem>
+#include <string_view>
 
-constexpr const char* uc_filename = "config.json";
-constexpr const char* sc_filename = "server.json";
-constexpr const char* cli_history_filename = "clihist.txt";
+constexpr std::string_view uc_filename = std::string_view("config.json");
+constexpr std::string_view sc_filename = std::string_view("server.json");
+constexpr std::string_view cli_history_filename = std::string_view("clihist.txt");
 
 namespace sys{
     namespace fs = std::filesystem;

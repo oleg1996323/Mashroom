@@ -10,9 +10,9 @@
 namespace network{
     template<std::ranges::random_access_range... ARGS>
     // requires (std::is_same_v<std::decay_t<ARGS>,std::span<const char>> && ...)
-    ErrorCode send(Socket socket,const ARGS&... buffers) noexcept{
+    ErrorCode send(Socket socket,const std::ranges::random_access_range auto&... buffers) noexcept{
         ErrorCode err = ErrorCode::NONE;
-        auto send_sequentialy = [&](std::span<const char> buffer,int flags) -> ErrorCode
+        auto send_sequentialy = [&](auto&& buffer,int flags) -> ErrorCode
         {
             size_t sent = 0;
             if(buffer.size()==0)

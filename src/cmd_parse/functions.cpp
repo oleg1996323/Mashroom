@@ -3,9 +3,6 @@
 #include <iostream>
 #include "concepts.h"
 
-bool case_insensitive_char_compare(char ch1,char ch2) noexcept{
-    return std::toupper(ch1)==std::toupper(ch2);
-}
 
 namespace po = boost::program_options;
 
