@@ -1,8 +1,3 @@
---extract --center=European Cent
---extract --center=European Cent --grid=Cyl
---extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1
---extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
---exit
 --extract --center=European Cent --grid=Cyl --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
 --extract --center=European Cent --grid=Cyl no mod --inp=/home/oster/grib_files --outp=new-test1 --pos=lat40lon40
 --exit
@@ -98,3 +93,7 @@ clear
 --save
 --index --inp dir=~/cdsapi
 --save
+--index --inp dir=~/grib_files
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--save
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"

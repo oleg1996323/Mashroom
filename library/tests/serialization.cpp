@@ -155,11 +155,11 @@ TEST(Serialization, SerializeUniquePtr){
     ASSERT_EQ(serialize<true>(fp_unique_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(fp_unique_));
     auto reversed_1=std::byteswap(to_integer(*fp_unique_.get()));
-    EXPECT_TRUE(std::memcmp(&reversed_1,buf.data(),sizeof(reversed_1))==0);
+    EXPECT_TRUE(std::memcmp(&reversed_1,buf.data()+min_serial_size(fp_unique_),sizeof(reversed_1))==0);
 
     std::unique_ptr<double> check_tp{};
     ASSERT_EQ(deserialize<true>(check_tp,std::span(buf)),serialization::SerializationEC::NONE);
-    EXPECT_EQ(check_tp,fp_unique_);
+    EXPECT_EQ(*check_tp.get(),*fp_unique_.get());
 
     fp_unique_.reset();
     buf.clear();
@@ -172,153 +172,234 @@ TEST(Serialization, SerializeUniquePtr){
     EXPECT_FALSE(check_tp);
 }
 
-
-TEST_F(SerializableItems,SerializeNetworkBytesOrder){
+TEST(Serialization, SerializeSharedPtr){
     using namespace serialization;
     std::vector<char> buf;
-    /*network bytes-order serialization*/
-    ASSERT_EQ(serialize<true>(fp_val_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(fp_val_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(integer_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(integer_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(dur_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(fp_unique_,buf),serialization::SerializationEC::NONE);
+    std::shared_ptr<double> fp_shared_ = std::make_shared<double>(std::rand()/std::rand());
     ASSERT_EQ(serialize<true>(fp_shared_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(pair_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(vector_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(list_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(deque_tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(set_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(uset_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(map_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(umap_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(fp_val_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(fp_val_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(integer_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(integer_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(dur_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(fp_unique_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(fp_shared_));
+    auto reversed_1=std::byteswap(to_integer(*fp_shared_.get()));
+    EXPECT_TRUE(std::memcmp(&reversed_1,buf.data()+min_serial_size(fp_shared_),sizeof(reversed_1))==0);
+
+    std::shared_ptr<double> check_fp_shared{};
+    ASSERT_EQ(deserialize<true>(check_fp_shared,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(*check_fp_shared.get(),*fp_shared_.get());
+
+    fp_shared_.reset();
+    buf.clear();
     ASSERT_EQ(serialize<true>(fp_shared_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(pair_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(vector_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(list_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(deque_tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(set_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(uset_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(map_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<true>(umap_int_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(fp_shared_));
 
-    CheckValues values;
-
-    /*network bytes-order deserialization*/
-    ASSERT_EQ(deserialize<true>(values.fp_val_1,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_val_2,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.integer_1,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.integer_2,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.tp_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.dur_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_unique_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_shared_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.pair_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.vector_pairs_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.list_pairs_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.deque_tp_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.set_int_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.uset_int_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.map_int_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.umap_int_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_val_1,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_val_2,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.integer_1,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.integer_2,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.tp_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.dur_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_unique_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.fp_shared_,std::span(buf).subspan(serial_size(values.fp_val_1))),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.pair_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.vector_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.list_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.deque_tp_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.set_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.uset_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.map_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<true>(values.umap_int_,std::span(buf)),serialization::SerializationEC::NONE);
+    check_fp_shared.reset();
+    ASSERT_EQ(deserialize<true>(check_fp_shared,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_fp_shared,fp_shared_);
+    EXPECT_FALSE(check_fp_shared);
 }
 
-TEST_F(SerializableItems,SerializeNativeBytesOrder){
+TEST(Serialization, SerializePair){
     using namespace serialization;
     std::vector<char> buf;
-    /*native bytes-order serialization*/
-    ASSERT_EQ(serialize<false>(fp_val_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_val_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(integer_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(integer_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(dur_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_unique_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_shared_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(pair_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(vector_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(list_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(deque_tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(set_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(uset_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(map_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(umap_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_val_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_val_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(integer_1,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(integer_2,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(dur_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_unique_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(fp_shared_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(pair_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(vector_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(list_pairs_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(deque_tp_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(set_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(uset_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(map_int_,buf),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialize<false>(umap_int_,buf),serialization::SerializationEC::NONE);
+    std::pair<double,int> pair_ = std::make_pair(std::rand()/std::rand(),std::rand());
+    ASSERT_EQ(serialize<true>(pair_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(pair_));
+    auto reversed_1=std::make_pair(std::byteswap(to_integer(pair_.first)),std::byteswap(pair_.second));
+    EXPECT_TRUE(std::memcmp(&reversed_1,buf.data(),sizeof(reversed_1))==0);
 
-    CheckValues values;
+    std::pair<double,int> check_pair{};
+    ASSERT_EQ(deserialize<true>(check_pair,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_pair,pair_);
+}
 
-    /*network bytes-order deserialization*/
-    ASSERT_EQ(deserialize<false>(values.fp_val_1,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_val_2,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.integer_1,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.integer_2,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.tp_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.dur_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_unique_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_shared_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.pair_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.vector_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.list_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.deque_tp_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.set_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.uset_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.map_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.umap_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_val_1,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_val_2,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.integer_1,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.integer_2,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.tp_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.dur_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_unique_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.fp_shared_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.pair_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.vector_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.list_pairs_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.deque_tp_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.set_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.uset_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.map_int_,std::span(buf)),serialization::SerializationEC::NONE);
-    ASSERT_EQ(deserialize<false>(values.umap_int_,std::span(buf)),serialization::SerializationEC::NONE);
+TEST(Serialization, SerializeOptional){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::optional<double> opt_ = std::make_optional(std::rand()/std::rand());
+    ASSERT_EQ(serialize<true>(opt_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(opt_));
+    auto reversed_1=std::make_optional(std::byteswap(to_integer(opt_.value())));
+    EXPECT_TRUE(std::memcmp(&reversed_1.value(),buf.data()+min_serial_size(reversed_1),sizeof(reversed_1.value()))==0);
+
+    std::optional<double> check_opt{};
+    ASSERT_EQ(deserialize<true>(check_opt,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_opt,opt_);
+
+    opt_.reset();
+    buf.clear();
+    ASSERT_EQ(serialize<true>(opt_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(opt_));
+
+    check_opt.reset();
+    ASSERT_EQ(deserialize<true>(check_opt,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_opt,opt_);
+    EXPECT_FALSE(check_opt);
+}
+
+TEST(Serialization, SerializeList){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::list<std::pair<int,int>> list_;
+    for(int i=0;i<50;++i)
+        list_.push_back(std::make_pair(std::rand(),std::rand()));
+    
+    ASSERT_EQ(serialize<true>(list_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(list_));
+    std::vector<std::pair<int,int>> reversed_1;
+    reversed_1.reserve(list_.size());
+    for(auto& [f,s]:list_)
+        reversed_1.push_back(std::make_pair(std::byteswap(f),std::byteswap(s)));
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::list<std::pair<int,int>> check_list{};
+    ASSERT_EQ(deserialize<true>(check_list,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_list,list_);
+}
+
+TEST(Serialization, SerializeVector){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::vector<std::pair<int,int>> vector_;
+    for(int i=0;i<50;++i)
+        vector_.push_back(std::make_pair(std::rand(),std::rand()));
+    
+    ASSERT_EQ(serialize<true>(vector_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(vector_));
+    std::vector<std::pair<int,int>> reversed_1;
+    reversed_1.reserve(vector_.size());
+    for(auto& [f,s]:vector_)
+        reversed_1.push_back(std::make_pair(std::byteswap(f),std::byteswap(s)));
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::vector<std::pair<int,int>> check_vector{};
+    ASSERT_EQ(deserialize<true>(check_vector,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_vector,vector_);
+}
+
+TEST(Serialization, SerializeDeque){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::deque<std::pair<int,int>> deque_;
+    for(int i=0;i<50;++i)
+        deque_.push_back(std::make_pair(std::rand(),std::rand()));
+    
+    ASSERT_EQ(serialize<true>(deque_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(deque_));
+    std::vector<std::pair<int,int>> reversed_1;
+    reversed_1.reserve(deque_.size());
+    for(auto& [f,s]:deque_)
+        reversed_1.push_back(std::make_pair(std::byteswap(f),std::byteswap(s)));
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::deque<std::pair<int,int>> check_deque{};
+    ASSERT_EQ(deserialize<true>(check_deque,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_deque,deque_);
+}
+
+TEST(Serialization, SerializeSet){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::set<double> set_;
+    for(int i=0;i<50;++i){
+        auto inserted = double(std::rand())/std::rand();
+        set_.insert(inserted);
+    }
+    
+    ASSERT_EQ(serialize<true>(set_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(set_));
+    std::vector<double> reversed_1;
+    reversed_1.reserve(set_.size());
+    for(auto& val:set_){
+        //if not use to_float the double will contains only the whole part
+        reversed_1.push_back(to_float(std::byteswap(to_integer(val))));
+    }
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::set<double> check_set{};
+    ASSERT_EQ(deserialize<true>(check_set,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_set,set_);
+}
+
+TEST(Serialization, SerializeUnorderedSet){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::unordered_set<double> uset_;
+    for(int i=0;i<50;++i){
+        auto inserted = double(std::rand())/std::rand();
+        uset_.insert(inserted);
+    }
+    
+    ASSERT_EQ(serialize<true>(uset_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(uset_));
+    std::vector<double> reversed_1;
+    reversed_1.reserve(uset_.size());
+    for(auto& val:uset_){
+        //if not use to_float the double will contains only the whole part
+        reversed_1.push_back(to_float(std::byteswap(to_integer(val))));
+    }
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::unordered_set<double> check_uset{};
+    ASSERT_EQ(deserialize<true>(check_uset,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_uset,uset_);
+}
+
+TEST(Serialization, SerializeMap){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::map<double,double> map_;
+    for(int i=0;i<50;++i){
+        auto key = double(std::rand())/std::rand();
+        auto val = double(std::rand())/std::rand();
+        map_.emplace(key,val);
+    }
+    
+    ASSERT_EQ(serialize<true>(map_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(map_));
+    std::vector<decltype(map_)::value_type> reversed_1;
+    reversed_1.reserve(map_.size());
+    for(auto& [key,val]:map_){
+        //if not use to_float the double will contains only the 
+        reversed_1.push_back(std::make_pair(to_float(std::byteswap(to_integer(key))),to_float(std::byteswap(to_integer(val)))));
+    }
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::map<double,double> check_map{};
+    ASSERT_EQ(deserialize<true>(check_map,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_map,map_);
+}
+
+TEST(Serialization, SerializeUMap){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::unordered_map<double,double> umap_;
+    for(int i=0;i<5;++i){
+        auto key = double(std::rand())/std::rand();
+        auto val = double(std::rand())/std::rand();
+        umap_.emplace(key,val);
+    }
+    
+    ASSERT_EQ(serialize<true>(umap_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(umap_));
+    std::vector<decltype(umap_)::value_type> reversed_1;
+    reversed_1.reserve(umap_.size());
+    for(auto& [key,val]:umap_)
+        //if not use to_float the double will contains only the whole part
+        reversed_1.push_back(std::make_pair(to_float(std::byteswap(to_integer(key))),to_float(std::byteswap(to_integer(val)))));
+    EXPECT_EQ(std::memcmp(reversed_1.data(),buf.data()+serial_size(reversed_1.size()),sizeof(reversed_1.size())),0);
+    
+    EXPECT_EQ(serial_size(reversed_1),buf.size());
+
+    std::unordered_map<double,double> check_umap{};
+    ASSERT_EQ(deserialize<true>(check_umap,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_umap,umap_);
 }
 
 int main(int argc, char* argv[]){

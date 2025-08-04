@@ -11,8 +11,8 @@ target_link_libraries(serialization_test GTest::gtest Osterlib::serial)
 add_executable(bytes_test bytes.cpp)
 target_link_libraries(bytes_test GTest::gtest Osterlib::bytes)
 
-gtest_discover_tests(serialization_test)
 gtest_discover_tests(bytes_test)
+gtest_discover_tests(serialization_test)
 # gtest_discover_tests(serialization_test 
 #                         EXTRA_ARGS serialization_test 
 #                         XML_OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/tests/results

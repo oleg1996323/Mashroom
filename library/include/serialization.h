@@ -162,18 +162,7 @@ namespace serialization{
                     }
                 }
                 else{
-                    if constexpr(NETWORK_ORDER){
-                        if(is_little_endian()){
-                            auto to_serialize_fp = to_float(std::byteswap(to_integer(val)));
-                            buf.insert(buf.end(),reinterpret_cast<const char*>(&to_serialize_fp),
-                            reinterpret_cast<const char*>(&to_serialize_fp)+sizeof(to_serialize_fp));
-                        }
-                        else buf.insert(buf.end(),reinterpret_cast<const char*>(&val),
-                             reinterpret_cast<const char*>(&val)+sizeof(val));
-                    }
-                    else
-                        buf.insert(buf.end(),reinterpret_cast<const char*>(&val),
-                        reinterpret_cast<const char*>(&val)+sizeof(val));
+                    return serialize<NETWORK_ORDER>(to_integer(val),buf);
                 }
                 return SerializationEC::NONE;
             }
@@ -252,15 +241,11 @@ namespace serialization{
                 else{
                     using IntType = ::detail::to_integer_type<sizeof(std::decay_t<T>)>;
                     IntType int_val;
-                    if (std::is_constant_evaluated())
-                        std::copy_n(buf.data(), sizeof(IntType), reinterpret_cast<char*>(&int_val));
-                    else
-                        std::memcpy(&int_val,buf.data(),sizeof(IntType));
-                    if constexpr(NETWORK_ORDER)
-                        if(is_little_endian())
-                            int_val = std::byteswap(int_val);
-                    to_deserialize = to_float(int_val);
-                    return SerializationEC::NONE;
+                    if(auto code = deserialize<NETWORK_ORDER>(int_val,buf);code==SerializationEC::NONE){
+                        to_deserialize = to_float(int_val);
+                        return SerializationEC::NONE;
+                    }
+                    else return code;
                 }
             }
             else if constexpr (time_point_concept<T>){
@@ -293,7 +278,7 @@ namespace serialization{
                             to_deserialize = std::make_unique<typename T::element_type>();
                         else
                             to_deserialize = std::make_shared<typename T::element_type>();
-                        return  deserialize<NETWORK_ORDER>(*to_deserialize,buf);                        
+                        return  deserialize<NETWORK_ORDER>(*to_deserialize,std::span(buf).subspan(sizeof(has_value)));                        
                     }
                     else {
                         to_deserialize.reset();
@@ -327,7 +312,7 @@ namespace serialization{
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
             else if constexpr(pair_concept<T>)
-                return serial_size(val.first)+serial_size(val.sec);
+                return serial_size(val.first)+serial_size(val.second);
             else {
                 static_assert(false,"serial_size unspecified operator()");
                 return 0;
@@ -442,23 +427,20 @@ namespace serialization{
         // static_assert(max_serial_size_concept<std::decay_t<decltype(val)>>,"Expected specification of max_serial_size function");
         // static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal minimal serial size of object and its fields' summary minimal serial size");
         // static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal maximal serial size of object and its fields' summary maximal serial size");
-        size_t offset = 0;
         SerializationEC result_code = SerializationEC::NONE;
         if (buf.size() < min_serial_size(val))
             return SerializationEC::BUFFER_SIZE_LESSER;
 
         auto deserialize_field = [&](auto& field) ->SerializationEC{
-            if (offset >= buf.size()) {
+            if (buf.size() < min_serial_size(field)) {
                 return SerializationEC::BUFFER_OVERFLOW;
             }
-            auto subspan = buf.subspan(offset);
-            SerializationEC code = deserialize<NETWORK_ORDER>(field,subspan);
             
+            SerializationEC code = deserialize<NETWORK_ORDER>(field,buf);
+            buf = buf.subspan(serial_size(field));
             if (code!=SerializationEC::NONE) {
                 return code;
             }
-
-            offset += serial_size(field);
             return SerializationEC::NONE;
         };
         (((result_code = deserialize_field(args))==SerializationEC::NONE) && ...);
@@ -594,7 +576,7 @@ namespace serialization{
             if(buf.size()<min_serial_size(to_deserialize))
                 return SerializationEC::BUFFER_SIZE_LESSER;
             bool has_value = false;
-            SerializationEC code = deserialize<NETWORK_ORDER>(has_value,buf.subspan(0,serial_size(has_value)));
+            SerializationEC code = deserialize<NETWORK_ORDER>(has_value,buf);
             if(code!=SerializationEC::NONE)
                 return code;
             if(!has_value)
@@ -602,9 +584,10 @@ namespace serialization{
             if(buf.size()<max_serial_size(to_deserialize))
                 return SerializationEC::BUFFER_SIZE_LESSER;
             T value;
-            code = deserialize<NETWORK_ORDER>(value,buf.subspan(serial_size(has_value),serial_size(value)));
+            code = deserialize<NETWORK_ORDER>(value,buf.subspan(serial_size(has_value)));
             if(code!=SerializationEC::NONE)
                 return code;
+            to_deserialize.emplace(std::move(value));
             return SerializationEC::NONE;
         }
     };
@@ -658,13 +641,23 @@ namespace serialization{
             if(code!=SerializationEC::NONE)
                 return code;
             
+            buf = buf.subspan(serial_size(range_sz));
             for (size_t i = 0; i < range_sz; ++i) {
-                std::ranges::range_value_t<T> item{};
-                code = deserialize<NETWORK_ORDER>(item, buf);
-                if (code != SerializationEC::NONE) return code;
-                if constexpr(is_associative_container_v<T>)
+                
+                if constexpr(is_associative_container_v<T>){
+                    std::pair<typename T::key_type,typename T::mapped_type> item{};
+                    code = deserialize<NETWORK_ORDER>(item, buf);
+                    if (code != SerializationEC::NONE) return code;
+                    buf = buf.subspan(serial_size(item));                    
                     to_deserialize.insert(std::move(item));
-                else to_deserialize.insert(to_deserialize.end(),std::move(item));
+                }
+                else {
+                    std::ranges::range_value_t<T> item{};
+                    code = deserialize<NETWORK_ORDER>(item, buf);
+                    if (code != SerializationEC::NONE) return code;
+                    buf = buf.subspan(serial_size(item));
+                    to_deserialize.insert(to_deserialize.end(),std::move(item));
+                }
             }
             return SerializationEC::NONE;
         }

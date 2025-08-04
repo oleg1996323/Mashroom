@@ -1,51 +1,35 @@
 {
-  "tests": 7,
+  "tests": 5,
   "name": "AllTests",
   "testsuites": [
     {
-      "name": "Serialization",
+      "name": "BytesTest",
       "tests": 5,
       "testsuite": [
         {
-          "name": "SerializeInt",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 79
+          "name": "FloatToInteger",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/bytes.cpp",
+          "line": 9
         },
         {
-          "name": "SerializeFloatingPoint",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 102
+          "name": "DoubleToLongInteger",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/bytes.cpp",
+          "line": 16
         },
         {
-          "name": "SerializeTimePoint",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 123
+          "name": "IntegerToFloat",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/bytes.cpp",
+          "line": 23
         },
         {
-          "name": "SerializeDuration",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 137
+          "name": "LongIntegerToDouble",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/bytes.cpp",
+          "line": 30
         },
         {
-          "name": "SerializeUniquePtr",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 151
-        }
-      ]
-    },
-    {
-      "name": "SerializableItems",
-      "tests": 2,
-      "testsuite": [
-        {
-          "name": "SerializeNetworkBytesOrder",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 176
-        },
-        {
-          "name": "SerializeNativeBytesOrder",
-          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
-          "line": 250
+          "name": "DetectLittleEndian",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/bytes.cpp",
+          "line": 37
         }
       ]
     }

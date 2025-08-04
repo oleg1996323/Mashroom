@@ -1,14 +1,23 @@
-Serialization.SerializeInt 1 0.00678319
-Serialization.SerializeFloatingPoint 1 0.00651272
-Serialization.SerializeTimePoint 1 0.00712561
-Serialization.SerializeDuration 1 0.00666196
-Serialization.SerializeUniquePtr 0 0
+Serialization.SerializeInt 3 0.00329972
+Serialization.SerializeFloatingPoint 3 0.00331326
+Serialization.SerializeTimePoint 3 0.00328388
+Serialization.SerializeDuration 3 0.00336098
+Serialization.SerializeUniquePtr 2 0.00491135
 SerializableItems.SerializeNetworkBytesOrder 1 0.00869069
 SerializableItems.SerializeNativeBytesOrder 1 0.00841672
-BytesTest.FloatToInteger 1 0.00659523
-BytesTest.DoubleToLongInteger 1 0.00606811
-BytesTest.IntegerToFloat 1 0.00657701
-BytesTest.LongIntegerToDouble 1 0.00617902
-BytesTest.DetectLittleEndian 1 0.00639242
+BytesTest.FloatToInteger 3 0.00301
+BytesTest.DoubleToLongInteger 3 0.00299781
+BytesTest.IntegerToFloat 3 0.00309054
+BytesTest.LongIntegerToDouble 3 0.00302674
+BytesTest.DetectLittleEndian 3 0.0029856
+Serialization.SerializeSharedPtr 2 0.00505861
+Serialization.SerializePair 2 0.0048637
+Serialization.SerializeOptional 2 0.00529971
+Serialization.SerializeList 2 0.00517277
+Serialization.SerializeVector 2 0.00518693
+Serialization.SerializeDeque 2 0.00620752
+Serialization.SerializeSet 2 0.00491338
+Serialization.SerializeUnorderedSet 2 0.00507595
+Serialization.SerializeMap 2 0.0050459
+Serialization.SerializeUMap 2 0.00491009
 ---
-Serialization.SerializeUniquePtr
