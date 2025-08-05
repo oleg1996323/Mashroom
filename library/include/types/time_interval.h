@@ -90,35 +90,35 @@ namespace serialization{
 
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,TimePeriod>{
-        auto operator()(const TimePeriod& val,std::vector<char>& buf) noexcept{
+        auto operator()(const TimePeriod& val,std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(val,buf,val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,TimePeriod>{
-        auto operator()(TimePeriod& val,std::span<const char> buf) noexcept{
+        auto operator()(TimePeriod& val,std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<>
     struct Serial_size<TimePeriod>{
-        size_t operator()(const TimePeriod& val) noexcept{
+        size_t operator()(const TimePeriod& val) const noexcept{
             return serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
 
     template<>
     struct Min_serial_size<TimePeriod>{
-        constexpr size_t operator()(const TimePeriod& val) noexcept{
+        constexpr size_t operator()(const TimePeriod& val) const noexcept{
             return min_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };
      
     template<>
     struct Max_serial_size<TimePeriod>{
-        constexpr size_t operator()(const TimePeriod& val) noexcept{
+        constexpr size_t operator()(const TimePeriod& val) const noexcept{
             return max_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
         }
     };

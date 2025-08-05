@@ -28,6 +28,17 @@ constexpr std::array<const char*,2> data_extensions ={
 };
 
 __Data__::FORMAT extension_to_type(const char* extension) noexcept;
+constexpr const char* format_name(__Data__::FORMAT fmt) noexcept{
+    switch(fmt){
+        case __Data__::FORMAT::GRIB:
+            return "Grib";
+        case __Data__::FORMAT::HGT:
+            return "HGT";
+        case __Data__::FORMAT::NETCDF:
+            return "NetCDF";
+        case __Data__::FORMAT::UNDEF:
+            return "Undefined";
+    }
+}
 const char* type_to_extension(__Data__::FORMAT type_extension) noexcept;
-const char* data_type_to_text(__Data__::FORMAT type) noexcept;
 std::string filename_by_type(__Data__::FORMAT type);

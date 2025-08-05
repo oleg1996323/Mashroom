@@ -21,7 +21,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ProgressBase>{
         using type = ProgressBase;
-        SerializationEC operator()(const type& progress, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& progress, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(progress,buf,progress.value_,progress.server_process_);
         }
     };
@@ -29,7 +29,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ProgressBase>{
         using type = ProgressBase;
-        SerializationEC operator()(type& progress, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& progress, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(progress,buf,progress.value_,progress.server_process_);
         }
     };
@@ -37,24 +37,24 @@ namespace serialization{
     template<>
     struct Serial_size<ProgressBase>{
         using type = ProgressBase;
-        size_t operator()(const type& progress) noexcept{
-            return serial_size(progress.value_,progress.value_,progress.server_process_);
+        size_t operator()(const type& progress) const noexcept{
+            return serial_size(progress.value_,progress.server_process_);
         }
     };
 
     template<>
     struct Min_serial_size<ProgressBase>{
         using type = ProgressBase;
-        size_t operator()(const type& progress) noexcept{
-            return min_serial_size(progress.value_,progress.value_,progress.server_process_);
+        size_t operator()(const type& progress) const noexcept{
+            return min_serial_size(progress.value_,progress.server_process_);
         }
     };
 
     template<>
     struct Max_serial_size<ProgressBase>{
         using type = ProgressBase;
-        size_t operator()(const type& progress) noexcept{
-            return max_serial_size(progress.value_,progress.value_,progress.server_process_);
+        size_t operator()(const type& progress) const noexcept{
+            return max_serial_size(progress.value_,progress.server_process_);
         }
     };
 }

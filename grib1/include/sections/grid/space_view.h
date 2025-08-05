@@ -22,7 +22,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }
@@ -31,7 +31,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }
@@ -40,7 +40,7 @@ namespace serialization{
     template<>
     struct Serial_size<grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }
@@ -49,7 +49,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.nx,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }
@@ -58,7 +58,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.nx,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }

@@ -29,35 +29,35 @@ namespace serialization
 {   
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractMeteoGrib>{
-        auto operator()(const ExtractMeteoGrib& val,std::vector<char>& buf) noexcept{
+        auto operator()(const ExtractMeteoGrib& val,std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(val,buf,val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractMeteoGrib>{
-        auto operator()(ExtractMeteoGrib& val,std::span<const char> buf) noexcept{
+        auto operator()(ExtractMeteoGrib& val,std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Serial_size<ExtractMeteoGrib>{
-        auto operator()(const ExtractMeteoGrib& val) noexcept{
+        auto operator()(const ExtractMeteoGrib& val) const noexcept{
             return serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Min_serial_size<ExtractMeteoGrib>{
-        constexpr auto operator()(const ExtractMeteoGrib& val) noexcept{
+        constexpr auto operator()(const ExtractMeteoGrib& val) const noexcept{
             return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Max_serial_size<ExtractMeteoGrib>{
-        constexpr auto operator()(const ExtractMeteoGrib& val) noexcept{
+        constexpr auto operator()(const ExtractMeteoGrib& val) const noexcept{
             return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
@@ -70,7 +70,7 @@ namespace serialization
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractForm>{
         using type = ExtractForm;
-        auto operator()(const type& val,std::vector<char>& buf) noexcept{
+        auto operator()(const type& val,std::vector<char>& buf) const noexcept{
             switch(((int)val.index())-1){
                 case 1:
                     return serialize<NETWORK_ORDER>(std::get<std::variant_alternative_t<1,ExtractForm>>(val),buf);
@@ -83,7 +83,7 @@ namespace serialization
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractForm>{
         using type = ExtractForm;
-        auto operator()(type& val,std::span<const char> buf) noexcept{
+        auto operator()(type& val,std::span<const char> buf) const noexcept{
             switch(((int)val.index())-1){
                 case 1:
                     return deserialize<NETWORK_ORDER>(std::get<std::variant_alternative_t<1,ExtractForm>>(val),buf);
@@ -96,7 +96,7 @@ namespace serialization
     template<>
     struct Serial_size<ExtractForm>{
         using type = ExtractForm;
-        auto operator()(const type& val) noexcept{
+        auto operator()(const type& val) const noexcept{
             switch(val.index()){
                 case 1:
                     return serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
@@ -109,7 +109,7 @@ namespace serialization
     template<>
     struct Min_serial_size<ExtractForm>{
         using type = ExtractForm;
-        constexpr auto operator()(const type& val) noexcept{
+        constexpr auto operator()(const type& val) const noexcept{
             switch(val.index()){
                 case 1:
                     return min_serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
@@ -122,7 +122,7 @@ namespace serialization
     template<>
     struct Max_serial_size<ExtractForm>{
         using type = ExtractForm;
-        constexpr auto operator()(const type& val) noexcept{
+        constexpr auto operator()(const type& val) const noexcept{
             switch(val.index()){
                 case 1:
                     return max_serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
@@ -154,7 +154,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER,ExtractForm>(msg,buf);
         }
     };
@@ -162,7 +162,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER,ExtractForm>(msg,buf);
         }
     };
@@ -170,7 +170,7 @@ namespace serialization{
     template<>
     struct Serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size<ExtractForm>(msg);
         }
     };
@@ -178,7 +178,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size<ExtractForm>(msg);
         }
     };
@@ -186,7 +186,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size<ExtractForm>(msg);
         }
     };

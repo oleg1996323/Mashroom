@@ -457,7 +457,7 @@ namespace serialization{
 	template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ScanMode>{
         using type = ScanMode;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -465,21 +465,21 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ScanMode>{
         using type = ScanMode;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
 	template<>
     struct Serial_size<ScanMode>{
         using type = ScanMode;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
 	template<>
     struct Min_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -487,7 +487,7 @@ namespace serialization{
 	template<>
     struct Max_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -495,7 +495,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };
@@ -503,28 +503,28 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };
 	template<>
     struct Serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };
 	template<>
     struct Min_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };
 	template<>
     struct Max_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };

@@ -18,7 +18,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return SerializationEC::NONE;
         }
     };
@@ -26,7 +26,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return SerializationEC::NONE;
         }
     };
@@ -34,7 +34,7 @@ namespace serialization{
     template<>
     struct Serial_size<MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -42,7 +42,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -50,7 +50,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };

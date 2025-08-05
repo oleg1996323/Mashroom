@@ -82,7 +82,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };
@@ -90,7 +90,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };
@@ -98,7 +98,7 @@ namespace serialization{
     template<>
     struct Serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };
@@ -106,7 +106,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };
@@ -114,7 +114,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };

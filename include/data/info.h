@@ -56,11 +56,11 @@ class GribDataInfo{
         else
             info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(index_info));
     }
-    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
-    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) const noexcept;
+    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) const noexcept;
     ErrorCodeData error() const;
     const data_t& data() const;
-    void swap(GribDataInfo& other) noexcept;
+    void swap(GribDataInfo& other) const noexcept;
     //void read(const fs::path& path);
     //void write(const fs::path& dir);
     SublimedGribDataInfo sublime();
@@ -154,7 +154,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             SerializationEC err = SerializationEC::NONE;
             auto type_enum = __Data__::FORMAT::GRIB;
             serialize<NETWORK_ORDER>(type_enum,buf);
@@ -184,7 +184,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             SerializationEC err=SerializationEC::NONE;
             auto enum_type = __Data__::FORMAT::GRIB;
             err = deserialize<NETWORK_ORDER>(enum_type,buf);
@@ -197,7 +197,7 @@ namespace serialization{
     template<>
     struct Serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             size_t info_sz = 0;
             auto existing_paths = std::ranges::copy_if_result(msg.info_,[&info_sz](const auto& pair){
                                         const auto& pathstore = std::get<0>(pair);
@@ -215,7 +215,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };
@@ -223,7 +223,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };

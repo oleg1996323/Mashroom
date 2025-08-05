@@ -33,7 +33,6 @@ class Mashroom{
      */
     network::ClientsHandler clients_;
     fs::path data_dir_;
-    std::fstream dat_file;
     void __read_initial_data_file__();
     void __write_initial_data_file__();
     fs::path __filename__() const{
@@ -53,7 +52,7 @@ class Mashroom{
         __read_initial_data_file__();
     }
     Mashroom(Mashroom&& other):data_(std::move(other.data_)),data_files_(std::move(other.data_files_)),
-        data_dir_(std::move(other.data_dir_)),dat_file(std::move(other.dat_file)){}
+        data_dir_(std::move(other.data_dir_)){}
     ~Mashroom(){
         save();
     }

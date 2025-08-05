@@ -53,7 +53,7 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     std::ofstream file(save_file,std::ios::binary);
     SerializationEC err = serialize_to_file(grib_.grib_data_,file);
     if(err==SerializationEC::NONE)
-        files_.insert(save_file);
+        files_[Data::FORMAT::GRIB]=save_file;
     else ErrorPrint::print_error(ErrorCode::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
     file.close();
 }

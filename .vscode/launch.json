@@ -13,7 +13,7 @@
         "cwd": "${cwd}",
         "externalConsole": false,
         "MIMode": "gdb",
-        "miDebuggerPath": "/home/oster/binutils-gdb/gdb-install/bin/gdb",
+        "miDebuggerPath": "/home/oster/binutils-gdb/install/bin/gdb",
         "environment": [
             {
                 "name": "LD_LIBRARY_PATH",

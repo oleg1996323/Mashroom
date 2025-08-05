@@ -92,7 +92,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }
@@ -101,7 +101,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }
@@ -110,7 +110,7 @@ namespace serialization{
     template<>
     struct Serial_size<grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }
@@ -119,7 +119,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }
@@ -128,7 +128,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }

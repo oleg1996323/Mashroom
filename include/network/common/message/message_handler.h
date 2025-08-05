@@ -218,7 +218,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,Side S>
     struct Serialize<NETWORK_ORDER,MessageHandler<S>>{
         using type = MessageHandler<S>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             auto visitor = [&buf](const auto& arg){
                 static_assert(serialization::serialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
@@ -233,7 +233,7 @@ namespace serialization{
     template<bool NETWORK_ORDER, Side S>
     struct Deserialize<NETWORK_ORDER,MessageHandler<S>>{
         using type = MessageHandler<S>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             msg.clear();
             Client_MsgT::type T{};
             if(buf.size()<min_serial_size(MessageBase<(Client_MsgT::type)0>{}))
@@ -264,7 +264,7 @@ namespace serialization{
     template<Side S>
     struct Serial_size<MessageHandler<S>>{
         using type = MessageHandler<Side::CLIENT>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             auto visitor = [&](const auto& arg)->size_t
             {
                 static_assert(serialization::serial_size_concept<std::decay_t<decltype(arg)>>);
@@ -278,7 +278,7 @@ namespace serialization{
     template<Side S>
     struct Min_serial_size<MessageHandler<S>>{
         using type = MessageHandler<Side::CLIENT>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             auto visitor = [&](const auto& arg)->size_t
             {
                 static_assert(serialization::min_serial_size_concept<std::decay_t<decltype(arg)>>);
@@ -292,7 +292,7 @@ namespace serialization{
     template<Side S>
     struct Max_serial_size<MessageHandler<S>>{
         using type = MessageHandler<S>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             auto visitor = [&](const auto& arg)->size_t
             {
                 static_assert(serialization::max_serial_size_concept<std::decay_t<decltype(arg)>>);

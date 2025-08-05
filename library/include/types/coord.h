@@ -30,32 +30,32 @@ namespace serialization{
 
 template<bool NETWORK_ORDER>
 struct Serialize<NETWORK_ORDER,Coord>{
-    SerializationEC operator()(const Coord& pos, std::vector<char>& buf) noexcept{
+    SerializationEC operator()(const Coord& pos, std::vector<char>& buf) const noexcept{
         return serialize<NETWORK_ORDER>(pos,buf,pos.lat_,pos.lon_);
     }
 };
 
 template<bool NETWORK_ORDER>
 struct Deserialize<NETWORK_ORDER,Coord>{
-    SerializationEC operator()(Coord& pos,std::span<const char> buf) noexcept{
+    SerializationEC operator()(Coord& pos,std::span<const char> buf) const noexcept{
         return deserialize<NETWORK_ORDER>(pos,buf,pos.lat_,pos.lon_);
     }
 };
 template<>
 struct Serial_size<Coord>{
-    static constexpr size_t operator()(const Coord& val) noexcept{
+    constexpr size_t operator()(const Coord& val) const noexcept{
         return serial_size(val.lat_,val.lon_);
     }
 };
 template<>
 struct Min_serial_size<Coord>{
-    static constexpr size_t operator()(const Coord& val) noexcept{
+    constexpr size_t operator()(const Coord& val) const noexcept{
         return sizeof(val.lat_)+sizeof(val.lon_);
     }
 };
 template<>
 struct Max_serial_size<Coord>{
-    static constexpr size_t operator()(const Coord& val) noexcept{
+    constexpr size_t operator()(const Coord& val) const noexcept{
         return sizeof(val.lat_)+sizeof(val.lon_);
     }
 };

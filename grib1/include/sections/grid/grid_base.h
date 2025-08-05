@@ -718,7 +718,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP,grid::GridModification MOD>
     struct Serialize<NETWORK_ORDER,grid::GridDefinitionBase<REP,MOD>>{
         using type = grid::GridDefinitionBase<REP,MOD>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
@@ -726,7 +726,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP,grid::GridModification MOD>
     struct Deserialize<NETWORK_ORDER,grid::GridDefinitionBase<REP,MOD>>{
         using type = grid::GridDefinitionBase<REP,MOD>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
@@ -734,7 +734,7 @@ namespace serialization{
     template<RepresentationType REP,grid::GridModification MOD>
     struct Serial_size<grid::GridDefinitionBase<REP,MOD>>{
         using type = grid::GridDefinitionBase<REP,MOD>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.base_,msg.additional_);
         }
     };
@@ -742,7 +742,7 @@ namespace serialization{
     template<RepresentationType REP,grid::GridModification MOD>
     struct Min_serial_size<grid::GridDefinitionBase<REP,MOD>>{
         using type = grid::GridDefinitionBase<REP,MOD>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.base_,msg.additional_);
         }
     };
@@ -750,7 +750,7 @@ namespace serialization{
     template<RepresentationType REP,grid::GridModification MOD>
     struct Max_serial_size<grid::GridDefinitionBase<REP,MOD>>{
         using type = grid::GridDefinitionBase<REP,MOD>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.base_,msg.additional_);
         }
     };
@@ -758,7 +758,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Serialize<NETWORK_ORDER,grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
@@ -766,7 +766,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Deserialize<NETWORK_ORDER,grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };
@@ -774,7 +774,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Serial_size<grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.base_,msg.additional_);
         }
     };
@@ -782,7 +782,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.base_,msg.additional_);
         }
     };
@@ -790,7 +790,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.base_,msg.additional_);
         }
     };

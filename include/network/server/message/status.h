@@ -21,7 +21,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.status_);
         }
     };
@@ -29,7 +29,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.status_);
         }
     };
@@ -37,7 +37,7 @@ namespace serialization{
     template<>
     struct Serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.status_,msg.status_);
         }
     };
@@ -45,7 +45,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.status_,msg.status_);
         }
     };
@@ -53,7 +53,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.status_,msg.status_);
         }
     };

@@ -58,7 +58,7 @@ class Data:public __Data__{
     };
     GribData grib_;
     std::set<Data::FORMAT> unsaved_;
-    std::unordered_set<fs::path> files_;
+    std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
 
     template<Data::FORMAT>
@@ -103,7 +103,7 @@ class Data:public __Data__{
         auto data() const{
             return grib_.grib_data_.data();
         }
-        const std::unordered_set<fs::path>& written_files() const{
+        const std::unordered_map<__Data__::FORMAT,fs::path>& written_files() const{
             return files_;
         }
         const SublimedGribDataInfo& sublimed_data() const{

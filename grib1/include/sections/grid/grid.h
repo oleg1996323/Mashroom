@@ -392,7 +392,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,GridInfo>{
         using type = GridInfo;
-        SerializationEC operator()(const type& grid_val, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& grid_val, std::vector<char>& buf) const noexcept{
             auto visitor = [&buf,&grid_val](auto&& arg){
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>){
@@ -408,7 +408,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,GridInfo>{
         using type = GridInfo;
-        SerializationEC operator()(type& grid_val, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& grid_val, std::span<const char> buf) const noexcept{
             grid_val.data = std::monostate();
             RepresentationType T = UNDEF_GRID;
             if(buf.size()<min_serial_size(grid_val))
@@ -446,7 +446,7 @@ namespace serialization{
     template<>
     struct Serial_size<GridInfo>{
         using type = GridInfo;
-        size_t operator()(const type& grid_val) noexcept{
+        size_t operator()(const type& grid_val) const noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
@@ -461,7 +461,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<GridInfo>{
         using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) noexcept{
+        constexpr size_t operator()(const type& grid_val) const noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
@@ -476,7 +476,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<GridInfo>{
         using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) noexcept{
+        constexpr size_t operator()(const type& grid_val) const noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;

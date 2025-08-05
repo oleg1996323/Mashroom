@@ -22,7 +22,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return SerializationEC::NONE;
         }
     };
@@ -30,7 +30,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return SerializationEC::NONE;
         }
     };
@@ -38,7 +38,7 @@ namespace serialization{
     template<>
     struct Serial_size<grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -46,7 +46,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -54,7 +54,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };

@@ -49,7 +49,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) noexcept{
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
                 msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }
@@ -58,7 +58,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
                 msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }
@@ -67,7 +67,7 @@ namespace serialization{
     template<>
     struct Serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
                 msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }
@@ -76,7 +76,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
                 msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }
@@ -85,7 +85,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        constexpr size_t operator()(const type& msg) noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
                 msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }

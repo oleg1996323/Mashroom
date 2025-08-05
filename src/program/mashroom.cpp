@@ -12,16 +12,20 @@ namespace fs = std::filesystem;
 
 void Mashroom::__read_initial_data_file__(){
     using namespace boost;
-    if(!fs::exists(data_dir_/mashroom_data_info)){
+    std::fstream dat_file;
+    if(!fs::exists(__filename__())){
+        std::cout<<"Creating and openning file: "<<__filename__()<<std::endl;
         dat_file.open(__filename__(),std::ios::trunc|std::ios::out);
         return;
     }
-    else
+    else{
+        std::cout<<"Openning file: "<<__filename__()<<std::endl;
         dat_file.open(__filename__(),std::ios::in|std::ios::out);
+    }
 
     if(!dat_file.is_open()){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Mashroom module internal error",AT_ERROR_ACTION::CONTINUE);
-        ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(data_dir_/mashroom_data_info).c_str());
+        ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(__filename__()).c_str());
     }
     json::stream_parser parser;
     json::error_code err_code;
@@ -49,10 +53,12 @@ void Mashroom::__read_initial_data_file__(){
     for(const fs::path& filename:data_files_){
         data_.read(filename);
     }
+    dat_file.close();
 }
 using namespace std::string_literals;
 void Mashroom::__write_initial_data_file__(){
     using namespace boost;
+    std::fstream dat_file(__filename__(),std::fstream::out | std::fstream::trunc);
     if(!dat_file.is_open())
         if(!fs::exists(__filename__())){
             dat_file.open(__filename__(),std::ios::out);
@@ -70,8 +76,8 @@ void Mashroom::__write_initial_data_file__(){
         }
     json::value val;
     auto& obj = val.emplace_object();
-    for(const auto& filename:data_.written_files()){
-        auto& files_seq = obj[data_type_to_text(extension_to_type(filename.extension().c_str()))].emplace_array();
+    for(const auto& [format,filename]:data_.written_files()){
+        auto& files_seq = obj[format_name(format)].emplace_array();
         files_seq.emplace_back(filename.c_str());
     }
     assert(dat_file.is_open());
@@ -79,6 +85,7 @@ void Mashroom::__write_initial_data_file__(){
     dat_file<<val.as_object();
     dat_file.flush();
     std::cout<<val.as_object()<<std::endl;
+    dat_file.close();
 }
 
 ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
