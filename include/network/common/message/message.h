@@ -69,7 +69,7 @@ namespace serialization{
     requires MessageEnumConcept<MSG_T>
     struct Min_serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.type_msg_,msg.data_sz_);
         }
     };
@@ -78,7 +78,7 @@ namespace serialization{
     requires MessageEnumConcept<MSG_T>
     struct Max_serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.type_msg_,msg.data_sz_);
         }
     };
@@ -288,7 +288,7 @@ namespace serialization{
     template<auto MSG_T>
     struct Min_serial_size<network::Message<MSG_T>>{
         using type = network::Message<MSG_T>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.base_,msg.additional_);
         }
     };
@@ -296,7 +296,7 @@ namespace serialization{
     template<auto MSG_T>
     struct Max_serial_size<network::Message<MSG_T>>{
         using type = network::Message<MSG_T>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.base_,msg.additional_);
         }
     };

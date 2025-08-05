@@ -178,7 +178,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size<ExtractForm>(msg);
         }
     };
@@ -186,7 +186,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size<ExtractForm>(msg);
         }
     };

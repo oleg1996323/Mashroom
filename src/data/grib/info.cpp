@@ -1,7 +1,7 @@
-#include "data//info.h"
+#include "data/info.h"
 
 namespace fs = std::filesystem;
-void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept{
+void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
     info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(GribIndexDataInfo{
         msg_info.grid_data,

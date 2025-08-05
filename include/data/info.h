@@ -56,11 +56,11 @@ class GribDataInfo{
         else
             info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(index_info));
     }
-    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) const noexcept;
-    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) const noexcept;
+    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
     ErrorCodeData error() const;
     const data_t& data() const;
-    void swap(GribDataInfo& other) const noexcept;
+    void swap(GribDataInfo& other) noexcept;
     //void read(const fs::path& path);
     //void write(const fs::path& dir);
     SublimedGribDataInfo sublime();
@@ -215,7 +215,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };
@@ -223,7 +223,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };

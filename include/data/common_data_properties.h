@@ -198,7 +198,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<CommonDataProperties>{
         using type = CommonDataProperties;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
@@ -206,7 +206,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<CommonDataProperties>{
         using type = CommonDataProperties;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };

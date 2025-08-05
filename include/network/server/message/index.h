@@ -91,7 +91,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.blocks_);
         }
     };
@@ -99,7 +99,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.blocks_);
         }
     };
@@ -131,7 +131,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>::BaseIndexResult>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>::BaseIndexResult;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.data_format,msg.data_type);
         }
     };
@@ -139,7 +139,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>::BaseIndexResult>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>::BaseIndexResult;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.data_format,msg.data_type);
         }
     };

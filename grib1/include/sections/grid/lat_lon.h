@@ -135,7 +135,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
         using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
                 msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
         }
@@ -144,7 +144,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
         using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
                 msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
         }

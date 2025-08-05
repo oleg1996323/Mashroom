@@ -43,19 +43,19 @@ struct Deserialize<NETWORK_ORDER,Coord>{
 };
 template<>
 struct Serial_size<Coord>{
-    constexpr size_t operator()(const Coord& val) const noexcept{
+    size_t operator()(const Coord& val) const noexcept{
         return serial_size(val.lat_,val.lon_);
     }
 };
 template<>
 struct Min_serial_size<Coord>{
-    constexpr size_t operator()(const Coord& val) const noexcept{
+    size_t operator()(const Coord& val) const noexcept{
         return sizeof(val.lat_)+sizeof(val.lon_);
     }
 };
 template<>
 struct Max_serial_size<Coord>{
-    constexpr size_t operator()(const Coord& val) const noexcept{
+    size_t operator()(const Coord& val) const noexcept{
         return sizeof(val.lat_)+sizeof(val.lon_);
     }
 };

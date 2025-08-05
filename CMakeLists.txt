@@ -78,6 +78,7 @@ add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib library)
 target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
+
 set_target_properties(Mashroom Mashroom_lib grib1API library clip web system
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
@@ -87,3 +88,13 @@ set_target_properties(Mashroom Mashroom_lib grib1API library clip web system
                     LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/shared/Release"
                     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")
 
+set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/${CMAKE_BUILD_TYPE})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/shared/${CMAKE_BUILD_TYPE})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_BUILD_TYPE})
+
+set(CTEST_BINARY_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/build_tests)
+add_executable(Mashroom_serialize_test ${CMAKE_CURRENT_LIST_DIR}/tests/mashroom_serialization.cpp)
+target_link_libraries(Mashroom_serialize_test GTest::gtest Mashroom_lib)
+
+gtest_discover_tests(Mashroom_serialize_test)

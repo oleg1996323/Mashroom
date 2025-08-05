@@ -278,7 +278,7 @@ namespace serialization{
     template<Side S>
     struct Min_serial_size<MessageHandler<S>>{
         using type = MessageHandler<Side::CLIENT>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             auto visitor = [&](const auto& arg)->size_t
             {
                 static_assert(serialization::min_serial_size_concept<std::decay_t<decltype(arg)>>);
@@ -292,7 +292,7 @@ namespace serialization{
     template<Side S>
     struct Max_serial_size<MessageHandler<S>>{
         using type = MessageHandler<S>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             auto visitor = [&](const auto& arg)->size_t
             {
                 static_assert(serialization::max_serial_size_concept<std::decay_t<decltype(arg)>>);

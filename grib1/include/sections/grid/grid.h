@@ -461,7 +461,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<GridInfo>{
         using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) const noexcept{
+        size_t operator()(const type& grid_val) const noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
@@ -476,7 +476,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<GridInfo>{
         using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) const noexcept{
+        size_t operator()(const type& grid_val) const noexcept{
             auto visitor = [&](auto&& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;

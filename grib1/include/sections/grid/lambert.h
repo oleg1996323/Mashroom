@@ -56,7 +56,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<LAMBERT>>{
         using type = grid::GridBase<LAMBERT>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
                 msg.dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }
@@ -65,7 +65,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<LAMBERT>>{
         using type = grid::GridBase<LAMBERT>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
                 msg.dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
         }

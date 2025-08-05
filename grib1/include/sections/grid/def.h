@@ -479,7 +479,7 @@ namespace serialization{
 	template<>
     struct Min_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -487,7 +487,7 @@ namespace serialization{
 	template<>
     struct Max_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -517,14 +517,14 @@ namespace serialization{
 	template<>
     struct Min_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };
 	template<>
     struct Max_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };

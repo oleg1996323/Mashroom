@@ -59,7 +59,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<MILLERS_CYLINDR>>{
         using type = grid::GridBase<MILLERS_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -67,7 +67,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<MILLERS_CYLINDR>>{
         using type = grid::GridBase<MILLERS_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };

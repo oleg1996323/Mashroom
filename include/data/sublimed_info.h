@@ -70,7 +70,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedDataInfo>{
         using type = SublimedDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) noexcept{
             return min_serial_size(msg.grid_data_,msg.buf_pos_,msg.from_,msg.to_,msg.discret_);
         }
     };
@@ -78,7 +78,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<SublimedDataInfo>{
         using type = SublimedDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
+        size_t operator()(const type& msg) noexcept{
             return max_serial_size(msg.grid_data_,msg.buf_pos_,msg.from_,msg.to_,msg.discret_);
         }
     };

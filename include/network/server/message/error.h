@@ -43,7 +43,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Server_MsgT::ERROR>>{
         using type = MessageAdditional<network::Server_MsgT::ERROR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.status_,msg.err_);
         }
     };
@@ -51,7 +51,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Server_MsgT::ERROR>>{
         using type = MessageAdditional<network::Server_MsgT::ERROR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.status_,msg.err_);
         }
     };

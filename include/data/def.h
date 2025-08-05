@@ -36,7 +36,7 @@ constexpr const char* format_name(__Data__::FORMAT fmt) noexcept{
             return "HGT";
         case __Data__::FORMAT::NETCDF:
             return "NetCDF";
-        case __Data__::FORMAT::UNDEF:
+        default:
             return "Undefined";
     }
 }

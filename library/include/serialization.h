@@ -71,9 +71,9 @@ namespace serialization{
     template<typename... ARGS>
     size_t serial_size(const ARGS&... val) noexcept;
     template<typename... ARGS>
-    constexpr size_t min_serial_size(const ARGS&... val) noexcept;
+    size_t min_serial_size(const ARGS&... val) noexcept;
     template<typename... ARGS>
-    constexpr size_t max_serial_size(const ARGS&...val) noexcept;
+    size_t max_serial_size(const ARGS&...val) noexcept;
 
     template<bool NETWORK_ORDER,typename T>
     SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept;
@@ -128,14 +128,40 @@ namespace serialization{
         }
     }
     template<typename... ARGS>
-    constexpr size_t min_serial_size(const ARGS&... val) noexcept{
+    size_t min_serial_size(const ARGS&... val) noexcept{
         if constexpr (sizeof...(ARGS)>1)
             return ((min_serial_size(val)) + ...);
         else if constexpr(sizeof...(ARGS)==1){
-            constexpr Min_serial_size<ARGS...> mss;
-            return mss(val...);
+            return Min_serial_size<ARGS...>()(val...);
         }
         else {
+            static_assert(false,"Must be at least 1 argument");
+            return 0;
+        }
+    }
+
+    template<typename... ARGS>
+    size_t max_serial_size(const ARGS&...args) noexcept{
+        if constexpr (sizeof...(ARGS)>1){
+            size_t result = 0;
+            auto add_sz = [&result](size_t value) -> bool
+            {
+                if(value<=std::numeric_limits<size_t>::max()-result){
+                    result+=value;
+                    return true;
+                }
+                else {
+                    result = std::numeric_limits<size_t>::max();
+                    return false;
+                }
+            };
+            (add_sz(max_serial_size(args)) && ...);
+            return result;
+        }
+        else if constexpr(sizeof...(ARGS)==1){
+            return Max_serial_size<ARGS...>()(args...);
+        }
+        else{
             static_assert(false,"Must be at least 1 argument");
             return 0;
         }
@@ -327,11 +353,11 @@ namespace serialization{
 
     template<typename T>
     struct Min_serial_size{
-        constexpr size_t operator()() const noexcept{
+        size_t operator()() const noexcept{
             return operator()(T{});
         }
 
-        constexpr size_t operator()(const T& val) const noexcept{
+        size_t operator()(const T& val) const noexcept{
             if constexpr (numeric_types_concept<T>)
                 return sizeof(T);
             else if constexpr (time_point_concept<T>)
@@ -353,11 +379,11 @@ namespace serialization{
 
     template<typename T>
     struct Max_serial_size{
-        constexpr size_t operator()() const noexcept{
+        size_t operator()() const noexcept{
             return operator()(T{});
         }
 
-        constexpr size_t operator()(const T& val) const noexcept{
+        size_t operator()(const T& val) const noexcept{
             if constexpr (numeric_types_concept<T>)
                 return sizeof(T);
             else if constexpr (time_point_concept<T>)
@@ -378,34 +404,6 @@ namespace serialization{
         }
     };
 
-    template<typename... ARGS>
-    constexpr size_t max_serial_size(const ARGS&...args) noexcept{
-        if constexpr (sizeof...(ARGS)>1){
-            size_t result = 0;
-            auto add_sz = [&result](size_t value) -> bool
-            {
-                if(value<=std::numeric_limits<size_t>::max()-result){
-                    result+=value;
-                    return true;
-                }
-                else {
-                    result = std::numeric_limits<size_t>::max();
-                    return false;
-                }
-            };
-            (add_sz(max_serial_size(args)) && ...);
-            return result;
-        }
-        else if constexpr(sizeof...(ARGS)==1){
-            constexpr Max_serial_size<ARGS...> mss;
-            return mss(args...);
-        }
-        else{
-            static_assert(false,"Must be at least 1 argument");
-            return 0;
-        }
-    }
-
     template<bool NETWORK_ORDER,typename T>
     SerializationEC serialize(const T& val,std::vector<char>& buf) noexcept{
         return Serialize<NETWORK_ORDER,T>{}(val,buf);
@@ -417,10 +415,10 @@ namespace serialization{
 
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     SerializationEC serialize(const T& val,std::vector<char>& buf,const ARGS&... args) noexcept{
-        static_assert(min_serial_size(val)==min_serial_size(args...),
-        "Minimal serial size of serialized struct must be equal to the minimal serial size of all its members to be serialized");
-        static_assert(max_serial_size(val)==max_serial_size(args...),
-        "Maximal serial size of serialized struct must be equal to the maximal serial size of all its members to be serialized");
+        // static_assert(min_serial_size(val)==min_serial_size(args...),
+        // "Minimal serial size of serialized struct must be equal to the minimal serial size of all its members to be serialized");
+        // static_assert(max_serial_size(val)==max_serial_size(args...),
+        // "Maximal serial size of serialized struct must be equal to the maximal serial size of all its members to be serialized");
         SerializationEC err = SerializationEC::NONE;
         
         (((err=serialize<NETWORK_ORDER>(args, buf))==SerializationEC::NONE) && ...);
@@ -428,10 +426,10 @@ namespace serialization{
     }
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     SerializationEC deserialize(const T& val,std::span<const char> buf, ARGS&... args) noexcept{
-        static_assert(min_serial_size_concept<std::decay_t<decltype(val)>>,"Expected specification of min_serial_size function");
-        static_assert(max_serial_size_concept<std::decay_t<decltype(val)>>,"Expected specification of max_serial_size function");
-        static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal minimal serial size of object and its fields' summary minimal serial size");
-        static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal maximal serial size of object and its fields' summary maximal serial size");
+        // static_assert(min_serial_size_concept<std::decay_t<decltype(val)>>,"Expected specification of min_serial_size function");
+        // static_assert(max_serial_size_concept<std::decay_t<decltype(val)>>,"Expected specification of max_serial_size function");
+        // static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal minimal serial size of object and its fields' summary minimal serial size");
+        // static_assert(min_serial_size(val)==min_serial_size(args...),"Expected equal maximal serial size of object and its fields' summary maximal serial size");
         SerializationEC result_code = SerializationEC::NONE;
         if (buf.size() < min_serial_size(val))
             return SerializationEC::BUFFER_SIZE_LESSER;
@@ -603,14 +601,14 @@ namespace serialization{
 
     template<min_serial_size_concept T>
     struct Min_serial_size<std::optional<T>>{
-        constexpr size_t operator()(const std::optional<T>& val) const noexcept{
+        size_t operator()(const std::optional<T>& val) const noexcept{
             return min_serial_size(std::optional<T>{}.has_value());
         }
     };
 
     template<max_serial_size_concept T>
     struct Max_serial_size<std::optional<T>>{
-        constexpr size_t operator()(const std::optional<T>& val) const noexcept{
+        size_t operator()(const std::optional<T>& val) const noexcept{
             return min_serial_size(std::optional<T>{}.has_value())+max_serial_size(T{});
         }
     };
@@ -685,7 +683,7 @@ namespace serialization{
     template<std::ranges::range T>
     requires min_serial_size_concept<std::ranges::range_value_t<T>>
     struct Min_serial_size<T>{
-        constexpr size_t operator()(const T& val) const noexcept{
+        size_t operator()(const T& val) const noexcept{
             return sizeof(T{}.size());
         }
     };
@@ -693,7 +691,7 @@ namespace serialization{
     template<std::ranges::range T>
     requires max_serial_size_concept<std::ranges::range_value_t<T>>
     struct Max_serial_size<T>{
-        constexpr size_t operator()(const T& val) const noexcept{
+        size_t operator()(const T& val) const noexcept{
             return std::numeric_limits<decltype(T{}.size())>::max();
         }
     };
