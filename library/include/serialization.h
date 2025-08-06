@@ -26,9 +26,26 @@ namespace serialization{
         UNEXPECTED_EOF,
         FILE_READING_ERROR
     };
-}
 
-namespace serialization{
+    template<typename... Ts>
+    struct SerialSizeProxy {
+        // Пустая структура, хранит только типы
+        static constexpr size_t calculate() {
+            return (Min_serial_size<Ts>::value + ...);
+        }
+    };
+
+    // Создание proxy из аргументов (вывод типов)
+    template<typename... ARGS>
+    constexpr auto make_serial_proxy(const ARGS&...) {
+        return SerialSizeProxy<std::decay_t<ARGS>...>{};
+    }
+
+    // Constexpr функция принимает proxy
+    template<typename... Ts>
+    constexpr size_t min_serial_size(SerialSizeProxy<Ts...>) {
+        return SerialSizeProxy<Ts...>::calculate();
+    }
 
     template<bool NETWORK_ORDER,typename T>
     struct Serialize;
