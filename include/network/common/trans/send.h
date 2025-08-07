@@ -12,7 +12,7 @@ namespace network{
     // requires (std::is_same_v<std::decay_t<ARGS>,std::span<const char>> && ...)
     ErrorCode send(Socket socket,const std::ranges::random_access_range auto&... buffers) noexcept{
         ErrorCode err = ErrorCode::NONE;
-        auto send_sequentialy = [&](auto&& buffer,int flags) -> ErrorCode
+        auto send_sequentialy = [&](auto&& buffer,int flags) noexcept -> ErrorCode
         {
             size_t sent = 0;
             if(buffer.size()==0)
@@ -30,7 +30,7 @@ namespace network{
 
         size_t i = 0;
         constexpr size_t count = sizeof...(buffers);
-        auto send_with_flags = [&](auto&& buf) {
+        auto send_with_flags = [&](auto&& buf) noexcept{
             int flags = (++i < count) ? (MSG_MORE | MSG_DONTWAIT) : 0;
             return send_sequentialy(buf, flags) == ErrorCode::NONE;
         };

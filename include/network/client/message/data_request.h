@@ -50,14 +50,14 @@ namespace serialization
 
     template<>
     struct Min_serial_size<ExtractMeteoGrib>{
-        constexpr auto operator()(const ExtractMeteoGrib& val) const noexcept{
+        constexpr size_t operator()(const ExtractMeteoGrib& val) const noexcept{
             return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Max_serial_size<ExtractMeteoGrib>{
-        constexpr auto operator()(const ExtractMeteoGrib& val) const noexcept{
+        constexpr size_t operator()(const ExtractMeteoGrib& val) const noexcept{
             return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
@@ -109,26 +109,30 @@ namespace serialization
     template<>
     struct Min_serial_size<ExtractForm>{
         using type = ExtractForm;
-        constexpr auto operator()(const type& val) const noexcept{
-            switch(val.index()){
-                case 1:
-                    return min_serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
-                default:
-                    return size_t(0);
-            }
+        constexpr size_t operator()(const type& val) const noexcept{
+            size_t size_min = std::numeric_limits<size_t>::max();
+
+            auto calc_size = [&size_min]<size_t index>() noexcept -> void
+            {
+                if(size_t tmp_sz = min_serial_size(PseudoRefType<std::variant_alternative_t<i,ExtractForm>>());tmp_sz<size_min)
+                    size_min=tmp_sz;
+            };
+            auto seq = std::index_sequence<std::variant_size_v<ExtractForm>>{};
+
+            return size_min;
         }
     };
 
     template<>
     struct Max_serial_size<ExtractForm>{
         using type = ExtractForm;
-        constexpr auto operator()(const type& val) const noexcept{
-            switch(val.index()){
-                case 1:
-                    return max_serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
-                default:
-                    return size_t(0);
+        constexpr size_t operator()(const type& val) const noexcept{
+            size_t size_max = 0;
+            for(size_t i=0;i<std::variant_size_v<ExtractForm>;++i){
+                if(size_t tmp_sz = max_serial_size(PseudoRefType<std::variant_alternative_t<i,ExtractForm>>());tmp_sz>size_max)
+                    size_max=tmp_sz;
             }
+            return size_max;
         }
     };
 }
@@ -178,7 +182,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size<ExtractForm>(msg);
         }
     };
@@ -186,7 +190,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size<ExtractForm>(msg);
         }
     };

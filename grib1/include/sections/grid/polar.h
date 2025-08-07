@@ -47,7 +47,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>{
         using type = grid::GridBase<POLAR_STEREOGRAPH_PROJ>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
                 msg.dy,msg.is_south_pole,msg.scan_mode);
         }
@@ -56,7 +56,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>{
         using type = grid::GridBase<POLAR_STEREOGRAPH_PROJ>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
                 msg.dy,msg.is_south_pole,msg.scan_mode);
         }

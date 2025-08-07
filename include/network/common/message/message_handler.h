@@ -95,7 +95,7 @@ namespace network{
         template <size_t... Is,typename... ARGS>
         static ErrorCode emplaceImpl(ResultType& result, size_t index, std::index_sequence<Is...>,ARGS&&... args) noexcept{
             ErrorCode err = ErrorCode::NONE;
-            auto return_error = [&](const auto& emplaced){
+            auto return_error = [&](const auto& emplaced) mutable noexcept{
                 using Type = std::decay_t<decltype(emplaced)>;
                 if constexpr(HasError<Type>){
                     err = emplaced.error();
@@ -201,7 +201,7 @@ namespace network{
         template<bool NETWORK_ORDER>
         std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept{
             assert(buffer.size()>=undefined_msg_type_min_required_size<S>());
-            auto visitor = [&buffer](auto&& arg) -> std::expected<uint64_t,serialization::SerializationEC>
+            auto visitor = [&buffer](auto& arg) mutable noexcept -> std::expected<uint64_t,serialization::SerializationEC>
             {
                 using type = decltype(arg);
                 if constexpr (!Data_Size_Buffer<type>)
@@ -219,7 +219,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,MessageHandler<S>>{
         using type = MessageHandler<S>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            auto visitor = [&buf](const auto& arg){
+            auto visitor = [&buf](const auto& arg) noexcept{
                 static_assert(serialization::serialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
@@ -240,7 +240,7 @@ namespace serialization{
                 return SerializationEC::NONE;
             deserialize<NETWORK_ORDER>(T,buf);
             
-            auto visitor = [&buf](auto& arg){
+            auto visitor = [&buf](auto& arg) mutable noexcept{
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
                     return serialization::SerializationEC::UNMATCHED_TYPE;
@@ -263,9 +263,9 @@ namespace serialization{
     static_assert(serialization::deserialize_concept<false,network::MessageHandler<Side::CLIENT>>);
     template<Side S>
     struct Serial_size<MessageHandler<S>>{
-        using type = MessageHandler<Side::CLIENT>;
+        using type = MessageHandler<S>;
         size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg)->size_t
+            auto visitor = [&](const auto& arg) noexcept ->size_t
             {
                 static_assert(serialization::serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
@@ -277,9 +277,9 @@ namespace serialization{
 
     template<Side S>
     struct Min_serial_size<MessageHandler<S>>{
-        using type = MessageHandler<Side::CLIENT>;
-        size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg)->size_t
+        using type = MessageHandler<S>;
+        constexpr size_t operator()(const type& msg) const noexcept{
+            auto visitor = [&](const auto& arg) noexcept->size_t
             {
                 static_assert(serialization::min_serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
@@ -292,13 +292,13 @@ namespace serialization{
     template<Side S>
     struct Max_serial_size<MessageHandler<S>>{
         using type = MessageHandler<S>;
-        size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg)->size_t
+        constexpr size_t operator()(const type& msg) const noexcept{
+            auto visitor = [&](const auto& arg) noexcept->size_t
             {
                 static_assert(serialization::max_serial_size_concept<std::decay_t<decltype(arg)>>);
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
-                    return size_t(0);
+                    return serialization::max_serial_size(std::monostate());
                 else return serialization::max_serial_size(arg);
             };
             return std::visit(visitor,msg);

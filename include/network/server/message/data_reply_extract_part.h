@@ -67,7 +67,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.status_,msg.filename_,msg.file_sz_);
         }
     };
@@ -75,7 +75,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.status_,msg.filename_,msg.file_sz_);
         }
     };

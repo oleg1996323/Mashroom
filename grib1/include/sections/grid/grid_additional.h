@@ -127,7 +127,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::NONE>>{
         using type = grid::GridAdditional<REP,grid::GridModification::NONE>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -135,7 +135,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::NONE>>{
         using type = grid::GridAdditional<REP,grid::GridModification::NONE>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return 0;
         }
     };
@@ -167,7 +167,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.xp,msg.yp,msg.ang);
         }
     };
@@ -175,7 +175,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.xp,msg.yp,msg.ang);
         }
     };
@@ -207,7 +207,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.xsp,msg.ysp,msg.s_factor);
         }
     };
@@ -215,7 +215,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.xsp,msg.ysp,msg.s_factor);
         }
     };
@@ -247,7 +247,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.rot_,msg.stretch_);
         }
     };
@@ -255,7 +255,7 @@ namespace serialization{
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.rot_,msg.stretch_);
         }
     };

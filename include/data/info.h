@@ -160,7 +160,7 @@ namespace serialization{
             serialize<NETWORK_ORDER>(type_enum,buf);
             size_t info_sz = 0;
             auto existing_paths = std::views::all(msg.info_)|
-                                    std::views::filter([&info_sz](const auto& pair){
+                                    std::views::filter([&info_sz](const auto& pair) noexcept{
                                         const auto& pathstore = std::get<0>(pair);
                                         if(fs::exists(pathstore.path_) || 
                                         pathstore.type_==path::TYPE::HOST){
@@ -199,7 +199,7 @@ namespace serialization{
         using type = SublimedGribDataInfo;
         size_t operator()(const type& msg) const noexcept{
             size_t info_sz = 0;
-            auto existing_paths = std::ranges::copy_if_result(msg.info_,[&info_sz](const auto& pair){
+            auto existing_paths = std::ranges::copy_if_result(msg.info_,[&info_sz](const auto& pair) noexcept{
                                         const auto& pathstore = std::get<0>(pair);
                                         if(fs::exists(pathstore.path_) || 
                                         pathstore.type_==path::TYPE::HOST){
@@ -215,7 +215,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };
@@ -223,7 +223,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
         }
     };

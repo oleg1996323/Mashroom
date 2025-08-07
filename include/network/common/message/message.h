@@ -43,7 +43,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.type_msg_,msg.data_sz_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.data_sz_);
         }
     };
 
@@ -52,7 +52,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.type_msg_,msg.data_sz_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.data_sz_);
         }
     };
 
@@ -61,7 +61,7 @@ namespace serialization{
     struct Serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.type_msg_,msg.data_sz_);
+            return serial_size(msg.data_sz_);
         }
     };
 
@@ -69,8 +69,8 @@ namespace serialization{
     requires MessageEnumConcept<MSG_T>
     struct Min_serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
-        size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.type_msg_,msg.data_sz_);
+        constexpr size_t operator()(const type& msg) const noexcept{
+            return min_serial_size(msg.data_sz_);
         }
     };
 
@@ -78,8 +78,8 @@ namespace serialization{
     requires MessageEnumConcept<MSG_T>
     struct Max_serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
-        size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.type_msg_,msg.data_sz_);
+        constexpr size_t operator()(const type& msg) const noexcept{
+            return max_serial_size(msg.data_sz_);
         }
     };
 }
@@ -288,7 +288,7 @@ namespace serialization{
     template<auto MSG_T>
     struct Min_serial_size<network::Message<MSG_T>>{
         using type = network::Message<MSG_T>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.base_,msg.additional_);
         }
     };
@@ -296,7 +296,7 @@ namespace serialization{
     template<auto MSG_T>
     struct Max_serial_size<network::Message<MSG_T>>{
         using type = network::Message<MSG_T>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.base_,msg.additional_);
         }
     };

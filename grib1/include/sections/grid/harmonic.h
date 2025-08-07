@@ -106,7 +106,7 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return min_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };
@@ -114,7 +114,7 @@ namespace serialization{
     template<>
     struct Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        size_t operator()(const type& msg) const noexcept{
+        constexpr size_t operator()(const type& msg) const noexcept{
             return max_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
         }
     };

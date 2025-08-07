@@ -56,7 +56,7 @@ namespace parse{
     }
 
     std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept{
-        auto number_unit_separation = std::find_if(str.begin(),str.end(),[](const char ch){
+        auto number_unit_separation = std::find_if(str.begin(),str.end(),[](const char ch) noexcept{
             return !std::isdigit(ch);
         });
         auto unit=info_unit(std::string_view(number_unit_separation,str.end()));

@@ -38,23 +38,23 @@ namespace serialization{
     struct Serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.status_,msg.status_);
+            return serial_size(msg.status_);
         }
     };
 
     template<>
     struct Min_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.status_,msg.status_);
+        constexpr size_t operator()(const type& msg) const noexcept{
+            return min_serial_size(msg.status_);
         }
     };
 
     template<>
     struct Max_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.status_,msg.status_);
+        constexpr size_t operator()(const type& msg) const noexcept{
+            return max_serial_size(msg.status_);
         }
     };
 }

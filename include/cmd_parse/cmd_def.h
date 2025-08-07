@@ -205,7 +205,7 @@ namespace parse{
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,args.front());
             std::vector<std::string> tokens = po::collect_unrecognized(parse_result.value().options,po::collect_unrecognized_mode::include_positional);
             auto dublicate = contains_unique_value(args.begin(),args.end(),unique_values_.begin(),unique_values_.end(),[](const std::string& item)
-                ->std::string_view
+                noexcept->std::string_view
             {return item.starts_with("--")?std::string_view(item).substr(2):std::string_view(item);});
 
             if(dublicate!=unique_values_.end()){
@@ -221,7 +221,7 @@ namespace parse{
         }
 
         void define_uniques() noexcept{
-            unique_values_ = [this](){
+            unique_values_ = [this]() noexcept{
                 std::vector<std::string> result;
                 for(auto option:descriptor_.options())
                     if(!option->long_name().empty())
