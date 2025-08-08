@@ -147,12 +147,12 @@ struct GridInfo{
         if(rep_type != other.rep_type)
             return false;
 
-        auto visitor1 = [this,&other](auto&& grid1) -> bool
+        auto visitor1 = [this,&other](auto& grid1) -> bool
         {
             using Grid1 = std::decay_t<decltype(grid1)>;
             if constexpr (std::is_same_v<Grid1,std::monostate>)
                 return false;
-            auto visitor2 = [&grid1](auto&& grid2) -> bool
+            auto visitor2 = [&grid1](auto&& grid2) mutable -> bool
             {
                 using Grid1 = std::decay_t<decltype(grid1)>;
                 using Grid2 = std::decay_t<decltype(grid2)>;
@@ -177,7 +177,7 @@ struct GridInfo{
             if constexpr (std::is_same_v<Grid1,std::monostate>)
                 return false;
             else{
-                auto visitor2 = [&grid1](auto&& grid2) -> bool
+                auto visitor2 = [&grid1](auto&& grid2) mutable -> bool
                 {
                     using Grid1 = std::decay_t<decltype(grid1)>;
                     using Grid2 = std::decay_t<decltype(grid2)>;
@@ -393,7 +393,8 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,GridInfo>{
         using type = GridInfo;
         SerializationEC operator()(const type& grid_val, std::vector<char>& buf) const noexcept{
-            auto visitor = [&buf,&grid_val](auto&& arg){
+            auto visitor = [&buf,&grid_val](auto& arg) mutable ->serialization::SerializationEC
+            {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>){
                     auto rep_type = RepresentationType::UNDEF_GRID;
@@ -415,7 +416,8 @@ namespace serialization{
                 return SerializationEC::NONE;
             deserialize<NETWORK_ORDER>(T,buf);
             grid_val.rep_type = T;
-            auto visitor = [&buf,&grid_val](auto&& arg){
+            auto visitor = [&buf,&grid_val](auto& arg) mutable ->serialization::SerializationEC
+            {
                 using ArgType = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<ArgType,std::monostate>)
                     return serialization::SerializationEC::NONE;
@@ -447,7 +449,7 @@ namespace serialization{
     struct Serial_size<GridInfo>{
         using type = GridInfo;
         size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto&& arg)->size_t
+            auto visitor = [&](auto& arg)->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
@@ -462,7 +464,7 @@ namespace serialization{
     struct Min_serial_size<GridInfo>{
         using type = GridInfo;
         constexpr size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto&& arg)->size_t
+            auto visitor = [&](auto& arg)mutable ->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)
@@ -477,7 +479,7 @@ namespace serialization{
     struct Max_serial_size<GridInfo>{
         using type = GridInfo;
         constexpr size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto&& arg)->size_t
+            auto visitor = [&](auto& arg)mutable->size_t
             {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T,std::monostate>)

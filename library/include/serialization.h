@@ -144,7 +144,7 @@ namespace serialization{
     constexpr size_t max_serial_size(const ARGS&...args) noexcept{
         if constexpr (sizeof...(ARGS)>1){
             size_t result = 0;
-            auto add_sz = [&result](size_t value) -> bool
+            auto add_sz = [&result](size_t value)mutable -> bool
             {
                 if(value<=std::numeric_limits<size_t>::max()-result){
                     result+=value;
@@ -353,17 +353,13 @@ namespace serialization{
 
     template<typename T>
     struct Min_serial_size{
-        constexpr size_t operator()() const noexcept{
-            return Min_serial_size<T>()(std::declval<T>());
-        }
-
         constexpr size_t operator()(const T& val) const noexcept{
             if constexpr (numeric_types_concept<T>)
                 return sizeof(T);
             else if constexpr (time_point_concept<T>)
-                return sizeof(std::declval<T>().time_since_epoch().count());
+                return sizeof(T);
             else if constexpr (duration_concept<T>)
-                return sizeof(std::declval<T>().count());
+                return sizeof(T);
             else if constexpr (smart_pointer_concept<T>)
                 return sizeof(bool);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
@@ -381,20 +377,16 @@ namespace serialization{
 
     template<typename T>
     struct Max_serial_size{
-        constexpr size_t operator()() const noexcept{
-            return Max_serial_size<T>()(std::declval<T>());
-        }
-
         constexpr size_t operator()(const T& val) const noexcept{
             if constexpr (numeric_types_concept<T>)
                 return sizeof(T);
             else if constexpr (time_point_concept<T>)
-                return sizeof(std::declval<T>().time_since_epoch().count());
+                return sizeof(T);
             else if constexpr (duration_concept<T>)
-                return sizeof(std::declval<T>().count());
+                return sizeof(T);
             else if constexpr (smart_pointer_concept<T>)
-                return max_serial_size(std::declval<T>()) == std::numeric_limits<size_t>::max()?
-                        max_serial_size(std::declval<T>()):max_serial_size(std::declval<T>())+sizeof(bool);
+                return max_serial_size(PseudoRefType<T>()) == std::numeric_limits<size_t>::max()?
+                        max_serial_size(PseudoRefType<T>()):max_serial_size(PseudoRefType<T>())+sizeof(bool);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
             else if constexpr(pair_concept<T>)
@@ -441,9 +433,6 @@ namespace serialization{
 
         auto deserialize_field = [&](auto& field) mutable noexcept->SerializationEC
         {
-            if (buf.size() < min_serial_size(field)) {
-                return SerializationEC::BUFFER_SIZE_LESSER;
-            }
             SerializationEC code = deserialize<NETWORK_ORDER>(field,buf);
             buf = buf.subspan(serial_size(field));
             return code;
@@ -608,14 +597,14 @@ namespace serialization{
     template<min_serial_size_concept T>
     struct Min_serial_size<std::optional<T>>{
         constexpr size_t operator()(const std::optional<T>& val) const noexcept{
-            return min_serial_size(std::optional<T>{}.has_value());
+            return min_serial_size(bool());
         }
     };
 
     template<max_serial_size_concept T>
     struct Max_serial_size<std::optional<T>>{
         constexpr size_t operator()(const std::optional<T>& val) const noexcept{
-            return min_serial_size(std::optional<T>{}.has_value())+max_serial_size(T{});
+            return min_serial_size(bool())+max_serial_size(PseudoRefType<T>());
         }
     };
 
@@ -690,7 +679,7 @@ namespace serialization{
     requires min_serial_size_concept<std::ranges::range_value_t<T>>
     struct Min_serial_size<T>{
         constexpr size_t operator()(const T& val) const noexcept{
-            return sizeof(T{}.size());
+            return sizeof(size_t);
         }
     };
 
@@ -698,7 +687,7 @@ namespace serialization{
     requires max_serial_size_concept<std::ranges::range_value_t<T>>
     struct Max_serial_size<T>{
         constexpr size_t operator()(const T& val) const noexcept{
-            return std::numeric_limits<decltype(T{}.size())>::max();
+            return std::numeric_limits<size_t>::max();
         }
     };
 }
@@ -712,3 +701,5 @@ static_assert(serialization::serialize_concept<true,std::chrono::system_clock::d
 static_assert(serialization::serialize_concept<false,std::chrono::system_clock::duration>);
 static_assert(serialization::deserialize_concept<true,std::chrono::system_clock::duration>);
 static_assert(serialization::deserialize_concept<false,std::chrono::system_clock::duration>);
+
+static_assert(serialization::min_serial_size(std::chrono::system_clock::now())==sizeof(std::chrono::system_clock::time_point));

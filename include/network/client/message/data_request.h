@@ -30,35 +30,35 @@ namespace serialization
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractMeteoGrib>{
         auto operator()(const ExtractMeteoGrib& val,std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(val,buf,val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return serialize<NETWORK_ORDER>(val,buf,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractMeteoGrib>{
         auto operator()(ExtractMeteoGrib& val,std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(val,buf,val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return deserialize<NETWORK_ORDER>(val,buf,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Serial_size<ExtractMeteoGrib>{
         auto operator()(const ExtractMeteoGrib& val) const noexcept{
-            return serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return serial_size(val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Min_serial_size<ExtractMeteoGrib>{
         constexpr size_t operator()(const ExtractMeteoGrib& val) const noexcept{
-            return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return min_serial_size(val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 
     template<>
     struct Max_serial_size<ExtractMeteoGrib>{
         constexpr size_t operator()(const ExtractMeteoGrib& val) const noexcept{
-            return min_serial_size(val.type,val.format,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return max_serial_size(val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
         }
     };
 }
@@ -70,39 +70,39 @@ namespace serialization
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractForm>{
         using type = ExtractForm;
-        auto operator()(const type& val,std::vector<char>& buf) const noexcept{
-            switch(((int)val.index())-1){
-                case 1:
-                    return serialize<NETWORK_ORDER>(std::get<std::variant_alternative_t<1,ExtractForm>>(val),buf);
-                default:
-                    return SerializationEC::UNMATCHED_TYPE;
-            }
+        SerializationEC operator()(const type& val,std::vector<char>& buf) const noexcept{
+
+            auto serializer = [&buf](auto& item)->SerializationEC
+            {
+                return serialize<NETWORK_ORDER>(item,buf);
+            };
+
+            return std::visit(serializer,val);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractForm>{
         using type = ExtractForm;
-        auto operator()(type& val,std::span<const char> buf) const noexcept{
-            switch(((int)val.index())-1){
-                case 1:
-                    return deserialize<NETWORK_ORDER>(std::get<std::variant_alternative_t<1,ExtractForm>>(val),buf);
-                default:
-                    return SerializationEC::UNMATCHED_TYPE;
-            }
+        SerializationEC operator()(type& val,std::span<const char> buf) const noexcept{
+            auto deserializer = [&buf](auto& item) mutable->SerializationEC
+            {
+                return deserialize<NETWORK_ORDER>(item,buf);
+            };
+
+            return std::visit(deserializer,val);
         }
     };
 
     template<>
     struct Serial_size<ExtractForm>{
         using type = ExtractForm;
-        auto operator()(const type& val) const noexcept{
-            switch(val.index()){
-                case 1:
-                    return serial_size(std::get<std::variant_alternative_t<1,ExtractForm>>(val));
-                default:
-                    return size_t(0);
-            }
+        size_t operator()(const type& val) const noexcept{
+            auto serial_sz = [](auto& item) mutable->size_t
+            {
+                return serial_size(item);
+            };
+            return std::visit(serial_sz,val);
         }
     };
 
@@ -114,10 +114,10 @@ namespace serialization
 
             auto calc_size = [&size_min]<size_t index>() noexcept -> void
             {
-                if(size_t tmp_sz = min_serial_size(PseudoRefType<std::variant_alternative_t<i,ExtractForm>>());tmp_sz<size_min)
+                if(size_t tmp_sz = min_serial_size(PseudoRefType<std::variant_alternative_t<index,type>>());tmp_sz<size_min)
                     size_min=tmp_sz;
             };
-            auto seq = std::index_sequence<std::variant_size_v<ExtractForm>>{};
+            auto seq = std::index_sequence<std::variant_size_v<type>>{};
 
             return size_min;
         }
@@ -127,11 +127,15 @@ namespace serialization
     struct Max_serial_size<ExtractForm>{
         using type = ExtractForm;
         constexpr size_t operator()(const type& val) const noexcept{
-            size_t size_max = 0;
-            for(size_t i=0;i<std::variant_size_v<ExtractForm>;++i){
-                if(size_t tmp_sz = max_serial_size(PseudoRefType<std::variant_alternative_t<i,ExtractForm>>());tmp_sz>size_max)
+            size_t size_max = std::numeric_limits<size_t>::max();
+
+            auto calc_size = [&size_max]<size_t index>() noexcept -> void
+            {
+                if(size_t tmp_sz = max_serial_size(PseudoRefType<std::variant_alternative_t<index,type>>());tmp_sz<size_max)
                     size_max=tmp_sz;
-            }
+            };
+            auto seq = std::index_sequence<std::variant_size_v<type>>{};
+
             return size_max;
         }
     };
