@@ -52,17 +52,19 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::TRANSACTION>>{
         using type = MessageAdditional<network::Client_MsgT::TRANSACTION>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.op_hash_,msg.op_status_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::op_hash_),decltype(type::op_status_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::TRANSACTION>>{
         using type = MessageAdditional<network::Client_MsgT::TRANSACTION>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.op_hash_,msg.op_status_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::op_hash_),decltype(type::op_status_)>();
+        }();
     };
 }
 

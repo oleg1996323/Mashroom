@@ -45,16 +45,18 @@ namespace serialization{
     template<>
     struct Min_serial_size<ProgressBase>{
         using type = ProgressBase;
-        constexpr size_t operator()(const type& progress) const noexcept{
-            return min_serial_size(progress.value_,progress.server_process_);
-        }
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<decltype(type::value_),decltype(type::server_process_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<ProgressBase>{
         using type = ProgressBase;
-        constexpr size_t operator()(const type& progress) const noexcept{
-            return max_serial_size(progress.value_,progress.server_process_);
-        }
+        static constexpr size_t value = []()
+        {
+            return max_serial_size<decltype(type::value_),decltype(type::server_process_)>();
+        }();
     };
 }

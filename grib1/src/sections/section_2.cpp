@@ -19,7 +19,7 @@ uint8_t GridDescriptionSection::get_representation_type() const noexcept{
 }
 GridInfo GridDescriptionSection::define_grid() const noexcept{
 	GridInfo grid;
-	grid.data.emplace_by_id(static_cast<RepresentationType>(get_representation_type()),buf_);
+	grid.emplace_by_id(static_cast<RepresentationType>(get_representation_type()),buf_);
 	return grid;
 }
 unsigned long GridDescriptionSection::get_number_vertical_coord_values() const noexcept{

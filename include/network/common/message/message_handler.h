@@ -162,9 +162,10 @@ namespace network{
 
     template<Side S>
     class MessageHandler:public _MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
-        private:
+        public:
         using _handler = _MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
         using _handler::_MessageHandler;
+        private:
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -213,95 +214,54 @@ namespace network{
     };
 }
 
-namespace serialization{
-    using namespace network;
-    template<bool NETWORK_ORDER,Side S>
-    struct Serialize<NETWORK_ORDER,MessageHandler<S>>{
-        using type = MessageHandler<S>;
-        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            auto visitor = [&buf](const auto& arg) noexcept{
-                static_assert(serialization::serialize_concept<NETWORK_ORDER,std::decay_t<decltype(arg)>>);
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return serialization::SerializationEC::UNMATCHED_TYPE;
-                else return serialization::serialize<NETWORK_ORDER>(arg,buf);
-            };
-            return std::visit(visitor,msg);
-        }
-    };
+static_assert(IsStdVariant<network::MessageHandler<network::Side::SERVER>::_handler>);
+static_assert(serialization::min_serial_size<network::MessageHandler<network::Side::SERVER>::_handler>()>0);
+static_assert(serialization::max_serial_size<network::MessageHandler<network::Side::SERVER>>()>0);
 
-    template<bool NETWORK_ORDER, Side S>
-    struct Deserialize<NETWORK_ORDER,MessageHandler<S>>{
-        using type = MessageHandler<S>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            msg.clear();
-            Client_MsgT::type T{};
-            if(buf.size()<min_serial_size(MessageBase<(Client_MsgT::type)0>{}))
-                return SerializationEC::NONE;
-            deserialize<NETWORK_ORDER>(T,buf);
-            
-            auto visitor = [&buf](auto& arg) mutable noexcept{
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return serialization::SerializationEC::UNMATCHED_TYPE;
-                else return serialization::deserialize<NETWORK_ORDER>(arg,buf);
-            };
-            
-            if(msg.emplace_default_message_by_id((size_t)T)!=ErrorCode::NONE){
-                msg.clear();
-                return SerializationEC::UNMATCHED_TYPE;
-            }
-            SerializationEC code = std::visit(visitor,msg);
-            if(code!=SerializationEC::NONE)
-                msg.clear();
-            return code;
-        }
-    };
-    static_assert(serialization::deserialize_concept<true,network::MessageHandler<Side::SERVER>>);
-    static_assert(serialization::deserialize_concept<false,network::MessageHandler<Side::SERVER>>);
-    static_assert(serialization::deserialize_concept<true,network::MessageHandler<Side::CLIENT>>);
-    static_assert(serialization::deserialize_concept<false,network::MessageHandler<Side::CLIENT>>);
-    template<Side S>
-    struct Serial_size<MessageHandler<S>>{
-        using type = MessageHandler<S>;
-        size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg) noexcept ->size_t
-            {
-                static_assert(serialization::serial_size_concept<std::decay_t<decltype(arg)>>);
-                using T = std::decay_t<decltype(arg)>;
-                return serialization::serial_size(arg);
-            };
-            return std::visit(visitor,msg);
-        }
-    };
+// namespace serialization{
+//     using namespace network;
+//     template<bool NETWORK_ORDER,Side S>
+//     struct Serialize<NETWORK_ORDER,MessageHandler<S>>{
+//         using type = MessageHandler<S>;
+//         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
+//             return serialize<NETWORK_ORDER,typename type::_handler>(msg,buf);
+//         }
+//     };
 
-    template<Side S>
-    struct Min_serial_size<MessageHandler<S>>{
-        using type = MessageHandler<S>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg) noexcept->size_t
-            {
-                static_assert(serialization::min_serial_size_concept<std::decay_t<decltype(arg)>>);
-                using T = std::decay_t<decltype(arg)>;
-                return serialization::min_serial_size(arg);
-            };
-            return std::visit(visitor,msg);
-        }
-    };
+//     template<bool NETWORK_ORDER, Side S>
+//     struct Deserialize<NETWORK_ORDER,MessageHandler<S>>{
+//         using type = MessageHandler<S>;
+//         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+//             return deserialize<NETWORK_ORDER,typename type::_handler>(msg,buf);
+//         }
+//     };
+//     static_assert(serialization::deserialize_concept<true,network::MessageHandler<Side::SERVER>>);
+//     static_assert(serialization::deserialize_concept<false,network::MessageHandler<Side::SERVER>>);
+//     static_assert(serialization::deserialize_concept<true,network::MessageHandler<Side::CLIENT>>);
+//     static_assert(serialization::deserialize_concept<false,network::MessageHandler<Side::CLIENT>>);
+//     template<Side S>
+//     struct Serial_size<MessageHandler<S>>{
+//         using type = MessageHandler<S>;
+//         size_t operator()(const type& msg) const noexcept{
+//             return serial_size<typename type::_handler>(msg);
+//         }
+//     };
 
-    template<Side S>
-    struct Max_serial_size<MessageHandler<S>>{
-        using type = MessageHandler<S>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            auto visitor = [&](const auto& arg) noexcept->size_t
-            {
-                static_assert(serialization::max_serial_size_concept<std::decay_t<decltype(arg)>>);
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return serialization::max_serial_size(std::monostate());
-                else return serialization::max_serial_size(arg);
-            };
-            return std::visit(visitor,msg);
-        }
-    };
-}
+//     template<Side S>
+//     struct Min_serial_size<MessageHandler<S>>{
+//         using type = MessageHandler<S>;
+//         static constexpr size_t value = []() ->size_t
+//         {
+//             return min_serial_size<typename type::_handler>();
+//         }();
+//     };
+
+//     template<Side S>
+//     struct Max_serial_size<MessageHandler<S>>{
+//         using type = MessageHandler<S>;
+//         static constexpr size_t value = []() ->size_t
+//         {
+//             return max_serial_size<typename type::_handler>();
+//         }();
+//     };
+// }

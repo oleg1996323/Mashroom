@@ -20,3 +20,8 @@ target_link_libraries(grib1API PRIVATE library)
 get_target_property(grib1API_INCLUDES grib1API INCLUDE_DIRECTORIES)
 message(STATUS "Grib1 include directory: ${grib1API_INCLUDES}")
 set(grib1API_INCLUDES ${grib1API_INCLUDES} PARENT_SCOPE)
+
+add_executable(grid_test tests/grid_test.cpp)
+target_link_libraries(grid_test PRIVATE library gribAPI::v1 GTest::gtest)
+
+gtest_discover_tests(grid_test)

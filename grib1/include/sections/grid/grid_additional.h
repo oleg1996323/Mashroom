@@ -25,6 +25,7 @@ namespace grid{
         bool operator==(const GridAdditional<REP_T,GridModification::NONE>& other) const{
             return true;
         }
+        GridAdditional() = default;
         GridAdditional(unsigned char*){}
     };
 
@@ -36,7 +37,7 @@ namespace grid{
         float xp;
         /// @brief Angle of rotation (represented in the same way as the reference value) (ibmfloat)
         double ang;
-        
+        GridAdditional() = default;
         GridAdditional(unsigned char* buffer):
         yp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
         xp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
@@ -60,6 +61,7 @@ namespace grid{
         float xsp;
         /// @brief Stretching factor (representation as for the reference value) (ibmfloat)
         double s_factor;
+        GridAdditional() = default;
         GridAdditional(unsigned char* buffer):
         ysp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
         xsp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
@@ -79,6 +81,7 @@ namespace grid{
     struct GridAdditional<REP_T,GridModification::ROTATION_STRETCHING>{
         GridAdditional<REP_T,GridModification::ROTATION> rot_;
         GridAdditional<REP_T,GridModification::STRETCHING> stretch_;
+        GridAdditional() = default;
         GridAdditional(unsigned char* buffer):
         rot_(buffer),stretch_(buffer){}
 
@@ -127,17 +130,19 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::NONE>>{
         using type = grid::GridAdditional<REP,grid::GridModification::NONE>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::NONE>>{
         using type = grid::GridAdditional<REP,grid::GridModification::NONE>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 
     template<bool NETWORK_ORDER,RepresentationType REP>
@@ -167,17 +172,19 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.xp,msg.yp,msg.ang);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::xp),decltype(type::yp),decltype(type::ang)>();
+        }();
     };
 
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.xp,msg.yp,msg.ang);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::xp),decltype(type::yp),decltype(type::ang)>();
+        }();
     };
 
     template<bool NETWORK_ORDER,RepresentationType REP>
@@ -207,17 +214,19 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.xsp,msg.ysp,msg.s_factor);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::xsp),decltype(type::ysp),decltype(type::s_factor)>();
+        }();
     };
 
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.xsp,msg.ysp,msg.s_factor);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::xsp),decltype(type::ysp),decltype(type::s_factor)>();
+        }();
     };
 
     template<bool NETWORK_ORDER,RepresentationType REP>
@@ -247,16 +256,18 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.rot_,msg.stretch_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::rot_),decltype(type::stretch_)>();
+        }();
     };
 
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.rot_,msg.stretch_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::rot_),decltype(type::stretch_)>();
+        }();
     };
 }

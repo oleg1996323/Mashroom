@@ -598,5 +598,11 @@
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -Dgrib1API_EXPORTS -I/home/oster/Mashroom/grib1 -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/grib1API.dir/src/write.cpp.o -c /home/oster/Mashroom/grib1/src/write.cpp",
   "file": "/home/oster/Mashroom/grib1/src/write.cpp",
   "output": "grib1/CMakeFiles/grib1API.dir/src/write.cpp.o"
+},
+{
+  "directory": "/home/oster/Mashroom/grib1",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -I/home/oster/Mashroom/grib1 -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/grib1/include  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/grid_test.dir/tests/grid_test.cpp.o -c /home/oster/Mashroom/grib1/tests/grid_test.cpp",
+  "file": "/home/oster/Mashroom/grib1/tests/grid_test.cpp",
+  "output": "grib1/CMakeFiles/grid_test.dir/tests/grid_test.cpp.o"
 }
 ]

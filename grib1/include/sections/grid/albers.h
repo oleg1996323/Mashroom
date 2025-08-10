@@ -34,7 +34,8 @@ namespace grid{
 */
 template<>
 struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>:
-        GridDefinitionBase<RepresentationType::ALBERS_EQUAL_AREA,GridModification::NONE>{                             
+        GridDefinitionBase<RepresentationType::ALBERS_EQUAL_AREA,GridModification::NONE>{  
+    GridDefinition():GridDefinitionBase(){}
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -76,18 +77,23 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
-                msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),decltype(type::resolutionAndComponentFlags),decltype(type::LoV),decltype(type::Dx),decltype(
+                type::Dy),decltype(type::is_south_pole),decltype(type::is_bipolar),decltype(type::scan_mode),decltype(type::latin1),decltype(type::latin2),decltype(type::latitude_south_pole),decltype(type::longitude_south_pole)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>{
         using type = grid::GridBase<ALBERS_EQUAL_AREA>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.Dx,
-                msg.Dy,msg.is_south_pole,msg.is_bipolar,msg.scan_mode,msg.latin1,msg.latin2,msg.latitude_south_pole,msg.longitude_south_pole);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),decltype(type::resolutionAndComponentFlags),decltype(type::LoV),decltype(type::Dx),decltype(
+                type::Dy),decltype(type::is_south_pole),decltype(type::is_bipolar),decltype(type::scan_mode),decltype(type::latin1),decltype(type::latin2),decltype(type::latitude_south_pole),decltype(type::longitude_south_pole)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<ALBERS_EQUAL_AREA>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<ALBERS_EQUAL_AREA>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>::value);

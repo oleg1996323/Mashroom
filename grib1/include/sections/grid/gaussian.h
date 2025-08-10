@@ -31,6 +31,7 @@ namespace grid{
 template<>
 struct GridDefinition<RepresentationType::GAUSSIAN>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::NONE>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -65,6 +66,7 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>:
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -76,6 +78,7 @@ struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>:
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<GAUSSIAN,GridModification::ROTATION_STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -119,18 +122,23 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
-                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::y1),decltype(type::x1),decltype(type::y2),decltype(type::x2),decltype(type::ny),decltype(type::nx),
+                decltype(type::directionIncrement),decltype(type::N),decltype(type::scan_mode),decltype(type::resolutionAndComponentFlags)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
-                msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::y1),decltype(type::x1),decltype(type::y2),decltype(type::x2),decltype(type::ny),decltype(type::nx),
+                decltype(type::directionIncrement),decltype(type::N),decltype(type::scan_mode),decltype(type::resolutionAndComponentFlags)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<GAUSSIAN>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<GAUSSIAN>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<GAUSSIAN>>::value);

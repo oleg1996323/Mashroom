@@ -68,17 +68,19 @@ namespace serialization{
     template<>
     struct Min_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.status_,msg.filename,msg.file_sz_);
-        }
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<decltype(type::status_),decltype(type::filename),decltype(type::file_sz_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.status_,msg.filename,msg.file_sz_);
-        }
+        static constexpr size_t value = []()
+        {
+            return max_serial_size<decltype(type::status_),decltype(type::filename),decltype(type::file_sz_)>();
+        }();
     };
 }
 

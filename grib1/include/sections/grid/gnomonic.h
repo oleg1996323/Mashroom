@@ -13,8 +13,7 @@ namespace grid{
 template<>
 struct GridDefinition<RepresentationType::GNOMONIC>:
         GridDefinitionBase<RepresentationType::GNOMONIC,GridModification::NONE>{
-
-    
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
 };
@@ -48,16 +47,20 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<GNOMONIC>>{
         using type = grid::GridBase<GNOMONIC>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<GNOMONIC>>{
         using type = grid::GridBase<GNOMONIC>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 }
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<GNOMONIC>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<GNOMONIC>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<GNOMONIC>>::value);

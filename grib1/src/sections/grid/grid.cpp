@@ -2,7 +2,7 @@
 #include "def.h"
 
 bool GridInfo::operator==(const GridInfo& other) const{
-    if(rep_type!=other.rep_type)
+    if(type()!=other.type())
         return false;
     else{
         auto visitor1 = [this,&other](auto&& grid1) -> bool
@@ -17,9 +17,9 @@ bool GridInfo::operator==(const GridInfo& other) const{
                 }
                 else return false;
             };
-            return std::visit(visitor2,other.data);
+            return std::visit(visitor2,other);
         };
-        return std::visit(visitor1,data);
+        return std::visit(visitor1,*this);
     }
 }
 bool GridInfo::operator!=(const GridInfo& other) const{
@@ -34,7 +34,7 @@ bool pos_in_grid(const Coord& pos, const GridInfo& grid) noexcept{
             return grid_val.pos_in_grid(pos);
         else return false;
     };
-    return std::visit(visitor,grid.data);
+    return std::visit(visitor,grid);
 }
 
 int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
@@ -44,12 +44,12 @@ int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
                 return grid_val.pos_in_grid(pos);
             else return false;
         };
-        return std::visit(visitor,grid.data);
+        return std::visit(visitor,grid);
     }
     else return UNDEFINED;
 }
 
-GridDataType::GridDataType(unsigned char* buffer, RepresentationType T){
+GridInfo::GridInfo(unsigned char* buffer, RepresentationType T){
     if(T!=UNDEF_GRID)
         emplace_by_id(T,buffer);
 }
@@ -61,5 +61,5 @@ const char* GridInfo::print_grid_info() const{
             return grid_val.print_grid_info();
         else return "Unknown grid";
     };
-    return std::visit(visitor,data);
+    return std::visit(visitor,*this);
 }

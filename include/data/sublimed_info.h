@@ -70,16 +70,18 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedDataInfo>{
         using type = SublimedDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
-            return min_serial_size(msg.grid_data_,msg.buf_pos_,msg.from_,msg.to_,msg.discret_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::grid_data_),decltype(type::buf_pos_),decltype(type::from_),decltype(type::to_),decltype(type::discret_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<SublimedDataInfo>{
         using type = SublimedDataInfo;
-        constexpr size_t operator()(const type& msg) noexcept{
-            return max_serial_size(msg.grid_data_,msg.buf_pos_,msg.from_,msg.to_,msg.discret_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::grid_data_),decltype(type::buf_pos_),decltype(type::from_),decltype(type::to_),decltype(type::discret_)>();
+        }();
     };
 }

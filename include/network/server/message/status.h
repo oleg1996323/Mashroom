@@ -45,16 +45,18 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.status_);
-        }
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<decltype(type::status_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<MessageAdditional<network::Server_MsgT::SERVER_STATUS>>{
         using type = MessageAdditional<network::Server_MsgT::SERVER_STATUS>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.status_);
-        }
+        static constexpr size_t value = []()
+        {
+            return max_serial_size<decltype(type::status_)>();
+        }();
     };
 }

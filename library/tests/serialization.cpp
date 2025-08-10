@@ -83,6 +83,8 @@ TEST(Serialization, SerializeInt){
     if(integer_1>0)
         integer_1=-integer_1;
     int integer_2 = std::rand();
+    ASSERT_EQ(serialization::min_serial_size(int()),sizeof(int));
+    ASSERT_EQ(serialization::max_serial_size(int()),sizeof(int));
     ASSERT_EQ(serialize<true>(integer_1,buf),serialization::SerializationEC::NONE);
     ASSERT_EQ(serialize<true>(integer_2,buf),serialization::SerializationEC::NONE);
 
@@ -104,6 +106,8 @@ TEST(Serialization, SerializeFloatingPoint){
     std::vector<char> buf;
     double fp_1 = std::rand()/std::rand();
     double fp_2 = std::rand();
+    ASSERT_EQ(serialization::min_serial_size(double()),sizeof(double));
+    ASSERT_EQ(serialization::max_serial_size(double()),sizeof(double));
     ASSERT_EQ(serialize<true>(fp_1,buf),serialization::SerializationEC::NONE);
     ASSERT_EQ(serialize<true>(fp_2,buf),serialization::SerializationEC::NONE);
 
@@ -124,6 +128,8 @@ TEST(Serialization, SerializeTimePoint){
     using namespace serialization;
     std::vector<char> buf;
     std::chrono::system_clock::time_point utc_tp = std::chrono::system_clock::now();
+    ASSERT_EQ(serialization::min_serial_size(utc_tp),sizeof(utc_tp));
+    ASSERT_EQ(serialization::max_serial_size(utc_tp),sizeof(utc_tp));
     ASSERT_EQ(serialize<true>(utc_tp,buf),serialization::SerializationEC::NONE);
 
     auto reversed_1=std::byteswap(utc_tp.time_since_epoch().count());
@@ -138,6 +144,8 @@ TEST(Serialization, SerializeDuration){
     using namespace serialization;
     std::vector<char> buf;
     std::chrono::system_clock::duration utc_tp = (std::chrono::system_clock::now()-std::chrono::years(20)-std::chrono::months(50)).time_since_epoch();
+    ASSERT_EQ(serialization::min_serial_size(utc_tp),sizeof(utc_tp));
+    ASSERT_EQ(serialization::max_serial_size(utc_tp),sizeof(utc_tp));
     ASSERT_EQ(serialize<true>(utc_tp,buf),serialization::SerializationEC::NONE);
 
     auto reversed_1=std::byteswap(utc_tp.count());
@@ -152,6 +160,8 @@ TEST(Serialization, SerializeUniquePtr){
     using namespace serialization;
     std::vector<char> buf;
     std::unique_ptr<double> fp_unique_ = std::make_unique<double>(std::rand()/std::rand());
+    ASSERT_EQ(serialization::min_serial_size(fp_unique_),sizeof(bool));
+    ASSERT_EQ(serialization::max_serial_size(fp_unique_),sizeof(bool)+sizeof(double));
     ASSERT_EQ(serialize<true>(fp_unique_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(fp_unique_));
     auto reversed_1=std::byteswap(to_integer(*fp_unique_.get()));
@@ -176,6 +186,8 @@ TEST(Serialization, SerializeSharedPtr){
     using namespace serialization;
     std::vector<char> buf;
     std::shared_ptr<double> fp_shared_ = std::make_shared<double>(std::rand()/std::rand());
+    ASSERT_EQ(serialization::min_serial_size(fp_shared_),sizeof(bool));
+    ASSERT_EQ(serialization::max_serial_size(fp_shared_),sizeof(bool)+sizeof(double));
     ASSERT_EQ(serialize<true>(fp_shared_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(fp_shared_));
     auto reversed_1=std::byteswap(to_integer(*fp_shared_.get()));
@@ -200,6 +212,8 @@ TEST(Serialization, SerializePair){
     using namespace serialization;
     std::vector<char> buf;
     std::pair<double,int> pair_ = std::make_pair(std::rand()/std::rand(),std::rand());
+    ASSERT_EQ(serialization::min_serial_size(pair_),min_serial_size(pair_.first)+min_serial_size(pair_.second));
+    ASSERT_EQ(serialization::max_serial_size(pair_),max_serial_size(pair_.first)+max_serial_size(pair_.second));
     ASSERT_EQ(serialize<true>(pair_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(pair_));
     auto reversed_1=std::make_pair(std::byteswap(to_integer(pair_.first)),std::byteswap(pair_.second));
@@ -214,6 +228,8 @@ TEST(Serialization, SerializeOptional){
     using namespace serialization;
     std::vector<char> buf;
     std::optional<double> opt_ = std::make_optional(std::rand()/std::rand());
+    ASSERT_EQ(serialization::min_serial_size(opt_),sizeof(bool));
+    ASSERT_EQ(serialization::max_serial_size(opt_),sizeof(bool)+sizeof(opt_.value()));
     ASSERT_EQ(serialize<true>(opt_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(opt_));
     auto reversed_1=std::make_optional(std::byteswap(to_integer(opt_.value())));
@@ -240,7 +256,8 @@ TEST(Serialization, SerializeList){
     std::list<std::pair<int,int>> list_;
     for(int i=0;i<50;++i)
         list_.push_back(std::make_pair(std::rand(),std::rand()));
-    
+    ASSERT_EQ(serialization::min_serial_size(list_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(list_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(list_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(list_));
     std::vector<std::pair<int,int>> reversed_1;
@@ -262,6 +279,8 @@ TEST(Serialization, SerializeVector){
     for(int i=0;i<50;++i)
         vector_.push_back(std::make_pair(std::rand(),std::rand()));
     
+    ASSERT_EQ(serialization::min_serial_size(vector_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(vector_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(vector_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(vector_));
     std::vector<std::pair<int,int>> reversed_1;
@@ -282,7 +301,8 @@ TEST(Serialization, SerializeDeque){
     std::deque<std::pair<int,int>> deque_;
     for(int i=0;i<50;++i)
         deque_.push_back(std::make_pair(std::rand(),std::rand()));
-    
+    ASSERT_EQ(serialization::min_serial_size(deque_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(deque_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(deque_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(deque_));
     std::vector<std::pair<int,int>> reversed_1;
@@ -305,7 +325,8 @@ TEST(Serialization, SerializeSet){
         auto inserted = double(std::rand())/std::rand();
         set_.insert(inserted);
     }
-    
+    ASSERT_EQ(serialization::min_serial_size(set_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(set_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(set_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(set_));
     std::vector<double> reversed_1;
@@ -331,7 +352,8 @@ TEST(Serialization, SerializeUnorderedSet){
         auto inserted = double(std::rand())/std::rand();
         uset_.insert(inserted);
     }
-    
+    ASSERT_EQ(serialization::min_serial_size(uset_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(uset_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(uset_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(uset_));
     std::vector<double> reversed_1;
@@ -358,7 +380,8 @@ TEST(Serialization, SerializeMap){
         auto val = double(std::rand())/std::rand();
         map_.emplace(key,val);
     }
-    
+    ASSERT_EQ(serialization::min_serial_size(map_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(map_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(map_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(map_));
     std::vector<decltype(map_)::value_type> reversed_1;
@@ -385,7 +408,8 @@ TEST(Serialization, SerializeUMap){
         auto val = double(std::rand())/std::rand();
         umap_.emplace(key,val);
     }
-    
+    ASSERT_EQ(serialization::min_serial_size(umap_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(umap_),std::numeric_limits<size_t>::max());
     ASSERT_EQ(serialize<true>(umap_,buf),serialization::SerializationEC::NONE);
     EXPECT_EQ(buf.size(),serial_size(umap_));
     std::vector<decltype(umap_)::value_type> reversed_1;
@@ -401,6 +425,22 @@ TEST(Serialization, SerializeUMap){
     ASSERT_EQ(deserialize<true>(check_umap,std::span(buf)),serialization::SerializationEC::NONE);
     EXPECT_EQ(check_umap,umap_);
 }
+
+TEST(Serialization, SerialLimits){
+
+    ASSERT_EQ(serialization::min_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
+    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
+    ASSERT_EQ(serialization::min_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(serialization::min_serial_size(std::shared_ptr<int>{}),sizeof(bool));
+    ASSERT_EQ(serialization::max_serial_size(std::shared_ptr<int>{}),sizeof(bool)+sizeof(int));
+    ASSERT_EQ(serialization::min_serial_size(std::chrono::years()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(serialization::min_serial_size(std::vector<ptrdiff_t>{}),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(std::vector<ptrdiff_t>{}),std::numeric_limits<size_t>::max());
+}
+
+
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc,argv);

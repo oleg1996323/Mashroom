@@ -59,6 +59,7 @@ struct GridBase<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer):
     nx(GDS_LatLon_nx(buffer)),
     ny(GDS_LatLon_ny(buffer)),
@@ -117,7 +118,7 @@ struct GridBase<RepresentationType::GAUSSIAN>{
         scan_mode==other.scan_mode &&
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
-    GridBase();
+    GridBase() = default;
     GridBase(unsigned char* buffer):
     y1(0.001*GDS_LatLon_La1(buffer)),
     x1(0.001*GDS_LatLon_Lo1(buffer)),
@@ -354,6 +355,7 @@ struct GridBase<LAMBERT>{
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer):
         nx(GDS_Lambert_nx(buffer)),
         ny(GDS_Lambert_ny(buffer)),
@@ -433,6 +435,7 @@ struct GridBase<POLAR_STEREOGRAPH_PROJ>{
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer):
     nx(GDS_Polar_nx(buffer)),
     ny(GDS_Polar_ny(buffer)),
@@ -516,6 +519,7 @@ struct GridBase<SPACE_VIEW>{
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer):
     nx(GDS_Polar_nx(buffer)),
     ny(GDS_Polar_ny(buffer)),
@@ -583,6 +587,7 @@ struct GridBase<MERCATOR>{
         resolutionAndComponentFlags==other.resolutionAndComponentFlags;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer):
     nx(GDS_Merc_nx(buffer)),
     ny(GDS_Merc_dy(buffer)),
@@ -610,6 +615,7 @@ struct GridBase<GNOMONIC>{
         return true;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer){}
 };
 
@@ -626,6 +632,7 @@ struct GridBase<MILLERS_CYLINDR>{
         return true;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer){}
 };
 
@@ -642,6 +649,7 @@ struct GridBase<SIMPLE_POLYCONIC>{
         return true;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer){}
 };
 
@@ -658,6 +666,7 @@ struct GridBase<RepresentationType::UTM>{
         return true;
     }
 
+    GridBase() = default;
     GridBase(unsigned char* buffer){}
 };
 
@@ -669,7 +678,6 @@ struct GridDefinitionBase{
     constexpr static GridModification modification(){
         return MOD;
     }
-    constexpr static RepresentationType rep_t = REP_T;
 	GridBase<REP_T> base_;
 	GridAdditional<REP_T,MOD> additional_;
 	bool operator==(const GridDefinitionBase<REP_T,MOD>& other) const{
@@ -684,6 +692,11 @@ struct GridDefinitionBase{
     }
     constexpr static uint8_t begin_byte(){
         return decltype(base_)::begin_byte();
+    }
+    protected:
+    GridDefinitionBase(){
+        GridBase<REP_T> b;
+        GridAdditional<REP_T,MOD> a;
     }
     GridDefinitionBase(unsigned char* buffer):
         base_(buffer),additional_(buffer){}
@@ -742,16 +755,18 @@ namespace serialization{
     template<RepresentationType REP>
     struct Min_serial_size<grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.base_,msg.additional_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::base_),decltype(type::additional_)>();
+        }();
     };
 
     template<RepresentationType REP>
     struct Max_serial_size<grid::GridDefinition<REP>>{
         using type = grid::GridDefinition<REP>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.base_,msg.additional_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::base_),decltype(type::additional_)>();
+        }();
     };
 }

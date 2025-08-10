@@ -29,3 +29,16 @@ int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc,argv);
     return RUN_ALL_TESTS();
 }
+
+static_assert(serialization::min_serial_size(double())==sizeof(double));
+static_assert(serialization::max_serial_size(double())==sizeof(double));
+static_assert(serialization::min_serial_size(std::chrono::system_clock::time_point())==sizeof(std::chrono::system_clock::time_point));
+static_assert(serialization::max_serial_size(std::chrono::system_clock::time_point())==sizeof(std::chrono::system_clock::time_point));
+static_assert(serialization::min_serial_size(std::chrono::system_clock::duration())==sizeof(std::chrono::system_clock::duration));
+static_assert(serialization::max_serial_size(std::chrono::system_clock::duration())==sizeof(std::chrono::system_clock::duration));
+static_assert(serialization::min_serial_size(std::shared_ptr<int>{})==sizeof(bool));
+static_assert(serialization::max_serial_size(std::shared_ptr<int>{})==sizeof(bool)+sizeof(int));
+static_assert(serialization::min_serial_size(std::chrono::years())==sizeof(std::chrono::system_clock::duration));
+static_assert(serialization::max_serial_size(std::chrono::system_clock::duration())==sizeof(std::chrono::system_clock::duration));
+static_assert(serialization::min_serial_size(std::vector<ptrdiff_t>{})==sizeof(size_t));
+static_assert(serialization::max_serial_size(std::vector<ptrdiff_t>{})==std::numeric_limits<size_t>::max());

@@ -33,6 +33,7 @@ namespace grid{
 template<>
 struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::NONE>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
         return GridDefinitionBase::operator==(other);
@@ -74,6 +75,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
 template<>
 struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
@@ -84,6 +86,7 @@ struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
@@ -135,18 +138,23 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
         using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
-                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::y1),decltype(type::x1),decltype(type::y2),decltype(type::x2),decltype(type::dy),decltype(type::dx),
+                decltype(type::ny),decltype(type::nx),decltype(type::scan_mode),decltype(type::resolutionAndComponentFlags)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
         using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
-                msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::y1),decltype(type::x1),decltype(type::y2),decltype(type::x2),decltype(type::dy),decltype(type::dx),
+                decltype(type::ny),decltype(type::nx),decltype(type::scan_mode),decltype(type::resolutionAndComponentFlags)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>::value);

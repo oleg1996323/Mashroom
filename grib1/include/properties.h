@@ -43,15 +43,17 @@ namespace serialization{
 
     template<>
     struct Min_serial_size<SearchParamTableVersion>{
-        constexpr auto operator()(const SearchParamTableVersion& val) const noexcept{
-            return min_serial_size(val.param_,val.t_ver_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(SearchParamTableVersion::param_),decltype(SearchParamTableVersion::t_ver_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<SearchParamTableVersion>{
-        constexpr auto operator()(const SearchParamTableVersion& val) const noexcept{
-            return max_serial_size(val.param_,val.t_ver_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(SearchParamTableVersion::param_),decltype(SearchParamTableVersion::t_ver_)>();
+        }();
     };
 }

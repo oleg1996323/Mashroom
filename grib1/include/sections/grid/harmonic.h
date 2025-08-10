@@ -22,7 +22,8 @@ namespace grid{
 */
 template<>
 struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>:
-    GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::NONE>{   
+    GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::NONE>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -38,6 +39,7 @@ struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>:
 template<>
 struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>:
     GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::ROTATION>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -53,6 +55,7 @@ struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENT
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>:
         GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -65,6 +68,7 @@ struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIE
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>:
     GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::ROTATION_STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters
@@ -106,16 +110,21 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::J),decltype(type::K),decltype(type::M),decltype(type::representation_type),decltype(type::rep_mode)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>{
         using type = grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.J,msg.K,msg.M,msg.representation_type,msg.rep_mode);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::J),decltype(type::K),decltype(type::M),decltype(type::representation_type),decltype(type::rep_mode)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>::value);

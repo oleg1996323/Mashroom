@@ -13,7 +13,7 @@ namespace grid{
 template<>
 struct GridDefinition<RepresentationType::MERCATOR>:
     GridDefinitionBase<RepresentationType::MERCATOR,GridModification::NONE>{
-
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::MERCATOR>& other) const{
@@ -55,18 +55,25 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<MERCATOR>>{
         using type = grid::GridBase<MERCATOR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.y2,msg.x2,
-                msg.latin,msg.scan_mode,msg.dy,msg.dx);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),
+                decltype(type::resolutionAndComponentFlags),decltype(type::y2),decltype(type::x2),
+                decltype(type::latin),decltype(type::scan_mode),decltype(type::dy),decltype(type::dx)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<MERCATOR>>{
         using type = grid::GridBase<MERCATOR>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.y2,msg.x2,
-                msg.latin,msg.scan_mode,msg.dy,msg.dx);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),
+                decltype(type::resolutionAndComponentFlags),decltype(type::y2),decltype(type::x2),
+                decltype(type::latin),decltype(type::scan_mode),decltype(type::dy),decltype(type::dx)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<MERCATOR>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<MERCATOR>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<MERCATOR>>::value);

@@ -215,17 +215,19 @@ namespace serialization{
     template<>
     struct Min_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(__Data__::FORMAT::GRIB,msg.info_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(__Data__::FORMAT::GRIB),decltype(type::info_)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<SublimedGribDataInfo>{
         using type = SublimedGribDataInfo;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(__Data__::FORMAT::GRIB,msg.info_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(__Data__::FORMAT::GRIB),decltype(type::info_)>();
+        }();
     };
 }
 

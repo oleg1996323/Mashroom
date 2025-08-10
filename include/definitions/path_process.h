@@ -111,16 +111,18 @@ namespace serialization{
     template<bool VIEW>
     struct Min_serial_size<path::Storage<VIEW>>{
         using type = path::Storage<VIEW>;
-        constexpr size_t operator()(const type& msg) noexcept{
-            return min_serial_size(msg.type_,msg.path_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::type_),decltype(type::path_)>();
+        }();
     };
 
     template<bool VIEW>
     struct Max_serial_size<path::Storage<VIEW>>{
         using type = path::Storage<VIEW>;
-        constexpr size_t operator()(const type& msg) noexcept{
-            return max_serial_size(msg.type_,msg.path_);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::type_),decltype(type::path_)>();
+        }();
     };
 }

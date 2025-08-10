@@ -41,17 +41,19 @@ namespace serialization{
     template<>
     struct Min_serial_size<MessageAdditional<network::Client_MsgT::INDEX>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 
     template<>
     struct Max_serial_size<MessageAdditional<network::Client_MsgT::INDEX>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX>;
-        constexpr size_t operator()(const type& msg) const noexcept{
+        static constexpr size_t value = []() ->size_t
+        {
             return 0;
-        }
+        }();
     };
 }
 

@@ -116,12 +116,27 @@ private:
     }
 };
 
-struct GridDataType:GridVariant
-{   
+#include <array>
+#include <string_view>
+#include <types/rect.h>
+#include <vector>
+#include "variant.h"
+#ifndef GRID_INFO
+struct GridInfo:GridVariant{
     using factory = GridVariantFactory<GridVariant>;
-    using variant::variant;
-    GridDataType() = default;
-    GridDataType(unsigned char* buffer, RepresentationType T);
+    using GridVariant::GridVariant;
+    using variant = GridVariant;
+    GridInfo() = default;
+    GridInfo(unsigned char* buffer, RepresentationType T);
+    RepresentationType type() const{
+        auto dtype = [](auto& item){
+            if constexpr (std::is_same_v<std::decay_t<decltype(item)>,std::monostate>)
+                return RepresentationType::UNDEF_GRID;
+            else return item.type();
+        };
+        return std::visit(dtype,*this);
+    }
+
     template<RepresentationType REP>
     bool has() const{
         return std::holds_alternative<GridDefinition<REP>>(*this);
@@ -130,21 +145,9 @@ struct GridDataType:GridVariant
     bool emplace_by_id(RepresentationType id, ARGS&&... args) noexcept{
         return factory::emplace(*this,id,std::forward<ARGS>(args)...);
     }
-};
-
-#include <array>
-#include <string_view>
-#include <types/rect.h>
-#include <vector>
-#ifndef GRID_INFO
-struct GridInfo{
-    GridDataType data = std::monostate{};
-    RepresentationType rep_type = UNDEF_GRID;
-    GridInfo(GridDataType&& gdt,RepresentationType t):data(std::move(gdt)),rep_type(t){}
-    GridInfo() = default;
     
     bool extendable_by(const GridInfo& other) const noexcept{
-        if(rep_type != other.rep_type)
+        if(type() != other.type())
             return false;
 
         auto visitor1 = [this,&other](auto& grid1) -> bool
@@ -163,9 +166,9 @@ struct GridInfo{
                 }
                 else return false;
             };
-            return std::visit(visitor2,other.data);
+            return std::visit(visitor2,other);
         };
-        return std::visit(visitor1,data);
+        return std::visit(visitor1,*this);
     }
 
     bool extend(const GridInfo& other){
@@ -188,24 +191,25 @@ struct GridInfo{
                     }
                     else return false;
                 };
-                return std::visit(visitor2,other.data);
+                return std::visit(visitor2,other);
             }
         };
-        return std::visit(visitor1,data);
+        return std::visit(visitor1,*this);
     }
 
     bool has_grid() const{
-        return !std::holds_alternative<std::monostate>(data);
+        return !std::holds_alternative<std::monostate>(*this);
     }
 
     bool has_grid_type(RepresentationType rep) const{
-        return enum_to_index[rep]==data.index();
+        return enum_to_index[rep]==this->index();
     }
     
     const char* print_grid_info() const;
     bool operator==(const GridInfo& other) const;
     bool operator!=(const GridInfo& other) const;
 };
+ENABLE_DERIVED_VARIANT(GridInfo,GridVariant);
 #endif
 
 #include <optional>
@@ -213,8 +217,8 @@ struct GridInfo{
 template<>
 struct std::hash<GridInfo>{
     size_t operator()(const GridInfo& data) const{
-        return std::hash<uint64_t>{}((uint64_t)data.rep_type<<(sizeof(size_t)-sizeof(data.rep_type)))^
-        (std::hash<std::string_view>{}(reinterpret_cast<const char*>(&data.data))>>sizeof(data.rep_type));
+        return std::hash<uint64_t>{}((uint64_t)data.type()<<(sizeof(size_t)-sizeof(data.type())))^
+        (std::hash<std::string_view>{}(reinterpret_cast<const char*>(this))>>sizeof(data.type()));
     }
 };
 
@@ -388,110 +392,9 @@ std::optional<RepresentationType> abbr_to_grid(const std::ranges::range auto& in
     return std::nullopt;
 }
 
-namespace serialization{
-    template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,GridInfo>{
-        using type = GridInfo;
-        SerializationEC operator()(const type& grid_val, std::vector<char>& buf) const noexcept{
-            auto visitor = [&buf,&grid_val](auto& arg) mutable ->serialization::SerializationEC
-            {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>){
-                    auto rep_type = RepresentationType::UNDEF_GRID;
-                    return serialization::serialize<NETWORK_ORDER>(rep_type,buf);
-                }
-                else return serialization::serialize<NETWORK_ORDER>(grid_val,buf,grid_val.rep_type,arg);
-            };
-            return std::visit(visitor,grid_val.data);
-        }
-    };
-
-    template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,GridInfo>{
-        using type = GridInfo;
-        SerializationEC operator()(type& grid_val, std::span<const char> buf) const noexcept{
-            grid_val.data = std::monostate();
-            RepresentationType T = UNDEF_GRID;
-            if(buf.size()<min_serial_size(grid_val))
-                return SerializationEC::NONE;
-            deserialize<NETWORK_ORDER>(T,buf);
-            grid_val.rep_type = T;
-            auto visitor = [&buf,&grid_val](auto& arg) mutable ->serialization::SerializationEC
-            {
-                using ArgType = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<ArgType,std::monostate>)
-                    return serialization::SerializationEC::NONE;
-                else {
-                    if(auto err = serialization::deserialize<NETWORK_ORDER>(arg,buf.subspan(serial_size(grid_val.rep_type)));err!=SerializationEC::NONE){
-                        grid_val.data.emplace<std::monostate>();
-                        grid_val.rep_type = UNDEF_GRID;
-                        return err;
-                    }
-                    else return err;
-                }
-                    
-            };
-            if(!grid_val.data.emplace_by_id(T)){
-                grid_val.data.emplace<std::monostate>();
-                grid_val.rep_type = UNDEF_GRID;
-                return SerializationEC::UNMATCHED_TYPE;
-            }
-            SerializationEC code = std::visit(visitor,grid_val.data);
-            if(code!=SerializationEC::NONE){
-                grid_val.data.emplace<std::monostate>();
-                grid_val.rep_type = UNDEF_GRID;
-            }
-            return code;
-        }
-    };
-
-    template<>
-    struct Serial_size<GridInfo>{
-        using type = GridInfo;
-        size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto& arg)->size_t
-            {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return sizeof(RepresentationType);
-                else return serialization::serial_size(arg);
-            };
-            return std::visit(visitor,grid_val.data);
-        }
-    };
-
-    template<>
-    struct Min_serial_size<GridInfo>{
-        using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto& arg)mutable ->size_t
-            {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return sizeof(RepresentationType);
-                else return serialization::min_serial_size(arg);
-            };
-            return std::visit(visitor,grid_val.data);
-        }
-    };
-
-    template<>
-    struct Max_serial_size<GridInfo>{
-        using type = GridInfo;
-        constexpr size_t operator()(const type& grid_val) const noexcept{
-            auto visitor = [&](auto& arg)mutable->size_t
-            {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T,std::monostate>)
-                    return sizeof(RepresentationType);
-                else return serialization::max_serial_size(arg);
-            };
-            return std::visit(visitor,grid_val.data);
-        }
-    };
-}
-
 static_assert(requires {requires serialization::serialize_concept<true,GridInfo>;});
 static_assert(requires {requires serialization::serialize_concept<false,GridInfo>;});
 static_assert(requires {requires serialization::serialize_concept<true,std::optional<GridInfo>>;});
 static_assert(requires {requires serialization::serialize_concept<false,std::optional<GridInfo>>;});
+static_assert(serialization::Min_serial_size<std::optional<GridInfo>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<GridInfo>>::value==sizeof(bool)+serialization::Max_serial_size<GridInfo>::value);

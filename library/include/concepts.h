@@ -64,3 +64,13 @@ concept AssociativeContainer = requires(const T& cont){
 
 template<typename T>
 inline constexpr bool is_associative_container_v = AssociativeContainer<T>;
+
+#include <variant>
+template<typename T>
+concept IsStdVariant = requires(const T& val){
+    std::variant_size<std::decay_t<T>>::value;
+};
+
+// удобный alias
+template<typename T>
+inline constexpr bool is_std_variant_v = IsStdVariant<T>;

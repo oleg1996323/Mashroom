@@ -9,6 +9,7 @@ namespace grid{
 template<>
 struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>:
     GridDefinitionBase<RepresentationType::POLAR_STEREOGRAPH_PROJ,GridModification::NONE>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     const char* print_grid_info() const;
 };
@@ -47,18 +48,25 @@ namespace serialization{
     template<>
     struct Min_serial_size<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>{
         using type = grid::GridBase<POLAR_STEREOGRAPH_PROJ>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
-                msg.dy,msg.is_south_pole,msg.scan_mode);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),
+                decltype(type::resolutionAndComponentFlags),decltype(type::LoV),decltype(type::dx),
+                decltype(type::dy),decltype(type::is_south_pole),decltype(type::scan_mode)>();
+        }();
     };
 
     template<>
     struct Max_serial_size<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>{
         using type = grid::GridBase<POLAR_STEREOGRAPH_PROJ>;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
-                msg.dy,msg.is_south_pole,msg.scan_mode);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y1),decltype(type::x1),
+                decltype(type::resolutionAndComponentFlags),decltype(type::LoV),decltype(type::dx),
+                decltype(type::dy),decltype(type::is_south_pole),decltype(type::scan_mode)>();
+        }();
     };
 }
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>::value);

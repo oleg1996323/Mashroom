@@ -111,16 +111,20 @@ namespace serialization{
 
     template<>
     struct Min_serial_size<TimePeriod>{
-        constexpr size_t operator()(const TimePeriod& val) const noexcept{
-            return min_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
-        }
+        using type = TimePeriod;
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<decltype(type::years_),decltype(type::months_),decltype(type::days_),decltype(type::hours_),decltype(type::minutes_),decltype(type::seconds_)>();
+        }();
     };
      
     template<>
     struct Max_serial_size<TimePeriod>{
-        constexpr size_t operator()(const TimePeriod& val) const noexcept{
-            return max_serial_size(val.years_,val.months_,val.days_,val.hours_,val.minutes_,val.seconds_);
-        }
+        using type = TimePeriod;
+        static constexpr size_t value = []()
+        {
+            return max_serial_size<decltype(type::years_),decltype(type::months_),decltype(type::days_),decltype(type::hours_),decltype(type::minutes_),decltype(type::seconds_)>();
+        }();
     };
 }
 

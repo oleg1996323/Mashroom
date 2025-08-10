@@ -479,17 +479,19 @@ namespace serialization{
 	template<>
     struct Min_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
-        }
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<decltype(type::points_sub_i_dir),decltype(type::points_sub_j_dir),decltype(type::adj_points_j_dir)>();
+        }();
     };
 
 	template<>
     struct Max_serial_size<ScanMode>{
         using type = ScanMode;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::points_sub_i_dir),decltype(type::points_sub_j_dir),decltype(type::adj_points_j_dir)>();
+        }();
     };
 
     template<bool NETWORK_ORDER>
@@ -517,15 +519,17 @@ namespace serialization{
 	template<>
     struct Min_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return min_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::given_direction),decltype(type::earth_spheroidal),decltype(type::grid_direction_uv_comp)>();
+        }();
     };
 	template<>
     struct Max_serial_size<ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        constexpr size_t operator()(const type& msg) const noexcept{
-            return max_serial_size(msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
-        }
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::given_direction),decltype(type::earth_spheroidal),decltype(type::grid_direction_uv_comp)>();
+        }();
     };
 }

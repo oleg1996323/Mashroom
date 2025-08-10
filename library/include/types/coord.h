@@ -49,14 +49,18 @@ struct Serial_size<Coord>{
 };
 template<>
 struct Min_serial_size<Coord>{
-    constexpr size_t operator()(const Coord& val) const noexcept{
-        return sizeof(val.lat_)+sizeof(val.lon_);
-    }
+    using type = Coord;
+    static constexpr size_t value = []()
+    {
+        return sizeof(type::lat_)+sizeof(type::lon_);
+    }();
 };
 template<>
 struct Max_serial_size<Coord>{
-    constexpr size_t operator()(const Coord& val) const noexcept{
-        return sizeof(val.lat_)+sizeof(val.lon_);
-    }
+    using type = Coord;
+    static constexpr size_t value = []()
+    {
+        return sizeof(type::lat_)+sizeof(type::lon_);
+    }();
 };
 }
