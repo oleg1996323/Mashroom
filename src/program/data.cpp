@@ -204,7 +204,7 @@ std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
         for(const auto& [common,data]:grib_.grib_data_.data().find(fn)->second)
             for(const auto& d:data){
                 if(d.grid_data_.has_value() && 
-                    d.grid_data_.value().rep_type==rep_t && 
+                    d.grid_data_.value().type()==rep_t && 
                     intervals_intersect(d.from_,d.to_,time_interval.from_,time_interval.to_) && 
                     pos_in_grid(pos,d.grid_data_.value())){
                     auto beg_end = interval_intersection_pos(time_interval,TimeInterval{d.from_,d.to_},d.discret_);
@@ -238,7 +238,7 @@ std::vector<ptrdiff_t> Data::match(
         if(found!=file_data.end()){
             for(auto info:found->second){
                 if(info.grid_data_.has_value() &&
-                    info.grid_data_.value().rep_type==rep_t &&
+                    info.grid_data_.value().type()==rep_t &&
                     pos_in_grid(pos,info.grid_data_.value()) &&
                     intervals_intersect(info.from_,info.to_,time_interval.from_,time_interval.to_))
                 {

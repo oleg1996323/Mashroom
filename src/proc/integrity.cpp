@@ -153,7 +153,7 @@ void Integrity::__process_core__(std::ranges::random_access_range auto&& entries
                     continue;
                 if(props_.fcst_unit_.has_value() && props_.fcst_unit_!=info.t_unit)
                     continue;
-                if(props_.grid_type_.has_value() && (!info.grid_data.has_grid() || props_.grid_type_.value()!=info.grid_data.rep_type))
+                if(props_.grid_type_.has_value() && (!info.grid_data.has_grid() || props_.grid_type_.value()!=info.grid_data.type()))
                     continue;
                 if(props_.position_.has_value()){
                     if(!info.grid_data.has_grid())

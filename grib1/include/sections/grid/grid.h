@@ -74,9 +74,9 @@ constexpr std::array<int,256> enum_to_index = [](){
 }();
 }
 
-template<class... Types>
-struct GridVariantFactory<std::variant<Types...>>{
-    using VariantType = std::variant<Types...>;
+template<template<typename... Types> typename VARIANT, typename... Types>
+struct GridVariantFactory<VARIANT<Types...>>{
+    using VariantType = VARIANT<Types...>;
     using ResultType = VariantType;
 
     template<typename... ARGS>
@@ -398,3 +398,4 @@ static_assert(requires {requires serialization::serialize_concept<true,std::opti
 static_assert(requires {requires serialization::serialize_concept<false,std::optional<GridInfo>>;});
 static_assert(serialization::Min_serial_size<std::optional<GridInfo>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<GridInfo>>::value==sizeof(bool)+serialization::Max_serial_size<GridInfo>::value);
+static_assert(IsStdVariant<GridInfo>);

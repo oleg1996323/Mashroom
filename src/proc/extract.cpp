@@ -61,7 +61,7 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
         if(props_.grid_type_.has_value()){
             if(!msg_info.grid_data.has_grid())
                 continue;
-            if(props_.grid_type_.value()!=msg_info.grid_data.rep_type)
+            if(props_.grid_type_.value()!=msg_info.grid_data.type())
                 continue;                  
             if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_){
                 continue;

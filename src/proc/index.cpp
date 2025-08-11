@@ -51,7 +51,7 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Index::__write__(const std::ve
 			case 'g':
 			case 'G':
 				if(msg_info.grid_data.has_grid())
-					cur_path/=grid_to_abbr(msg_info.grid_data.rep_type);
+					cur_path/=grid_to_abbr(msg_info.grid_data.type());
 				else
 					cur_path/="wogrid";
 			default:

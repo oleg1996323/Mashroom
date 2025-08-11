@@ -33,7 +33,7 @@ std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::s
         continue;
     if(data.parameter_!=info.parameter)
         continue;
-    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.rep_type)
+    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.type())
         continue;
     if(date!=info.date)
         continue;
@@ -67,7 +67,7 @@ std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::s
         continue;
     if(parameter!=info.parameter)
         continue;
-    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.rep_type)
+    if(!grid_type.has_value() || grid_type.value()!=info.grid_data.type())
         continue;
     if(date!=info.date)
         continue;

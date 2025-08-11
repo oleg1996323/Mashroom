@@ -594,6 +594,7 @@ namespace serialization{
             {   
                 size_t size_min = std::numeric_limits<size_t>::max();
                 ((size_min = std::min(min_serial_size<std::variant_alternative_t<Is,type>>(),size_min)),...);
+                size_min+=+sizeof(size_t);
                 return size_min;
             }(std::make_index_sequence<std::variant_size_v<type>>{});
             return calc_size;
@@ -610,6 +611,7 @@ namespace serialization{
             {   
                 size_t size_max = 0;
                 ((size_max = std::max(max_serial_size<std::variant_alternative_t<Is,type>>(),size_max)),...);
+                size_max = (std::numeric_limits<size_t>::max()-sizeof(size_t)<size_max?std::numeric_limits<size_t>::max():size_max+sizeof(size_t));
                 return size_max;
             }(std::make_index_sequence<std::variant_size_v<type>>{});
             return calc_size;
@@ -629,13 +631,18 @@ namespace serialization{
     requires (sizeof...(ARGS)>0)
     SerializationEC serialize(const T& val,std::vector<char>& buf,const ARGS&... args) noexcept{
         SerializationEC err = SerializationEC::NONE;
-        
+        static_assert(min_serial_size<T>()==min_serial_size<ARGS...>(),
+        "Minimal serial size of serialized struct must be equal to the minimal serial size of all its members to be serialized");
+        static_assert(max_serial_size<T>()==max_serial_size<ARGS...>(),
+        "Maximal serial size of serialized struct must be equal to the maximal serial size of all its members to be serialized");
         (((err=serialize<NETWORK_ORDER>(args, buf))==SerializationEC::NONE) && ...);
         return err;
     }
     template<bool NETWORK_ORDER,typename T,typename... ARGS>
     requires (sizeof...(ARGS)>0)
     SerializationEC deserialize(const T& val,std::span<const char> buf, ARGS&... args) noexcept{
+        static_assert(min_serial_size<T>()==min_serial_size<ARGS...>(),"Expected equal minimal serial size of object and its fields' summary minimal serial size");
+        static_assert(min_serial_size<T>()==min_serial_size<ARGS...>(),"Expected equal maximal serial size of object and its fields' summary maximal serial size");
         SerializationEC result_code = SerializationEC::NONE;
         if (buf.size() < min_serial_size(val))
             return SerializationEC::BUFFER_SIZE_LESSER;
