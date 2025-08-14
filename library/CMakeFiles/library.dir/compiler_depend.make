@@ -1912,6 +1912,7 @@ library/CMakeFiles/library.dir/src/types/coord.cpp.o: library/src/types/coord.cp
   library/include/serialization.h \
   library/include/types/coord.h \
   library/include/types/pseudo.h \
+  library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/auto_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h \
@@ -2238,6 +2239,7 @@ library/CMakeFiles/library.dir/src/types/date.cpp.o: library/src/types/date.cpp 
   library/include/serialization.h \
   library/include/types/pseudo.h \
   library/include/types/time_interval.h \
+  library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic \
@@ -3347,6 +3349,7 @@ library/CMakeFiles/library.dir/src/types/time_interval.cpp.o: library/src/types/
   library/include/serialization.h \
   library/include/types/pseudo.h \
   library/include/types/time_interval.h \
+  library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic \
@@ -4841,10 +4844,6 @@ library/src/types/rect.cpp:
 
 /usr/include/boost/mpl/and.hpp:
 
-/usr/include/boost/range/detail/common.hpp:
-
-/usr/include/boost/limits.hpp:
-
 /usr/include/boost/lexical_cast/detail/lcast_char_constants.hpp:
 
 /usr/include/boost/lexical_cast/detail/is_character.hpp:
@@ -4970,6 +4969,12 @@ library/include/parsing.h:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/list.tcc:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/deque.tcc:
+
+/usr/include/boost/range/detail/common.hpp:
+
+/usr/include/boost/limits.hpp:
+
+library/include/variant.h:
 
 library/include/types/coord.h:
 

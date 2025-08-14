@@ -7,6 +7,7 @@ library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o: library/tes
   library/include/float_conv.h \
   library/include/serialization.h \
   library/include/types/pseudo.h \
+  library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/any \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
@@ -690,12 +691,6 @@ library/tests/build/serialization_test: /home/oster/gcc/gcc-install/lib64/libgcc
 
 /usr/include/linux/errno.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode-data.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/typeinfo:
-
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/streambuf.tcc:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
@@ -767,10 +762,6 @@ library/include/serialization.h:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/predefined_ops.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_relops.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/ext/type_traits.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/concept_check.h:
 
 /home/oster/gcc/gcc-install/lib64/libgcc_s.so:
 
@@ -850,6 +841,10 @@ library/include/serialization.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h:
 
+/usr/include/limits.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_ios.tcc:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/shared_ptr_base.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/char_traits.h:
@@ -867,10 +862,6 @@ library/include/float_conv.h:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_ios.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bit:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_ios.tcc:
-
-/usr/include/limits.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_facets.h:
 
@@ -926,6 +917,16 @@ library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/allocated_ptr.h:
 
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_util.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/atomic_lockfree_defines.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/quoted_string.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/stdexcept:
+
 /usr/include/x86_64-linux-gnu/bits/sched.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/alloc_traits.h:
@@ -972,6 +973,14 @@ library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/pstl/execution_defs.h:
 
+library/include/byte_order.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_algo.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/cxxabi_forced.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_ptr.h:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_bvector.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/aligned_buffer.h:
@@ -980,13 +989,13 @@ library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o:
 
 /home/oster/gcc/gcc-install/lib/gcc/x86_64-pc-linux-gnu/15.0.1/include/stdarg.h:
 
-library/include/byte_order.h:
+library/include/variant.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_algo.h:
+/usr/include/ctype.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/cxxabi_forced.h:
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_classes.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_ptr.h:
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_thread.h:
 
 /usr/include/linux/types.h:
 
@@ -1014,19 +1023,9 @@ library/include/concepts.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/chrono.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_thread.h:
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_facets_nonio.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_classes.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_util.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/atomic_lockfree_defines.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/quoted_string.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/stdexcept:
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_multimap.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/codecvt.h:
 
@@ -1035,10 +1034,6 @@ library/include/concepts.h:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/cerrno:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/cstring:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_multimap.h:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_facets_nonio.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/deque.tcc:
 
@@ -1103,6 +1098,16 @@ library/tests/serialization.cpp:
 /usr/include/stdint.h:
 
 /usr/include/endian.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode-data.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/concept_check.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/ext/type_traits.h:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/typeinfo:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode.h:
 
@@ -1321,8 +1326,6 @@ library/tests/serialization.cpp:
 /home/oster/gcc/gcc-install/lib/gcc/x86_64-pc-linux-gnu/15.0.1/include/limits.h:
 
 /usr/include/assert.h:
-
-/usr/include/ctype.h:
 
 /usr/include/errno.h:
 

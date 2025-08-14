@@ -16,6 +16,7 @@
 #include <variant>
 #include "concepts.h"
 #include "types/pseudo.h"
+#include "variant.h"
 
 namespace serialization{
     
@@ -374,7 +375,7 @@ namespace serialization{
             size_t result = 0;
             auto add_sz = [&result](size_t value)mutable -> bool
             {
-                if(value<=std::numeric_limits<size_t>::max()-result){
+                if(value<std::numeric_limits<size_t>::max()-result){
                     result+=value;
                     return true;
                 }
@@ -548,9 +549,12 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,T>{
         using type = std::decay_t<T>;
         SerializationEC operator()(const type& val, std::vector<char>& buf) const noexcept{
-            auto serializer = [&buf](auto& item)
+            auto serializer = [&val,&buf](auto& item)
             {
-                return serialize<NETWORK_ORDER>(item,buf);
+                SerializationEC err = SerializationEC::NONE;
+                if(err = serialize<NETWORK_ORDER>(val.index(),buf);err==SerializationEC::NONE)
+                    return serialize<NETWORK_ORDER>(item,buf);
+                else return err;
             };
 
             return std::visit(serializer,val);
@@ -562,12 +566,19 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,T>{
         using type = std::decay_t<T>;
         SerializationEC operator()(type& val, std::span<const char> buf) const noexcept{
-            auto deserializer = [&buf](auto& item)
-            {
-                return deserialize<NETWORK_ORDER>(item,buf);
-            };
+            using factory = VariantFactory<std::decay_t<type>>;
+            size_t index = std::numeric_limits<size_t>::max();
+            if(SerializationEC err = deserialize<NETWORK_ORDER>(index,buf);err!=SerializationEC::NONE)
+                return err;
+            else{
+                buf = buf.subspan(serial_size(index));
+                auto deserializer = [&buf](auto& item)
+                {
+                    return deserialize<NETWORK_ORDER>(item,buf);
+                };
 
-            return std::visit(deserializer,val);
+                return std::visit(deserializer,val);
+            }
         }
     };
 
@@ -578,7 +589,7 @@ namespace serialization{
         size_t operator()(const type& val) const noexcept{
             auto serial_sz = [](auto& item)
             {
-                return serial_size(item);
+                return serial_size(item)+sizeof(size_t);
             };
             return std::visit(serial_sz,val);
         }
@@ -594,7 +605,7 @@ namespace serialization{
             {   
                 size_t size_min = std::numeric_limits<size_t>::max();
                 ((size_min = std::min(min_serial_size<std::variant_alternative_t<Is,type>>(),size_min)),...);
-                size_min+=+sizeof(size_t);
+                size_min+=sizeof(size_t);
                 return size_min;
             }(std::make_index_sequence<std::variant_size_v<type>>{});
             return calc_size;

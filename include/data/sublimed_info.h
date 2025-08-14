@@ -85,3 +85,6 @@ namespace serialization{
         }();
     };
 }
+
+// static_assert(serialization::min_serial_size<SublimedDataInfo>()==0);
+// static_assert(serialization::max_serial_size<SublimedDataInfo>()==0);

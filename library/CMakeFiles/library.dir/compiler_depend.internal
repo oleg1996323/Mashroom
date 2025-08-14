@@ -1922,6 +1922,7 @@ library/CMakeFiles/library.dir/src/types/coord.cpp.o
  /home/oster/Mashroom/library/include/serialization.h
  /home/oster/Mashroom/library/include/types/coord.h
  /home/oster/Mashroom/library/include/types/pseudo.h
+ /home/oster/Mashroom/library/include/variant.h
  /home/oster/gcc/gcc-install/include/c++/15.0.1/array
  /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/auto_ptr.h
  /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h
@@ -2249,6 +2250,7 @@ library/CMakeFiles/library.dir/src/types/date.cpp.o
  /home/oster/Mashroom/library/include/serialization.h
  /home/oster/Mashroom/library/include/types/pseudo.h
  /home/oster/Mashroom/library/include/types/time_interval.h
+ /home/oster/Mashroom/library/include/variant.h
  /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm
  /home/oster/gcc/gcc-install/include/c++/15.0.1/array
  /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic
@@ -3361,6 +3363,7 @@ library/CMakeFiles/library.dir/src/types/time_interval.cpp.o
  /home/oster/Mashroom/library/include/serialization.h
  /home/oster/Mashroom/library/include/types/pseudo.h
  /home/oster/Mashroom/library/include/types/time_interval.h
+ /home/oster/Mashroom/library/include/variant.h
  /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm
  /home/oster/gcc/gcc-install/include/c++/15.0.1/array
  /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic

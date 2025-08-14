@@ -8,6 +8,7 @@ library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o
  /home/oster/Mashroom/library/include/float_conv.h
  /home/oster/Mashroom/library/include/serialization.h
  /home/oster/Mashroom/library/include/types/pseudo.h
+ /home/oster/Mashroom/library/include/variant.h
  /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm
  /home/oster/gcc/gcc-install/include/c++/15.0.1/any
  /home/oster/gcc/gcc-install/include/c++/15.0.1/array
