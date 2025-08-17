@@ -17,10 +17,10 @@ struct PDSLocal<ECMWF>::Definition<4>{
         return pds.buf_[52];
     }
     static short lower_threshold(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes(pds.buf_[54],pds.buf_[53]);
+        return read_bytes(pds.buf_[53],pds.buf_[54]);
     }
     static short upper_threshold(const PDSLocal<ECMWF>& pds) noexcept{
-        return read_bytes(pds.buf_[56],pds.buf_[55]);
+        return read_bytes(pds.buf_[55],pds.buf_[56]);
     }
 };
 #endif

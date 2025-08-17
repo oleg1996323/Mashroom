@@ -28,10 +28,9 @@ namespace network{
     template<typename VARIANT,typename = void>
     struct MessageVariantFactory: std::false_type{};
 
-    template<template<typename... Types> typename VARIANT, typename... Types>
-    requires IsStdVariant<VARIANT<Types...>>
-    struct MessageVariantFactory<VARIANT<Types...>>{
-        using VariantType = VARIANT<Types...>;
+    template<typename... Types>
+    struct MessageVariantFactory<std::variant<Types...>>{
+        using VariantType = std::variant<Types...>;
         using ResultType = VariantType;
 
         template<typename... ARGS>

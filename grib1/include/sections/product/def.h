@@ -41,16 +41,42 @@
 #define PDS_KPDS7(pds)		((int) ((pds[10]<<8) + pds[11]))
 
 /* this requires a 32-bit default integer machine */
-#define PDS_Field(pds)		((pds[8]<<24)+(pds[9]<<16)+(pds[10]<<8)+pds[11])
-
-#define PDS_P1(pds)		(pds[18])
-#define PDS_P2(pds)		(pds[19])
-#define PDS_TimeRange(pds)	(pds[20])
-#define PDS_NumAve(pds)		((int) ((pds[21]<<8)+pds[22]))
-#define PDS_NumMissing(pds)	(pds[23])
-#define PDS_Century(pds)	(pds[24])
-#define PDS_Subcenter(pds)	(pds[25])
-#define PDS_DecimalScale(pds)	INT2(pds[26],pds[27])
+//#define PDS_Field(pds)		((pds[8]<<24)+(pds[9]<<16)+(pds[10]<<8)+pds[11])
+inline auto PDS_Field(unsigned char* ptr){
+	return read_bytes<4,false>(&ptr[8]);
+}
+//#define PDS_P1(pds)		(pds[18])
+inline auto PDS_P1(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[18]);
+}
+//#define PDS_P2(pds)		(pds[19])
+inline auto PDS_P2(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[19]);
+}
+//#define PDS_TimeRange(pds)	(pds[20])
+inline auto PDS_TimeRange(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[20]);
+}
+//#define PDS_NumAve(pds)		((int) ((pds[21]<<8)+pds[22]))
+inline auto PDS_NumAve(unsigned char* ptr){
+	return read_bytes<2,true>(&ptr[21]);
+}
+//#define PDS_NumMissing(pds)	(pds[23])
+inline auto PDS_NumMissing(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[23]);
+}
+//#define PDS_Century(pds)	(pds[24])
+inline auto PDS_Century(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[24]);
+}
+//#define PDS_Subcenter(pds)	(pds[25])
+inline auto PDS_Subcenter(unsigned char* ptr){
+	return read_bytes<1,false>(&ptr[25]);
+}
+//#define PDS_DecimalScale(pds)	INT2(pds[26],pds[27])
+inline auto PDS_DecimalScale(unsigned char* ptr){
+	return read_bytes<2,true>(&ptr[26]);
+}
 
 
 /* ECMWF Extensions */

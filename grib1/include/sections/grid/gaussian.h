@@ -55,6 +55,7 @@ struct GridDefinition<RepresentationType::GAUSSIAN>:
 template<>
 struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::ROTATION>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     /// @todo
     /// @return Printed by text parameters

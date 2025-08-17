@@ -43,14 +43,14 @@ namespace parse{
         ("config",po::value<std::vector<std::string>>()->zero_tokens(),"Permits to configure the program or server",Config::instance()).
         add_options("save","Save the current instance")
         ("help,H","Show help")
-        ("exit",po::value<std::string>()->implicit_value("save")->notifier([this](const std::string& item){
-            err_ = exit_notifier(item);
-        }),"Exit from program");
+        ("exit","Exit from program");
         define_uniques();
     }
     ErrorCode Mashroom::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         if(err_!=ErrorCode::NONE)
             return err_;
+        else if(vm.contains("exit") && vm.size()==1)
+            exit(0);
         else if(vm.contains("save") && vm.size()==1){
             err_ = save_notifier();
             return err_;

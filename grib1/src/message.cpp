@@ -7,12 +7,15 @@
 //When secondary bit maps are present in the data (used in association with second order packing) this is indicated by setting bit 7 to 1.
 //When octet 14 contains the extended flag information octets 12 and 13 will also contain "special" information; the actual data will begin in a subsequent octet. See above.
 float Message::extract_value(int n){
-    double scale = int_power(10.0, - section_1_.decimal_scale_factor())*int_power(2.0, section_4_.scale_factor());
+    double dec_scale = int_power(10.0,-section_1_.decimal_scale_factor());
+    double scale = dec_scale*int_power(2.0, section_4_.scale_factor());
+    uint8_t n_bit = section_4_.bit_per_value();
+    float ref_val = section_4_.ref_value()*dec_scale;
 	Flag flags = section_4_.get_data_flag();
 	if(!flags.complex_pack){
 		if(!flags.spherical_harm_coefs){
-			if(section_4_.bit_per_value()==0)
-				return section_4_.ref_value();
+			if(n_bit==0)
+				return ref_val*dec_scale;
 			else{
                 if(section_1_.section1Flags().sec3_inc){
                     int t_bits=0,mask_idx;
@@ -31,32 +34,36 @@ float Message::extract_value(int n){
                         return UNDEFINED;
                     }
 
-                    while (t_bits < section_4_.bit_per_value()) { //else do while all bytes not read in reserved bits for value in BDS
+                    while (t_bits < n_bit) { //else do while all bytes not read in reserved bits for value in BDS
                         tbits = (tbits * 256) + *bds_bits++; //2^8 + byte value, then next byte of bds
                         t_bits += 8; //increment by byte
                     }
-                    t_bits -= section_4_.bit_per_value();
-                    return section_4_.ref_value() + scale*((tbits >> t_bits) & jmask);
+                    t_bits -= n_bit;
+                    return ref_val*dec_scale + scale*((tbits >> t_bits) & jmask);
                 }
 				else{
                     int t_bits = 0;
-                    unsigned int tbits = 0, jmask = (1 << section_4_.bit_per_value()) - 1; //get filling by 1 in all bit per value field
-                    unsigned char *bits = section_4_.buf_;
+                    unsigned int tbits = 0, jmask = (1 << n_bit) - 1; //get filling by 1 in all bit per value field
+                    unsigned char *bits = section_4_.buf_+11;
                     bits += 2*(n-1); //even offset to the n - value of datum
-                    if (section_4_.bit_per_value()>8) {
-                        tbits = (bits[0] << 8) | (bits[1]); //guaranteed (even) initialization of bits
+                    if (n_bit>8) {
+                        tbits = (tbits<<16)| (bits[0] << 8) | (bits[1]); //guaranteed (even) initialization of bits
                         bits += 2; //offset by 2 (bits read above)
                         t_bits += 16; //number read bits
                     }
-                    while (t_bits<section_4_.bit_per_value()) { //if number of read bits is less than number of bits per value
+                    while (t_bits<n_bit) { //if number of read bits is less than number of bits per value
                         tbits = (tbits * 256) + *bits++; //2^8 + next byte value
                         t_bits += 8; //increment by byte
                     }
-                    t_bits -= section_4_.bit_per_value(); //rest of not read bytes
-                    return section_4_.ref_value() + scale*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
+                    t_bits -= n_bit; //rest of not read bytes
+                    return ref_val*dec_scale + scale*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
                 }
 			}
 		}
+        else{
+            unsigned char *bits = section_4_.buf_+15;
+            return UNDEFINED;
+        }
 	}
     return UNDEFINED;
 }

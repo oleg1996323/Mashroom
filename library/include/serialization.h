@@ -484,7 +484,7 @@ namespace serialization{
             if(buf.size()<min_serial_size(to_deserialize))
                 return SerializationEC::BUFFER_SIZE_LESSER;
             size_t range_sz = 0;
-            SerializationEC code = deserialize<NETWORK_ORDER>(range_sz,buf.subspan(0,serial_size(range_sz)));
+            SerializationEC code = deserialize<NETWORK_ORDER>(range_sz,buf);
             if(code!=SerializationEC::NONE)
                 return code;
             
@@ -566,11 +566,13 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,T>{
         using type = std::decay_t<T>;
         SerializationEC operator()(type& val, std::span<const char> buf) const noexcept{
-            using factory = VariantFactory<std::decay_t<type>>;
+            using factory = ::VariantFactory<type>;
             size_t index = std::numeric_limits<size_t>::max();
             if(SerializationEC err = deserialize<NETWORK_ORDER>(index,buf);err!=SerializationEC::NONE)
                 return err;
             else{
+                if(!factory::emplace(val,index))
+                    return SerializationEC::UNMATCHED_TYPE;
                 buf = buf.subspan(serial_size(index));
                 auto deserializer = [&buf](auto& item)
                 {

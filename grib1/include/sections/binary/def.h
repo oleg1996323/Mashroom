@@ -36,7 +36,10 @@ constexpr uint32_t BDS_LEN(unsigned char* ptr){
 #define BDS_SecondairyBMP(bds) ((int) (bds[13] & 0b000000010))
 #define BDS_SecondOrdValsDiffWidth(bds) ((int) (bds[13] & 0b000000001))
 
-#define BDS_BinScale(bds)	INT2(bds[4],bds[5])
+//#define BDS_BinScale(bds)	INT2(bds[4],bds[5])
+inline auto BDS_BinScale(unsigned char* ptr){
+    return read_bytes<2,true>(&ptr[4]);
+}
 
 #define BDS_RefValue(bds)	(ibm2flt(bds+6))
 #define BDS_NumBits(bds)	((int) bds[10])

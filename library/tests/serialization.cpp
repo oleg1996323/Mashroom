@@ -426,21 +426,85 @@ TEST(Serialization, SerializeUMap){
     EXPECT_EQ(check_umap,umap_);
 }
 
-TEST(Serialization, SerialLimits){
-
-    ASSERT_EQ(serialization::min_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
-    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
-    ASSERT_EQ(serialization::min_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
-    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
-    ASSERT_EQ(serialization::min_serial_size(std::shared_ptr<int>{}),sizeof(bool));
-    ASSERT_EQ(serialization::max_serial_size(std::shared_ptr<int>{}),sizeof(bool)+sizeof(int));
-    ASSERT_EQ(serialization::min_serial_size(std::chrono::years()),sizeof(std::chrono::system_clock::duration));
-    ASSERT_EQ(serialization::max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
-    ASSERT_EQ(serialization::min_serial_size(std::vector<ptrdiff_t>{}),sizeof(size_t));
-    ASSERT_EQ(serialization::max_serial_size(std::vector<ptrdiff_t>{}),std::numeric_limits<size_t>::max());
+TEST(Serialization,Variant){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::vector<char> reversed_1;
+    std::variant<std::monostate,int,double,std::pair<std::string,std::string>> var_1;
+    {
+        EXPECT_EQ(serial_size(var_1),sizeof(size_t)+serial_size(std::variant_alternative_t<0,decltype(var_1)>()));
+        ASSERT_EQ(serialize<true>(var_1,buf),serialization::SerializationEC::NONE);
+        size_t index = std::byteswap(var_1.index());
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&index),reinterpret_cast<const char*>(&index)+sizeof(size_t));
+        EXPECT_EQ(reversed_1,buf);
+        decltype(var_1) var_tmp;
+        EXPECT_EQ(deserialize<true>(var_tmp,std::span<const char>(buf)),SerializationEC::NONE);
+        EXPECT_EQ(var_tmp,var_1);
+        reversed_1.clear();
+        buf.clear();
+    }
+    {
+        var_1=2;
+        EXPECT_EQ(serial_size(var_1),sizeof(size_t)+serial_size(std::variant_alternative_t<1,decltype(var_1)>()));
+        ASSERT_EQ(serialize<true>(var_1,buf),serialization::SerializationEC::NONE);
+        size_t index = std::byteswap(var_1.index());
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&index),reinterpret_cast<const char*>(&index)+sizeof(size_t));
+        auto tmp = std::byteswap(std::get<1>(var_1));
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&tmp),reinterpret_cast<const char*>(&tmp)+sizeof(tmp));
+        EXPECT_EQ(reversed_1,buf);
+        decltype(var_1) var_tmp;
+        EXPECT_EQ(deserialize<true>(var_tmp,std::span<const char>(buf)),SerializationEC::NONE);
+        EXPECT_EQ(var_tmp,var_1);
+        reversed_1.clear();
+        buf.clear();
+    }
+    {
+        var_1=2.2;
+        EXPECT_EQ(serial_size(var_1),sizeof(size_t)+serial_size(std::variant_alternative_t<2,decltype(var_1)>()));
+        ASSERT_EQ(serialize<true>(var_1,buf),serialization::SerializationEC::NONE);
+        size_t index = std::byteswap(var_1.index());
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&index),reinterpret_cast<const char*>(&index)+sizeof(size_t));
+        auto tmp = std::byteswap(to_integer(std::get<2>(var_1)));
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&tmp),reinterpret_cast<const char*>(&tmp)+sizeof(tmp));
+        EXPECT_EQ(reversed_1,buf);
+        decltype(var_1) var_tmp;
+        EXPECT_EQ(deserialize<true>(var_tmp,std::span<const char>(buf)),SerializationEC::NONE);
+        EXPECT_EQ(var_tmp,var_1);
+        reversed_1.clear();
+        buf.clear();
+    }
+    {
+        var_1=std::make_pair<std::string,std::string>("string1","string2");
+        EXPECT_EQ(serial_size(var_1),sizeof(size_t)+serial_size(std::pair<std::string,std::string>("string1","string2")));
+        ASSERT_EQ(serialize<true>(var_1,buf),serialization::SerializationEC::NONE);
+        size_t index = std::byteswap(var_1.index());
+        reversed_1.insert(reversed_1.cend(),reinterpret_cast<const char*>(&index),reinterpret_cast<const char*>(&index)+sizeof(size_t));
+        auto tmp = std::get<3>(var_1);
+        EXPECT_EQ(serialize<true>(tmp,reversed_1),SerializationEC::NONE);
+        EXPECT_EQ(reversed_1,buf);
+        decltype(var_1) var_tmp;
+        EXPECT_EQ(deserialize<true>(var_tmp,std::span<const char>(buf)),SerializationEC::NONE);
+        EXPECT_EQ(var_tmp,var_1);
+        reversed_1.clear();
+        buf.clear();
+    }
 }
 
-
+TEST(Serialization, SerialLimits){
+    using namespace serialization;
+    ASSERT_EQ(min_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
+    ASSERT_EQ(max_serial_size(std::chrono::system_clock::time_point()),sizeof(std::chrono::system_clock::time_point));
+    ASSERT_EQ(min_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(min_serial_size(std::shared_ptr<int>{}),sizeof(bool));
+    ASSERT_EQ(max_serial_size(std::shared_ptr<int>{}),sizeof(bool)+sizeof(int));
+    ASSERT_EQ(min_serial_size(std::chrono::years()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(max_serial_size(std::chrono::system_clock::duration()),sizeof(std::chrono::system_clock::duration));
+    ASSERT_EQ(min_serial_size(std::vector<ptrdiff_t>{}),sizeof(size_t));
+    ASSERT_EQ(max_serial_size(std::vector<ptrdiff_t>{}),std::numeric_limits<size_t>::max());
+    ASSERT_EQ(min_serial_size(std::variant<std::monostate,int,double,std::pair<std::string,std::string>>{}),sizeof(size_t));
+    ASSERT_EQ(max_serial_size(std::variant<std::monostate,int,double,std::pair<std::string,std::string>>{}),std::numeric_limits<size_t>::max());
+}
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc,argv);

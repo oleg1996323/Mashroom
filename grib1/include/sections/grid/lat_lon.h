@@ -97,6 +97,7 @@ struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>:
 template<>
 struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION_STRETCHING>{
+    GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);

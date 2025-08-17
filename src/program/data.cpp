@@ -253,6 +253,10 @@ std::vector<ptrdiff_t> Data::match(
 }
 
 void Data::add_data(SublimedGribDataInfo& grib_data){
+    if(grib_data.data().empty()){
+        std::cout<<"Nothing changes"<<std::endl;
+        return;
+    }
     grib_.grib_data_.add_data(grib_data);
     for(auto& [filename,file_data]:grib_data.data()){
         const auto& tmp_view = grib_.grib_data_.data().find(filename)->first;

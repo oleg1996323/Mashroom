@@ -350,7 +350,12 @@ int verf_time(unsigned char *pds, int *year, int *month, int *day, int *hour) {
 
 #ifdef __cplusplus
 unsigned ProductDefinitionSection::section_length() const noexcept{
-	return read_bytes<3,false>(buffer_);
+	if(buffer_){
+		auto res = read_bytes<3,false>(buffer_);
+		assert(res==UINT3(buffer_[0],buffer_[1],buffer_[2]));
+		return res;
+	}
+	else return 0;
 }
 unsigned char ProductDefinitionSection::table_version() const noexcept{
 	return PDS_Vsn(buffer_);
@@ -431,8 +436,9 @@ unsigned char ProductDefinitionSection::century() const noexcept{
 unsigned short ProductDefinitionSection::year() const noexcept{
 	return PDS_Year4(buffer_);
 }
+//#define PDS_DecimalScale(pds) INT2(pds[26],pds[27])
 unsigned short ProductDefinitionSection::decimal_scale_factor() const noexcept{
-	return PDS_DecimalScale(buffer_);
+	return INT2(buffer_[26],buffer_[27]);
 }
 unsigned ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() const noexcept{
 	return PDS_NumMissing(buffer_);

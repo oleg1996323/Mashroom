@@ -128,6 +128,7 @@ const GribDataInfo& Index::__index_file__(const fs::path& file){
 										msg.value().get().section_1_.unit_time_range(),
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
+
 				result.add_info(path::Storage<false>(file,path::TYPE::FILE),info);
 			}
 		}while(grib.next_message());

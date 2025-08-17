@@ -41,8 +41,8 @@ int value_by_raw(const Coord& pos, const GridInfo& grid) noexcept{
     if(is_correct_pos(&pos)){
         auto visitor = [&](auto&& grid_val){
             if constexpr(requires {{grid_val.value_by_raw(pos)}->std::same_as<int>;})
-                return grid_val.pos_in_grid(pos);
-            else return false;
+                return grid_val.value_by_raw(pos);
+            else return std::numeric_limits<int>::min();
         };
         return std::visit(visitor,grid);
     }

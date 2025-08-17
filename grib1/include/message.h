@@ -29,11 +29,21 @@ struct Message{
     Message(unsigned char* buffer):section_0_(buffer),
                                     section_1_(buffer+sec_0_min_sz),
                                     section_2_(section_1_.section1Flags().sec2_inc?section_1_.buffer_+section_1_.section_length():nullptr),
-                                    section_3_(section_1_.section1Flags().sec3_inc?nullptr:(section_1_.section1Flags().sec2_inc?
-                                            section_2_.buf_+section_2_.section_length():section_1_.buffer_+section_1_.section_length())),
-                                    section_4_(section3().has_value()?section_3_.buf_+section_3_.section_length():
-                                                section2().has_value()?section_2_.buf_+section_2_.section_length():
-                                                section_1_.buffer_+section_1_.section_length()){}
+                                    section_3_(section_1_.section1Flags().sec3_inc?
+                                                section_1_.buffer_+section_1_.section_length()+section_2_.section_length():nullptr),
+                                    section_4_(section_1_.buffer_+section_1_.section_length()+section_2_.section_length()+section_3_.section_length())
+    {
+        // printf("Message begin pos: %p\n",buffer);
+        // printf("Message section 1 pos: %p\n",buffer+sec_0_min_sz);
+        // printf("Message section 2 pos: %p\n",(section_1_.section1Flags().sec2_inc?section_1_.buffer_+section_1_.section_length():nullptr));
+        // printf("Message section 3 pos: %p\n",(section_1_.section1Flags().sec3_inc?(section_1_.section1Flags().sec2_inc?
+        //                                     section_2_.buf_+section_2_.section_length():section_1_.buffer_+section_1_.section_length()):nullptr));
+        // printf("Message section 4 pos: %p\n",(section3().has_value()?section_3_.buf_+section_3_.section_length():
+        //                                         section2().has_value()?section_2_.buf_+section_2_.section_length():
+        //                                         section_1_.buffer_+section_1_.section_length()));
+        if(sec_0_min_sz+section_1_.section_length()+section_2_.section_length()+section_3_.section_length()+section_4_.get_BDS_length()+4!=message_length())
+            err_ = ErrorCodeData::LEN_UNCONSIST;
+    }
 
     unsigned long message_length() const noexcept{
         return section_0_.message_length();

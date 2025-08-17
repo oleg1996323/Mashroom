@@ -109,23 +109,6 @@ void Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const Su
                                     msg.value().get().section_1_.unit_time_range(),
                                     msg.value().get().section_1_.center(),
                                     msg.value().get().section_1_.table_version());
-        // if(props_.center_.has_value() && msg_info.center!=props_.center_)
-        //     continue;
-        // if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
-        //     continue;
-        // if(props_.fcst_unit_.has_value() && msg_info.t_unit!=props_.fcst_unit_.value())
-        //     continue;
-        // if(props_.grid_type_.has_value()){
-        //     if(!msg_info.grid_data.has_grid())
-        //         continue;
-        //     if(props_.grid_type_.value()!=msg_info.grid_data.value().rep_type)
-        //         continue;                  
-        //     if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_){
-        //         continue;
-        //     }
-        //     if(!pos_in_grid(props_.position_.value(),msg_info.grid_data.value()))
-        //         continue;
-        // }
         if(msg_info.grid_data.has_grid())
             ref_data[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));

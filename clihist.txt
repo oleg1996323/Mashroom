@@ -1,56 +1,3 @@
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind 100
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind 100m
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100m
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100 meters
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed
---exit
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=wind speed 100 meters
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="wind speed 100 meters"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="wind speed 100"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100 met"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters=\"Wind speed 100\"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 100"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind"
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---exit
---help --index 
---help
-clear
---exit
---help
---help --index 
---help --config
---help --extract
---exit
-
---help --extract
---help --index 
---extract
---help --index 
---help --capital
---help --index
---exit
---help
--h --extract
--h --config
--h --config --add
---exit
---help --index
---index --inp=/home/oster/grib_files
---index --inp dir=/home/oster/grib_files
---save
---index --inp dir=/home/oster/grib_files
---save
---extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---save
 --extract --center=ECMWF --grid=Cyl no mod --inp=/home/oster/grib_files --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
 --index --inp dir=/home/oster/grib_files
 --save
@@ -92,9 +39,61 @@ clear
 --save
 --exit
 --index --inp dir=~/test_grib
---save
+--saveB
 --index --inp dir=~/test_grib
 --save
 --exit
 --extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--exit
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind speed 10" "Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Temperature"
+--exit
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--index --inp dir=~/test_grib
+--exit
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--index --inp dir=~/test_grib
+--save
+--index --inp dir=~/test_grib
+--save
+--index --inp dir=~/test_grib
+--save
+--index --inp dir=~/test_grib
+--save
 --exit

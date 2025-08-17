@@ -13,7 +13,7 @@ namespace grid{
 // #define GDS_Len3(gds)		(gds[2])
 // #define GDS_LEN(gds)		((int) (UINT3(gds[0],gds[1],gds[2])))
 inline auto GDS_LEN(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[0]);
+	return read_bytes<3,false>(&ptr[0]);
 }
 //#define GDS_NV(gds)		(gds[3])
 inline auto GDS_NV(unsigned char* ptr){
@@ -110,11 +110,11 @@ inline auto GDS_LatLon_ny(unsigned char* ptr){
 }
 //#define GDS_LatLon_La1(gds)	INT3(gds[10],gds[11],gds[12])
 inline auto GDS_LatLon_La1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[10]);
+	return INT3(ptr[10],ptr[11],ptr[12]);
 }
 //#define GDS_LatLon_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 inline auto GDS_LatLon_Lo1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[13]);
+	return INT3(ptr[13],ptr[14],ptr[15]);
 }
 //#define GDS_LatLon_mode(gds)	(gds[16])
 inline auto GDS_LatLon_mode(unsigned char* ptr){
@@ -122,20 +122,20 @@ inline auto GDS_LatLon_mode(unsigned char* ptr){
 }
 //#define GDS_LatLon_La2(gds)	INT3(gds[17],gds[18],gds[19])
 inline auto GDS_LatLon_La2(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[17]);
+	return INT3(ptr[17],ptr[18],ptr[19]);
 }
 //#define GDS_LatLon_Lo2(gds)	INT3(gds[20],gds[21],gds[22])
 inline auto GDS_LatLon_Lo2(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[20]);
+	return INT3(ptr[20],ptr[21],ptr[22]);
 }
 
 //#define GDS_LatLon_dx(gds)      (gds[16] & 128 ? INT2(gds[23],gds[24]) : 0)
 inline auto GDS_LatLon_dx(unsigned char* ptr){
-	return GDS_LatLon_mode(ptr)?read_bytes<2,true>(&ptr[23]):0;
+	return GDS_LatLon_mode(ptr)?INT2(ptr[23],ptr[24]):0;
 }
 //#define GDS_LatLon_dy(gds)      (gds[16] & 128 ? INT2(gds[25],gds[26]) : 0)
 inline auto GDS_LatLon_dy(unsigned char* ptr){
-	return GDS_LatLon_mode(ptr)?read_bytes<2,true>(&ptr[25]):0;
+	return GDS_LatLon_mode(ptr)?INT2(ptr[25],ptr[26]):0;
 }
 //#define GDS_Gaussian_nlat(gds)  ((gds[25]<<8)+gds[26])
 inline auto GDS_Gaussian_nlat(unsigned char* ptr){
@@ -155,11 +155,11 @@ inline auto GDS_Polar_ny(unsigned char* ptr){
 }
 //#define GDS_Polar_La1(gds)	INT3(gds[10],gds[11],gds[12])
 inline auto GDS_Polar_La1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[10]);
+	return INT3(ptr[10],ptr[11],ptr[12]);
 }
 //#define GDS_Polar_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 inline auto GDS_Polar_Lo1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[13]);
+	return INT3(ptr[13],ptr[14],ptr[15]);
 }
 //#define GDS_Polar_mode(gds)	(gds[16])
 inline auto GDS_Polar_mode(unsigned char* ptr){
@@ -167,7 +167,7 @@ inline auto GDS_Polar_mode(unsigned char* ptr){
 }
 //#define GDS_Polar_Lov(gds)	INT3(gds[17],gds[18],gds[19])
 inline auto GDS_Polar_LoV(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[17]);
+	return INT3(ptr[17],ptr[18],ptr[19]);
 }
 //#define GDS_Polar_scan(gds)	(gds[27])
 inline auto GDS_Polar_scan(unsigned char* ptr){
@@ -175,11 +175,11 @@ inline auto GDS_Polar_scan(unsigned char* ptr){
 }
 //#define GDS_Polar_Dx(gds)	INT3(gds[20], gds[21], gds[22])
 inline auto GDS_Polar_Dx(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[20]);
+	return INT3(ptr[20],ptr[21],ptr[22]);
 }
 //#define GDS_Polar_Dy(gds)	INT3(gds[23], gds[24], gds[25])
 inline auto GDS_Polar_Dy(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[23]);
+	return INT3(ptr[23],ptr[24],ptr[25]);
 }
 //#define GDS_Polar_pole(gds)	((gds[26] & 128) == 128)
 inline auto GDS_Polar_pole(unsigned char* ptr){
@@ -195,11 +195,11 @@ inline auto GDS_Lambert_ny(unsigned char* ptr){
 }
 //#define GDS_Lambert_La1(gds)	INT3(gds[10],gds[11],gds[12])
 inline auto GDS_Lambert_La1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[10]);
+	return INT3(ptr[10],ptr[11],ptr[12]);
 }
 //#define GDS_Lambert_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 inline auto GDS_Lambert_Lo1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[13]);
+	return INT3(ptr[13],ptr[14],ptr[15]);
 }
 //#define GDS_Lambert_mode(gds)	(gds[16])
 inline auto GDS_Lambert_mode(unsigned char* ptr){
@@ -207,15 +207,15 @@ inline auto GDS_Lambert_mode(unsigned char* ptr){
 }
 //#define GDS_Lambert_Lov(gds)	INT3(gds[17],gds[18],gds[19])
 inline auto GDS_Lambert_Lov(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[17]);
+	return INT3(ptr[17],ptr[18],ptr[19]);
 }
 //#define GDS_Lambert_dx(gds)	INT3(gds[20],gds[21],gds[22])
 inline auto GDS_Lambert_dx(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[20]);
+	return INT3(ptr[20],ptr[21],ptr[22]);
 }
 //#define GDS_Lambert_dy(gds)	INT3(gds[23],gds[24],gds[25])
 inline auto GDS_Lambert_dy(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[23]);
+	return INT3(ptr[23],ptr[24],ptr[25]);
 }
 //#define GDS_Lambert_NP(gds)	((gds[26] & 128) == 0)
 
@@ -237,19 +237,19 @@ inline auto GDS_Lambert_scan(unsigned char* ptr){
 }
 //#define GDS_Lambert_Latin1(gds)	INT3(gds[28],gds[29],gds[30])
 inline auto GDS_Lambert_Latin1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[28]);
+	return INT3(ptr[28],ptr[29],ptr[30]);
 }
 //#define GDS_Lambert_Latin2(gds)	INT3(gds[31],gds[32],gds[33])
 inline auto GDS_Lambert_Latin2(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[31]);
+	return INT3(ptr[31],ptr[32],ptr[33]);
 }
 //#define GDS_Lambert_LatSP(gds)	INT3(gds[34],gds[35],gds[36])
 inline auto GDS_Lambert_LatSP(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[34]);
+	return INT3(ptr[34],ptr[35],ptr[36]);
 }
 //#define GDS_Lambert_LonSP(gds)	INT3(gds[37],gds[38],gds[39])
 inline auto GDS_Lambert_LonSP(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[37]);
+	return INT3(ptr[37],ptr[38],ptr[39]);
 }
 //#define GDS_ssEgrid_n(gds)	UINT2(gds[6],gds[7])
 inline auto GDS_ssEgrid_n(unsigned char* ptr){
@@ -309,11 +309,11 @@ inline auto GDS_Merc_ny(unsigned char* ptr){
 }
 //#define GDS_Merc_La1(gds)	INT3(gds[10],gds[11],gds[12])
 inline auto GDS_Merc_La1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[10]);
+	return INT3(ptr[10],ptr[11],ptr[12]);
 }
 //#define GDS_Merc_Lo1(gds)	INT3(gds[13],gds[14],gds[15])
 inline auto GDS_Merc_Lo1(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[13]);
+	return INT3(ptr[13],ptr[14],ptr[15]);
 }
 //#define GDS_Merc_mode(gds)	(gds[16])
 inline auto GDS_Merc_mode(unsigned char* ptr){
@@ -321,15 +321,15 @@ inline auto GDS_Merc_mode(unsigned char* ptr){
 }
 //#define GDS_Merc_La2(gds)	INT3(gds[17],gds[18],gds[19])
 inline auto GDS_Merc_La2(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[17]);
+	return INT3(ptr[17],ptr[18],ptr[19]);
 }
 //#define GDS_Merc_Lo2(gds)	INT3(gds[20],gds[21],gds[22])
 inline auto GDS_Merc_Lo2(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[20]);
+	return INT3(ptr[20],ptr[21],ptr[22]);
 }
 //#define GDS_Merc_Latin(gds)	INT3(gds[23],gds[24],gds[25])
 inline auto GDS_Merc_Latin(unsigned char* ptr){
-	return read_bytes<3,true>(&ptr[23]);
+	return INT3(ptr[23],ptr[24],ptr[25]);
 }
 //#define GDS_Merc_scan(gds)	(gds[27])
 inline auto GDS_Merc_scan(unsigned char* ptr){
@@ -337,11 +337,11 @@ inline auto GDS_Merc_scan(unsigned char* ptr){
 }
 //#define GDS_Merc_dx(gds)        (gds[16] & 128 ? INT3(gds[28],gds[29],gds[30]) : 0)
 inline auto GDS_Merc_dx(unsigned char* ptr){
-	return ptr[16] & 128 ?read_bytes<3,true>(&ptr[28]):0;
+	return ptr[16] & 128 ?INT3(ptr[28],ptr[29],ptr[30]):0;
 }
 //#define GDS_Merc_dy(gds)        (gds[16] & 128 ? INT3(gds[31],gds[32],gds[33]) : 0)
 inline auto GDS_Merc_dy(unsigned char* ptr){
-	return ptr[16] & 128 ?read_bytes<3,true>(&ptr[31]):0;
+	return ptr[16] & 128 ?INT3(ptr[31],ptr[32],ptr[33]):0;
 }
 
 /* rotated Lat-lon grid */

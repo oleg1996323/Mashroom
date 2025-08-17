@@ -63,13 +63,13 @@ struct GridBase<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
     GridBase(unsigned char* buffer):
     nx(GDS_LatLon_nx(buffer)),
     ny(GDS_LatLon_ny(buffer)),
-    y1(0.001f*GDS_LatLon_La1(buffer)),
-    x1(0.001f*GDS_LatLon_Lo1(buffer)),
+    y1(float(GDS_LatLon_La1(buffer))/1000),
+    x1(float(GDS_LatLon_Lo1(buffer))/1000),
     resolutionAndComponentFlags(ResolutionComponentFlags(GDS_LatLon_mode(buffer))),
-    y2(0.001f*GDS_LatLon_La2(buffer)),
-    x2(0.001f*GDS_LatLon_Lo2(buffer)),
-    dy(0.001f*GDS_LatLon_dy(buffer)),
-    dx(0.001f*GDS_LatLon_dx(buffer)),
+    y2(float(GDS_LatLon_La2(buffer))/1000),
+    x2(float(GDS_LatLon_Lo2(buffer))/1000),
+    dy(float(GDS_LatLon_dy(buffer))/1000),
+    dx(float(GDS_LatLon_dx(buffer))/1000),
     scan_mode(ScanMode(GDS_LatLon_scan(buffer))){}
 };
 
@@ -120,10 +120,10 @@ struct GridBase<RepresentationType::GAUSSIAN>{
     }
     GridBase() = default;
     GridBase(unsigned char* buffer):
-    y1(0.001*GDS_LatLon_La1(buffer)),
-    x1(0.001*GDS_LatLon_Lo1(buffer)),
-    y2(0.001*GDS_LatLon_La2(buffer)),
-    x2(0.001*GDS_LatLon_Lo2(buffer)),
+    y1(float(GDS_LatLon_La1(buffer))/1000),
+    x1(float(GDS_LatLon_Lo1(buffer))/1000),
+    y2(float(GDS_LatLon_La2(buffer))/1000),
+    x2(float(GDS_LatLon_Lo2(buffer))/1000),
     nx(GDS_LatLon_nx(buffer)),
     ny(GDS_LatLon_ny(buffer)),
     directionIncrement(GDS_LatLon_dx(buffer)),
@@ -206,19 +206,19 @@ struct GridBase<RepresentationType::ALBERS_EQUAL_AREA>{
     GridBase(unsigned char* buffer):
     nx(GDS_Lambert_nx(buffer)),
     ny(GDS_Lambert_ny(buffer)),
-    y1(0.001*GDS_Lambert_La1(buffer)),
-    x1(0.001*GDS_Lambert_Lo1(buffer)),
+    y1(float(GDS_Lambert_La1(buffer))/1000),
+    x1(float(GDS_Lambert_Lo1(buffer))/1000),
     resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Lambert_mode(buffer))),
-    LoV(0.001*GDS_Lambert_Lov(buffer)),
-    Dy(0.001*GDS_Lambert_dy(buffer)),
-    Dx(0.001*GDS_Lambert_dx(buffer)),
+    LoV(float(GDS_Lambert_Lov(buffer))/1000),
+    Dy(float(GDS_Lambert_dy(buffer))/1000),
+    Dx(float(GDS_Lambert_dx(buffer))/1000),
     is_south_pole(!GDS_Lambert_NP(buffer)),
     is_bipolar(GDS_Lambert_BP(buffer)),
     scan_mode(ScanMode(GDS_Lambert_scan(buffer))),
-    latin1(0.001*GDS_Lambert_Latin1(buffer)),
-    latin2(0.001*GDS_Lambert_Latin2(buffer)),
-    latitude_south_pole(0.001*GDS_Lambert_LatSP(buffer)),
-    longitude_south_pole(0.001*GDS_Lambert_LonSP(buffer)){}
+    latin1(float(GDS_Lambert_Latin1(buffer))/1000),
+    latin2(float(GDS_Lambert_Latin2(buffer))/1000),
+    latitude_south_pole(float(GDS_Lambert_LatSP(buffer))/1000),
+    longitude_south_pole(float(GDS_Lambert_LonSP(buffer))/1000){}
 };
 
 #include "code_tables/table_10.h"
@@ -359,12 +359,12 @@ struct GridBase<LAMBERT>{
     GridBase(unsigned char* buffer):
         nx(GDS_Lambert_nx(buffer)),
         ny(GDS_Lambert_ny(buffer)),
-        y1(0.001*GDS_Lambert_La1(buffer)),
-        x1(0.001*GDS_Lambert_Lo1(buffer)),
+        y1(float(GDS_Lambert_La1(buffer))/1000),
+        x1(float(GDS_Lambert_Lo1(buffer))/1000),
         resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Lambert_mode(buffer))),
         LoV(GDS_Lambert_Lov(buffer)),
-        dx(0.001*GDS_Lambert_dx(buffer)),
-        dy(0.001*GDS_Lambert_dy(buffer)),
+        dx(float(GDS_Lambert_dx(buffer))/1000),
+        dy(float(GDS_Lambert_dy(buffer))/1000),
         is_south_pole(!GDS_Lambert_NP(buffer)), //GDS_Lambert_NP
         is_bipolar(GDS_Lambert_BP(buffer)),
         scan_mode(ScanMode(GDS_Lambert_scan(buffer))),
@@ -439,10 +439,10 @@ struct GridBase<POLAR_STEREOGRAPH_PROJ>{
     GridBase(unsigned char* buffer):
     nx(GDS_Polar_nx(buffer)),
     ny(GDS_Polar_ny(buffer)),
-    y1(0.001*GDS_Polar_La1(buffer)),
-    x1(0.001*GDS_Polar_Lo1(buffer)),
+    y1(float(GDS_Polar_La1(buffer))/1000),
+    x1(float(GDS_Polar_Lo1(buffer))/1000),
     resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Polar_mode(buffer))),
-    LoV(0.001*GDS_Polar_LoV(buffer)),
+    LoV(float(GDS_Polar_LoV(buffer))/1000),
     dx(GDS_Polar_Dx(buffer)),
     dy(GDS_Polar_Dy(buffer)),
     is_south_pole(GDS_Polar_pole(buffer)),
@@ -523,8 +523,8 @@ struct GridBase<SPACE_VIEW>{
     GridBase(unsigned char* buffer):
     nx(GDS_Polar_nx(buffer)),
     ny(GDS_Polar_ny(buffer)),
-    y(0.001f*GDS_Polar_La1(buffer)),
-    x(0.001f*GDS_Polar_Lo1(buffer)),
+    y(float(GDS_Polar_La1(buffer))/1000),
+    x(float(GDS_Polar_Lo1(buffer))/1000),
     resolutionAndComponentFlags(ResolutionComponentFlags(GDS_Polar_mode(buffer))),
     dx(read_bytes<3,false>(&buffer[17])),
     dy(read_bytes<3,false>(&buffer[20])),

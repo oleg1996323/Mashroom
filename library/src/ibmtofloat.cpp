@@ -1,7 +1,7 @@
 #include <float.h>
 #include "ibmtofloat.h"
 
-extern double ibm2flt(unsigned char *ibm) {
+double ibm2flt(unsigned char *ibm) noexcept{
 
 	int positive, power;
 	unsigned int abspower;

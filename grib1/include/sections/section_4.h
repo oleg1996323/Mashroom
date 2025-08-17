@@ -13,7 +13,7 @@
 #else
 #include <stdint.h>
 #endif
-
+#include <iostream>
 struct BinaryDataSection
 {
 	unsigned char* buf_;
@@ -21,9 +21,12 @@ struct BinaryDataSection
 	BinaryDataSection(unsigned char* buffer):buf_(buffer){}
 
 	unsigned long get_BDS_length(){
-		if(!buf_)
-			return 0;
-		else return BDS_LEN(buf_);
+		if(buf_){
+			auto res = read_bytes<3,false>(buf_);
+			assert(res==UINT3(buf_[0],buf_[1],buf_[2]));
+			return res;
+		}
+		else return 0;
 	}
 	Flag get_data_flag(){
 		return Flag{BDS_Harmonic(buf_),BDS_ComplexPacking(buf_),
@@ -32,9 +35,11 @@ struct BinaryDataSection
 				BDS_MoreFlags(buf_)?BDS_SecondairyBMP(buf_):-1
 				,BDS_MoreFlags(buf_)?BDS_SecondOrdValsDiffWidth(buf_):-1};
 	}
+	//#define BDS_BinScale(bds) INT2(bds[4],bds[5])
 	int16_t scale_factor(){
-		return BDS_BinScale(buf_);
+		return INT2(buf_[4],buf_[5]);
 	}
+	//#define BDS_RefValue(bds) (ibm2flt(bds+6))
 	float ref_value(){
 		return BDS_RefValue(buf_);
 	}
