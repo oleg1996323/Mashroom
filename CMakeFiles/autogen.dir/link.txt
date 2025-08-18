@@ -1,0 +1,1 @@
+/home/oster/gcc/gcc-install/bin/g++  -lzip -static-libstdc++ -g  -Wl,-rpath,/home/oster/gcc/gcc-install/lib64: -Wl,--dependency-file=CMakeFiles/autogen.dir/link.d CMakeFiles/autogen.dir/external/main.cpp.o -o external/bin/Debug/autogen

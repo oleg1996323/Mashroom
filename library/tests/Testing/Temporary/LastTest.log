@@ -1,10 +1,10 @@
-Start testing: Aug 16 19:22 MSK
+Start testing: Aug 19 01:45 MSK
 ----------------------------------------------------------
 1/22 Testing: BytesTest.FloatToInteger
 1/22 Test: BytesTest.FloatToInteger
 Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.FloatToInteger" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"BytesTest.FloatToInteger" start time: Aug 16 19:22 MSK
+"BytesTest.FloatToInteger" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = BytesTest.FloatToInteger
@@ -22,7 +22,7 @@ Note: Google Test filter = BytesTest.FloatToInteger
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BytesTest.FloatToInteger" end time: Aug 16 19:22 MSK
+"BytesTest.FloatToInteger" end time: Aug 19 01:45 MSK
 "BytesTest.FloatToInteger" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -30,7 +30,7 @@ Test Passed.
 2/22 Test: BytesTest.DoubleToLongInteger
 Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.DoubleToLongInteger" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"BytesTest.DoubleToLongInteger" start time: Aug 16 19:22 MSK
+"BytesTest.DoubleToLongInteger" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = BytesTest.DoubleToLongInteger
@@ -48,7 +48,7 @@ Note: Google Test filter = BytesTest.DoubleToLongInteger
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BytesTest.DoubleToLongInteger" end time: Aug 16 19:22 MSK
+"BytesTest.DoubleToLongInteger" end time: Aug 19 01:45 MSK
 "BytesTest.DoubleToLongInteger" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -56,7 +56,7 @@ Test Passed.
 3/22 Test: BytesTest.IntegerToFloat
 Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.IntegerToFloat" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"BytesTest.IntegerToFloat" start time: Aug 16 19:22 MSK
+"BytesTest.IntegerToFloat" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = BytesTest.IntegerToFloat
@@ -74,7 +74,7 @@ Note: Google Test filter = BytesTest.IntegerToFloat
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BytesTest.IntegerToFloat" end time: Aug 16 19:22 MSK
+"BytesTest.IntegerToFloat" end time: Aug 19 01:45 MSK
 "BytesTest.IntegerToFloat" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -82,7 +82,7 @@ Test Passed.
 4/22 Test: BytesTest.LongIntegerToDouble
 Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.LongIntegerToDouble" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"BytesTest.LongIntegerToDouble" start time: Aug 16 19:22 MSK
+"BytesTest.LongIntegerToDouble" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = BytesTest.LongIntegerToDouble
@@ -100,7 +100,7 @@ Note: Google Test filter = BytesTest.LongIntegerToDouble
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BytesTest.LongIntegerToDouble" end time: Aug 16 19:22 MSK
+"BytesTest.LongIntegerToDouble" end time: Aug 19 01:45 MSK
 "BytesTest.LongIntegerToDouble" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -108,7 +108,7 @@ Test Passed.
 5/22 Test: BytesTest.DetectLittleEndian
 Command: "/home/oster/Mashroom/library/tests/build/bytes_test" "--gtest_filter=BytesTest.DetectLittleEndian" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"BytesTest.DetectLittleEndian" start time: Aug 16 19:22 MSK
+"BytesTest.DetectLittleEndian" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = BytesTest.DetectLittleEndian
@@ -126,7 +126,7 @@ Note: Google Test filter = BytesTest.DetectLittleEndian
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BytesTest.DetectLittleEndian" end time: Aug 16 19:22 MSK
+"BytesTest.DetectLittleEndian" end time: Aug 19 01:45 MSK
 "BytesTest.DetectLittleEndian" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -134,7 +134,7 @@ Test Passed.
 6/22 Test: Serialization.SerializeInt
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeInt" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeInt" start time: Aug 16 19:22 MSK
+"Serialization.SerializeInt" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeInt
@@ -152,7 +152,7 @@ Note: Google Test filter = Serialization.SerializeInt
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeInt" end time: Aug 16 19:22 MSK
+"Serialization.SerializeInt" end time: Aug 19 01:45 MSK
 "Serialization.SerializeInt" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -160,7 +160,7 @@ Test Passed.
 7/22 Test: Serialization.SerializeFloatingPoint
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeFloatingPoint" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeFloatingPoint" start time: Aug 16 19:22 MSK
+"Serialization.SerializeFloatingPoint" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeFloatingPoint
@@ -178,7 +178,7 @@ Note: Google Test filter = Serialization.SerializeFloatingPoint
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeFloatingPoint" end time: Aug 16 19:22 MSK
+"Serialization.SerializeFloatingPoint" end time: Aug 19 01:45 MSK
 "Serialization.SerializeFloatingPoint" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -186,7 +186,7 @@ Test Passed.
 8/22 Test: Serialization.SerializeTimePoint
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeTimePoint" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeTimePoint" start time: Aug 16 19:22 MSK
+"Serialization.SerializeTimePoint" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeTimePoint
@@ -204,7 +204,7 @@ Note: Google Test filter = Serialization.SerializeTimePoint
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeTimePoint" end time: Aug 16 19:22 MSK
+"Serialization.SerializeTimePoint" end time: Aug 19 01:45 MSK
 "Serialization.SerializeTimePoint" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -212,7 +212,7 @@ Test Passed.
 9/22 Test: Serialization.SerializeDuration
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeDuration" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeDuration" start time: Aug 16 19:22 MSK
+"Serialization.SerializeDuration" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeDuration
@@ -230,7 +230,7 @@ Note: Google Test filter = Serialization.SerializeDuration
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeDuration" end time: Aug 16 19:22 MSK
+"Serialization.SerializeDuration" end time: Aug 19 01:45 MSK
 "Serialization.SerializeDuration" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -238,7 +238,7 @@ Test Passed.
 10/22 Test: Serialization.SerializeUniquePtr
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeUniquePtr" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeUniquePtr" start time: Aug 16 19:22 MSK
+"Serialization.SerializeUniquePtr" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeUniquePtr
@@ -256,7 +256,7 @@ Note: Google Test filter = Serialization.SerializeUniquePtr
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeUniquePtr" end time: Aug 16 19:22 MSK
+"Serialization.SerializeUniquePtr" end time: Aug 19 01:45 MSK
 "Serialization.SerializeUniquePtr" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -264,7 +264,7 @@ Test Passed.
 11/22 Test: Serialization.SerializeSharedPtr
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeSharedPtr" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeSharedPtr" start time: Aug 16 19:22 MSK
+"Serialization.SerializeSharedPtr" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeSharedPtr
@@ -279,10 +279,10 @@ Note: Google Test filter = Serialization.SerializeSharedPtr
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.00 sec
+Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeSharedPtr" end time: Aug 16 19:22 MSK
+"Serialization.SerializeSharedPtr" end time: Aug 19 01:45 MSK
 "Serialization.SerializeSharedPtr" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -290,7 +290,7 @@ Test Passed.
 12/22 Test: Serialization.SerializePair
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializePair" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializePair" start time: Aug 16 19:22 MSK
+"Serialization.SerializePair" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializePair
@@ -308,7 +308,7 @@ Note: Google Test filter = Serialization.SerializePair
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializePair" end time: Aug 16 19:22 MSK
+"Serialization.SerializePair" end time: Aug 19 01:45 MSK
 "Serialization.SerializePair" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -316,7 +316,7 @@ Test Passed.
 13/22 Test: Serialization.SerializeOptional
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeOptional" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeOptional" start time: Aug 16 19:22 MSK
+"Serialization.SerializeOptional" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeOptional
@@ -334,7 +334,7 @@ Note: Google Test filter = Serialization.SerializeOptional
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeOptional" end time: Aug 16 19:22 MSK
+"Serialization.SerializeOptional" end time: Aug 19 01:45 MSK
 "Serialization.SerializeOptional" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -342,7 +342,7 @@ Test Passed.
 14/22 Test: Serialization.SerializeList
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeList" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeList" start time: Aug 16 19:22 MSK
+"Serialization.SerializeList" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeList
@@ -360,7 +360,7 @@ Note: Google Test filter = Serialization.SerializeList
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeList" end time: Aug 16 19:22 MSK
+"Serialization.SerializeList" end time: Aug 19 01:45 MSK
 "Serialization.SerializeList" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -368,7 +368,7 @@ Test Passed.
 15/22 Test: Serialization.SerializeVector
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeVector" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeVector" start time: Aug 16 19:22 MSK
+"Serialization.SerializeVector" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeVector
@@ -386,7 +386,7 @@ Note: Google Test filter = Serialization.SerializeVector
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeVector" end time: Aug 16 19:22 MSK
+"Serialization.SerializeVector" end time: Aug 19 01:45 MSK
 "Serialization.SerializeVector" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -394,7 +394,7 @@ Test Passed.
 16/22 Test: Serialization.SerializeDeque
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeDeque" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeDeque" start time: Aug 16 19:22 MSK
+"Serialization.SerializeDeque" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeDeque
@@ -412,7 +412,7 @@ Note: Google Test filter = Serialization.SerializeDeque
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeDeque" end time: Aug 16 19:22 MSK
+"Serialization.SerializeDeque" end time: Aug 19 01:45 MSK
 "Serialization.SerializeDeque" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -420,7 +420,7 @@ Test Passed.
 17/22 Test: Serialization.SerializeSet
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeSet" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeSet" start time: Aug 16 19:22 MSK
+"Serialization.SerializeSet" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeSet
@@ -438,7 +438,7 @@ Note: Google Test filter = Serialization.SerializeSet
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeSet" end time: Aug 16 19:22 MSK
+"Serialization.SerializeSet" end time: Aug 19 01:45 MSK
 "Serialization.SerializeSet" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -446,7 +446,7 @@ Test Passed.
 18/22 Test: Serialization.SerializeUnorderedSet
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeUnorderedSet" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeUnorderedSet" start time: Aug 16 19:22 MSK
+"Serialization.SerializeUnorderedSet" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeUnorderedSet
@@ -461,10 +461,10 @@ Note: Google Test filter = Serialization.SerializeUnorderedSet
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeUnorderedSet" end time: Aug 16 19:22 MSK
+"Serialization.SerializeUnorderedSet" end time: Aug 19 01:45 MSK
 "Serialization.SerializeUnorderedSet" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -472,7 +472,7 @@ Test Passed.
 19/22 Test: Serialization.SerializeMap
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeMap" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeMap" start time: Aug 16 19:22 MSK
+"Serialization.SerializeMap" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeMap
@@ -487,10 +487,10 @@ Note: Google Test filter = Serialization.SerializeMap
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeMap" end time: Aug 16 19:22 MSK
+"Serialization.SerializeMap" end time: Aug 19 01:45 MSK
 "Serialization.SerializeMap" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -498,7 +498,7 @@ Test Passed.
 20/22 Test: Serialization.SerializeUMap
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerializeUMap" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerializeUMap" start time: Aug 16 19:22 MSK
+"Serialization.SerializeUMap" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerializeUMap
@@ -513,10 +513,10 @@ Note: Google Test filter = Serialization.SerializeUMap
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerializeUMap" end time: Aug 16 19:22 MSK
+"Serialization.SerializeUMap" end time: Aug 19 01:45 MSK
 "Serialization.SerializeUMap" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -524,7 +524,7 @@ Test Passed.
 21/22 Test: Serialization.Variant
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.Variant" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.Variant" start time: Aug 16 19:22 MSK
+"Serialization.Variant" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.Variant
@@ -539,10 +539,10 @@ Note: Google Test filter = Serialization.Variant
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.Variant" end time: Aug 16 19:22 MSK
+"Serialization.Variant" end time: Aug 19 01:45 MSK
 "Serialization.Variant" time elapsed: 00:00:00
 ----------------------------------------------------------
 
@@ -550,7 +550,7 @@ Test Passed.
 22/22 Test: Serialization.SerialLimits
 Command: "/home/oster/Mashroom/library/tests/build/serialization_test" "--gtest_filter=Serialization.SerialLimits" "--gtest_also_run_disabled_tests"
 Directory: /home/oster/Mashroom/library/tests/build
-"Serialization.SerialLimits" start time: Aug 16 19:22 MSK
+"Serialization.SerialLimits" start time: Aug 19 01:45 MSK
 Output:
 ----------------------------------------------------------
 Note: Google Test filter = Serialization.SerialLimits
@@ -565,11 +565,11 @@ Note: Google Test filter = Serialization.SerialLimits
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Serialization.SerialLimits" end time: Aug 16 19:22 MSK
+"Serialization.SerialLimits" end time: Aug 19 01:45 MSK
 "Serialization.SerialLimits" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Aug 16 19:22 MSK
+End testing: Aug 19 01:45 MSK

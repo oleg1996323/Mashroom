@@ -413,7 +413,6 @@ namespace serialization{
             SerializationEC err = serialize<NETWORK_ORDER>(val.has_value(),buf);
             if(err!=SerializationEC::NONE)
                 return err;
-            assert(val.has_value());
             if(!val.has_value())
                 return SerializationEC::NONE;
             err = serialize<NETWORK_ORDER>(val.value(),buf);
@@ -739,7 +738,7 @@ namespace serialization{
         else{
             SerializationEC err;
             std::vector<char> buf;
-            uint32_t sz = serial_size(val);
+            size_t sz = serial_size(val);
             err = serialize_to_file(sz,fstream);
             if(err!=SerializationEC::NONE)
                 return err;
@@ -760,7 +759,7 @@ namespace serialization{
             fstream.read(reinterpret_cast<char*>(val),sizeof(val));
         else{
             SerializationEC err;
-            uint32_t sz = 0;
+            size_t sz = 0;
             err = deserialize_from_file(sz,fstream);
             if(fstream.eof())
                 return SerializationEC::UNEXPECTED_EOF;

@@ -1,5 +1,0 @@
-if(EXISTS "/home/oster/Mashroom/Mashroom_serialize_test[1]_tests.cmake")
-  include("/home/oster/Mashroom/Mashroom_serialize_test[1]_tests.cmake")
-else()
-  add_test(Mashroom_serialize_test_NOT_BUILT Mashroom_serialize_test_NOT_BUILT)
-endif()

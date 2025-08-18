@@ -1,27 +1,65 @@
 #include "include/data/sublimed_info.h"
 #include <gtest/gtest.h>
+#include <numeric>
 
 TEST(Serialization, SublimedInfo){
-    // using namespace serialization;
-    // std::vector<char> buf;
-    // SublimedDataInfo data{.grid_data_=std::nullopt,.buf_pos_.insert_range(std::ranges::fill_n())};
-    // if(integer_1>0)
-    //     integer_1=-integer_1;
-    // int integer_2 = std::rand();
-    // ASSERT_EQ(serialize<true>(integer_1,buf),serialization::SerializationEC::NONE);
-    // ASSERT_EQ(serialize<true>(integer_2,buf),serialization::SerializationEC::NONE);
+    using namespace serialization;
+    using namespace std::chrono;
+    std::vector<char> buf;
+    decltype(SublimedDataInfo::buf_pos_) buf_pos(100);
+    std::ranges::iota(buf_pos,0);
+    GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid_def;
+    grid_def.base_.x1=18;
+    grid_def.base_.x2=68;
+    grid_def.base_.y1=20;
+    grid_def.base_.y2=70;
+    grid_def.base_.nx=50;
+    grid_def.base_.ny=50;
+    grid_def.base_.dx=1;
+    grid_def.base_.dy=1;
+    ResolutionComponentFlags flags;
+    flags.earth_spheroidal = false;
+    flags.given_direction = true;
+    flags.grid_direction_uv_comp = false;
+    grid_def.base_.resolutionAndComponentFlags=flags;
+    ScanMode scan;
+    scan.adj_points_j_dir = true;
+    scan.points_sub_i_dir = true;
+    scan.points_sub_j_dir = false;
+    grid_def.base_.scan_mode = scan;
+    SublimedDataInfo data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now(),
+                        .discret_=system_clock::duration((data.to_-data.from_)/data.buf_pos_.size())};
 
-    // int reversed_1=std::byteswap(integer_1);
-    // EXPECT_TRUE(std::memcmp(&reversed_1,buf.data(),sizeof(int))==0);
-    // int reversed_2=std::byteswap(integer_2);
-    // EXPECT_TRUE(std::memcmp(&reversed_2,buf.data()+sizeof(reversed_1),sizeof(int))==0);
+    {
+        SublimedDataInfo to_check;
+        ASSERT_EQ(serialize<true>(data,buf),serialization::SerializationEC::NONE);
+        ASSERT_EQ(deserialize<true>(to_check,std::span<const char>(buf)),serialization::SerializationEC::NONE);
 
-    // int check_int_1 = 0;
-    // int check_int_2 = 0;
-    // ASSERT_EQ(deserialize<true>(check_int_1,std::span(buf)),serialization::SerializationEC::NONE);
-    // ASSERT_EQ(deserialize<true>(check_int_2,std::span(buf).subspan(serial_size(check_int_1))),serialization::SerializationEC::NONE);
-    // EXPECT_EQ(check_int_1,integer_1);
-    // EXPECT_EQ(check_int_2,integer_2);
+        EXPECT_EQ(serial_size(to_check),serial_size(data));
+
+        EXPECT_EQ(to_check.buf_pos_,data.buf_pos_);
+        EXPECT_EQ(to_check.discret_,data.discret_);
+        EXPECT_EQ(to_check.from_,data.from_);
+        EXPECT_EQ(to_check.to_,data.to_);
+        EXPECT_EQ(to_check.grid_data_,data.grid_data_);
+    }
+    {
+        std::ofstream ofile("tmp",std::fstream::out|std::fstream::trunc);
+        ASSERT_EQ(serialize_to_file(data,ofile),serialization::SerializationEC::NONE);
+        ofile.close();
+        SublimedDataInfo to_check;
+        std::ifstream ifile("tmp",std::fstream::in);
+        ASSERT_EQ(deserialize_from_file(to_check,ifile),serialization::SerializationEC::NONE);
+        ifile.close();
+        std::filesystem::remove("tmp");
+        EXPECT_EQ(serial_size(to_check),serial_size(data));
+
+        EXPECT_EQ(to_check.buf_pos_,data.buf_pos_);
+        EXPECT_EQ(to_check.discret_,data.discret_);
+        EXPECT_EQ(to_check.from_,data.from_);
+        EXPECT_EQ(to_check.to_,data.to_);
+        EXPECT_EQ(to_check.grid_data_,data.grid_data_);
+    }
 }
 
 

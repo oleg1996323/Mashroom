@@ -1,3 +1,31 @@
-Start testing: Aug 16 15:46 MSK
+Start testing: Aug 19 02:03 MSK
 ----------------------------------------------------------
-End testing: Aug 16 15:46 MSK
+1/1 Testing: Serialization.SublimedInfo
+1/1 Test: Serialization.SublimedInfo
+Command: "/home/oster/Mashroom/bin/Debug/Mashroom_serialize_test" "--gtest_filter=Serialization.SublimedInfo" "--gtest_also_run_disabled_tests"
+Directory: /home/oster/Mashroom/build
+"Serialization.SublimedInfo" start time: Aug 19 02:03 MSK
+Output:
+----------------------------------------------------------
+Note: Google Test filter = Serialization.SublimedInfo
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Serialization
+[ RUN      ] Serialization.SublimedInfo
+[       OK ] Serialization.SublimedInfo (0 ms)
+[----------] 1 test from Serialization (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+Saved user configurations to "/home/oster/.config/Mashroom/config.json"
+Saved server configurations to "/home/oster/.config/Mashroom/server.json"
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"Serialization.SublimedInfo" end time: Aug 19 02:03 MSK
+"Serialization.SublimedInfo" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 19 02:03 MSK

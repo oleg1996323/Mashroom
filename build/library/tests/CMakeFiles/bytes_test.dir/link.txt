@@ -1,1 +1,0 @@
-/home/oster/gcc-install/bin/g++  -lzip -static-libstdc++ -g  -Wl,-rpath,:/home/oster/gcc-install/lib64 CMakeFiles/bytes_test.dir/bytes.cpp.o -o /home/oster/Mashroom/library/tests/build/bytes_test  /usr/local/lib/libgtest.a 
