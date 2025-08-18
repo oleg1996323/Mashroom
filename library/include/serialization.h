@@ -14,6 +14,7 @@
 #include <fstream>
 #include <chrono>
 #include <variant>
+#include <cassert>
 #include "concepts.h"
 #include "types/pseudo.h"
 #include "variant.h"
@@ -264,7 +265,7 @@ namespace serialization{
                             to_deserialize = std::make_unique<typename T::element_type>();
                         else
                             to_deserialize = std::make_shared<typename T::element_type>();
-                        return  deserialize<NETWORK_ORDER>(*to_deserialize,std::span(buf).subspan(sizeof(has_value)));                        
+                        return  deserialize<NETWORK_ORDER>(*to_deserialize,buf.subspan(sizeof(has_value)));                        
                     }
                     else {
                         to_deserialize.reset();
@@ -274,7 +275,7 @@ namespace serialization{
             }
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return SerializationEC::NONE;
-            else if constexpr(requires{requires pair_concept<T>;}){
+            else if constexpr(pair_concept<T>){
                 return deserialize<NETWORK_ORDER>(to_deserialize,buf,to_deserialize.first,to_deserialize.second);
             }
             else {
@@ -406,6 +407,23 @@ namespace serialization{
     }
 
     template<bool NETWORK_ORDER,typename T>
+    requires (serialize_concept<NETWORK_ORDER,T>)
+    struct Serialize<NETWORK_ORDER,std::optional<T>>{
+        SerializationEC operator()(const std::optional<T>& val,std::vector<char>& buf) const noexcept{
+            SerializationEC err = serialize<NETWORK_ORDER>(val.has_value(),buf);
+            if(err!=SerializationEC::NONE)
+                return err;
+            assert(val.has_value());
+            if(!val.has_value())
+                return SerializationEC::NONE;
+            err = serialize<NETWORK_ORDER>(val.value(),buf);
+            if(err!=SerializationEC::NONE)
+                return err;
+            return SerializationEC::NONE;
+        }
+    };
+
+    template<bool NETWORK_ORDER,typename T>
     requires deserialize_concept<NETWORK_ORDER,T>
     struct Deserialize<NETWORK_ORDER,std::optional<T>>{
         /// @brief Deserialize data from buffer to specified type
@@ -425,8 +443,6 @@ namespace serialization{
                 return code;
             if(!has_value)
                 return SerializationEC::NONE;
-            if(buf.size()<max_serial_size(to_deserialize))
-                return SerializationEC::BUFFER_SIZE_LESSER;
             T value;
             code = deserialize<NETWORK_ORDER>(value,buf.subspan(serial_size(has_value)));
             if(code!=SerializationEC::NONE)
@@ -494,14 +510,16 @@ namespace serialization{
                 if constexpr(is_associative_container_v<T>){
                     std::pair<typename T::key_type,typename T::mapped_type> item{};
                     code = deserialize<NETWORK_ORDER>(item, buf);
-                    if (code != SerializationEC::NONE) return code;
+                    if (code != SerializationEC::NONE)
+                        return code;
                     buf = buf.subspan(serial_size(item));                    
                     to_deserialize.insert(std::move(item));
                 }
                 else {
                     std::ranges::range_value_t<T> item{};
                     code = deserialize<NETWORK_ORDER>(item, buf);
-                    if (code != SerializationEC::NONE) return code;
+                    if (code != SerializationEC::NONE)
+                        return code;
                     buf = buf.subspan(serial_size(item));
                     to_deserialize.insert(to_deserialize.end(),std::move(item));
                 }
@@ -516,8 +534,7 @@ namespace serialization{
         size_t operator()(const T& range) const noexcept{
             constexpr size_t size_sz = sizeof(T{}.size());
             size_t total = size_sz;
-            if constexpr(requires{  typename T::key_type;
-                                    typename T::mapped_type;})
+            if constexpr(is_associative_container_v<T>)
                 for(const auto& [key,val]:range){
                     total+=serial_size(key)+serial_size(val);
                 }
@@ -663,7 +680,8 @@ namespace serialization{
         auto deserialize_field = [&](auto& field) mutable noexcept->SerializationEC
         {
             SerializationEC code = deserialize<NETWORK_ORDER>(field,buf);
-            buf = buf.subspan(serial_size(field));
+            if(code==SerializationEC::NONE)
+                buf = buf.subspan(serial_size(field));
             return code;
         };
         (((result_code = deserialize_field(args))==SerializationEC::NONE) && ...);
@@ -767,22 +785,6 @@ namespace serialization{
             return SerializationEC::FILE_READING_ERROR;
         return SerializationEC::NONE;
     }
-    
-    template<bool NETWORK_ORDER,typename T>
-    requires (serialize_concept<NETWORK_ORDER,T>)
-    struct Serialize<NETWORK_ORDER,std::optional<T>>{
-        SerializationEC operator()(const std::optional<T>& val,std::vector<char>& buf) const noexcept{
-            SerializationEC err = serialize<NETWORK_ORDER>(val.has_value(),buf);
-            if(err!=SerializationEC::NONE)
-                return err;
-            if(!val.has_value())
-                return SerializationEC::NONE;
-            err = serialize<NETWORK_ORDER>(val.value(),buf);
-            if(err!=SerializationEC::NONE)
-                return err;
-            return SerializationEC::NONE;
-        }
-    };
 }
 
 #include <list>

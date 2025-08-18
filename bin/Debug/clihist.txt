@@ -1,0 +1,2 @@
+-h --config -A
+-h --config --add
