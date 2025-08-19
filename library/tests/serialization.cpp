@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <utility>
+#include "../../utility/random_char.h"
 
 class SerializableItems:public testing::Test{
     protected:
@@ -293,6 +294,23 @@ TEST(Serialization, SerializeVector){
     std::vector<std::pair<int,int>> check_vector{};
     ASSERT_EQ(deserialize<true>(check_vector,std::span(buf)),serialization::SerializationEC::NONE);
     EXPECT_EQ(check_vector,vector_);
+}
+
+TEST(Serialization, SerializeString){
+    using namespace serialization;
+    std::vector<char> buf;
+    std::string string_;
+    string_.resize(10);
+    std::generate(string_.begin(),string_.end(),getRandomChar);
+    
+    ASSERT_EQ(serialization::min_serial_size(string_),sizeof(size_t));
+    ASSERT_EQ(serialization::max_serial_size(string_),std::numeric_limits<size_t>::max());
+    ASSERT_EQ(serialize<true>(string_,buf),serialization::SerializationEC::NONE);
+    EXPECT_EQ(buf.size(),serial_size(string_));
+
+    std::string check_string;
+    ASSERT_EQ(deserialize<true>(check_string,std::span(buf)),serialization::SerializationEC::NONE);
+    EXPECT_EQ(check_string,string_);
 }
 
 TEST(Serialization, SerializeDeque){

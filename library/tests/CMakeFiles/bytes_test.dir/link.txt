@@ -1,0 +1,1 @@
+/home/oster/gcc/gcc-install/bin/g++  -lzip -static-libstdc++ -g  -Wl,-rpath,/home/oster/gcc/gcc-install/lib64: -Wl,--dependency-file=CMakeFiles/bytes_test.dir/link.d CMakeFiles/bytes_test.dir/bytes.cpp.o -o ../../Debug/bin/bytes_test  /usr/local/lib/libgtest.a

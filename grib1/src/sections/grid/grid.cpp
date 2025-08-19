@@ -1,5 +1,5 @@
 #include "sections/grid/grid.h"
-#include "def.h"
+#include "grib1_def.h"
 
 bool GridInfo::operator==(const GridInfo& other) const{
     if(type()!=other.type())

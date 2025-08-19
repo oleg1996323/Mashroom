@@ -3,7 +3,7 @@
 #include "types/time_interval.h"
 #include <optional>
 #include "sections/grid/grid.h"
-#include "grib1/include/err.h"
+#include "err.h"
 
 struct GribIndexDataInfo
 {

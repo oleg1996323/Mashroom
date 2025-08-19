@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/web.dir/link.d"
+  "CMakeFiles/web.dir/src/network/client.cpp.o"
+  "CMakeFiles/web.dir/src/network/client.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/client/connection_process.cpp.o"
+  "CMakeFiles/web.dir/src/network/client/connection_process.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/client/request_scheduler.cpp.o"
+  "CMakeFiles/web.dir/src/network/client/request_scheduler.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/common/def.cpp.o"
+  "CMakeFiles/web.dir/src/network/common/def.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/common/message/buffer.cpp.o"
+  "CMakeFiles/web.dir/src/network/common/message/buffer.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/common/message/msgdef.cpp.o"
+  "CMakeFiles/web.dir/src/network/common/message/msgdef.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/common/utility.cpp.o"
+  "CMakeFiles/web.dir/src/network/common/utility.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server.cpp.o"
+  "CMakeFiles/web.dir/src/network/server.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/connection_pool.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/connection_pool.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/connection_process.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/connection_process.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_extract_part.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_extract_part.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_finfo.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_finfo.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_fpart.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/message/data_reply_fpart.cpp.o.d"
+  "CMakeFiles/web.dir/src/network/server/message/message.cpp.o"
+  "CMakeFiles/web.dir/src/network/server/message/message.cpp.o.d"
+  "Debug/shared/libweb.pdb"
+  "Debug/shared/libweb.so"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/web.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

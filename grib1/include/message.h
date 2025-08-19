@@ -1,6 +1,5 @@
 #pragma once
-#include "def.h"
-#include "def.h"
+#include "grib1_def.h"
 #include "sections/section_0.h"
 #include "sections/section_1.h"
 #include "sections/section_2.h"

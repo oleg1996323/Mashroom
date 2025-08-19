@@ -26,8 +26,13 @@
             "intelliSenseMode": "linux-gcc-x64",
             "compilerPath": "/home/oster/gcc/gcc-install/bin/g++",
             "configurationProvider": "ms-vscode.cmake-tools",
-            "compileCommands": "${config:cmake.buildDirectory}/compile_commands.json",
-            "browse": {}
+            "compileCommands": [
+                "${config:cmake.buildDirectory}/compile_commands.json"
+            ],
+            "browse": {},
+            "compilerArgs": [
+                "-B build"
+            ]
         }
     ],
     "version": 4

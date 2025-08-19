@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/oster/Mashroom/cmake_install.cmake",
+		"/home/oster/Mashroom/library/cmake_install.cmake",
+		"/home/oster/Mashroom/library/tests/cmake_install.cmake",
+		"/home/oster/Mashroom/grib1/cmake_install.cmake",
+		"/home/oster/Mashroom/grib1/tests/cmake_install.cmake",
+		"/home/oster/Mashroom/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

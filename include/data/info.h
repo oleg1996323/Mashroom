@@ -67,6 +67,7 @@ class GribDataInfo{
 };
 #include <unordered_set>
 #include "definitions/path_process.h"
+#include "gtest/gtest_prod.h"
 class SublimedGribDataInfo
 {
     public:
@@ -82,7 +83,7 @@ class SublimedGribDataInfo
     friend struct serialization::Min_serial_size;
     template<auto>
     friend struct serialization::Max_serial_size;
-
+    FRIEND_TEST(Serialization,SublimedGribDataInfo);
     private:
     sublimed_data_t info_;
     std::unordered_set<path::Storage<true>> paths_;

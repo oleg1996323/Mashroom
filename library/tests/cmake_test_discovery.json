@@ -1,0 +1,102 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Serialization",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "SerializeInt",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 80
+        },
+        {
+          "name": "SerializeFloatingPoint",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 105
+        },
+        {
+          "name": "SerializeTimePoint",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 128
+        },
+        {
+          "name": "SerializeDuration",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 144
+        },
+        {
+          "name": "SerializeUniquePtr",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 160
+        },
+        {
+          "name": "SerializeSharedPtr",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 186
+        },
+        {
+          "name": "SerializePair",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 212
+        },
+        {
+          "name": "SerializeOptional",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 228
+        },
+        {
+          "name": "SerializeList",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 254
+        },
+        {
+          "name": "SerializeVector",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 276
+        },
+        {
+          "name": "SerializeString",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 299
+        },
+        {
+          "name": "SerializeDeque",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 316
+        },
+        {
+          "name": "SerializeSet",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 338
+        },
+        {
+          "name": "SerializeUnorderedSet",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 365
+        },
+        {
+          "name": "SerializeMap",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 392
+        },
+        {
+          "name": "SerializeUMap",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 420
+        },
+        {
+          "name": "Variant",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 447
+        },
+        {
+          "name": "SerialLimits",
+          "file": "\/home\/oster\/Mashroom\/library\/tests\/serialization.cpp",
+          "line": 511
+        }
+      ]
+    }
+  ]
+}

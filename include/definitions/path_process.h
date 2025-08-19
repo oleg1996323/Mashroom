@@ -9,31 +9,55 @@ enum class TYPE:uint8_t{
     HOST
 };
 template<bool VIEW>
-struct Storage;
-template<>
-struct Storage<false>{
+struct Storage{
     Storage() = default;
-    explicit Storage(const std::string& path,TYPE type);
-    explicit Storage(std::string&& path,TYPE type);
-    explicit Storage(std::string_view path,TYPE type);
-    Storage(std::initializer_list<Storage<false>> list);
-    Storage(const Storage<false>& other);
-    Storage(const Storage<true>& other);
-    std::string path_;
+    explicit Storage(const std::string& path,TYPE type):path_(path),type_(type){}
+    explicit Storage(std::string&& path,TYPE type):path_(path),type_(type){}
+    explicit Storage(std::string_view path,TYPE type):path_(path),type_(type){}
+    template<bool VIEW_OTHER>
+    Storage(const Storage<VIEW_OTHER>& other):
+    path_(other.path_),type_(other.type_){}
+    std::conditional_t<VIEW,std::string_view,std::string> path_;
     TYPE type_;
+
+    template<bool VIEW_OTHER>
+    bool operator==(const path::Storage<VIEW_OTHER>& other) const noexcept{
+        if(static_cast<const void*>(&other)==static_cast<const void*>(this))
+            return true;
+        return this->path_==other.path_ && this->type_==other.type_;
+    }
+
+    template<bool VIEW_OTHER>
+    bool operator!=(const path::Storage<VIEW_OTHER>& other) const noexcept{
+        if(static_cast<const void*>(&other)==static_cast<const void*>(this))
+            return false;
+        return this->path_!=other.path_ || this->type_!=other.type_;
+    }
 };
-template<>
-struct Storage<true>{
-    Storage()=default;
-    explicit Storage(const std::string& path,TYPE type);
-    explicit Storage(std::string&& path,TYPE type);
-    explicit Storage(std::string_view path,TYPE type);
-    Storage(std::initializer_list<Storage<true>> list);
-    Storage(const Storage<false>& other);
-    Storage(const Storage<true>& other);
-    std::string_view path_;
-    TYPE type_;
-};
+// template<>
+// struct Storage<false>{
+//     Storage() = default;
+//     explicit Storage(const std::string& path,TYPE type);
+//     explicit Storage(std::string&& path,TYPE type);
+//     explicit Storage(std::string_view path,TYPE type);
+//     Storage(std::initializer_list<Storage<false>> list);
+//     Storage(const Storage<false>& other);
+//     Storage(const Storage<true>& other);
+//     std::string path_;
+//     TYPE type_;
+// };
+// template<>
+// struct Storage<true>{
+//     Storage()=default;
+//     explicit Storage(const std::string& path,TYPE type);
+//     explicit Storage(std::string&& path,TYPE type);
+//     explicit Storage(std::string_view path,TYPE type);
+//     Storage(std::initializer_list<Storage<true>> list);
+//     Storage(const Storage<false>& other);
+//     Storage(const Storage<true>& other);
+//     std::string_view path_;
+//     TYPE type_;
+// };
 }
 
 template<bool VIEW>
@@ -80,6 +104,11 @@ struct std::equal_to<path::Storage<VIEW>>{
         return lhs.path_==rhs.path_ && lhs.type_==rhs.type_;
     }
 };
+
+template<bool VIEW1,bool VIEW2>
+bool operator==(const path::Storage<VIEW1>& lhs, const path::Storage<VIEW2>& rhs) noexcept{
+    return lhs.path_==rhs.path_ && lhs.type_==rhs.type_;
+}
 
 #include "serialization.h"
 

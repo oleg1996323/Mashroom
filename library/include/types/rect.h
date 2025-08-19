@@ -1,5 +1,4 @@
 #pragma once
-#include "def.h"
 #include "types/coord.h"
 
 // #define RECT_TYPE

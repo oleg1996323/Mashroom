@@ -1,5 +1,4 @@
 #pragma once
-#include "def.h"
 #include "types/coord.h"
 #include "sections/section_1.h"
 #include "code_tables/table_6.h"

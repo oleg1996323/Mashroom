@@ -7,7 +7,6 @@
 #include "data/sublimed_info.h"
 #include "data/info.h"
 #include "message.h"
-#include "def.h"
 
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;

@@ -1,0 +1,7 @@
+add_test([=[Serialization.SublimedInfo]=]  /home/oster/Mashroom/Debug/bin/Mashroom_serialize_test [==[--gtest_filter=Serialization.SublimedInfo]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Serialization.SublimedInfo]=]  PROPERTIES DEF_SOURCE_LINE /home/oster/Mashroom/tests/mashroom_serialization.cpp:7 WORKING_DIRECTORY /home/oster/Mashroom/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[Serialization.PathStorage]=]  /home/oster/Mashroom/Debug/bin/Mashroom_serialize_test [==[--gtest_filter=Serialization.PathStorage]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Serialization.PathStorage]=]  PROPERTIES DEF_SOURCE_LINE /home/oster/Mashroom/tests/mashroom_serialization.cpp:67 WORKING_DIRECTORY /home/oster/Mashroom/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[Serialization.SublimedGribDataInfo]=]  /home/oster/Mashroom/Debug/bin/Mashroom_serialize_test [==[--gtest_filter=Serialization.SublimedGribDataInfo]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[Serialization.SublimedGribDataInfo]=]  PROPERTIES DEF_SOURCE_LINE /home/oster/Mashroom/tests/mashroom_serialization.cpp:92 WORKING_DIRECTORY /home/oster/Mashroom/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  Mashroom_serialize_test_TESTS Serialization.SublimedInfo Serialization.PathStorage Serialization.SublimedGribDataInfo)

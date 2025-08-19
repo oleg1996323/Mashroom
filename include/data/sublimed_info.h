@@ -39,7 +39,14 @@ struct SublimedDataInfo
     // from(other.from),
     // to(other.to),
     // discret(other.discret){}
-
+    bool operator==(const SublimedDataInfo& other) const noexcept{
+        if(this==&other)
+            return true;
+        return grid_data_==other.grid_data_ && buf_pos_==other.buf_pos_ && from_==other.from_ && to_ == other.to_ && discret_==other.discret_;
+    }
+    bool operator!=(const SublimedDataInfo& other) const noexcept{
+        return !(*this==other);
+    }
 };
 
 namespace serialization{

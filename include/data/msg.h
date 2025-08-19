@@ -10,7 +10,7 @@
 #include "sections/grid/grid.h"
 #include "def.h"
 #include "types/time_interval.h"
-#include "grib1/include/def.h"
+#include "grib1_def.h"
 
 struct GribMsgDataInfo
 {

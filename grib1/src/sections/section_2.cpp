@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <iostream>
-#include "def.h"
+#include "grib1_def.h"
 #include "sections/section_2.h"
 #include "sections/section_1.h"
 

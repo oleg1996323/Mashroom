@@ -13,7 +13,6 @@
 #include "compressor.h"
 #include <iostream>
 #include "proc/extract.h"
-#include "def.h"
 #include "message.h"
 #include "int_pow.h"
 #include "data/info.h"
