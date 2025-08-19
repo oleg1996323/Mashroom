@@ -3,9 +3,9 @@ project(Oster-Mashroom
         VERSION 0.1
         DESCRIPTION "Universal indexer, effective extractor, handler and network-sharer of different geoinformational data"
         LANGUAGES C CXX)
-
+enable_testing()
 find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS json program_options)
-
+set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 #configuration section
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
 set(CONFIG_REL_HOME_DIR .config/Mashroom)
@@ -43,15 +43,31 @@ file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd_parse|sys)/")
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/shared)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/shared)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG})
+else()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE})
+endif()
+
+# set(CTEST_BINARY_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests)
+# set(CTEST_SCRIPT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests)
+# set(CTEST_SOURCE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
 add_subdirectory(library)
 add_subdirectory(grib1)
-
-#build main lib
-add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC gribAPI::v1 library PUBLIC system clip web)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
@@ -74,29 +90,21 @@ target_include_directories(clip PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse)
 target_link_libraries(clip PUBLIC gribAPI::v1 library system Boost::program_options )
 
+#build main lib
+add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
+target_link_libraries(Mashroom_lib PUBLIC 
+                    gribAPI::v1
+                    library
+                    system
+                    clip
+                    web)
+target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib library)
 target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
 
-set_target_properties(Mashroom Mashroom_lib grib1API library clip web system
-                    PROPERTIES
-                    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/lib/Debug"
-                    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/shared/Debug"
-                    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_LIST_DIR}/bin/Debug"
-                    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/lib/Release"
-                    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/shared/Release"
-                    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_LIST_DIR}/bin/Release")
+set(CMAKE_LIBRARY_PATH ${CMAKE_BINARY_DIR}/Debug/shared)
 
-enable_testing()
-
-set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/${CMAKE_BUILD_TYPE})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/shared/${CMAKE_BUILD_TYPE})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_BUILD_TYPE})
-
-set(CTEST_BINARY_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/build_tests)
-add_executable(Mashroom_serialize_test ${CMAKE_CURRENT_LIST_DIR}/tests/mashroom_serialization.cpp)
-target_link_libraries(Mashroom_serialize_test GTest::gtest Mashroom_lib)
-
-gtest_discover_tests(Mashroom_serialize_test)
+add_subdirectory(tests)
