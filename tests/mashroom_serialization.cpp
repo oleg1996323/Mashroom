@@ -132,7 +132,14 @@ TEST(Serialization,SublimedGribDataInfo){
     EXPECT_EQ(serial_size(data),buf.size());
     decltype(data) to_check;
     ASSERT_EQ(deserialize<true>(to_check,std::span<const char>(buf)),SerializationEC::NONE);
-    EXPECT_EQ(to_check,data);
+    EXPECT_EQ(to_check.size(),data.size());
+    for(auto& [filename,file_data]:to_check){
+        ASSERT_TRUE(data.contains(filename));
+        for(auto& [cmn,data_info]:file_data){
+            ASSERT_TRUE(data[filename].contains(cmn));
+            ASSERT_EQ(data_info,data[filename][cmn]);
+        }
+    }
 }
 
 

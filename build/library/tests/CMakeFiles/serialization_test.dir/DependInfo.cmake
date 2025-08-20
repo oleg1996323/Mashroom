@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/oster/Mashroom/library/tests/serialization.cpp" "library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o" "gcc" "library/tests/CMakeFiles/serialization_test.dir/serialization.cpp.o.d"
+  "" "Debug/bin/serialization_test" "gcc" "library/tests/CMakeFiles/serialization_test.dir/link.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

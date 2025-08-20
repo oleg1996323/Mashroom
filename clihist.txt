@@ -1,9 +1,3 @@
---index --inp dir=~/cdsapi
---save
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon50.5-lat60.5 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/cdsapi
---save
---index --inp dir=~/cdsapi
 --save
 --index --inp dir=~/cdsapi
 --save
@@ -97,4 +91,10 @@
 --exit
 --index --inp dir=~/test_grib
 --save
+--exit
+--index --inp dir=~/test_grib
+--exit
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
+--exit
+--extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
 --exit

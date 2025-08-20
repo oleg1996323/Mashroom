@@ -166,7 +166,7 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
 
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
-    path_format = get_dir_file_outp_format();
+    // path_format = get_dir_file_outp_format();
     if(in_path_.empty()){
         auto matched = Mashroom::instance().data().match(props_.center_.value(),
                                                 props_.fcst_unit_,

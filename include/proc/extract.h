@@ -106,7 +106,7 @@ public:
 
 private:
     TimePeriod t_off_ = TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
-    std::string path_format = std::string("{:%Y") + fs::path::preferred_separator + "%m}";
+    std::string path_format = std::string("{:%Y") + static_cast<char>(fs::path::preferred_separator) + "%m}";
     std::string file_format = std::string("{}_{}_{:%Y_%m}");
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
