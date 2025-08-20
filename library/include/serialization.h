@@ -295,7 +295,7 @@ namespace serialization{
             else if constexpr (duration_concept<T>)
                 return sizeof(val.count());
             else if constexpr (smart_pointer_concept<T>)
-                return sizeof(bool)+(val?serial_size(typename T::element_type{}):0);
+                return sizeof(bool)+(val?serial_size(*val):0);
             else if constexpr(std::is_same_v<std::decay_t<T>,std::monostate>)
                 return 0;
             else if constexpr(pair_concept<T>)
@@ -454,8 +454,7 @@ namespace serialization{
     template<typename T>
     struct Serial_size<std::optional<T>>{
         size_t operator()(const std::optional<T>& val) const noexcept{
-            constexpr size_t flag_size = 1;
-            return flag_size + (val.has_value() ? serial_size(*val) : 0);
+            return sizeof(bool) + (val.has_value() ? serial_size(*val) : 0);
         }
     };
 
@@ -531,7 +530,7 @@ namespace serialization{
     requires serial_size_concept<std::ranges::range_value_t<T>>
     struct Serial_size<T>{
         size_t operator()(const T& range) const noexcept{
-            constexpr size_t size_sz = sizeof(T{}.size());
+            constexpr size_t size_sz = sizeof(size_t);
             size_t total = size_sz;
             if constexpr(is_associative_container_v<T>)
                 for(const auto& [key,val]:range){

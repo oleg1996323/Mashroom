@@ -128,5 +128,6 @@
         "csignal": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "cmake.buildDirectory": "${workspaceFolder}/build"
 }

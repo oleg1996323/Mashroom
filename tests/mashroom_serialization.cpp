@@ -3,6 +3,7 @@
 #include "definitions/path_process.h"
 #include <gtest/gtest.h>
 #include <numeric>
+#include "../utility/random_char.h"
 
 TEST(Serialization, SublimedInfo){
     using namespace serialization;
@@ -91,12 +92,6 @@ TEST(Serialization, PathStorage){
 
 TEST(Serialization,SublimedGribDataInfo){
     using namespace serialization;
-    //std::unordered_map<path::Storage<false>, std::unordered_map<std::shared_ptr<CommonDataProperties>, std::vector<SublimedDataInfo>>> 
-    auto getRandomChar = []()->char
-    {
-        static char c = 'A' + rand()%24;
-        return c;    
-    };
     decltype(SublimedDataInfo::buf_pos_) buf_pos(100);
     std::ranges::iota(buf_pos,0);
     GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid_def;
@@ -120,14 +115,13 @@ TEST(Serialization,SublimedGribDataInfo){
     grid_def.base_.scan_mode = scan;
     SublimedGribDataInfo::sublimed_data_t data;
     for(int i=0;i<10;++i){
-        path::Storage<false> path;
         std::string str;
         str.resize(10);
         std::generate(str.begin(),str.end(),getRandomChar);
         for(int j=0;j<10;++j){
-            auto& vector_seq = data[path][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,j*2+5*2)];
+            auto& vector_seq = data[path::Storage<false>(str,path::TYPE::FILE)][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
             for(int m=0;m<10;++m){
-                SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/(j+m))),.to_=system_clock::now(),
+                SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/(i+j+m))),.to_=system_clock::now(),
                         .discret_=system_clock::duration((sub_data.to_-sub_data.from_)/sub_data.buf_pos_.size())};
                 vector_seq.push_back(std::move(sub_data));
             }

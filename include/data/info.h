@@ -168,15 +168,15 @@ namespace serialization{
                                         }
                                         else return false;
                                     }).in;
-            size_t info_sz = existing_paths.size();
-            err = serialize<NETWORK_ORDER>(info_sz,buf);
-            for(const auto& [path,filedata]: existing_paths)
-            {
-                if(err==SerializationEC::NONE)
-                    err = serialize<NETWORK_ORDER>(path,buf);
-                if(err==SerializationEC::NONE)
-                    err = serialize<NETWORK_ORDER>(filedata,buf);
-            }
+            // size_t info_sz = existing_paths.size();
+            err = serialize<NETWORK_ORDER>(existing_paths,buf);
+            // for(const auto& [path,filedata]: existing_paths)
+            // {
+            //     if(err==SerializationEC::NONE)
+            //         err = serialize<NETWORK_ORDER>(path,buf);
+            //     if(err==SerializationEC::NONE)
+            //         err = serialize<NETWORK_ORDER>(filedata,buf);
+            // }
             return err;
         }
     };

@@ -3,6 +3,7 @@
 
 auto getRandomChar = []()->char
 {
-    static char c = 'A' + rand()%24;
-    return c;    
+    std::mt19937 gen;
+    gen.seed(std::rand());
+    return 'A' + gen()%26;    
 };

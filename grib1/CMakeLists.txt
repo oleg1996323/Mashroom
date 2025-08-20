@@ -3,6 +3,8 @@ project("GRIB v1 API" VERSION 0.0.1)
 file(GLOB_RECURSE GRIB1_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 add_library(grib1API SHARED ${GRIB1_SOURCES})
 add_library(gribAPI::v1 ALIAS grib1API)
+
+
 target_include_directories(grib1API PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
 target_link_libraries(grib1API PRIVATE library)
 get_target_property(grib1API_INCLUDES grib1API INCLUDE_DIRECTORIES)

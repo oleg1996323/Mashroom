@@ -1,1 +1,0 @@
-/home/oster/gcc/gcc-install/bin/g++  -lzip -static-libstdc++ -g  -Wl,-rpath,/home/oster/gcc/gcc-install/lib64: -Wl,--dependency-file=CMakeFiles/serialization_test.dir/link.d CMakeFiles/serialization_test.dir/serialization.cpp.o -o ../../Debug/bin/serialization_test  /usr/local/lib/libgtest.a

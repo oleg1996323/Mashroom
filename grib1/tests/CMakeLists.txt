@@ -6,4 +6,4 @@ add_executable(grid_test grid_test.cpp)
 target_link_libraries(grid_test PRIVATE library gribAPI::v1 GTest::gtest)
 
 message(STATUS ${CMAKE_CURRENT_BINARY_DIR})
-gtest_discover_tests(grid_test DISCOVERY_MODE POST_BUILD)
+gtest_discover_tests(grid_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

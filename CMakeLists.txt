@@ -4,6 +4,7 @@ project(Oster-Mashroom
         DESCRIPTION "Universal indexer, effective extractor, handler and network-sharer of different geoinformational data"
         LANGUAGES C CXX)
 enable_testing()
+set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS json program_options)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 #configuration section
