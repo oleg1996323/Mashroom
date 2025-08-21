@@ -220,35 +220,34 @@ public:
         std::string dir_format_tmp;
         if (t_off_.hours_ > std::chrono::seconds(0))
         {
-            file_format_tmp += "S%_M%_H%_";
-            dir_format_tmp += "S%" + fs::path::preferred_separator;
-            dir_format_tmp += "M%" + fs::path::preferred_separator;
-            dir_format_tmp += "H%" + fs::path::preferred_separator;
+            file_format_tmp = file_format_tmp + "S%_M%_H%_";
+            dir_format_tmp = dir_format_tmp + "S%" + fs::path::preferred_separator+
+            "M%" + fs::path::preferred_separator + 
+            "H%" + fs::path::preferred_separator;
         }
         else if (t_off_.hours_ > minutes(0))
         {
-            file_format_tmp += "M%_H%_";
-            dir_format_tmp += "M%" + fs::path::preferred_separator;
-            dir_format_tmp += "H%" + fs::path::preferred_separator;
+            file_format_tmp = file_format_tmp + "M%_H%_";
+            dir_format_tmp = dir_format_tmp + "M%" + fs::path::preferred_separator + "H%" + fs::path::preferred_separator;
         }
         else if (t_off_.hours_ > hours(0))
         {
-            file_format_tmp += "H%_";
-            dir_format_tmp += "H%" + fs::path::preferred_separator;
+            file_format_tmp = file_format_tmp + "H%_";
+            dir_format_tmp = dir_format_tmp + "H%" + fs::path::preferred_separator;
         }
         if (t_off_.days_ > days(0))
         {
-            file_format_tmp += "d%_m%_";
-            dir_format_tmp += "d%" + fs::path::preferred_separator;
-            dir_format_tmp += "m%" + fs::path::preferred_separator;
+            file_format_tmp = file_format_tmp + "d%_m%_";
+            dir_format_tmp = dir_format_tmp + "d%" + fs::path::preferred_separator +
+            "m%" + fs::path::preferred_separator;
         }
         else if (t_off_.months_ > months(0))
         {
-            file_format_tmp += "m%_";
-            dir_format_tmp += "m%" + fs::path::preferred_separator;
+            file_format_tmp = file_format_tmp + "m%_";
+            dir_format_tmp = dir_format_tmp + "m%" + fs::path::preferred_separator;
         }
-        file_format_tmp += "Y%";
-        dir_format_tmp += "Y%";
+        file_format_tmp = file_format_tmp + "Y%";
+        dir_format_tmp = dir_format_tmp + "Y%";
         std::reverse(file_format_tmp.begin(), file_format_tmp.end());
         std::reverse(dir_format_tmp.begin(), dir_format_tmp.end());
         file_format_tmp = "{}_{}_{:" + file_format_tmp + "}";
@@ -259,14 +258,15 @@ public:
 template <typename... ARGS>
 fs::path Extract::__generate_name__(OutputDataFileFormats format, ARGS &&...args)
 {
+    OutputDataFileFormats fmt_tmp = output_format_&~OutputDataFileFormats::ARCHIVED;
     if (static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) &
             static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::TXT_F) ||
-        static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) &
+        static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) ==
             static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::DEFAULT))
     {
         return std::vformat(file_format + ".txt", std::make_format_args(args...));
     }
-    return "any.txt";
+
 }
 template <typename... ARGS>
 fs::path Extract::__generate_directory__(ARGS &&...args)

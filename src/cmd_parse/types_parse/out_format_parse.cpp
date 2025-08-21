@@ -42,19 +42,14 @@ template<>
     smatch match;
     if(regex_match(input,match,r)){
         OutputDataFileFormats fmt;
-        if(match[2]=="txt")
+        if((!match[2].str().empty() && match[2]=="txt")  || (!match[5].str().empty() && match[5]=="txt"))
             fmt|=OutputDataFileFormats::TXT_F;
-        else if(match[2]=="grib")
+        else if((!match[2].str().empty() && match[2]=="grib")  || (!match[5].str().empty() && match[5]=="grib"))
             fmt|=OutputDataFileFormats::GRIB_F;
-        else if(match[2]=="bin")
+        else
             fmt|=OutputDataFileFormats::BIN_F;
-        else fmt|=OutputDataFileFormats::ARCHIVED;
-        if(match.size()>3){
-            if(static_cast<int>(fmt&OutputDataFileFormats::ARCHIVED)!=0)
-                ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"error at parsing: already archive format defined",
-                AT_ERROR_ACTION::ABORT);
+        if(!match[3].str().empty() || !match[4].str().empty())
             fmt|=OutputDataFileFormats::ARCHIVED;
-        }
         return fmt;
     }
     else throw std::invalid_argument(input);
