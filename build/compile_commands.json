@@ -187,6 +187,12 @@
 },
 {
   "directory": "/home/oster/Mashroom/build",
+  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom/build -I/home/oster/Mashroom -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/clip.dir/src/cmd_parse/types_parse/center_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/types_parse/center_parse.cpp",
+  "file": "/home/oster/Mashroom/src/cmd_parse/types_parse/center_parse.cpp",
+  "output": "CMakeFiles/clip.dir/src/cmd_parse/types_parse/center_parse.cpp.o"
+},
+{
+  "directory": "/home/oster/Mashroom/build",
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom/build -I/home/oster/Mashroom -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/clip.dir/src/cmd_parse/types_parse/coord_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/types_parse/coord_parse.cpp",
   "file": "/home/oster/Mashroom/src/cmd_parse/types_parse/coord_parse.cpp",
   "output": "CMakeFiles/clip.dir/src/cmd_parse/types_parse/coord_parse.cpp.o"
@@ -226,12 +232,6 @@
   "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom/build -I/home/oster/Mashroom -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/clip.dir/src/cmd_parse/types_parse/path_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/types_parse/path_parse.cpp",
   "file": "/home/oster/Mashroom/src/cmd_parse/types_parse/path_parse.cpp",
   "output": "CMakeFiles/clip.dir/src/cmd_parse/types_parse/path_parse.cpp.o"
-},
-{
-  "directory": "/home/oster/Mashroom/build",
-  "command": "/home/oster/gcc/gcc-install/bin/g++ -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_DYN_LINK -DBOOST_JSON_NO_LIB -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -DCONFIG_MASHROOM_DIR_REL=\\\".config/Mashroom\\\" -DLOG_DIR=\\\"/home/oster/Mashroom/log_error\\\" -Dclip_EXPORTS -I/home/oster/Mashroom/build -I/home/oster/Mashroom -I/home/oster/Mashroom/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/grib1/include -I/home/oster/Mashroom/library -I/home/oster/Mashroom/library/include -I/home/oster/Mashroom/include/sys  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10 -o CMakeFiles/clip.dir/src/cmd_parse/types_parse/search_process_parse.cpp.o -c /home/oster/Mashroom/src/cmd_parse/types_parse/search_process_parse.cpp",
-  "file": "/home/oster/Mashroom/src/cmd_parse/types_parse/search_process_parse.cpp",
-  "output": "CMakeFiles/clip.dir/src/cmd_parse/types_parse/search_process_parse.cpp.o"
 },
 {
   "directory": "/home/oster/Mashroom/build",

@@ -67,7 +67,8 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
         return true;
     }
     int value_by_raw(const Coord& pos) const noexcept{
-        return (pos.lon_-base_.x1)/base_.dx+base_.nx*(pos.lat_-base_.y2)/base_.dy;
+        return (base_.x1>base_.x2?(pos.lon_-base_.x2):(pos.lon_-base_.x1))/base_.dx+1   +
+        base_.nx*(base_.y1>base_.y2?(base_.y1-pos.lat_):(pos.lat_-base_.y1))/base_.dy;
     }
 };
 

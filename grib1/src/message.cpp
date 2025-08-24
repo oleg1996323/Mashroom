@@ -15,7 +15,7 @@ float Message::extract_value(int n){
 	if(!flags.complex_pack){
 		if(!flags.spherical_harm_coefs){
 			if(n_bit==0)
-				return ref_val*dec_scale;
+				return ref_val;
 			else{
                 if(section_1_.section1Flags().sec3_inc){
                     int t_bits=0,mask_idx;
@@ -39,7 +39,7 @@ float Message::extract_value(int n){
                         t_bits += 8; //increment by byte
                     }
                     t_bits -= n_bit;
-                    return ref_val*dec_scale + scale*((tbits >> t_bits) & jmask);
+                    return ref_val + scale*((tbits >> t_bits) & jmask);
                 }
 				else{
                     int t_bits = 0;
@@ -56,7 +56,7 @@ float Message::extract_value(int n){
                         t_bits += 8; //increment by byte
                     }
                     t_bits -= n_bit; //rest of not read bytes
-                    return ref_val*dec_scale + scale*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
+                    return ref_val + scale*((tbits >> t_bits) & jmask); //offset tbits to right and binary AND with all jmask 111...111 defined above
                 }
 			}
 		}

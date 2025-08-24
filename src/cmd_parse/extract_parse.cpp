@@ -7,7 +7,6 @@
 #include "data/info.h"
 #include "proc/extract.h"
 #include "code_tables/table_0.h"
-#include "search_process_parse.h"
 #include "out_format_parse.h"
 
 namespace fs = std::filesystem;
@@ -55,7 +54,6 @@ namespace parse{
                     if(inp_str.starts_with('"') && inp_str.ends_with('"')){
                         if(closed==true){
                             if(inp_str.size()>2){
-                                std::cout<<"Emplaced: "<<inp_str.substr(1,inp_str.size()-2)<<std::endl;
                                 processed_tokens.push_back(inp_str.substr(1,inp_str.size()-2));
                             }
                             else continue;
@@ -86,8 +84,6 @@ namespace parse{
                             closed = true;
                             if(inp_str=="\""){
                                 if(!current_string.empty()){
-                                    auto str = std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>();
-                                    std::cout<<"Emplaced: "<<str<<std::endl;
                                     processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
                                     current_string.clear();
                                 }
@@ -95,8 +91,6 @@ namespace parse{
                             }
                             else{
                                 current_string.push_back(inp_str.substr(0,inp_str.size()-1));
-                                auto str = std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>();
-                                    std::cout<<"Emplaced: "<<str<<std::endl;
                                 processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
                                 current_string.clear();
                             }

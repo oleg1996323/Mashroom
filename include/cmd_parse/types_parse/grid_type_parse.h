@@ -1,6 +1,10 @@
 #pragma once
 #include <boost/program_options.hpp>
 #include "code_tables/table_6.h"
+#include <vector>
+#include <string>
+#include <expected>
+#include "sys/error_code.h"
 
 namespace boost{
 template<>
@@ -11,3 +15,6 @@ namespace program_options{
 }
 }
 
+namespace parse{
+    std::expected<RepresentationType,ErrorCode> grid_notifier(const std::vector<std::string>& input) noexcept;
+}

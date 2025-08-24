@@ -44,18 +44,19 @@ std::vector<SearchParamTableVersion> approx_match_parameter(Organization center,
 std::vector<SearchParamTableVersion> multitoken_approx_match_parameter(Organization center, const RangeOfStrings auto& tokens) noexcept
 {
     std::vector<SearchParamTableVersion> found;
-    bool first_check =false;
+    bool first_check =true;
     for(auto token:tokens)
-        if(first_check){
+        if(!first_check){
             if(found.empty())
                 return found;
             else{
                 if(token.empty())
                     continue;
                 std::vector<SearchParamTableVersion> tmp;
-                auto f = approx_match_parameter(center,token);
-                std::cout<<"Found: "<<parameters_to_txt(center,f)<<std::endl;
-                std::ranges::set_intersection(found,approx_match_parameter(center,token),std::back_inserter(tmp),std::less<SearchParamTableVersion>());
+                if(token.starts_with("'-"))
+                    std::ranges::set_difference(found,approx_match_parameter(center,token.substr(2)),std::back_inserter(tmp),std::less<SearchParamTableVersion>());
+                else
+                    std::ranges::set_intersection(found,approx_match_parameter(center,token),std::back_inserter(tmp),std::less<SearchParamTableVersion>());
                 found = std::move(tmp);
             }
         }
@@ -63,8 +64,7 @@ std::vector<SearchParamTableVersion> multitoken_approx_match_parameter(Organizat
             if(token.empty())
                 continue;
             found = approx_match_parameter(center,token);
-            std::cout<<"Found: "<<parameters_to_txt(center,found)<<std::endl;        
-            first_check = true;
+            first_check = false;
         }
     return found;
 }

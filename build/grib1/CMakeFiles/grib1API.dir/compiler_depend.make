@@ -1622,6 +1622,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/Mashroom/grib1/include/sections/section_2.h \
   /home/oster/Mashroom/grib1/include/sections/section_3.h \
   /home/oster/Mashroom/grib1/include/sections/section_4.h \
+  /home/oster/Mashroom/library/include/boost_functional/json.h \
   /home/oster/Mashroom/library/include/byte_order.h \
   /home/oster/Mashroom/library/include/byte_read.h \
   /home/oster/Mashroom/library/include/concepts.h \
@@ -1633,9 +1634,11 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/Mashroom/library/include/types/coord.h \
   /home/oster/Mashroom/library/include/types/pseudo.h \
   /home/oster/Mashroom/library/include/types/rect.h \
+  /home/oster/Mashroom/library/include/types/time_interval.h \
   /home/oster/Mashroom/library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/auto_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bit \
@@ -1756,6 +1759,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode-data.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/uniform_int_dist.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_lock.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_map.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_set.h \
@@ -1776,6 +1780,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/gcc/gcc-install/include/c++/15.0.1/codecvt \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/compare \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/concepts \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdarg \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstddef \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdint \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdio \
@@ -1814,6 +1819,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/gcc/gcc-install/include/c++/15.0.1/map \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/math.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/memory \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/mutex \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/new \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/numbers \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/optional \
@@ -1825,6 +1831,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ranges \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ratio \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/set \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/source_location \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/span \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/sstream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/stdexcept \
@@ -1884,8 +1891,26 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
   /usr/include/assert.h \
+  /usr/include/boost/any.hpp \
+  /usr/include/boost/any/bad_any_cast.hpp \
+  /usr/include/boost/any/fwd.hpp \
+  /usr/include/boost/array.hpp \
   /usr/include/boost/assert.hpp \
+  /usr/include/boost/assert/source_location.hpp \
+  /usr/include/boost/bind/detail/requires_cxx11.hpp \
+  /usr/include/boost/bind/mem_fn.hpp \
+  /usr/include/boost/bind/mem_fn_cc.hpp \
+  /usr/include/boost/bind/mem_fn_template.hpp \
+  /usr/include/boost/concept/assert.hpp \
+  /usr/include/boost/concept/detail/backward_compatibility.hpp \
+  /usr/include/boost/concept/detail/concept_def.hpp \
+  /usr/include/boost/concept/detail/concept_undef.hpp \
+  /usr/include/boost/concept/detail/general.hpp \
+  /usr/include/boost/concept/detail/has_constraints.hpp \
+  /usr/include/boost/concept/usage.hpp \
+  /usr/include/boost/concept_check.hpp \
   /usr/include/boost/config.hpp \
+  /usr/include/boost/config/auto_link.hpp \
   /usr/include/boost/config/compiler/gcc.hpp \
   /usr/include/boost/config/detail/cxx_composite.hpp \
   /usr/include/boost/config/detail/posix_features.hpp \
@@ -1895,22 +1920,214 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/config/detail/suffix.hpp \
   /usr/include/boost/config/helper_macros.hpp \
   /usr/include/boost/config/no_tr1/cmath.hpp \
+  /usr/include/boost/config/no_tr1/functional.hpp \
+  /usr/include/boost/config/no_tr1/memory.hpp \
   /usr/include/boost/config/platform/linux.hpp \
   /usr/include/boost/config/pragma_message.hpp \
   /usr/include/boost/config/stdlib/libstdcpp3.hpp \
   /usr/include/boost/config/user.hpp \
   /usr/include/boost/config/workaround.hpp \
+  /usr/include/boost/container/allocator_traits.hpp \
+  /usr/include/boost/container/container_fwd.hpp \
+  /usr/include/boost/container/detail/addressof.hpp \
+  /usr/include/boost/container/detail/auto_link.hpp \
+  /usr/include/boost/container/detail/config_begin.hpp \
+  /usr/include/boost/container/detail/config_end.hpp \
+  /usr/include/boost/container/detail/dispatch_uses_allocator.hpp \
+  /usr/include/boost/container/detail/is_pair.hpp \
+  /usr/include/boost/container/detail/mpl.hpp \
+  /usr/include/boost/container/detail/placement_new.hpp \
+  /usr/include/boost/container/detail/std_fwd.hpp \
+  /usr/include/boost/container/detail/type_traits.hpp \
+  /usr/include/boost/container/detail/variadic_templates_tools.hpp \
+  /usr/include/boost/container/detail/workaround.hpp \
+  /usr/include/boost/container/new_allocator.hpp \
+  /usr/include/boost/container/pmr/global_resource.hpp \
+  /usr/include/boost/container/pmr/memory_resource.hpp \
+  /usr/include/boost/container/pmr/polymorphic_allocator.hpp \
+  /usr/include/boost/container/throw_exception.hpp \
+  /usr/include/boost/container/uses_allocator.hpp \
+  /usr/include/boost/container/uses_allocator_fwd.hpp \
+  /usr/include/boost/container_hash/hash_fwd.hpp \
   /usr/include/boost/core/addressof.hpp \
+  /usr/include/boost/core/checked_delete.hpp \
+  /usr/include/boost/core/cmath.hpp \
   /usr/include/boost/core/demangle.hpp \
+  /usr/include/boost/core/detail/is_same.hpp \
+  /usr/include/boost/core/detail/string_view.hpp \
   /usr/include/boost/core/enable_if.hpp \
+  /usr/include/boost/core/no_exceptions_support.hpp \
+  /usr/include/boost/core/noncopyable.hpp \
   /usr/include/boost/core/nvp.hpp \
+  /usr/include/boost/core/ref.hpp \
+  /usr/include/boost/core/snprintf.hpp \
+  /usr/include/boost/core/swap.hpp \
+  /usr/include/boost/core/typeinfo.hpp \
+  /usr/include/boost/core/use_default.hpp \
   /usr/include/boost/cstdint.hpp \
+  /usr/include/boost/current_function.hpp \
+  /usr/include/boost/describe/bases.hpp \
+  /usr/include/boost/describe/detail/config.hpp \
+  /usr/include/boost/describe/detail/cx_streq.hpp \
+  /usr/include/boost/describe/detail/void_t.hpp \
+  /usr/include/boost/describe/enum_from_string.hpp \
+  /usr/include/boost/describe/enum_to_string.hpp \
+  /usr/include/boost/describe/enumerators.hpp \
+  /usr/include/boost/describe/members.hpp \
+  /usr/include/boost/describe/modifiers.hpp \
+  /usr/include/boost/detail/basic_pointerbuf.hpp \
+  /usr/include/boost/detail/indirect_traits.hpp \
+  /usr/include/boost/detail/lcast_precision.hpp \
+  /usr/include/boost/detail/select_type.hpp \
   /usr/include/boost/detail/workaround.hpp \
+  /usr/include/boost/exception/exception.hpp \
+  /usr/include/boost/function.hpp \
+  /usr/include/boost/function/detail/epilogue.hpp \
+  /usr/include/boost/function/detail/function_iterate.hpp \
+  /usr/include/boost/function/detail/maybe_include.hpp \
+  /usr/include/boost/function/detail/prologue.hpp \
+  /usr/include/boost/function/detail/requires_cxx11.hpp \
+  /usr/include/boost/function/function1.hpp \
+  /usr/include/boost/function/function_base.hpp \
+  /usr/include/boost/function/function_fwd.hpp \
+  /usr/include/boost/function/function_template.hpp \
+  /usr/include/boost/function_equal.hpp \
+  /usr/include/boost/get_pointer.hpp \
+  /usr/include/boost/integer.hpp \
   /usr/include/boost/integer/common_factor_ct.hpp \
   /usr/include/boost/integer_fwd.hpp \
+  /usr/include/boost/integer_traits.hpp \
+  /usr/include/boost/intrusive/detail/config_begin.hpp \
+  /usr/include/boost/intrusive/detail/config_end.hpp \
+  /usr/include/boost/intrusive/detail/has_member_function_callable_with.hpp \
+  /usr/include/boost/intrusive/detail/mpl.hpp \
+  /usr/include/boost/intrusive/detail/workaround.hpp \
+  /usr/include/boost/intrusive/pointer_rebind.hpp \
+  /usr/include/boost/intrusive/pointer_traits.hpp \
+  /usr/include/boost/iterator/advance.hpp \
+  /usr/include/boost/iterator/detail/config_def.hpp \
+  /usr/include/boost/iterator/detail/config_undef.hpp \
+  /usr/include/boost/iterator/detail/enable_if.hpp \
+  /usr/include/boost/iterator/detail/facade_iterator_category.hpp \
+  /usr/include/boost/iterator/distance.hpp \
+  /usr/include/boost/iterator/interoperable.hpp \
+  /usr/include/boost/iterator/iterator_adaptor.hpp \
+  /usr/include/boost/iterator/iterator_categories.hpp \
+  /usr/include/boost/iterator/iterator_concepts.hpp \
+  /usr/include/boost/iterator/iterator_facade.hpp \
+  /usr/include/boost/iterator/iterator_traits.hpp \
+  /usr/include/boost/iterator/reverse_iterator.hpp \
+  /usr/include/boost/json.hpp \
+  /usr/include/boost/json/array.hpp \
+  /usr/include/boost/json/basic_parser.hpp \
+  /usr/include/boost/json/conversion.hpp \
+  /usr/include/boost/json/detail/array.hpp \
+  /usr/include/boost/json/detail/config.hpp \
+  /usr/include/boost/json/detail/default_resource.hpp \
+  /usr/include/boost/json/detail/digest.hpp \
+  /usr/include/boost/json/detail/except.hpp \
+  /usr/include/boost/json/detail/format.hpp \
+  /usr/include/boost/json/detail/handler.hpp \
+  /usr/include/boost/json/detail/impl/array.hpp \
+  /usr/include/boost/json/detail/object.hpp \
+  /usr/include/boost/json/detail/shared_resource.hpp \
+  /usr/include/boost/json/detail/stack.hpp \
+  /usr/include/boost/json/detail/stream.hpp \
+  /usr/include/boost/json/detail/string_impl.hpp \
+  /usr/include/boost/json/detail/utf8.hpp \
+  /usr/include/boost/json/detail/value.hpp \
+  /usr/include/boost/json/detail/value_from.hpp \
+  /usr/include/boost/json/detail/value_to.hpp \
+  /usr/include/boost/json/error.hpp \
+  /usr/include/boost/json/fwd.hpp \
+  /usr/include/boost/json/impl/array.hpp \
+  /usr/include/boost/json/impl/conversion.hpp \
+  /usr/include/boost/json/impl/error.hpp \
+  /usr/include/boost/json/impl/object.hpp \
+  /usr/include/boost/json/impl/string.hpp \
+  /usr/include/boost/json/impl/value.hpp \
+  /usr/include/boost/json/impl/value_ref.hpp \
+  /usr/include/boost/json/impl/visit.hpp \
+  /usr/include/boost/json/kind.hpp \
+  /usr/include/boost/json/memory_resource.hpp \
+  /usr/include/boost/json/monotonic_resource.hpp \
+  /usr/include/boost/json/null_resource.hpp \
+  /usr/include/boost/json/object.hpp \
+  /usr/include/boost/json/parse.hpp \
+  /usr/include/boost/json/parse_options.hpp \
+  /usr/include/boost/json/parser.hpp \
+  /usr/include/boost/json/pilfer.hpp \
+  /usr/include/boost/json/serialize.hpp \
+  /usr/include/boost/json/serializer.hpp \
+  /usr/include/boost/json/set_pointer_options.hpp \
+  /usr/include/boost/json/static_resource.hpp \
+  /usr/include/boost/json/storage_ptr.hpp \
+  /usr/include/boost/json/stream_parser.hpp \
+  /usr/include/boost/json/string.hpp \
+  /usr/include/boost/json/string_view.hpp \
+  /usr/include/boost/json/system_error.hpp \
+  /usr/include/boost/json/value.hpp \
+  /usr/include/boost/json/value_from.hpp \
+  /usr/include/boost/json/value_ref.hpp \
+  /usr/include/boost/json/value_stack.hpp \
+  /usr/include/boost/json/value_to.hpp \
+  /usr/include/boost/json/visit.hpp \
+  /usr/include/boost/lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/bad_lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical_streams.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_numeric.hpp \
+  /usr/include/boost/lexical_cast/detail/inf_nan.hpp \
+  /usr/include/boost/lexical_cast/detail/is_character.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_char_constants.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp \
+  /usr/include/boost/lexical_cast/detail/widest_char.hpp \
+  /usr/include/boost/lexical_cast/try_lexical_convert.hpp \
   /usr/include/boost/limits.hpp \
+  /usr/include/boost/mem_fn.hpp \
+  /usr/include/boost/move/core.hpp \
+  /usr/include/boost/move/detail/addressof.hpp \
+  /usr/include/boost/move/detail/config_begin.hpp \
+  /usr/include/boost/move/detail/config_end.hpp \
+  /usr/include/boost/move/detail/fwd_macros.hpp \
+  /usr/include/boost/move/detail/meta_utils.hpp \
+  /usr/include/boost/move/detail/meta_utils_core.hpp \
+  /usr/include/boost/move/detail/pointer_element.hpp \
+  /usr/include/boost/move/detail/std_ns_begin.hpp \
+  /usr/include/boost/move/detail/std_ns_end.hpp \
+  /usr/include/boost/move/detail/type_traits.hpp \
+  /usr/include/boost/move/detail/workaround.hpp \
+  /usr/include/boost/move/utility_core.hpp \
+  /usr/include/boost/mp11.hpp \
+  /usr/include/boost/mp11/algorithm.hpp \
+  /usr/include/boost/mp11/bind.hpp \
+  /usr/include/boost/mp11/detail/config.hpp \
+  /usr/include/boost/mp11/detail/mp_append.hpp \
+  /usr/include/boost/mp11/detail/mp_copy_if.hpp \
+  /usr/include/boost/mp11/detail/mp_count.hpp \
+  /usr/include/boost/mp11/detail/mp_fold.hpp \
+  /usr/include/boost/mp11/detail/mp_front.hpp \
+  /usr/include/boost/mp11/detail/mp_is_list.hpp \
+  /usr/include/boost/mp11/detail/mp_list.hpp \
+  /usr/include/boost/mp11/detail/mp_map_find.hpp \
+  /usr/include/boost/mp11/detail/mp_min_element.hpp \
+  /usr/include/boost/mp11/detail/mp_plus.hpp \
+  /usr/include/boost/mp11/detail/mp_remove_if.hpp \
+  /usr/include/boost/mp11/detail/mp_rename.hpp \
+  /usr/include/boost/mp11/detail/mp_void.hpp \
+  /usr/include/boost/mp11/detail/mp_with_index.hpp \
+  /usr/include/boost/mp11/function.hpp \
+  /usr/include/boost/mp11/integer_sequence.hpp \
+  /usr/include/boost/mp11/integral.hpp \
+  /usr/include/boost/mp11/list.hpp \
+  /usr/include/boost/mp11/map.hpp \
+  /usr/include/boost/mp11/set.hpp \
+  /usr/include/boost/mp11/tuple.hpp \
+  /usr/include/boost/mp11/utility.hpp \
+  /usr/include/boost/mp11/version.hpp \
   /usr/include/boost/mpl/O1_size.hpp \
   /usr/include/boost/mpl/O1_size_fwd.hpp \
+  /usr/include/boost/mpl/always.hpp \
   /usr/include/boost/mpl/and.hpp \
   /usr/include/boost/mpl/apply.hpp \
   /usr/include/boost/mpl/apply_fwd.hpp \
@@ -1989,6 +2206,7 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind_fwd.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/divides.hpp \
+  /usr/include/boost/mpl/aux_/preprocessed/gcc/equal_to.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/full_lambda.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/iter_fold_impl.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/less.hpp \
@@ -2027,10 +2245,12 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/mpl/distance_fwd.hpp \
   /usr/include/boost/mpl/divides.hpp \
   /usr/include/boost/mpl/empty_fwd.hpp \
+  /usr/include/boost/mpl/equal_to.hpp \
   /usr/include/boost/mpl/eval_if.hpp \
   /usr/include/boost/mpl/front.hpp \
   /usr/include/boost/mpl/front_fwd.hpp \
   /usr/include/boost/mpl/has_xxx.hpp \
+  /usr/include/boost/mpl/identity.hpp \
   /usr/include/boost/mpl/if.hpp \
   /usr/include/boost/mpl/int.hpp \
   /usr/include/boost/mpl/int_fwd.hpp \
@@ -2092,14 +2312,38 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/mpl/times.hpp \
   /usr/include/boost/mpl/void.hpp \
   /usr/include/boost/mpl/void_fwd.hpp \
+  /usr/include/boost/next_prior.hpp \
+  /usr/include/boost/numeric/conversion/bounds.hpp \
+  /usr/include/boost/numeric/conversion/cast.hpp \
+  /usr/include/boost/numeric/conversion/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/converter.hpp \
+  /usr/include/boost/numeric/conversion/converter_policies.hpp \
+  /usr/include/boost/numeric/conversion/detail/bounds.hpp \
+  /usr/include/boost/numeric/conversion/detail/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/converter.hpp \
+  /usr/include/boost/numeric/conversion/detail/int_float_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/is_subranged.hpp \
+  /usr/include/boost/numeric/conversion/detail/meta.hpp \
+  /usr/include/boost/numeric/conversion/detail/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_common.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_long_long.hpp \
+  /usr/include/boost/numeric/conversion/detail/sign_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp \
+  /usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/sign_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/udt_builtin_mixture_enum.hpp \
   /usr/include/boost/preprocessor/arithmetic/add.hpp \
   /usr/include/boost/preprocessor/arithmetic/dec.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/div_base.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/is_1_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/inc.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/dec_256.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/inc_256.hpp \
+  /usr/include/boost/preprocessor/arithmetic/mod.hpp \
   /usr/include/boost/preprocessor/arithmetic/sub.hpp \
   /usr/include/boost/preprocessor/array/data.hpp \
   /usr/include/boost/preprocessor/array/elem.hpp \
@@ -2107,10 +2351,12 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/preprocessor/cat.hpp \
   /usr/include/boost/preprocessor/comma_if.hpp \
   /usr/include/boost/preprocessor/comparison/equal.hpp \
+  /usr/include/boost/preprocessor/comparison/less_equal.hpp \
   /usr/include/boost/preprocessor/comparison/limits/not_equal_256.hpp \
   /usr/include/boost/preprocessor/comparison/not_equal.hpp \
   /usr/include/boost/preprocessor/config/config.hpp \
   /usr/include/boost/preprocessor/config/limits.hpp \
+  /usr/include/boost/preprocessor/control/deduce_d.hpp \
   /usr/include/boost/preprocessor/control/detail/limits/while_256.hpp \
   /usr/include/boost/preprocessor/control/detail/while.hpp \
   /usr/include/boost/preprocessor/control/expr_iif.hpp \
@@ -2124,6 +2370,8 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/preprocessor/detail/is_binary.hpp \
   /usr/include/boost/preprocessor/detail/limits/auto_rec_256.hpp \
   /usr/include/boost/preprocessor/empty.hpp \
+  /usr/include/boost/preprocessor/enum.hpp \
+  /usr/include/boost/preprocessor/enum_params.hpp \
   /usr/include/boost/preprocessor/facilities/check_empty.hpp \
   /usr/include/boost/preprocessor/facilities/detail/is_empty.hpp \
   /usr/include/boost/preprocessor/facilities/empty.hpp \
@@ -2133,6 +2381,12 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/preprocessor/facilities/overload.hpp \
   /usr/include/boost/preprocessor/identity.hpp \
   /usr/include/boost/preprocessor/inc.hpp \
+  /usr/include/boost/preprocessor/iterate.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/forward1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/limits/forward1_256.hpp \
+  /usr/include/boost/preprocessor/iteration/iterate.hpp \
   /usr/include/boost/preprocessor/list/adt.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_left.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_right.hpp \
@@ -2154,14 +2408,33 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/preprocessor/punctuation/detail/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/punctuation/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/for.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/limits/for_256.hpp \
+  /usr/include/boost/preprocessor/repetition/enum.hpp \
+  /usr/include/boost/preprocessor/repetition/enum_binary_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_trailing_params.hpp \
+  /usr/include/boost/preprocessor/repetition/for.hpp \
+  /usr/include/boost/preprocessor/repetition/limits/for_256.hpp \
   /usr/include/boost/preprocessor/repetition/limits/repeat_256.hpp \
   /usr/include/boost/preprocessor/repetition/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/repeat_from_to.hpp \
+  /usr/include/boost/preprocessor/seq/cat.hpp \
+  /usr/include/boost/preprocessor/seq/detail/is_empty.hpp \
+  /usr/include/boost/preprocessor/seq/elem.hpp \
   /usr/include/boost/preprocessor/seq/enum.hpp \
+  /usr/include/boost/preprocessor/seq/fold_left.hpp \
+  /usr/include/boost/preprocessor/seq/for_each_i.hpp \
+  /usr/include/boost/preprocessor/seq/limits/elem_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/enum_256.hpp \
+  /usr/include/boost/preprocessor/seq/limits/fold_left_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/size_256.hpp \
+  /usr/include/boost/preprocessor/seq/seq.hpp \
   /usr/include/boost/preprocessor/seq/size.hpp \
+  /usr/include/boost/preprocessor/seq/transform.hpp \
+  /usr/include/boost/preprocessor/slot/detail/def.hpp \
+  /usr/include/boost/preprocessor/slot/detail/shared.hpp \
+  /usr/include/boost/preprocessor/slot/slot.hpp \
   /usr/include/boost/preprocessor/stringize.hpp \
   /usr/include/boost/preprocessor/tuple/detail/is_single_return.hpp \
   /usr/include/boost/preprocessor/tuple/eat.hpp \
@@ -2173,31 +2446,184 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/preprocessor/variadic/limits/elem_64.hpp \
   /usr/include/boost/preprocessor/variadic/limits/size_64.hpp \
   /usr/include/boost/preprocessor/variadic/size.hpp \
+  /usr/include/boost/program_options.hpp \
+  /usr/include/boost/program_options/cmdline.hpp \
+  /usr/include/boost/program_options/config.hpp \
+  /usr/include/boost/program_options/detail/cmdline.hpp \
+  /usr/include/boost/program_options/detail/convert.hpp \
+  /usr/include/boost/program_options/detail/parsers.hpp \
+  /usr/include/boost/program_options/detail/value_semantic.hpp \
+  /usr/include/boost/program_options/errors.hpp \
+  /usr/include/boost/program_options/option.hpp \
+  /usr/include/boost/program_options/options_description.hpp \
+  /usr/include/boost/program_options/parsers.hpp \
+  /usr/include/boost/program_options/positional_options.hpp \
+  /usr/include/boost/program_options/value_semantic.hpp \
+  /usr/include/boost/program_options/variables_map.hpp \
+  /usr/include/boost/program_options/version.hpp \
+  /usr/include/boost/range/algorithm/equal.hpp \
+  /usr/include/boost/range/begin.hpp \
+  /usr/include/boost/range/concepts.hpp \
+  /usr/include/boost/range/config.hpp \
+  /usr/include/boost/range/const_iterator.hpp \
+  /usr/include/boost/range/detail/common.hpp \
+  /usr/include/boost/range/detail/extract_optional_type.hpp \
+  /usr/include/boost/range/detail/has_member_size.hpp \
+  /usr/include/boost/range/detail/implementation_help.hpp \
+  /usr/include/boost/range/detail/misc_concept.hpp \
+  /usr/include/boost/range/detail/msvc_has_iterator_workaround.hpp \
+  /usr/include/boost/range/detail/safe_bool.hpp \
+  /usr/include/boost/range/detail/sfinae.hpp \
+  /usr/include/boost/range/difference_type.hpp \
+  /usr/include/boost/range/distance.hpp \
+  /usr/include/boost/range/empty.hpp \
+  /usr/include/boost/range/end.hpp \
+  /usr/include/boost/range/functions.hpp \
+  /usr/include/boost/range/has_range_iterator.hpp \
+  /usr/include/boost/range/iterator.hpp \
+  /usr/include/boost/range/iterator_range_core.hpp \
+  /usr/include/boost/range/mutable_iterator.hpp \
+  /usr/include/boost/range/range_fwd.hpp \
+  /usr/include/boost/range/rbegin.hpp \
+  /usr/include/boost/range/rend.hpp \
+  /usr/include/boost/range/reverse_iterator.hpp \
+  /usr/include/boost/range/size.hpp \
+  /usr/include/boost/range/size_type.hpp \
+  /usr/include/boost/range/value_type.hpp \
+  /usr/include/boost/shared_ptr.hpp \
+  /usr/include/boost/smart_ptr/bad_weak_ptr.hpp \
+  /usr/include/boost/smart_ptr/detail/local_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp \
+  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
+  /usr/include/boost/smart_ptr/detail/requires_cxx11.hpp \
+  /usr/include/boost/smart_ptr/detail/shared_count.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_noexcept.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_pause.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_sleep.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
+  /usr/include/boost/smart_ptr/detail/yield_k.hpp \
+  /usr/include/boost/smart_ptr/shared_ptr.hpp \
   /usr/include/boost/static_assert.hpp \
+  /usr/include/boost/system/api_config.hpp \
+  /usr/include/boost/system/detail/append_int.hpp \
+  /usr/include/boost/system/detail/cerrno.hpp \
+  /usr/include/boost/system/detail/config.hpp \
+  /usr/include/boost/system/detail/enable_if.hpp \
+  /usr/include/boost/system/detail/errc.hpp \
+  /usr/include/boost/system/detail/error_category.hpp \
+  /usr/include/boost/system/detail/error_category_impl.hpp \
+  /usr/include/boost/system/detail/error_code.hpp \
+  /usr/include/boost/system/detail/error_condition.hpp \
+  /usr/include/boost/system/detail/generic_category.hpp \
+  /usr/include/boost/system/detail/generic_category_message.hpp \
+  /usr/include/boost/system/detail/interop_category.hpp \
+  /usr/include/boost/system/detail/is_same.hpp \
+  /usr/include/boost/system/detail/mutex.hpp \
+  /usr/include/boost/system/detail/requires_cxx11.hpp \
+  /usr/include/boost/system/detail/snprintf.hpp \
+  /usr/include/boost/system/detail/std_category.hpp \
+  /usr/include/boost/system/detail/std_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category.hpp \
+  /usr/include/boost/system/detail/system_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category_message.hpp \
+  /usr/include/boost/system/detail/throws.hpp \
+  /usr/include/boost/system/errc.hpp \
+  /usr/include/boost/system/error_category.hpp \
+  /usr/include/boost/system/error_code.hpp \
+  /usr/include/boost/system/error_condition.hpp \
+  /usr/include/boost/system/generic_category.hpp \
+  /usr/include/boost/system/is_error_code_enum.hpp \
+  /usr/include/boost/system/is_error_condition_enum.hpp \
+  /usr/include/boost/system/result.hpp \
+  /usr/include/boost/system/system_category.hpp \
+  /usr/include/boost/system/system_error.hpp \
+  /usr/include/boost/throw_exception.hpp \
+  /usr/include/boost/type.hpp \
+  /usr/include/boost/type_index.hpp \
+  /usr/include/boost/type_index/stl_type_index.hpp \
+  /usr/include/boost/type_index/type_index_facade.hpp \
+  /usr/include/boost/type_traits/add_const.hpp \
   /usr/include/boost/type_traits/add_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_pointer.hpp \
   /usr/include/boost/type_traits/add_reference.hpp \
   /usr/include/boost/type_traits/add_rvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_volatile.hpp \
+  /usr/include/boost/type_traits/alignment_of.hpp \
+  /usr/include/boost/type_traits/composite_traits.hpp \
+  /usr/include/boost/type_traits/conditional.hpp \
+  /usr/include/boost/type_traits/conversion_traits.hpp \
+  /usr/include/boost/type_traits/decay.hpp \
   /usr/include/boost/type_traits/declval.hpp \
   /usr/include/boost/type_traits/detail/config.hpp \
+  /usr/include/boost/type_traits/detail/has_binary_operator.hpp \
   /usr/include/boost/type_traits/detail/is_function_cxx_11.hpp \
+  /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp \
   /usr/include/boost/type_traits/detail/yes_no_type.hpp \
+  /usr/include/boost/type_traits/enable_if.hpp \
+  /usr/include/boost/type_traits/function_traits.hpp \
+  /usr/include/boost/type_traits/has_left_shift.hpp \
+  /usr/include/boost/type_traits/has_minus.hpp \
+  /usr/include/boost/type_traits/has_minus_assign.hpp \
+  /usr/include/boost/type_traits/has_plus.hpp \
+  /usr/include/boost/type_traits/has_plus_assign.hpp \
+  /usr/include/boost/type_traits/has_right_shift.hpp \
+  /usr/include/boost/type_traits/has_trivial_copy.hpp \
+  /usr/include/boost/type_traits/has_trivial_destructor.hpp \
   /usr/include/boost/type_traits/integral_constant.hpp \
   /usr/include/boost/type_traits/intrinsics.hpp \
   /usr/include/boost/type_traits/is_abstract.hpp \
   /usr/include/boost/type_traits/is_arithmetic.hpp \
   /usr/include/boost/type_traits/is_array.hpp \
+  /usr/include/boost/type_traits/is_base_and_derived.hpp \
+  /usr/include/boost/type_traits/is_base_of.hpp \
+  /usr/include/boost/type_traits/is_class.hpp \
   /usr/include/boost/type_traits/is_complete.hpp \
+  /usr/include/boost/type_traits/is_const.hpp \
+  /usr/include/boost/type_traits/is_constructible.hpp \
   /usr/include/boost/type_traits/is_convertible.hpp \
+  /usr/include/boost/type_traits/is_copy_constructible.hpp \
+  /usr/include/boost/type_traits/is_default_constructible.hpp \
+  /usr/include/boost/type_traits/is_destructible.hpp \
+  /usr/include/boost/type_traits/is_enum.hpp \
+  /usr/include/boost/type_traits/is_float.hpp \
   /usr/include/boost/type_traits/is_floating_point.hpp \
   /usr/include/boost/type_traits/is_function.hpp \
   /usr/include/boost/type_traits/is_integral.hpp \
   /usr/include/boost/type_traits/is_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/is_member_function_pointer.hpp \
+  /usr/include/boost/type_traits/is_member_pointer.hpp \
+  /usr/include/boost/type_traits/is_pod.hpp \
+  /usr/include/boost/type_traits/is_pointer.hpp \
   /usr/include/boost/type_traits/is_reference.hpp \
   /usr/include/boost/type_traits/is_rvalue_reference.hpp \
   /usr/include/boost/type_traits/is_same.hpp \
+  /usr/include/boost/type_traits/is_scalar.hpp \
+  /usr/include/boost/type_traits/is_signed.hpp \
+  /usr/include/boost/type_traits/is_union.hpp \
+  /usr/include/boost/type_traits/is_unsigned.hpp \
   /usr/include/boost/type_traits/is_void.hpp \
+  /usr/include/boost/type_traits/is_volatile.hpp \
+  /usr/include/boost/type_traits/make_unsigned.hpp \
+  /usr/include/boost/type_traits/make_void.hpp \
+  /usr/include/boost/type_traits/remove_bounds.hpp \
+  /usr/include/boost/type_traits/remove_const.hpp \
   /usr/include/boost/type_traits/remove_cv.hpp \
+  /usr/include/boost/type_traits/remove_extent.hpp \
+  /usr/include/boost/type_traits/remove_pointer.hpp \
   /usr/include/boost/type_traits/remove_reference.hpp \
+  /usr/include/boost/type_traits/remove_volatile.hpp \
+  /usr/include/boost/type_traits/type_identity.hpp \
   /usr/include/boost/typeof/decltype.hpp \
   /usr/include/boost/typeof/detail/requires_cxx11.hpp \
   /usr/include/boost/typeof/incr_registration_group.hpp \
@@ -2359,7 +2785,12 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o: /home/oster/Mashroom/grib1/src/
   /usr/include/boost/units/systems/si/wavenumber.hpp \
   /usr/include/boost/units/unit.hpp \
   /usr/include/boost/units/units_fwd.hpp \
+  /usr/include/boost/utility.hpp \
+  /usr/include/boost/utility/base_from_member.hpp \
+  /usr/include/boost/utility/binary.hpp \
   /usr/include/boost/utility/enable_if.hpp \
+  /usr/include/boost/utility/identity_type.hpp \
+  /usr/include/boost/variant2/variant.hpp \
   /usr/include/boost/version.hpp \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -7818,11 +8249,19 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/Mashroom/grib1/include/sections/def.h \
   /home/oster/Mashroom/grib1/include/sections/product/def.h \
   /home/oster/Mashroom/grib1/include/sections/section_1.h \
+  /home/oster/Mashroom/library/include/boost_functional/json.h \
   /home/oster/Mashroom/library/include/byte_order.h \
   /home/oster/Mashroom/library/include/byte_read.h \
+  /home/oster/Mashroom/library/include/concepts.h \
   /home/oster/Mashroom/library/include/float_conv.h \
+  /home/oster/Mashroom/library/include/serialization.h \
+  /home/oster/Mashroom/library/include/types/pseudo.h \
+  /home/oster/Mashroom/library/include/types/time_interval.h \
+  /home/oster/Mashroom/library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/auto_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bit \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/algorithmfwd.h \
@@ -7830,6 +8269,9 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/alloc_traits.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/allocated_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/allocator.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/atomic_base.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/atomic_lockfree_defines.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/atomic_wait.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_ios.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_ios.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/basic_string.h \
@@ -7843,11 +8285,18 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/cpp_type_traits.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/cxxabi_forced.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/cxxabi_init_exception.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/deque.tcc \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/elements_of.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/enable_special_members.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/erase_if.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_defines.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_ptr.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_dir.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_fwd.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_ops.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_path.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fstream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/functexcept.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/functional_hash.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/hash_bytes.h \
@@ -7857,6 +8306,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ios_base.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/istream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/iterator_concepts.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/list.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_classes.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_classes.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_conv.h \
@@ -7878,6 +8328,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ostream.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ostream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ostream_insert.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/out_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/parse_numbers.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/postypes.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/predefined_ops.h \
@@ -7888,28 +8339,41 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_algobase.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_base.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_cmp.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_uninitialized.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ranges_util.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/refwrap.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/requires_hosted.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/shared_ptr.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/shared_ptr_atomic.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/shared_ptr_base.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/specfun.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/sstream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_abs.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_function.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_mutex.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_algo.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_algobase.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_bvector.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_construct.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_deque.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_function.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_heap.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_iterator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_iterator_base_funcs.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_iterator_base_types.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_list.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_map.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_multimap.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_multiset.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_pair.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_raw_storage_iter.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_relops.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_set.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_tempbuf.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_tree.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_uninitialized.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_vector.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stream_iterator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/streambuf.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/streambuf_iterator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/string_view.tcc \
@@ -7917,8 +8381,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode-data.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/uniform_int_dist.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_lock.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_map.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_set.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/uses_allocator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/uses_allocator_args.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/utility.h \
@@ -7933,19 +8399,24 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/climits \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/clocale \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cmath \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/codecvt \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/compare \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/concepts \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdarg \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstddef \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdint \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdio \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdlib \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/cstring \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ctime \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cwchar \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cwctype \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cxxabi.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/debug/assertions.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/debug/debug.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/deque \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/exception \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/expected \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/aligned_buffer.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/alloc_traits.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/atomicity.h \
@@ -7953,7 +8424,9 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/numeric_traits.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/string_conversions.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/type_traits.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/filesystem \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/format \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/fstream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/functional \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/initializer_list \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/iomanip \
@@ -7961,16 +8434,25 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/iosfwd \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/iostream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/istream \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/iterator \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/limits \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/list \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/locale \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/map \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/memory \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/mutex \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/new \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/numbers \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/optional \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ostream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/pstl/execution_defs.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/pstl/glue_algorithm_defs.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/pstl/glue_memory_defs.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/pstl/pstl_config.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/ranges \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ratio \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/set \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/source_location \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/span \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/sstream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/stdexcept \
@@ -7995,12 +8477,16 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/type_traits \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/typeinfo \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/unordered_map \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/unordered_set \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/utility \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/variant \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/vector \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/version \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/atomic_word.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/basic_file.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++allocator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++config.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++io.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++locale.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/cpu_defines.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/ctype_base.h \
@@ -8025,8 +8511,26 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
   /usr/include/assert.h \
+  /usr/include/boost/any.hpp \
+  /usr/include/boost/any/bad_any_cast.hpp \
+  /usr/include/boost/any/fwd.hpp \
+  /usr/include/boost/array.hpp \
   /usr/include/boost/assert.hpp \
+  /usr/include/boost/assert/source_location.hpp \
+  /usr/include/boost/bind/detail/requires_cxx11.hpp \
+  /usr/include/boost/bind/mem_fn.hpp \
+  /usr/include/boost/bind/mem_fn_cc.hpp \
+  /usr/include/boost/bind/mem_fn_template.hpp \
+  /usr/include/boost/concept/assert.hpp \
+  /usr/include/boost/concept/detail/backward_compatibility.hpp \
+  /usr/include/boost/concept/detail/concept_def.hpp \
+  /usr/include/boost/concept/detail/concept_undef.hpp \
+  /usr/include/boost/concept/detail/general.hpp \
+  /usr/include/boost/concept/detail/has_constraints.hpp \
+  /usr/include/boost/concept/usage.hpp \
+  /usr/include/boost/concept_check.hpp \
   /usr/include/boost/config.hpp \
+  /usr/include/boost/config/auto_link.hpp \
   /usr/include/boost/config/compiler/gcc.hpp \
   /usr/include/boost/config/detail/cxx_composite.hpp \
   /usr/include/boost/config/detail/posix_features.hpp \
@@ -8036,22 +8540,214 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/config/detail/suffix.hpp \
   /usr/include/boost/config/helper_macros.hpp \
   /usr/include/boost/config/no_tr1/cmath.hpp \
+  /usr/include/boost/config/no_tr1/functional.hpp \
+  /usr/include/boost/config/no_tr1/memory.hpp \
   /usr/include/boost/config/platform/linux.hpp \
   /usr/include/boost/config/pragma_message.hpp \
   /usr/include/boost/config/stdlib/libstdcpp3.hpp \
   /usr/include/boost/config/user.hpp \
   /usr/include/boost/config/workaround.hpp \
+  /usr/include/boost/container/allocator_traits.hpp \
+  /usr/include/boost/container/container_fwd.hpp \
+  /usr/include/boost/container/detail/addressof.hpp \
+  /usr/include/boost/container/detail/auto_link.hpp \
+  /usr/include/boost/container/detail/config_begin.hpp \
+  /usr/include/boost/container/detail/config_end.hpp \
+  /usr/include/boost/container/detail/dispatch_uses_allocator.hpp \
+  /usr/include/boost/container/detail/is_pair.hpp \
+  /usr/include/boost/container/detail/mpl.hpp \
+  /usr/include/boost/container/detail/placement_new.hpp \
+  /usr/include/boost/container/detail/std_fwd.hpp \
+  /usr/include/boost/container/detail/type_traits.hpp \
+  /usr/include/boost/container/detail/variadic_templates_tools.hpp \
+  /usr/include/boost/container/detail/workaround.hpp \
+  /usr/include/boost/container/new_allocator.hpp \
+  /usr/include/boost/container/pmr/global_resource.hpp \
+  /usr/include/boost/container/pmr/memory_resource.hpp \
+  /usr/include/boost/container/pmr/polymorphic_allocator.hpp \
+  /usr/include/boost/container/throw_exception.hpp \
+  /usr/include/boost/container/uses_allocator.hpp \
+  /usr/include/boost/container/uses_allocator_fwd.hpp \
+  /usr/include/boost/container_hash/hash_fwd.hpp \
   /usr/include/boost/core/addressof.hpp \
+  /usr/include/boost/core/checked_delete.hpp \
+  /usr/include/boost/core/cmath.hpp \
   /usr/include/boost/core/demangle.hpp \
+  /usr/include/boost/core/detail/is_same.hpp \
+  /usr/include/boost/core/detail/string_view.hpp \
   /usr/include/boost/core/enable_if.hpp \
+  /usr/include/boost/core/no_exceptions_support.hpp \
+  /usr/include/boost/core/noncopyable.hpp \
   /usr/include/boost/core/nvp.hpp \
+  /usr/include/boost/core/ref.hpp \
+  /usr/include/boost/core/snprintf.hpp \
+  /usr/include/boost/core/swap.hpp \
+  /usr/include/boost/core/typeinfo.hpp \
+  /usr/include/boost/core/use_default.hpp \
   /usr/include/boost/cstdint.hpp \
+  /usr/include/boost/current_function.hpp \
+  /usr/include/boost/describe/bases.hpp \
+  /usr/include/boost/describe/detail/config.hpp \
+  /usr/include/boost/describe/detail/cx_streq.hpp \
+  /usr/include/boost/describe/detail/void_t.hpp \
+  /usr/include/boost/describe/enum_from_string.hpp \
+  /usr/include/boost/describe/enum_to_string.hpp \
+  /usr/include/boost/describe/enumerators.hpp \
+  /usr/include/boost/describe/members.hpp \
+  /usr/include/boost/describe/modifiers.hpp \
+  /usr/include/boost/detail/basic_pointerbuf.hpp \
+  /usr/include/boost/detail/indirect_traits.hpp \
+  /usr/include/boost/detail/lcast_precision.hpp \
+  /usr/include/boost/detail/select_type.hpp \
   /usr/include/boost/detail/workaround.hpp \
+  /usr/include/boost/exception/exception.hpp \
+  /usr/include/boost/function.hpp \
+  /usr/include/boost/function/detail/epilogue.hpp \
+  /usr/include/boost/function/detail/function_iterate.hpp \
+  /usr/include/boost/function/detail/maybe_include.hpp \
+  /usr/include/boost/function/detail/prologue.hpp \
+  /usr/include/boost/function/detail/requires_cxx11.hpp \
+  /usr/include/boost/function/function1.hpp \
+  /usr/include/boost/function/function_base.hpp \
+  /usr/include/boost/function/function_fwd.hpp \
+  /usr/include/boost/function/function_template.hpp \
+  /usr/include/boost/function_equal.hpp \
+  /usr/include/boost/get_pointer.hpp \
+  /usr/include/boost/integer.hpp \
   /usr/include/boost/integer/common_factor_ct.hpp \
   /usr/include/boost/integer_fwd.hpp \
+  /usr/include/boost/integer_traits.hpp \
+  /usr/include/boost/intrusive/detail/config_begin.hpp \
+  /usr/include/boost/intrusive/detail/config_end.hpp \
+  /usr/include/boost/intrusive/detail/has_member_function_callable_with.hpp \
+  /usr/include/boost/intrusive/detail/mpl.hpp \
+  /usr/include/boost/intrusive/detail/workaround.hpp \
+  /usr/include/boost/intrusive/pointer_rebind.hpp \
+  /usr/include/boost/intrusive/pointer_traits.hpp \
+  /usr/include/boost/iterator/advance.hpp \
+  /usr/include/boost/iterator/detail/config_def.hpp \
+  /usr/include/boost/iterator/detail/config_undef.hpp \
+  /usr/include/boost/iterator/detail/enable_if.hpp \
+  /usr/include/boost/iterator/detail/facade_iterator_category.hpp \
+  /usr/include/boost/iterator/distance.hpp \
+  /usr/include/boost/iterator/interoperable.hpp \
+  /usr/include/boost/iterator/iterator_adaptor.hpp \
+  /usr/include/boost/iterator/iterator_categories.hpp \
+  /usr/include/boost/iterator/iterator_concepts.hpp \
+  /usr/include/boost/iterator/iterator_facade.hpp \
+  /usr/include/boost/iterator/iterator_traits.hpp \
+  /usr/include/boost/iterator/reverse_iterator.hpp \
+  /usr/include/boost/json.hpp \
+  /usr/include/boost/json/array.hpp \
+  /usr/include/boost/json/basic_parser.hpp \
+  /usr/include/boost/json/conversion.hpp \
+  /usr/include/boost/json/detail/array.hpp \
+  /usr/include/boost/json/detail/config.hpp \
+  /usr/include/boost/json/detail/default_resource.hpp \
+  /usr/include/boost/json/detail/digest.hpp \
+  /usr/include/boost/json/detail/except.hpp \
+  /usr/include/boost/json/detail/format.hpp \
+  /usr/include/boost/json/detail/handler.hpp \
+  /usr/include/boost/json/detail/impl/array.hpp \
+  /usr/include/boost/json/detail/object.hpp \
+  /usr/include/boost/json/detail/shared_resource.hpp \
+  /usr/include/boost/json/detail/stack.hpp \
+  /usr/include/boost/json/detail/stream.hpp \
+  /usr/include/boost/json/detail/string_impl.hpp \
+  /usr/include/boost/json/detail/utf8.hpp \
+  /usr/include/boost/json/detail/value.hpp \
+  /usr/include/boost/json/detail/value_from.hpp \
+  /usr/include/boost/json/detail/value_to.hpp \
+  /usr/include/boost/json/error.hpp \
+  /usr/include/boost/json/fwd.hpp \
+  /usr/include/boost/json/impl/array.hpp \
+  /usr/include/boost/json/impl/conversion.hpp \
+  /usr/include/boost/json/impl/error.hpp \
+  /usr/include/boost/json/impl/object.hpp \
+  /usr/include/boost/json/impl/string.hpp \
+  /usr/include/boost/json/impl/value.hpp \
+  /usr/include/boost/json/impl/value_ref.hpp \
+  /usr/include/boost/json/impl/visit.hpp \
+  /usr/include/boost/json/kind.hpp \
+  /usr/include/boost/json/memory_resource.hpp \
+  /usr/include/boost/json/monotonic_resource.hpp \
+  /usr/include/boost/json/null_resource.hpp \
+  /usr/include/boost/json/object.hpp \
+  /usr/include/boost/json/parse.hpp \
+  /usr/include/boost/json/parse_options.hpp \
+  /usr/include/boost/json/parser.hpp \
+  /usr/include/boost/json/pilfer.hpp \
+  /usr/include/boost/json/serialize.hpp \
+  /usr/include/boost/json/serializer.hpp \
+  /usr/include/boost/json/set_pointer_options.hpp \
+  /usr/include/boost/json/static_resource.hpp \
+  /usr/include/boost/json/storage_ptr.hpp \
+  /usr/include/boost/json/stream_parser.hpp \
+  /usr/include/boost/json/string.hpp \
+  /usr/include/boost/json/string_view.hpp \
+  /usr/include/boost/json/system_error.hpp \
+  /usr/include/boost/json/value.hpp \
+  /usr/include/boost/json/value_from.hpp \
+  /usr/include/boost/json/value_ref.hpp \
+  /usr/include/boost/json/value_stack.hpp \
+  /usr/include/boost/json/value_to.hpp \
+  /usr/include/boost/json/visit.hpp \
+  /usr/include/boost/lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/bad_lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical_streams.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_numeric.hpp \
+  /usr/include/boost/lexical_cast/detail/inf_nan.hpp \
+  /usr/include/boost/lexical_cast/detail/is_character.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_char_constants.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp \
+  /usr/include/boost/lexical_cast/detail/widest_char.hpp \
+  /usr/include/boost/lexical_cast/try_lexical_convert.hpp \
   /usr/include/boost/limits.hpp \
+  /usr/include/boost/mem_fn.hpp \
+  /usr/include/boost/move/core.hpp \
+  /usr/include/boost/move/detail/addressof.hpp \
+  /usr/include/boost/move/detail/config_begin.hpp \
+  /usr/include/boost/move/detail/config_end.hpp \
+  /usr/include/boost/move/detail/fwd_macros.hpp \
+  /usr/include/boost/move/detail/meta_utils.hpp \
+  /usr/include/boost/move/detail/meta_utils_core.hpp \
+  /usr/include/boost/move/detail/pointer_element.hpp \
+  /usr/include/boost/move/detail/std_ns_begin.hpp \
+  /usr/include/boost/move/detail/std_ns_end.hpp \
+  /usr/include/boost/move/detail/type_traits.hpp \
+  /usr/include/boost/move/detail/workaround.hpp \
+  /usr/include/boost/move/utility_core.hpp \
+  /usr/include/boost/mp11.hpp \
+  /usr/include/boost/mp11/algorithm.hpp \
+  /usr/include/boost/mp11/bind.hpp \
+  /usr/include/boost/mp11/detail/config.hpp \
+  /usr/include/boost/mp11/detail/mp_append.hpp \
+  /usr/include/boost/mp11/detail/mp_copy_if.hpp \
+  /usr/include/boost/mp11/detail/mp_count.hpp \
+  /usr/include/boost/mp11/detail/mp_fold.hpp \
+  /usr/include/boost/mp11/detail/mp_front.hpp \
+  /usr/include/boost/mp11/detail/mp_is_list.hpp \
+  /usr/include/boost/mp11/detail/mp_list.hpp \
+  /usr/include/boost/mp11/detail/mp_map_find.hpp \
+  /usr/include/boost/mp11/detail/mp_min_element.hpp \
+  /usr/include/boost/mp11/detail/mp_plus.hpp \
+  /usr/include/boost/mp11/detail/mp_remove_if.hpp \
+  /usr/include/boost/mp11/detail/mp_rename.hpp \
+  /usr/include/boost/mp11/detail/mp_void.hpp \
+  /usr/include/boost/mp11/detail/mp_with_index.hpp \
+  /usr/include/boost/mp11/function.hpp \
+  /usr/include/boost/mp11/integer_sequence.hpp \
+  /usr/include/boost/mp11/integral.hpp \
+  /usr/include/boost/mp11/list.hpp \
+  /usr/include/boost/mp11/map.hpp \
+  /usr/include/boost/mp11/set.hpp \
+  /usr/include/boost/mp11/tuple.hpp \
+  /usr/include/boost/mp11/utility.hpp \
+  /usr/include/boost/mp11/version.hpp \
   /usr/include/boost/mpl/O1_size.hpp \
   /usr/include/boost/mpl/O1_size_fwd.hpp \
+  /usr/include/boost/mpl/always.hpp \
   /usr/include/boost/mpl/and.hpp \
   /usr/include/boost/mpl/apply.hpp \
   /usr/include/boost/mpl/apply_fwd.hpp \
@@ -8130,6 +8826,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind_fwd.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/divides.hpp \
+  /usr/include/boost/mpl/aux_/preprocessed/gcc/equal_to.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/full_lambda.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/iter_fold_impl.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/less.hpp \
@@ -8168,10 +8865,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/distance_fwd.hpp \
   /usr/include/boost/mpl/divides.hpp \
   /usr/include/boost/mpl/empty_fwd.hpp \
+  /usr/include/boost/mpl/equal_to.hpp \
   /usr/include/boost/mpl/eval_if.hpp \
   /usr/include/boost/mpl/front.hpp \
   /usr/include/boost/mpl/front_fwd.hpp \
   /usr/include/boost/mpl/has_xxx.hpp \
+  /usr/include/boost/mpl/identity.hpp \
   /usr/include/boost/mpl/if.hpp \
   /usr/include/boost/mpl/int.hpp \
   /usr/include/boost/mpl/int_fwd.hpp \
@@ -8233,14 +8932,38 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/times.hpp \
   /usr/include/boost/mpl/void.hpp \
   /usr/include/boost/mpl/void_fwd.hpp \
+  /usr/include/boost/next_prior.hpp \
+  /usr/include/boost/numeric/conversion/bounds.hpp \
+  /usr/include/boost/numeric/conversion/cast.hpp \
+  /usr/include/boost/numeric/conversion/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/converter.hpp \
+  /usr/include/boost/numeric/conversion/converter_policies.hpp \
+  /usr/include/boost/numeric/conversion/detail/bounds.hpp \
+  /usr/include/boost/numeric/conversion/detail/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/converter.hpp \
+  /usr/include/boost/numeric/conversion/detail/int_float_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/is_subranged.hpp \
+  /usr/include/boost/numeric/conversion/detail/meta.hpp \
+  /usr/include/boost/numeric/conversion/detail/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_common.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_long_long.hpp \
+  /usr/include/boost/numeric/conversion/detail/sign_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp \
+  /usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/sign_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/udt_builtin_mixture_enum.hpp \
   /usr/include/boost/preprocessor/arithmetic/add.hpp \
   /usr/include/boost/preprocessor/arithmetic/dec.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/div_base.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/is_1_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/inc.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/dec_256.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/inc_256.hpp \
+  /usr/include/boost/preprocessor/arithmetic/mod.hpp \
   /usr/include/boost/preprocessor/arithmetic/sub.hpp \
   /usr/include/boost/preprocessor/array/data.hpp \
   /usr/include/boost/preprocessor/array/elem.hpp \
@@ -8248,10 +8971,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/cat.hpp \
   /usr/include/boost/preprocessor/comma_if.hpp \
   /usr/include/boost/preprocessor/comparison/equal.hpp \
+  /usr/include/boost/preprocessor/comparison/less_equal.hpp \
   /usr/include/boost/preprocessor/comparison/limits/not_equal_256.hpp \
   /usr/include/boost/preprocessor/comparison/not_equal.hpp \
   /usr/include/boost/preprocessor/config/config.hpp \
   /usr/include/boost/preprocessor/config/limits.hpp \
+  /usr/include/boost/preprocessor/control/deduce_d.hpp \
   /usr/include/boost/preprocessor/control/detail/limits/while_256.hpp \
   /usr/include/boost/preprocessor/control/detail/while.hpp \
   /usr/include/boost/preprocessor/control/expr_iif.hpp \
@@ -8265,6 +8990,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/detail/is_binary.hpp \
   /usr/include/boost/preprocessor/detail/limits/auto_rec_256.hpp \
   /usr/include/boost/preprocessor/empty.hpp \
+  /usr/include/boost/preprocessor/enum.hpp \
+  /usr/include/boost/preprocessor/enum_params.hpp \
   /usr/include/boost/preprocessor/facilities/check_empty.hpp \
   /usr/include/boost/preprocessor/facilities/detail/is_empty.hpp \
   /usr/include/boost/preprocessor/facilities/empty.hpp \
@@ -8274,6 +9001,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/facilities/overload.hpp \
   /usr/include/boost/preprocessor/identity.hpp \
   /usr/include/boost/preprocessor/inc.hpp \
+  /usr/include/boost/preprocessor/iterate.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/forward1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/limits/forward1_256.hpp \
+  /usr/include/boost/preprocessor/iteration/iterate.hpp \
   /usr/include/boost/preprocessor/list/adt.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_left.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_right.hpp \
@@ -8295,14 +9028,33 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/punctuation/detail/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/punctuation/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/for.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/limits/for_256.hpp \
+  /usr/include/boost/preprocessor/repetition/enum.hpp \
+  /usr/include/boost/preprocessor/repetition/enum_binary_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_trailing_params.hpp \
+  /usr/include/boost/preprocessor/repetition/for.hpp \
+  /usr/include/boost/preprocessor/repetition/limits/for_256.hpp \
   /usr/include/boost/preprocessor/repetition/limits/repeat_256.hpp \
   /usr/include/boost/preprocessor/repetition/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/repeat_from_to.hpp \
+  /usr/include/boost/preprocessor/seq/cat.hpp \
+  /usr/include/boost/preprocessor/seq/detail/is_empty.hpp \
+  /usr/include/boost/preprocessor/seq/elem.hpp \
   /usr/include/boost/preprocessor/seq/enum.hpp \
+  /usr/include/boost/preprocessor/seq/fold_left.hpp \
+  /usr/include/boost/preprocessor/seq/for_each_i.hpp \
+  /usr/include/boost/preprocessor/seq/limits/elem_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/enum_256.hpp \
+  /usr/include/boost/preprocessor/seq/limits/fold_left_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/size_256.hpp \
+  /usr/include/boost/preprocessor/seq/seq.hpp \
   /usr/include/boost/preprocessor/seq/size.hpp \
+  /usr/include/boost/preprocessor/seq/transform.hpp \
+  /usr/include/boost/preprocessor/slot/detail/def.hpp \
+  /usr/include/boost/preprocessor/slot/detail/shared.hpp \
+  /usr/include/boost/preprocessor/slot/slot.hpp \
   /usr/include/boost/preprocessor/stringize.hpp \
   /usr/include/boost/preprocessor/tuple/detail/is_single_return.hpp \
   /usr/include/boost/preprocessor/tuple/eat.hpp \
@@ -8314,31 +9066,184 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/variadic/limits/elem_64.hpp \
   /usr/include/boost/preprocessor/variadic/limits/size_64.hpp \
   /usr/include/boost/preprocessor/variadic/size.hpp \
+  /usr/include/boost/program_options.hpp \
+  /usr/include/boost/program_options/cmdline.hpp \
+  /usr/include/boost/program_options/config.hpp \
+  /usr/include/boost/program_options/detail/cmdline.hpp \
+  /usr/include/boost/program_options/detail/convert.hpp \
+  /usr/include/boost/program_options/detail/parsers.hpp \
+  /usr/include/boost/program_options/detail/value_semantic.hpp \
+  /usr/include/boost/program_options/errors.hpp \
+  /usr/include/boost/program_options/option.hpp \
+  /usr/include/boost/program_options/options_description.hpp \
+  /usr/include/boost/program_options/parsers.hpp \
+  /usr/include/boost/program_options/positional_options.hpp \
+  /usr/include/boost/program_options/value_semantic.hpp \
+  /usr/include/boost/program_options/variables_map.hpp \
+  /usr/include/boost/program_options/version.hpp \
+  /usr/include/boost/range/algorithm/equal.hpp \
+  /usr/include/boost/range/begin.hpp \
+  /usr/include/boost/range/concepts.hpp \
+  /usr/include/boost/range/config.hpp \
+  /usr/include/boost/range/const_iterator.hpp \
+  /usr/include/boost/range/detail/common.hpp \
+  /usr/include/boost/range/detail/extract_optional_type.hpp \
+  /usr/include/boost/range/detail/has_member_size.hpp \
+  /usr/include/boost/range/detail/implementation_help.hpp \
+  /usr/include/boost/range/detail/misc_concept.hpp \
+  /usr/include/boost/range/detail/msvc_has_iterator_workaround.hpp \
+  /usr/include/boost/range/detail/safe_bool.hpp \
+  /usr/include/boost/range/detail/sfinae.hpp \
+  /usr/include/boost/range/difference_type.hpp \
+  /usr/include/boost/range/distance.hpp \
+  /usr/include/boost/range/empty.hpp \
+  /usr/include/boost/range/end.hpp \
+  /usr/include/boost/range/functions.hpp \
+  /usr/include/boost/range/has_range_iterator.hpp \
+  /usr/include/boost/range/iterator.hpp \
+  /usr/include/boost/range/iterator_range_core.hpp \
+  /usr/include/boost/range/mutable_iterator.hpp \
+  /usr/include/boost/range/range_fwd.hpp \
+  /usr/include/boost/range/rbegin.hpp \
+  /usr/include/boost/range/rend.hpp \
+  /usr/include/boost/range/reverse_iterator.hpp \
+  /usr/include/boost/range/size.hpp \
+  /usr/include/boost/range/size_type.hpp \
+  /usr/include/boost/range/value_type.hpp \
+  /usr/include/boost/shared_ptr.hpp \
+  /usr/include/boost/smart_ptr/bad_weak_ptr.hpp \
+  /usr/include/boost/smart_ptr/detail/local_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp \
+  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
+  /usr/include/boost/smart_ptr/detail/requires_cxx11.hpp \
+  /usr/include/boost/smart_ptr/detail/shared_count.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_noexcept.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_pause.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_sleep.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
+  /usr/include/boost/smart_ptr/detail/yield_k.hpp \
+  /usr/include/boost/smart_ptr/shared_ptr.hpp \
   /usr/include/boost/static_assert.hpp \
+  /usr/include/boost/system/api_config.hpp \
+  /usr/include/boost/system/detail/append_int.hpp \
+  /usr/include/boost/system/detail/cerrno.hpp \
+  /usr/include/boost/system/detail/config.hpp \
+  /usr/include/boost/system/detail/enable_if.hpp \
+  /usr/include/boost/system/detail/errc.hpp \
+  /usr/include/boost/system/detail/error_category.hpp \
+  /usr/include/boost/system/detail/error_category_impl.hpp \
+  /usr/include/boost/system/detail/error_code.hpp \
+  /usr/include/boost/system/detail/error_condition.hpp \
+  /usr/include/boost/system/detail/generic_category.hpp \
+  /usr/include/boost/system/detail/generic_category_message.hpp \
+  /usr/include/boost/system/detail/interop_category.hpp \
+  /usr/include/boost/system/detail/is_same.hpp \
+  /usr/include/boost/system/detail/mutex.hpp \
+  /usr/include/boost/system/detail/requires_cxx11.hpp \
+  /usr/include/boost/system/detail/snprintf.hpp \
+  /usr/include/boost/system/detail/std_category.hpp \
+  /usr/include/boost/system/detail/std_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category.hpp \
+  /usr/include/boost/system/detail/system_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category_message.hpp \
+  /usr/include/boost/system/detail/throws.hpp \
+  /usr/include/boost/system/errc.hpp \
+  /usr/include/boost/system/error_category.hpp \
+  /usr/include/boost/system/error_code.hpp \
+  /usr/include/boost/system/error_condition.hpp \
+  /usr/include/boost/system/generic_category.hpp \
+  /usr/include/boost/system/is_error_code_enum.hpp \
+  /usr/include/boost/system/is_error_condition_enum.hpp \
+  /usr/include/boost/system/result.hpp \
+  /usr/include/boost/system/system_category.hpp \
+  /usr/include/boost/system/system_error.hpp \
+  /usr/include/boost/throw_exception.hpp \
+  /usr/include/boost/type.hpp \
+  /usr/include/boost/type_index.hpp \
+  /usr/include/boost/type_index/stl_type_index.hpp \
+  /usr/include/boost/type_index/type_index_facade.hpp \
+  /usr/include/boost/type_traits/add_const.hpp \
   /usr/include/boost/type_traits/add_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_pointer.hpp \
   /usr/include/boost/type_traits/add_reference.hpp \
   /usr/include/boost/type_traits/add_rvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_volatile.hpp \
+  /usr/include/boost/type_traits/alignment_of.hpp \
+  /usr/include/boost/type_traits/composite_traits.hpp \
+  /usr/include/boost/type_traits/conditional.hpp \
+  /usr/include/boost/type_traits/conversion_traits.hpp \
+  /usr/include/boost/type_traits/decay.hpp \
   /usr/include/boost/type_traits/declval.hpp \
   /usr/include/boost/type_traits/detail/config.hpp \
+  /usr/include/boost/type_traits/detail/has_binary_operator.hpp \
   /usr/include/boost/type_traits/detail/is_function_cxx_11.hpp \
+  /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp \
   /usr/include/boost/type_traits/detail/yes_no_type.hpp \
+  /usr/include/boost/type_traits/enable_if.hpp \
+  /usr/include/boost/type_traits/function_traits.hpp \
+  /usr/include/boost/type_traits/has_left_shift.hpp \
+  /usr/include/boost/type_traits/has_minus.hpp \
+  /usr/include/boost/type_traits/has_minus_assign.hpp \
+  /usr/include/boost/type_traits/has_plus.hpp \
+  /usr/include/boost/type_traits/has_plus_assign.hpp \
+  /usr/include/boost/type_traits/has_right_shift.hpp \
+  /usr/include/boost/type_traits/has_trivial_copy.hpp \
+  /usr/include/boost/type_traits/has_trivial_destructor.hpp \
   /usr/include/boost/type_traits/integral_constant.hpp \
   /usr/include/boost/type_traits/intrinsics.hpp \
   /usr/include/boost/type_traits/is_abstract.hpp \
   /usr/include/boost/type_traits/is_arithmetic.hpp \
   /usr/include/boost/type_traits/is_array.hpp \
+  /usr/include/boost/type_traits/is_base_and_derived.hpp \
+  /usr/include/boost/type_traits/is_base_of.hpp \
+  /usr/include/boost/type_traits/is_class.hpp \
   /usr/include/boost/type_traits/is_complete.hpp \
+  /usr/include/boost/type_traits/is_const.hpp \
+  /usr/include/boost/type_traits/is_constructible.hpp \
   /usr/include/boost/type_traits/is_convertible.hpp \
+  /usr/include/boost/type_traits/is_copy_constructible.hpp \
+  /usr/include/boost/type_traits/is_default_constructible.hpp \
+  /usr/include/boost/type_traits/is_destructible.hpp \
+  /usr/include/boost/type_traits/is_enum.hpp \
+  /usr/include/boost/type_traits/is_float.hpp \
   /usr/include/boost/type_traits/is_floating_point.hpp \
   /usr/include/boost/type_traits/is_function.hpp \
   /usr/include/boost/type_traits/is_integral.hpp \
   /usr/include/boost/type_traits/is_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/is_member_function_pointer.hpp \
+  /usr/include/boost/type_traits/is_member_pointer.hpp \
+  /usr/include/boost/type_traits/is_pod.hpp \
+  /usr/include/boost/type_traits/is_pointer.hpp \
   /usr/include/boost/type_traits/is_reference.hpp \
   /usr/include/boost/type_traits/is_rvalue_reference.hpp \
   /usr/include/boost/type_traits/is_same.hpp \
+  /usr/include/boost/type_traits/is_scalar.hpp \
+  /usr/include/boost/type_traits/is_signed.hpp \
+  /usr/include/boost/type_traits/is_union.hpp \
+  /usr/include/boost/type_traits/is_unsigned.hpp \
   /usr/include/boost/type_traits/is_void.hpp \
+  /usr/include/boost/type_traits/is_volatile.hpp \
+  /usr/include/boost/type_traits/make_unsigned.hpp \
+  /usr/include/boost/type_traits/make_void.hpp \
+  /usr/include/boost/type_traits/remove_bounds.hpp \
+  /usr/include/boost/type_traits/remove_const.hpp \
   /usr/include/boost/type_traits/remove_cv.hpp \
+  /usr/include/boost/type_traits/remove_extent.hpp \
+  /usr/include/boost/type_traits/remove_pointer.hpp \
   /usr/include/boost/type_traits/remove_reference.hpp \
+  /usr/include/boost/type_traits/remove_volatile.hpp \
+  /usr/include/boost/type_traits/type_identity.hpp \
   /usr/include/boost/typeof/decltype.hpp \
   /usr/include/boost/typeof/detail/requires_cxx11.hpp \
   /usr/include/boost/typeof/incr_registration_group.hpp \
@@ -8500,7 +9405,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/boost/units/systems/si/wavenumber.hpp \
   /usr/include/boost/units/unit.hpp \
   /usr/include/boost/units/units_fwd.hpp \
+  /usr/include/boost/utility.hpp \
+  /usr/include/boost/utility/base_from_member.hpp \
+  /usr/include/boost/utility/binary.hpp \
   /usr/include/boost/utility/enable_if.hpp \
+  /usr/include/boost/utility/identity_type.hpp \
+  /usr/include/boost/variant2/variant.hpp \
   /usr/include/boost/version.hpp \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -8523,11 +9433,14 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/stdlib.h \
   /usr/include/string.h \
   /usr/include/strings.h \
+  /usr/include/syscall.h \
   /usr/include/time.h \
   /usr/include/unistd.h \
   /usr/include/wchar.h \
   /usr/include/wctype.h \
   /usr/include/x86_64-linux-gnu/asm/errno.h \
+  /usr/include/x86_64-linux-gnu/asm/unistd.h \
+  /usr/include/x86_64-linux-gnu/asm/unistd_64.h \
   /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h \
   /usr/include/x86_64-linux-gnu/bits/byteswap.h \
   /usr/include/x86_64-linux-gnu/bits/confname.h \
@@ -8566,6 +9479,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
+  /usr/include/x86_64-linux-gnu/bits/syscall.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
   /usr/include/x86_64-linux-gnu/bits/time.h \
   /usr/include/x86_64-linux-gnu/bits/time64.h \
@@ -8611,6 +9525,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o: /home/oster/Mashroom
   /usr/include/x86_64-linux-gnu/sys/cdefs.h \
   /usr/include/x86_64-linux-gnu/sys/select.h \
   /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
+  /usr/include/x86_64-linux-gnu/sys/syscall.h \
   /usr/include/x86_64-linux-gnu/sys/types.h
 
 grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom/grib1/src/sections/section_2.cpp \
@@ -8649,6 +9564,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/Mashroom/grib1/include/sections/section_1.h \
   /home/oster/Mashroom/grib1/include/sections/section_2.h \
   /home/oster/Mashroom/grib1/include/sections/section_3.h \
+  /home/oster/Mashroom/library/include/boost_functional/json.h \
   /home/oster/Mashroom/library/include/byte_order.h \
   /home/oster/Mashroom/library/include/byte_read.h \
   /home/oster/Mashroom/library/include/concepts.h \
@@ -8658,9 +9574,11 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/Mashroom/library/include/types/coord.h \
   /home/oster/Mashroom/library/include/types/pseudo.h \
   /home/oster/Mashroom/library/include/types/rect.h \
+  /home/oster/Mashroom/library/include/types/time_interval.h \
   /home/oster/Mashroom/library/include/variant.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/algorithm \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/array \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/atomic \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/auto_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/backward/binders.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bit \
@@ -8692,6 +9610,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_defines.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception_ptr.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_dir.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_fwd.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_ops.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_path.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fstream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/functexcept.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/functional_hash.h \
@@ -8714,8 +9636,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/max_size_type.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/memory_resource.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/memoryfwd.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/mofunc_impl.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/monostate.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/move.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/move_only_function.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/nested_exception.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/new_allocator.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/node_handle.h \
@@ -8743,6 +9667,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/specfun.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/sstream.tcc \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_abs.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_function.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/std_mutex.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_algo.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_algobase.h \
@@ -8774,6 +9699,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode-data.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unicode.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/uniform_int_dist.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_lock.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_ptr.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_map.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unordered_set.h \
@@ -8791,8 +9717,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/climits \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/clocale \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cmath \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/codecvt \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/compare \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/concepts \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdarg \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstddef \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdint \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/cstdio \
@@ -8814,8 +9742,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/numeric_traits.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/string_conversions.h \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/type_traits.h \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/filesystem \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/format \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/fstream \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/functional \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/initializer_list \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/iomanip \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ios \
@@ -8828,6 +9758,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/locale \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/map \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/memory \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/mutex \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/new \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/numbers \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/optional \
@@ -8839,6 +9770,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ranges \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/ratio \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/set \
+  /home/oster/gcc/gcc-install/include/c++/15.0.1/source_location \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/span \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/sstream \
   /home/oster/gcc/gcc-install/include/c++/15.0.1/stdexcept \
@@ -8898,8 +9830,26 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
   /usr/include/assert.h \
+  /usr/include/boost/any.hpp \
+  /usr/include/boost/any/bad_any_cast.hpp \
+  /usr/include/boost/any/fwd.hpp \
+  /usr/include/boost/array.hpp \
   /usr/include/boost/assert.hpp \
+  /usr/include/boost/assert/source_location.hpp \
+  /usr/include/boost/bind/detail/requires_cxx11.hpp \
+  /usr/include/boost/bind/mem_fn.hpp \
+  /usr/include/boost/bind/mem_fn_cc.hpp \
+  /usr/include/boost/bind/mem_fn_template.hpp \
+  /usr/include/boost/concept/assert.hpp \
+  /usr/include/boost/concept/detail/backward_compatibility.hpp \
+  /usr/include/boost/concept/detail/concept_def.hpp \
+  /usr/include/boost/concept/detail/concept_undef.hpp \
+  /usr/include/boost/concept/detail/general.hpp \
+  /usr/include/boost/concept/detail/has_constraints.hpp \
+  /usr/include/boost/concept/usage.hpp \
+  /usr/include/boost/concept_check.hpp \
   /usr/include/boost/config.hpp \
+  /usr/include/boost/config/auto_link.hpp \
   /usr/include/boost/config/compiler/gcc.hpp \
   /usr/include/boost/config/detail/cxx_composite.hpp \
   /usr/include/boost/config/detail/posix_features.hpp \
@@ -8909,22 +9859,214 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/config/detail/suffix.hpp \
   /usr/include/boost/config/helper_macros.hpp \
   /usr/include/boost/config/no_tr1/cmath.hpp \
+  /usr/include/boost/config/no_tr1/functional.hpp \
+  /usr/include/boost/config/no_tr1/memory.hpp \
   /usr/include/boost/config/platform/linux.hpp \
   /usr/include/boost/config/pragma_message.hpp \
   /usr/include/boost/config/stdlib/libstdcpp3.hpp \
   /usr/include/boost/config/user.hpp \
   /usr/include/boost/config/workaround.hpp \
+  /usr/include/boost/container/allocator_traits.hpp \
+  /usr/include/boost/container/container_fwd.hpp \
+  /usr/include/boost/container/detail/addressof.hpp \
+  /usr/include/boost/container/detail/auto_link.hpp \
+  /usr/include/boost/container/detail/config_begin.hpp \
+  /usr/include/boost/container/detail/config_end.hpp \
+  /usr/include/boost/container/detail/dispatch_uses_allocator.hpp \
+  /usr/include/boost/container/detail/is_pair.hpp \
+  /usr/include/boost/container/detail/mpl.hpp \
+  /usr/include/boost/container/detail/placement_new.hpp \
+  /usr/include/boost/container/detail/std_fwd.hpp \
+  /usr/include/boost/container/detail/type_traits.hpp \
+  /usr/include/boost/container/detail/variadic_templates_tools.hpp \
+  /usr/include/boost/container/detail/workaround.hpp \
+  /usr/include/boost/container/new_allocator.hpp \
+  /usr/include/boost/container/pmr/global_resource.hpp \
+  /usr/include/boost/container/pmr/memory_resource.hpp \
+  /usr/include/boost/container/pmr/polymorphic_allocator.hpp \
+  /usr/include/boost/container/throw_exception.hpp \
+  /usr/include/boost/container/uses_allocator.hpp \
+  /usr/include/boost/container/uses_allocator_fwd.hpp \
+  /usr/include/boost/container_hash/hash_fwd.hpp \
   /usr/include/boost/core/addressof.hpp \
+  /usr/include/boost/core/checked_delete.hpp \
+  /usr/include/boost/core/cmath.hpp \
   /usr/include/boost/core/demangle.hpp \
+  /usr/include/boost/core/detail/is_same.hpp \
+  /usr/include/boost/core/detail/string_view.hpp \
   /usr/include/boost/core/enable_if.hpp \
+  /usr/include/boost/core/no_exceptions_support.hpp \
+  /usr/include/boost/core/noncopyable.hpp \
   /usr/include/boost/core/nvp.hpp \
+  /usr/include/boost/core/ref.hpp \
+  /usr/include/boost/core/snprintf.hpp \
+  /usr/include/boost/core/swap.hpp \
+  /usr/include/boost/core/typeinfo.hpp \
+  /usr/include/boost/core/use_default.hpp \
   /usr/include/boost/cstdint.hpp \
+  /usr/include/boost/current_function.hpp \
+  /usr/include/boost/describe/bases.hpp \
+  /usr/include/boost/describe/detail/config.hpp \
+  /usr/include/boost/describe/detail/cx_streq.hpp \
+  /usr/include/boost/describe/detail/void_t.hpp \
+  /usr/include/boost/describe/enum_from_string.hpp \
+  /usr/include/boost/describe/enum_to_string.hpp \
+  /usr/include/boost/describe/enumerators.hpp \
+  /usr/include/boost/describe/members.hpp \
+  /usr/include/boost/describe/modifiers.hpp \
+  /usr/include/boost/detail/basic_pointerbuf.hpp \
+  /usr/include/boost/detail/indirect_traits.hpp \
+  /usr/include/boost/detail/lcast_precision.hpp \
+  /usr/include/boost/detail/select_type.hpp \
   /usr/include/boost/detail/workaround.hpp \
+  /usr/include/boost/exception/exception.hpp \
+  /usr/include/boost/function.hpp \
+  /usr/include/boost/function/detail/epilogue.hpp \
+  /usr/include/boost/function/detail/function_iterate.hpp \
+  /usr/include/boost/function/detail/maybe_include.hpp \
+  /usr/include/boost/function/detail/prologue.hpp \
+  /usr/include/boost/function/detail/requires_cxx11.hpp \
+  /usr/include/boost/function/function1.hpp \
+  /usr/include/boost/function/function_base.hpp \
+  /usr/include/boost/function/function_fwd.hpp \
+  /usr/include/boost/function/function_template.hpp \
+  /usr/include/boost/function_equal.hpp \
+  /usr/include/boost/get_pointer.hpp \
+  /usr/include/boost/integer.hpp \
   /usr/include/boost/integer/common_factor_ct.hpp \
   /usr/include/boost/integer_fwd.hpp \
+  /usr/include/boost/integer_traits.hpp \
+  /usr/include/boost/intrusive/detail/config_begin.hpp \
+  /usr/include/boost/intrusive/detail/config_end.hpp \
+  /usr/include/boost/intrusive/detail/has_member_function_callable_with.hpp \
+  /usr/include/boost/intrusive/detail/mpl.hpp \
+  /usr/include/boost/intrusive/detail/workaround.hpp \
+  /usr/include/boost/intrusive/pointer_rebind.hpp \
+  /usr/include/boost/intrusive/pointer_traits.hpp \
+  /usr/include/boost/iterator/advance.hpp \
+  /usr/include/boost/iterator/detail/config_def.hpp \
+  /usr/include/boost/iterator/detail/config_undef.hpp \
+  /usr/include/boost/iterator/detail/enable_if.hpp \
+  /usr/include/boost/iterator/detail/facade_iterator_category.hpp \
+  /usr/include/boost/iterator/distance.hpp \
+  /usr/include/boost/iterator/interoperable.hpp \
+  /usr/include/boost/iterator/iterator_adaptor.hpp \
+  /usr/include/boost/iterator/iterator_categories.hpp \
+  /usr/include/boost/iterator/iterator_concepts.hpp \
+  /usr/include/boost/iterator/iterator_facade.hpp \
+  /usr/include/boost/iterator/iterator_traits.hpp \
+  /usr/include/boost/iterator/reverse_iterator.hpp \
+  /usr/include/boost/json.hpp \
+  /usr/include/boost/json/array.hpp \
+  /usr/include/boost/json/basic_parser.hpp \
+  /usr/include/boost/json/conversion.hpp \
+  /usr/include/boost/json/detail/array.hpp \
+  /usr/include/boost/json/detail/config.hpp \
+  /usr/include/boost/json/detail/default_resource.hpp \
+  /usr/include/boost/json/detail/digest.hpp \
+  /usr/include/boost/json/detail/except.hpp \
+  /usr/include/boost/json/detail/format.hpp \
+  /usr/include/boost/json/detail/handler.hpp \
+  /usr/include/boost/json/detail/impl/array.hpp \
+  /usr/include/boost/json/detail/object.hpp \
+  /usr/include/boost/json/detail/shared_resource.hpp \
+  /usr/include/boost/json/detail/stack.hpp \
+  /usr/include/boost/json/detail/stream.hpp \
+  /usr/include/boost/json/detail/string_impl.hpp \
+  /usr/include/boost/json/detail/utf8.hpp \
+  /usr/include/boost/json/detail/value.hpp \
+  /usr/include/boost/json/detail/value_from.hpp \
+  /usr/include/boost/json/detail/value_to.hpp \
+  /usr/include/boost/json/error.hpp \
+  /usr/include/boost/json/fwd.hpp \
+  /usr/include/boost/json/impl/array.hpp \
+  /usr/include/boost/json/impl/conversion.hpp \
+  /usr/include/boost/json/impl/error.hpp \
+  /usr/include/boost/json/impl/object.hpp \
+  /usr/include/boost/json/impl/string.hpp \
+  /usr/include/boost/json/impl/value.hpp \
+  /usr/include/boost/json/impl/value_ref.hpp \
+  /usr/include/boost/json/impl/visit.hpp \
+  /usr/include/boost/json/kind.hpp \
+  /usr/include/boost/json/memory_resource.hpp \
+  /usr/include/boost/json/monotonic_resource.hpp \
+  /usr/include/boost/json/null_resource.hpp \
+  /usr/include/boost/json/object.hpp \
+  /usr/include/boost/json/parse.hpp \
+  /usr/include/boost/json/parse_options.hpp \
+  /usr/include/boost/json/parser.hpp \
+  /usr/include/boost/json/pilfer.hpp \
+  /usr/include/boost/json/serialize.hpp \
+  /usr/include/boost/json/serializer.hpp \
+  /usr/include/boost/json/set_pointer_options.hpp \
+  /usr/include/boost/json/static_resource.hpp \
+  /usr/include/boost/json/storage_ptr.hpp \
+  /usr/include/boost/json/stream_parser.hpp \
+  /usr/include/boost/json/string.hpp \
+  /usr/include/boost/json/string_view.hpp \
+  /usr/include/boost/json/system_error.hpp \
+  /usr/include/boost/json/value.hpp \
+  /usr/include/boost/json/value_from.hpp \
+  /usr/include/boost/json/value_ref.hpp \
+  /usr/include/boost/json/value_stack.hpp \
+  /usr/include/boost/json/value_to.hpp \
+  /usr/include/boost/json/visit.hpp \
+  /usr/include/boost/lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/bad_lexical_cast.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_lexical_streams.hpp \
+  /usr/include/boost/lexical_cast/detail/converter_numeric.hpp \
+  /usr/include/boost/lexical_cast/detail/inf_nan.hpp \
+  /usr/include/boost/lexical_cast/detail/is_character.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_char_constants.hpp \
+  /usr/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp \
+  /usr/include/boost/lexical_cast/detail/widest_char.hpp \
+  /usr/include/boost/lexical_cast/try_lexical_convert.hpp \
   /usr/include/boost/limits.hpp \
+  /usr/include/boost/mem_fn.hpp \
+  /usr/include/boost/move/core.hpp \
+  /usr/include/boost/move/detail/addressof.hpp \
+  /usr/include/boost/move/detail/config_begin.hpp \
+  /usr/include/boost/move/detail/config_end.hpp \
+  /usr/include/boost/move/detail/fwd_macros.hpp \
+  /usr/include/boost/move/detail/meta_utils.hpp \
+  /usr/include/boost/move/detail/meta_utils_core.hpp \
+  /usr/include/boost/move/detail/pointer_element.hpp \
+  /usr/include/boost/move/detail/std_ns_begin.hpp \
+  /usr/include/boost/move/detail/std_ns_end.hpp \
+  /usr/include/boost/move/detail/type_traits.hpp \
+  /usr/include/boost/move/detail/workaround.hpp \
+  /usr/include/boost/move/utility_core.hpp \
+  /usr/include/boost/mp11.hpp \
+  /usr/include/boost/mp11/algorithm.hpp \
+  /usr/include/boost/mp11/bind.hpp \
+  /usr/include/boost/mp11/detail/config.hpp \
+  /usr/include/boost/mp11/detail/mp_append.hpp \
+  /usr/include/boost/mp11/detail/mp_copy_if.hpp \
+  /usr/include/boost/mp11/detail/mp_count.hpp \
+  /usr/include/boost/mp11/detail/mp_fold.hpp \
+  /usr/include/boost/mp11/detail/mp_front.hpp \
+  /usr/include/boost/mp11/detail/mp_is_list.hpp \
+  /usr/include/boost/mp11/detail/mp_list.hpp \
+  /usr/include/boost/mp11/detail/mp_map_find.hpp \
+  /usr/include/boost/mp11/detail/mp_min_element.hpp \
+  /usr/include/boost/mp11/detail/mp_plus.hpp \
+  /usr/include/boost/mp11/detail/mp_remove_if.hpp \
+  /usr/include/boost/mp11/detail/mp_rename.hpp \
+  /usr/include/boost/mp11/detail/mp_void.hpp \
+  /usr/include/boost/mp11/detail/mp_with_index.hpp \
+  /usr/include/boost/mp11/function.hpp \
+  /usr/include/boost/mp11/integer_sequence.hpp \
+  /usr/include/boost/mp11/integral.hpp \
+  /usr/include/boost/mp11/list.hpp \
+  /usr/include/boost/mp11/map.hpp \
+  /usr/include/boost/mp11/set.hpp \
+  /usr/include/boost/mp11/tuple.hpp \
+  /usr/include/boost/mp11/utility.hpp \
+  /usr/include/boost/mp11/version.hpp \
   /usr/include/boost/mpl/O1_size.hpp \
   /usr/include/boost/mpl/O1_size_fwd.hpp \
+  /usr/include/boost/mpl/always.hpp \
   /usr/include/boost/mpl/and.hpp \
   /usr/include/boost/mpl/apply.hpp \
   /usr/include/boost/mpl/apply_fwd.hpp \
@@ -9003,6 +10145,7 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/bind_fwd.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/divides.hpp \
+  /usr/include/boost/mpl/aux_/preprocessed/gcc/equal_to.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/full_lambda.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/iter_fold_impl.hpp \
   /usr/include/boost/mpl/aux_/preprocessed/gcc/less.hpp \
@@ -9041,10 +10184,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/distance_fwd.hpp \
   /usr/include/boost/mpl/divides.hpp \
   /usr/include/boost/mpl/empty_fwd.hpp \
+  /usr/include/boost/mpl/equal_to.hpp \
   /usr/include/boost/mpl/eval_if.hpp \
   /usr/include/boost/mpl/front.hpp \
   /usr/include/boost/mpl/front_fwd.hpp \
   /usr/include/boost/mpl/has_xxx.hpp \
+  /usr/include/boost/mpl/identity.hpp \
   /usr/include/boost/mpl/if.hpp \
   /usr/include/boost/mpl/int.hpp \
   /usr/include/boost/mpl/int_fwd.hpp \
@@ -9106,14 +10251,38 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/mpl/times.hpp \
   /usr/include/boost/mpl/void.hpp \
   /usr/include/boost/mpl/void_fwd.hpp \
+  /usr/include/boost/next_prior.hpp \
+  /usr/include/boost/numeric/conversion/bounds.hpp \
+  /usr/include/boost/numeric/conversion/cast.hpp \
+  /usr/include/boost/numeric/conversion/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/converter.hpp \
+  /usr/include/boost/numeric/conversion/converter_policies.hpp \
+  /usr/include/boost/numeric/conversion/detail/bounds.hpp \
+  /usr/include/boost/numeric/conversion/detail/conversion_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/converter.hpp \
+  /usr/include/boost/numeric/conversion/detail/int_float_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/is_subranged.hpp \
+  /usr/include/boost/numeric/conversion/detail/meta.hpp \
+  /usr/include/boost/numeric/conversion/detail/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_common.hpp \
+  /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_long_long.hpp \
+  /usr/include/boost/numeric/conversion/detail/sign_mixture.hpp \
+  /usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp \
+  /usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/numeric_cast_traits.hpp \
+  /usr/include/boost/numeric/conversion/sign_mixture_enum.hpp \
+  /usr/include/boost/numeric/conversion/udt_builtin_mixture_enum.hpp \
   /usr/include/boost/preprocessor/arithmetic/add.hpp \
   /usr/include/boost/preprocessor/arithmetic/dec.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/div_base.hpp \
+  /usr/include/boost/preprocessor/arithmetic/detail/is_1_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/detail/maximum_number.hpp \
   /usr/include/boost/preprocessor/arithmetic/inc.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/dec_256.hpp \
   /usr/include/boost/preprocessor/arithmetic/limits/inc_256.hpp \
+  /usr/include/boost/preprocessor/arithmetic/mod.hpp \
   /usr/include/boost/preprocessor/arithmetic/sub.hpp \
   /usr/include/boost/preprocessor/array/data.hpp \
   /usr/include/boost/preprocessor/array/elem.hpp \
@@ -9121,10 +10290,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/cat.hpp \
   /usr/include/boost/preprocessor/comma_if.hpp \
   /usr/include/boost/preprocessor/comparison/equal.hpp \
+  /usr/include/boost/preprocessor/comparison/less_equal.hpp \
   /usr/include/boost/preprocessor/comparison/limits/not_equal_256.hpp \
   /usr/include/boost/preprocessor/comparison/not_equal.hpp \
   /usr/include/boost/preprocessor/config/config.hpp \
   /usr/include/boost/preprocessor/config/limits.hpp \
+  /usr/include/boost/preprocessor/control/deduce_d.hpp \
   /usr/include/boost/preprocessor/control/detail/limits/while_256.hpp \
   /usr/include/boost/preprocessor/control/detail/while.hpp \
   /usr/include/boost/preprocessor/control/expr_iif.hpp \
@@ -9138,6 +10309,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/detail/is_binary.hpp \
   /usr/include/boost/preprocessor/detail/limits/auto_rec_256.hpp \
   /usr/include/boost/preprocessor/empty.hpp \
+  /usr/include/boost/preprocessor/enum.hpp \
+  /usr/include/boost/preprocessor/enum_params.hpp \
   /usr/include/boost/preprocessor/facilities/check_empty.hpp \
   /usr/include/boost/preprocessor/facilities/detail/is_empty.hpp \
   /usr/include/boost/preprocessor/facilities/empty.hpp \
@@ -9147,6 +10320,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/facilities/overload.hpp \
   /usr/include/boost/preprocessor/identity.hpp \
   /usr/include/boost/preprocessor/inc.hpp \
+  /usr/include/boost/preprocessor/iterate.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/forward1.hpp \
+  /usr/include/boost/preprocessor/iteration/detail/iter/limits/forward1_256.hpp \
+  /usr/include/boost/preprocessor/iteration/iterate.hpp \
   /usr/include/boost/preprocessor/list/adt.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_left.hpp \
   /usr/include/boost/preprocessor/list/detail/fold_right.hpp \
@@ -9168,14 +10347,33 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/punctuation/detail/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/punctuation/is_begin_parens.hpp \
   /usr/include/boost/preprocessor/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/for.hpp \
+  /usr/include/boost/preprocessor/repetition/detail/limits/for_256.hpp \
+  /usr/include/boost/preprocessor/repetition/enum.hpp \
+  /usr/include/boost/preprocessor/repetition/enum_binary_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_params.hpp \
   /usr/include/boost/preprocessor/repetition/enum_trailing_params.hpp \
+  /usr/include/boost/preprocessor/repetition/for.hpp \
+  /usr/include/boost/preprocessor/repetition/limits/for_256.hpp \
   /usr/include/boost/preprocessor/repetition/limits/repeat_256.hpp \
   /usr/include/boost/preprocessor/repetition/repeat.hpp \
+  /usr/include/boost/preprocessor/repetition/repeat_from_to.hpp \
+  /usr/include/boost/preprocessor/seq/cat.hpp \
+  /usr/include/boost/preprocessor/seq/detail/is_empty.hpp \
+  /usr/include/boost/preprocessor/seq/elem.hpp \
   /usr/include/boost/preprocessor/seq/enum.hpp \
+  /usr/include/boost/preprocessor/seq/fold_left.hpp \
+  /usr/include/boost/preprocessor/seq/for_each_i.hpp \
+  /usr/include/boost/preprocessor/seq/limits/elem_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/enum_256.hpp \
+  /usr/include/boost/preprocessor/seq/limits/fold_left_256.hpp \
   /usr/include/boost/preprocessor/seq/limits/size_256.hpp \
+  /usr/include/boost/preprocessor/seq/seq.hpp \
   /usr/include/boost/preprocessor/seq/size.hpp \
+  /usr/include/boost/preprocessor/seq/transform.hpp \
+  /usr/include/boost/preprocessor/slot/detail/def.hpp \
+  /usr/include/boost/preprocessor/slot/detail/shared.hpp \
+  /usr/include/boost/preprocessor/slot/slot.hpp \
   /usr/include/boost/preprocessor/stringize.hpp \
   /usr/include/boost/preprocessor/tuple/detail/is_single_return.hpp \
   /usr/include/boost/preprocessor/tuple/eat.hpp \
@@ -9187,31 +10385,184 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/preprocessor/variadic/limits/elem_64.hpp \
   /usr/include/boost/preprocessor/variadic/limits/size_64.hpp \
   /usr/include/boost/preprocessor/variadic/size.hpp \
+  /usr/include/boost/program_options.hpp \
+  /usr/include/boost/program_options/cmdline.hpp \
+  /usr/include/boost/program_options/config.hpp \
+  /usr/include/boost/program_options/detail/cmdline.hpp \
+  /usr/include/boost/program_options/detail/convert.hpp \
+  /usr/include/boost/program_options/detail/parsers.hpp \
+  /usr/include/boost/program_options/detail/value_semantic.hpp \
+  /usr/include/boost/program_options/errors.hpp \
+  /usr/include/boost/program_options/option.hpp \
+  /usr/include/boost/program_options/options_description.hpp \
+  /usr/include/boost/program_options/parsers.hpp \
+  /usr/include/boost/program_options/positional_options.hpp \
+  /usr/include/boost/program_options/value_semantic.hpp \
+  /usr/include/boost/program_options/variables_map.hpp \
+  /usr/include/boost/program_options/version.hpp \
+  /usr/include/boost/range/algorithm/equal.hpp \
+  /usr/include/boost/range/begin.hpp \
+  /usr/include/boost/range/concepts.hpp \
+  /usr/include/boost/range/config.hpp \
+  /usr/include/boost/range/const_iterator.hpp \
+  /usr/include/boost/range/detail/common.hpp \
+  /usr/include/boost/range/detail/extract_optional_type.hpp \
+  /usr/include/boost/range/detail/has_member_size.hpp \
+  /usr/include/boost/range/detail/implementation_help.hpp \
+  /usr/include/boost/range/detail/misc_concept.hpp \
+  /usr/include/boost/range/detail/msvc_has_iterator_workaround.hpp \
+  /usr/include/boost/range/detail/safe_bool.hpp \
+  /usr/include/boost/range/detail/sfinae.hpp \
+  /usr/include/boost/range/difference_type.hpp \
+  /usr/include/boost/range/distance.hpp \
+  /usr/include/boost/range/empty.hpp \
+  /usr/include/boost/range/end.hpp \
+  /usr/include/boost/range/functions.hpp \
+  /usr/include/boost/range/has_range_iterator.hpp \
+  /usr/include/boost/range/iterator.hpp \
+  /usr/include/boost/range/iterator_range_core.hpp \
+  /usr/include/boost/range/mutable_iterator.hpp \
+  /usr/include/boost/range/range_fwd.hpp \
+  /usr/include/boost/range/rbegin.hpp \
+  /usr/include/boost/range/rend.hpp \
+  /usr/include/boost/range/reverse_iterator.hpp \
+  /usr/include/boost/range/size.hpp \
+  /usr/include/boost/range/size_type.hpp \
+  /usr/include/boost/range/value_type.hpp \
+  /usr/include/boost/shared_ptr.hpp \
+  /usr/include/boost/smart_ptr/bad_weak_ptr.hpp \
+  /usr/include/boost/smart_ptr/detail/local_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp \
+  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
+  /usr/include/boost/smart_ptr/detail/requires_cxx11.hpp \
+  /usr/include/boost/smart_ptr/detail/shared_count.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_convertible.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_noexcept.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_pause.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_thread_sleep.hpp \
+  /usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp \
+  /usr/include/boost/smart_ptr/detail/spinlock_pool.hpp \
+  /usr/include/boost/smart_ptr/detail/yield_k.hpp \
+  /usr/include/boost/smart_ptr/shared_ptr.hpp \
   /usr/include/boost/static_assert.hpp \
+  /usr/include/boost/system/api_config.hpp \
+  /usr/include/boost/system/detail/append_int.hpp \
+  /usr/include/boost/system/detail/cerrno.hpp \
+  /usr/include/boost/system/detail/config.hpp \
+  /usr/include/boost/system/detail/enable_if.hpp \
+  /usr/include/boost/system/detail/errc.hpp \
+  /usr/include/boost/system/detail/error_category.hpp \
+  /usr/include/boost/system/detail/error_category_impl.hpp \
+  /usr/include/boost/system/detail/error_code.hpp \
+  /usr/include/boost/system/detail/error_condition.hpp \
+  /usr/include/boost/system/detail/generic_category.hpp \
+  /usr/include/boost/system/detail/generic_category_message.hpp \
+  /usr/include/boost/system/detail/interop_category.hpp \
+  /usr/include/boost/system/detail/is_same.hpp \
+  /usr/include/boost/system/detail/mutex.hpp \
+  /usr/include/boost/system/detail/requires_cxx11.hpp \
+  /usr/include/boost/system/detail/snprintf.hpp \
+  /usr/include/boost/system/detail/std_category.hpp \
+  /usr/include/boost/system/detail/std_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category.hpp \
+  /usr/include/boost/system/detail/system_category_impl.hpp \
+  /usr/include/boost/system/detail/system_category_message.hpp \
+  /usr/include/boost/system/detail/throws.hpp \
+  /usr/include/boost/system/errc.hpp \
+  /usr/include/boost/system/error_category.hpp \
+  /usr/include/boost/system/error_code.hpp \
+  /usr/include/boost/system/error_condition.hpp \
+  /usr/include/boost/system/generic_category.hpp \
+  /usr/include/boost/system/is_error_code_enum.hpp \
+  /usr/include/boost/system/is_error_condition_enum.hpp \
+  /usr/include/boost/system/result.hpp \
+  /usr/include/boost/system/system_category.hpp \
+  /usr/include/boost/system/system_error.hpp \
+  /usr/include/boost/throw_exception.hpp \
+  /usr/include/boost/type.hpp \
+  /usr/include/boost/type_index.hpp \
+  /usr/include/boost/type_index/stl_type_index.hpp \
+  /usr/include/boost/type_index/type_index_facade.hpp \
+  /usr/include/boost/type_traits/add_const.hpp \
   /usr/include/boost/type_traits/add_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_pointer.hpp \
   /usr/include/boost/type_traits/add_reference.hpp \
   /usr/include/boost/type_traits/add_rvalue_reference.hpp \
+  /usr/include/boost/type_traits/add_volatile.hpp \
+  /usr/include/boost/type_traits/alignment_of.hpp \
+  /usr/include/boost/type_traits/composite_traits.hpp \
+  /usr/include/boost/type_traits/conditional.hpp \
+  /usr/include/boost/type_traits/conversion_traits.hpp \
+  /usr/include/boost/type_traits/decay.hpp \
   /usr/include/boost/type_traits/declval.hpp \
   /usr/include/boost/type_traits/detail/config.hpp \
+  /usr/include/boost/type_traits/detail/has_binary_operator.hpp \
   /usr/include/boost/type_traits/detail/is_function_cxx_11.hpp \
+  /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp \
   /usr/include/boost/type_traits/detail/yes_no_type.hpp \
+  /usr/include/boost/type_traits/enable_if.hpp \
+  /usr/include/boost/type_traits/function_traits.hpp \
+  /usr/include/boost/type_traits/has_left_shift.hpp \
+  /usr/include/boost/type_traits/has_minus.hpp \
+  /usr/include/boost/type_traits/has_minus_assign.hpp \
+  /usr/include/boost/type_traits/has_plus.hpp \
+  /usr/include/boost/type_traits/has_plus_assign.hpp \
+  /usr/include/boost/type_traits/has_right_shift.hpp \
+  /usr/include/boost/type_traits/has_trivial_copy.hpp \
+  /usr/include/boost/type_traits/has_trivial_destructor.hpp \
   /usr/include/boost/type_traits/integral_constant.hpp \
   /usr/include/boost/type_traits/intrinsics.hpp \
   /usr/include/boost/type_traits/is_abstract.hpp \
   /usr/include/boost/type_traits/is_arithmetic.hpp \
   /usr/include/boost/type_traits/is_array.hpp \
+  /usr/include/boost/type_traits/is_base_and_derived.hpp \
+  /usr/include/boost/type_traits/is_base_of.hpp \
+  /usr/include/boost/type_traits/is_class.hpp \
   /usr/include/boost/type_traits/is_complete.hpp \
+  /usr/include/boost/type_traits/is_const.hpp \
+  /usr/include/boost/type_traits/is_constructible.hpp \
   /usr/include/boost/type_traits/is_convertible.hpp \
+  /usr/include/boost/type_traits/is_copy_constructible.hpp \
+  /usr/include/boost/type_traits/is_default_constructible.hpp \
+  /usr/include/boost/type_traits/is_destructible.hpp \
+  /usr/include/boost/type_traits/is_enum.hpp \
+  /usr/include/boost/type_traits/is_float.hpp \
   /usr/include/boost/type_traits/is_floating_point.hpp \
   /usr/include/boost/type_traits/is_function.hpp \
   /usr/include/boost/type_traits/is_integral.hpp \
   /usr/include/boost/type_traits/is_lvalue_reference.hpp \
+  /usr/include/boost/type_traits/is_member_function_pointer.hpp \
+  /usr/include/boost/type_traits/is_member_pointer.hpp \
+  /usr/include/boost/type_traits/is_pod.hpp \
+  /usr/include/boost/type_traits/is_pointer.hpp \
   /usr/include/boost/type_traits/is_reference.hpp \
   /usr/include/boost/type_traits/is_rvalue_reference.hpp \
   /usr/include/boost/type_traits/is_same.hpp \
+  /usr/include/boost/type_traits/is_scalar.hpp \
+  /usr/include/boost/type_traits/is_signed.hpp \
+  /usr/include/boost/type_traits/is_union.hpp \
+  /usr/include/boost/type_traits/is_unsigned.hpp \
   /usr/include/boost/type_traits/is_void.hpp \
+  /usr/include/boost/type_traits/is_volatile.hpp \
+  /usr/include/boost/type_traits/make_unsigned.hpp \
+  /usr/include/boost/type_traits/make_void.hpp \
+  /usr/include/boost/type_traits/remove_bounds.hpp \
+  /usr/include/boost/type_traits/remove_const.hpp \
   /usr/include/boost/type_traits/remove_cv.hpp \
+  /usr/include/boost/type_traits/remove_extent.hpp \
+  /usr/include/boost/type_traits/remove_pointer.hpp \
   /usr/include/boost/type_traits/remove_reference.hpp \
+  /usr/include/boost/type_traits/remove_volatile.hpp \
+  /usr/include/boost/type_traits/type_identity.hpp \
   /usr/include/boost/typeof/decltype.hpp \
   /usr/include/boost/typeof/detail/requires_cxx11.hpp \
   /usr/include/boost/typeof/incr_registration_group.hpp \
@@ -9373,7 +10724,12 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o: /home/oster/Mashroom
   /usr/include/boost/units/systems/si/wavenumber.hpp \
   /usr/include/boost/units/unit.hpp \
   /usr/include/boost/units/units_fwd.hpp \
+  /usr/include/boost/utility.hpp \
+  /usr/include/boost/utility/base_from_member.hpp \
+  /usr/include/boost/utility/binary.hpp \
   /usr/include/boost/utility/enable_if.hpp \
+  /usr/include/boost/utility/identity_type.hpp \
+  /usr/include/boost/variant2/variant.hpp \
   /usr/include/boost/version.hpp \
   /usr/include/ctype.h \
   /usr/include/endian.h \
@@ -10377,13 +11733,9 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o: /home/oster/Mashroom/grib1/src/wr
   /usr/include/x86_64-linux-gnu/sys/types.h
 
 
-/home/oster/Mashroom/grib1/src/write.cpp:
-
 /home/oster/Mashroom/grib1/src/sections/section_4.cpp:
 
 /home/oster/Mashroom/grib1/src/sections/section_2.cpp:
-
-/home/oster/Mashroom/grib1/src/sections/section_1.cpp:
 
 /home/oster/Mashroom/grib1/src/sections/product/ensemble.cpp:
 
@@ -10425,6 +11777,336 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o: /home/oster/Mashroom/grib1/src/wr
 
 /usr/include/linux/falloc.h:
 
+/usr/include/boost/type_traits/remove_extent.hpp:
+
+/usr/include/boost/type_traits/remove_bounds.hpp:
+
+/usr/include/boost/type_traits/is_copy_constructible.hpp:
+
+/usr/include/boost/type_traits/enable_if.hpp:
+
+/usr/include/boost/type_traits/decay.hpp:
+
+/usr/include/boost/type_traits/composite_traits.hpp:
+
+/usr/include/boost/type_traits/alignment_of.hpp:
+
+/usr/include/boost/type_index/stl_type_index.hpp:
+
+/usr/include/boost/system/result.hpp:
+
+/usr/include/boost/system/is_error_condition_enum.hpp:
+
+/usr/include/boost/system/is_error_code_enum.hpp:
+
+/usr/include/boost/system/error_code.hpp:
+
+/usr/include/boost/system/error_category.hpp:
+
+/usr/include/boost/system/errc.hpp:
+
+/usr/include/boost/system/detail/throws.hpp:
+
+/usr/include/boost/system/detail/system_category_message.hpp:
+
+/usr/include/boost/system/detail/system_category.hpp:
+
+/usr/include/boost/system/detail/std_category.hpp:
+
+/usr/include/boost/system/detail/snprintf.hpp:
+
+/usr/include/boost/system/detail/mutex.hpp:
+
+/usr/include/boost/system/detail/is_same.hpp:
+
+/usr/include/boost/system/detail/generic_category_message.hpp:
+
+/usr/include/boost/system/detail/error_condition.hpp:
+
+/usr/include/boost/system/detail/error_code.hpp:
+
+/usr/include/boost/system/detail/error_category_impl.hpp:
+
+/usr/include/boost/system/detail/errc.hpp:
+
+/usr/include/boost/system/detail/config.hpp:
+
+/usr/include/boost/system/detail/append_int.hpp:
+
+/usr/include/boost/smart_ptr/shared_ptr.hpp:
+
+/usr/include/boost/smart_ptr/detail/yield_k.hpp:
+
+/usr/include/boost/smart_ptr/detail/spinlock_pool.hpp:
+
+/usr/include/boost/smart_ptr/detail/spinlock_gcc_atomic.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_typeinfo_.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_thread_pause.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_nullptr_t.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_has_sync_intrinsics.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_has_gcc_intrinsics.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_disable_deprecated.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_counted_impl.hpp:
+
+/usr/include/boost/smart_ptr/detail/sp_convertible.hpp:
+
+/usr/include/boost/smart_ptr/detail/requires_cxx11.hpp:
+
+/usr/include/boost/smart_ptr/detail/operator_bool.hpp:
+
+/usr/include/boost/smart_ptr/bad_weak_ptr.hpp:
+
+/usr/include/boost/shared_ptr.hpp:
+
+/usr/include/boost/program_options/version.hpp:
+
+/usr/include/boost/program_options/variables_map.hpp:
+
+/usr/include/boost/program_options/value_semantic.hpp:
+
+/usr/include/boost/program_options/parsers.hpp:
+
+/usr/include/boost/program_options/options_description.hpp:
+
+/usr/include/boost/program_options/option.hpp:
+
+/usr/include/boost/program_options/errors.hpp:
+
+/usr/include/boost/program_options/detail/value_semantic.hpp:
+
+/usr/include/boost/program_options/detail/parsers.hpp:
+
+/usr/include/boost/program_options/detail/cmdline.hpp:
+
+/usr/include/boost/program_options/config.hpp:
+
+/usr/include/boost/program_options/cmdline.hpp:
+
+/usr/include/boost/program_options.hpp:
+
+/usr/include/boost/preprocessor/slot/slot.hpp:
+
+/usr/include/boost/preprocessor/slot/detail/def.hpp:
+
+/usr/include/boost/preprocessor/repetition/enum.hpp:
+
+/usr/include/boost/preprocessor/iteration/iterate.hpp:
+
+/usr/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp:
+
+/usr/include/boost/preprocessor/iterate.hpp:
+
+/usr/include/boost/preprocessor/enum_params.hpp:
+
+/usr/include/boost/preprocessor/enum.hpp:
+
+/usr/include/boost/mp11/utility.hpp:
+
+/usr/include/boost/mp11/tuple.hpp:
+
+/usr/include/boost/type_traits/has_trivial_destructor.hpp:
+
+/usr/include/boost/mp11/list.hpp:
+
+/usr/include/boost/mp11/integer_sequence.hpp:
+
+/usr/include/boost/preprocessor/slot/detail/shared.hpp:
+
+/usr/include/boost/mp11/detail/mp_with_index.hpp:
+
+/usr/include/boost/mp11/detail/mp_plus.hpp:
+
+/usr/include/boost/mp11/detail/mp_min_element.hpp:
+
+/usr/include/boost/mp11/detail/mp_list.hpp:
+
+/usr/include/boost/mp11/detail/mp_copy_if.hpp:
+
+/usr/include/boost/mp11/detail/config.hpp:
+
+/usr/include/boost/mp11/bind.hpp:
+
+/usr/include/boost/mp11/algorithm.hpp:
+
+/usr/include/boost/move/detail/workaround.hpp:
+
+/usr/include/boost/move/detail/pointer_element.hpp:
+
+/usr/include/boost/move/detail/config_begin.hpp:
+
+/usr/include/boost/move/detail/addressof.hpp:
+
+/usr/include/boost/move/core.hpp:
+
+/usr/include/boost/mem_fn.hpp:
+
+/usr/include/boost/json/visit.hpp:
+
+/usr/include/boost/json/value_ref.hpp:
+
+/usr/include/boost/json/value_from.hpp:
+
+/usr/include/boost/json/value.hpp:
+
+/usr/include/boost/json/string_view.hpp:
+
+/usr/include/boost/json/string.hpp:
+
+/usr/include/boost/json/storage_ptr.hpp:
+
+/usr/include/boost/json/static_resource.hpp:
+
+/usr/include/boost/json/serializer.hpp:
+
+/home/oster/Mashroom/grib1/src/write.cpp:
+
+/usr/include/boost/json/serialize.hpp:
+
+/usr/include/boost/json/pilfer.hpp:
+
+/usr/include/boost/json/parser.hpp:
+
+/usr/include/boost/json/parse.hpp:
+
+/usr/include/boost/json/null_resource.hpp:
+
+/usr/include/boost/json/impl/value.hpp:
+
+/usr/include/boost/json/impl/string.hpp:
+
+/usr/include/boost/json/impl/error.hpp:
+
+/usr/include/boost/json/impl/array.hpp:
+
+/usr/include/boost/json/fwd.hpp:
+
+/usr/include/boost/json/error.hpp:
+
+/usr/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp:
+
+/usr/include/boost/json/detail/value_to.hpp:
+
+/usr/include/boost/variant2/variant.hpp:
+
+/usr/include/boost/json/detail/value.hpp:
+
+/usr/include/boost/json/detail/stream.hpp:
+
+/usr/include/boost/json/detail/shared_resource.hpp:
+
+/usr/include/boost/json/detail/object.hpp:
+
+/usr/include/boost/json/detail/impl/array.hpp:
+
+/usr/include/boost/json/detail/format.hpp:
+
+/home/oster/Mashroom/grib1/src/sections/section_1.cpp:
+
+/usr/include/boost/program_options/detail/convert.hpp:
+
+/usr/include/boost/json/detail/except.hpp:
+
+/usr/include/boost/json/detail/digest.hpp:
+
+/usr/include/boost/json/detail/default_resource.hpp:
+
+/usr/include/boost/json/conversion.hpp:
+
+/usr/include/boost/json/basic_parser.hpp:
+
+/usr/include/boost/json/array.hpp:
+
+/usr/include/boost/json.hpp:
+
+/usr/include/boost/intrusive/pointer_traits.hpp:
+
+/usr/include/boost/intrusive/pointer_rebind.hpp:
+
+/usr/include/boost/intrusive/detail/mpl.hpp:
+
+/usr/include/boost/intrusive/detail/has_member_function_callable_with.hpp:
+
+/usr/include/boost/intrusive/detail/config_end.hpp:
+
+/usr/include/boost/function_equal.hpp:
+
+/usr/include/boost/function/function_fwd.hpp:
+
+/usr/include/boost/function/function_base.hpp:
+
+/usr/include/boost/function/function1.hpp:
+
+/usr/include/boost/function/detail/requires_cxx11.hpp:
+
+/usr/include/boost/function/detail/maybe_include.hpp:
+
+/usr/include/boost/function.hpp:
+
+/usr/include/boost/describe/members.hpp:
+
+/usr/include/boost/json/stream_parser.hpp:
+
+/usr/include/boost/describe/enum_from_string.hpp:
+
+/usr/include/boost/system/detail/requires_cxx11.hpp:
+
+/usr/include/boost/describe/detail/void_t.hpp:
+
+/usr/include/boost/describe/detail/cx_streq.hpp:
+
+/usr/include/boost/describe/detail/config.hpp:
+
+/usr/include/boost/core/no_exceptions_support.hpp:
+
+/usr/include/boost/container/uses_allocator_fwd.hpp:
+
+/usr/include/boost/container/pmr/polymorphic_allocator.hpp:
+
+/usr/include/boost/container/pmr/memory_resource.hpp:
+
+/usr/include/boost/container/pmr/global_resource.hpp:
+
+/usr/include/boost/container/new_allocator.hpp:
+
+/usr/include/boost/container/detail/workaround.hpp:
+
+/usr/include/boost/container/detail/variadic_templates_tools.hpp:
+
+/usr/include/boost/container/detail/type_traits.hpp:
+
+/usr/include/boost/container/detail/placement_new.hpp:
+
+/usr/include/boost/container/detail/mpl.hpp:
+
+/usr/include/boost/container/detail/dispatch_uses_allocator.hpp:
+
+/usr/include/boost/container/detail/config_end.hpp:
+
+/usr/include/boost/container/detail/config_begin.hpp:
+
+/usr/include/boost/container/detail/auto_link.hpp:
+
+/usr/include/boost/container/detail/addressof.hpp:
+
+/usr/include/boost/container/allocator_traits.hpp:
+
+/usr/include/boost/config/no_tr1/functional.hpp:
+
+/usr/include/boost/bind/mem_fn_cc.hpp:
+
+/usr/include/boost/bind/mem_fn.hpp:
+
+/usr/include/boost/bind/detail/requires_cxx11.hpp:
+
+/usr/include/boost/any/bad_any_cast.hpp:
+
 /home/oster/gcc/gcc-install/lib/gcc/x86_64-pc-linux-gnu/15.0.1/include/float.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++io.h:
@@ -10439,6 +12121,12 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o: /home/oster/Mashroom/grib1/src/wr
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/fstream:
 
+/home/oster/gcc/gcc-install/include/c++/15.0.1/cstdarg:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/codecvt:
+
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/unique_lock.h:
+
 /usr/include/boost/type_traits/integral_constant.hpp:
 
 /usr/include/boost/type_traits/detail/is_function_cxx_11.hpp:
@@ -10452,6 +12140,10 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o: /home/oster/Mashroom/grib1/src/wr
 /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/cxxabi_tweaks.h:
 
 /usr/include/boost/units/systems/si/velocity.hpp:
+
+/usr/include/boost/type_traits/is_destructible.hpp:
+
+/usr/include/boost/system/generic_category.hpp:
 
 /usr/include/boost/type_traits/add_rvalue_reference.hpp:
 
@@ -10471,15 +12163,21 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o: /home/oster/Mashroom/grib1/src/wr
 
 /usr/include/boost/preprocessor/repetition/repeat.hpp:
 
+/usr/include/boost/core/detail/string_view.hpp:
+
 /home/oster/Mashroom/grib1/include/code_tables/table_0.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/sstream:
+
+/usr/include/boost/core/typeinfo.hpp:
 
 grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/preprocessor/repetition/enum_params.hpp:
 
 /usr/include/boost/preprocessor/punctuation/detail/is_begin_parens.hpp:
+
+/usr/include/boost/system/detail/system_category_impl.hpp:
 
 /usr/include/boost/preprocessor/punctuation/comma_if.hpp:
 
@@ -10533,6 +12231,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/mpl/aux_/arg_typedef.hpp:
 
+/usr/include/boost/describe/enumerators.hpp:
+
 /usr/include/boost/preprocessor/array/elem.hpp:
 
 /usr/include/boost/mpl/aux_/front_impl.hpp:
@@ -10548,6 +12248,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 /usr/include/boost/units/systems/si/current.hpp:
 
 /usr/include/boost/units/systems/si/frequency.hpp:
+
+/usr/include/boost/mp11/detail/mp_remove_if.hpp:
 
 /usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp:
 
@@ -10565,11 +12267,15 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/preprocessor/list/detail/limits/fold_right_256.hpp:
 
+/home/oster/gcc/gcc-install/include/c++/15.0.1/atomic:
+
 /usr/include/boost/mpl/size.hpp:
 
 /usr/include/boost/units/heterogeneous_system.hpp:
 
 /usr/include/boost/mpl/sequence_tag.hpp:
+
+/usr/include/boost/system/api_config.hpp:
 
 /usr/include/boost/concept/detail/concept_def.hpp:
 
@@ -10597,6 +12303,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/mpl/not.hpp:
 
+/usr/include/boost/any/fwd.hpp:
+
 /usr/include/boost/units/base_units/si/kelvin.hpp:
 
 /usr/include/boost/mpl/negate.hpp:
@@ -10623,6 +12331,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/utility/binary.hpp:
 
+/usr/include/boost/mp11/detail/mp_map_find.hpp:
+
 /usr/include/boost/mpl/list/aux_/item.hpp:
 
 /usr/include/boost/preprocessor/logical/bitand.hpp:
@@ -10641,6 +12351,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/mpl/iter_fold.hpp:
 
+/usr/include/boost/json/object.hpp:
+
 /usr/include/boost/mpl/integral_c.hpp:
 
 /usr/include/boost/units/systems/si/permeability.hpp:
@@ -10649,9 +12361,13 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/preprocessor/array/data.hpp:
 
+/usr/include/boost/json/impl/object.hpp:
+
 /usr/include/boost/mpl/int.hpp:
 
 /usr/include/boost/preprocessor/seq/limits/enum_256.hpp:
+
+/usr/include/boost/mp11/detail/mp_front.hpp:
 
 /usr/include/boost/mpl/has_xxx.hpp:
 
@@ -10691,6 +12407,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/mpl/aux_/has_apply.hpp:
 
+/usr/include/boost/json/impl/value_ref.hpp:
+
 /usr/include/boost/mpl/aux_/template_arity_fwd.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_fwd.h:
@@ -10724,6 +12442,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 /usr/include/boost/mpl/aux_/preprocessed/gcc/apply_fwd.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/debug/debug.h:
+
+/usr/include/boost/smart_ptr/detail/sp_counted_base.hpp:
 
 /usr/include/boost/units/physical_dimensions/length.hpp:
 
@@ -10779,6 +12499,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 
 /usr/include/boost/mpl/aux_/full_lambda.hpp:
 
+/usr/include/boost/program_options/positional_options.hpp:
+
 /usr/include/inttypes.h:
 
 /usr/include/boost/mpl/aux_/config/static_constant.hpp:
@@ -10786,6 +12508,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/levels.cpp.o:
 /usr/include/boost/mpl/aux_/config/msvc_typename.hpp:
 
 /usr/include/boost/mpl/aux_/config/msvc.hpp:
+
+/usr/include/boost/intrusive/detail/config_begin.hpp:
+
+/usr/include/boost/any.hpp:
 
 /usr/include/boost/mpl/aux_/config/ttp.hpp:
 
@@ -10821,6 +12547,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
+/usr/include/boost/config/auto_link.hpp:
+
 /usr/include/boost/iterator/iterator_concepts.hpp:
 
 /usr/include/boost/mpl/aux_/has_begin.hpp:
@@ -10855,6 +12583,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 
 /usr/include/boost/mpl/aux_/config/overload_resolution.hpp:
 
+/usr/include/boost/move/detail/type_traits.hpp:
+
 /usr/include/boost/units/detail/dimension_list.hpp:
 
 /usr/include/boost/preprocessor/empty.hpp:
@@ -10863,11 +12593,15 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 
 /usr/include/boost/preprocessor/tuple/elem.hpp:
 
+/usr/include/boost/move/detail/meta_utils_core.hpp:
+
 /usr/include/boost/mpl/list/list10.hpp:
 
 /usr/include/boost/range/has_range_iterator.hpp:
 
 /usr/include/boost/limits.hpp:
+
+/usr/include/boost/system/detail/enable_if.hpp:
 
 /usr/include/boost/range/detail/common.hpp:
 
@@ -10885,6 +12619,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 
 /usr/include/boost/units/physical_dimensions/resistivity.hpp:
 
+/home/oster/gcc/gcc-install/include/c++/15.0.1/mutex:
+
 /usr/include/boost/mpl/aux_/preprocessor/enum.hpp:
 
 /usr/include/boost/config/workaround.hpp:
@@ -10898,6 +12634,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 /usr/include/boost/mpl/aux_/config/eti.hpp:
 
 /usr/include/boost/units/systems/si/angular_momentum.hpp:
+
+/usr/include/boost/json/system_error.hpp:
 
 /usr/include/boost/config/compiler/gcc.hpp:
 
@@ -10965,6 +12703,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/mercator.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/exception.h:
 
+/usr/include/boost/smart_ptr/detail/local_counted_base.hpp:
+
 /usr/include/boost/units/systems/si/catalytic_activity.hpp:
 
 grib1/CMakeFiles/grib1API.dir/src/code_tables/center.cpp.o:
@@ -10991,6 +12731,8 @@ grib1/CMakeFiles/grib1API.dir/src/code_tables/center.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/char_traits.h:
 
+/usr/include/boost/smart_ptr/detail/sp_thread_sleep.hpp:
+
 /usr/include/boost/type_traits/is_function.hpp:
 
 /usr/include/boost/units/systems/si/permittivity.hpp:
@@ -11009,6 +12751,8 @@ grib1/CMakeFiles/grib1API.dir/src/code_tables/center.cpp.o:
 
 /usr/include/stdlib.h:
 
+/usr/include/boost/get_pointer.hpp:
+
 /usr/include/boost/lexical_cast/detail/converter_lexical.hpp:
 
 /usr/include/boost/type_traits/remove_pointer.hpp:
@@ -11023,9 +12767,15 @@ grib1/CMakeFiles/grib1API.dir/src/code_tables.cpp.o:
 
 /usr/include/boost/type_traits/is_pointer.hpp:
 
+/usr/include/boost/system/error_condition.hpp:
+
+/usr/include/boost/mp11/detail/mp_void.hpp:
+
 /usr/include/boost/preprocessor/config/config.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/tr1/bessel_function.tcc:
+
+/usr/include/boost/core/detail/is_same.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/algorithmfwd.h:
 
@@ -11057,6 +12807,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/polyconic.cpp.o:
 
 /usr/include/boost/mpl/list/aux_/push_front.hpp:
 
+/usr/include/boost/mp11/detail/mp_rename.hpp:
+
 /usr/include/boost/units/systems/si/impedance.hpp:
 
 /usr/include/boost/mpl/aux_/config/preprocessor.hpp:
@@ -11066,6 +12818,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/polyconic.cpp.o:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/source_location:
 
 /home/oster/Mashroom/grib1/include/generated/code_tables/table_0.h:
+
+/usr/include/boost/describe/modifiers.hpp:
 
 /usr/include/boost/preprocessor/repeat.hpp:
 
@@ -11097,6 +12851,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /home/oster/gcc/gcc-install/lib64/libgcc_s.so:
 
+/usr/include/boost/container/uses_allocator.hpp:
+
 /usr/include/boost/units/physical_dimensions/plane_angle.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/memory:
@@ -11118,6 +12874,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 /usr/include/boost/units/physical_dimensions/solid_angle.hpp:
 
 /home/oster/Mashroom/library/include/floattoieee.h:
+
+/usr/include/boost/type_traits/has_trivial_copy.hpp:
 
 /usr/include/boost/preprocessor/variadic/elem.hpp:
 
@@ -11149,6 +12907,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /usr/include/boost/preprocessor/detail/limits/auto_rec_256.hpp:
 
+/usr/include/boost/json/detail/config.hpp:
+
 /home/oster/gcc/gcc-install/lib/gcc/x86_64-pc-linux-gnu/15.0.1/include/stdbool.h:
 
 /usr/include/boost/mpl/limits/list.hpp:
@@ -11158,6 +12918,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 /home/oster/gcc/gcc-install/lib/gcc/x86_64-pc-linux-gnu/15.0.1/libgcc.a:
 
 /usr/include/boost/mpl/integral_c_tag.hpp:
+
+/usr/include/boost/container/detail/is_pair.hpp:
 
 /usr/include/boost/preprocessor/punctuation/comma.hpp:
 
@@ -11169,6 +12931,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /usr/include/boost/mpl/aux_/preprocessor/def_params_tail.hpp:
 
+/usr/include/boost/smart_ptr/detail/sp_noexcept.hpp:
+
 /usr/include/boost/range/detail/extract_optional_type.hpp:
 
 /usr/include/boost/mpl/push_back_fwd.hpp:
@@ -11179,7 +12943,13 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /usr/include/fcntl.h:
 
+/usr/include/boost/json/detail/value_from.hpp:
+
+/usr/include/boost/config/no_tr1/memory.hpp:
+
 /usr/lib/libboost_container.so.1.82.0:
+
+/usr/include/boost/system/detail/error_category.hpp:
 
 /home/oster/Mashroom/grib1/include/code_tables/table_2.h:
 
@@ -11199,6 +12969,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /usr/include/boost/detail/basic_pointerbuf.hpp:
 
+/usr/include/boost/function/detail/function_iterate.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/streambuf.tcc:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/shared_ptr.h:
@@ -11211,7 +12983,11 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_1.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
 
+/usr/include/boost/mp11/version.hpp:
+
 /usr/include/boost/mpl/aux_/config/lambda.hpp:
+
+/usr/include/boost/mp11/detail/mp_count.hpp:
 
 /usr/include/boost/type_traits/is_same.hpp:
 
@@ -11226,6 +13002,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/ensemble.cpp.o:
 /usr/include/boost/mpl/list/list0.hpp:
 
 /home/oster/Mashroom/grib1/include/code_tables/table_10.h:
+
+/usr/include/boost/container_hash/hash_fwd.hpp:
 
 /lib/x86_64-linux-gnu/libc.so:
 
@@ -11299,6 +13077,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/bitmap/error.cpp.o:
 
 grib1/CMakeFiles/grib1API.dir/src/sections/binary/def.cpp.o:
 
+/usr/include/boost/system/detail/cerrno.hpp:
+
 /usr/include/boost/mpl/list/aux_/clear.hpp:
 
 /usr/include/boost/units/physical_dimensions/energy.hpp:
@@ -11331,6 +13111,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_0.cpp.o:
 
 /usr/include/boost/numeric/conversion/detail/converter.hpp:
 
+/usr/include/boost/system/detail/generic_category.hpp:
+
 /usr/include/boost/range/detail/msvc_has_iterator_workaround.hpp:
 
 /usr/include/boost/mpl/O1_size.hpp:
@@ -11355,7 +13137,11 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/albers.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/ostream:
 
+/usr/include/boost/json/impl/visit.hpp:
+
 /usr/include/boost/mpl/aux_/lambda_arity_param.hpp:
+
+/usr/include/boost/intrusive/detail/workaround.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/local_lim.h:
 
@@ -11399,6 +13185,8 @@ grib1/CMakeFiles/grib1API.dir/src/write.cpp.o:
 
 /usr/include/boost/mpl/aux_/nested_type_wknd.hpp:
 
+/usr/include/boost/core/ref.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_facets.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/tr1/hypergeometric.tcc:
@@ -11417,6 +13205,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/polar.cpp.o:
 
 /usr/include/boost/config/detail/posix_features.hpp:
 
+/usr/include/boost/function/detail/prologue.hpp:
+
 grib1/CMakeFiles/grib1API.dir/src/sections/product/ecmwf_ext.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/iterator:
@@ -11424,6 +13214,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/product/ecmwf_ext.cpp.o:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/memory_resource.h:
 
 /usr/include/boost/mpl/plus.hpp:
+
+/usr/include/boost/json/detail/array.hpp:
 
 grib1/CMakeFiles/grib1API.dir/src/sections/grid/grid.cpp.o:
 
@@ -11469,9 +13261,13 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_4.cpp.o:
 
 /usr/include/boost/mpl/bool_fwd.hpp:
 
+/usr/include/boost/preprocessor/iteration/detail/iter/forward1.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/tr1/poly_laguerre.tcc:
 
 /usr/include/boost/units/systems/si/wavenumber.hpp:
+
+/usr/include/boost/move/utility_core.hpp:
 
 /home/oster/Mashroom/library/include/types/coord.h:
 
@@ -11483,13 +13279,19 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_4.cpp.o:
 
 /usr/include/boost/mpl/less.hpp:
 
+/usr/include/boost/json/detail/stack.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_iterator_base_types.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_construct.h:
 
+/usr/include/boost/container/throw_exception.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/string_view.tcc:
 
 /usr/include/boost/config/detail/select_platform_config.hpp:
+
+/usr/include/boost/type_traits/is_constructible.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_raw_storage_iter.h:
 
@@ -11523,11 +13325,15 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_4.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stringfwd.h:
 
+/usr/include/boost/preprocessor/iteration/detail/iter/limits/forward1_256.hpp:
+
 /home/oster/Mashroom/grib1/include/sections/grid/gnomonic.h:
 
 /usr/include/boost/mpl/aux_/pop_front_impl.hpp:
 
 /usr/include/boost/units/physical_dimensions/angular_momentum.hpp:
+
+/usr/include/boost/json/impl/conversion.hpp:
 
 /usr/include/boost/range/rend.hpp:
 
@@ -11641,6 +13447,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/tr1/legendre_function.tcc:
 
+/usr/include/boost/json/set_pointer_options.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/locale_classes.tcc:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/cinttypes:
@@ -11655,6 +13463,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_ops.h:
 
+/usr/include/boost/function/detail/epilogue.hpp:
+
 /usr/include/boost/mpl/next.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ptr_traits.h:
@@ -11667,6 +13477,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 
 /usr/include/boost/mpl/aux_/size_impl.hpp:
 
+/usr/include/boost/mp11/detail/mp_is_list.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/tuple:
 
 /home/oster/Mashroom/library/include/float_conv.h:
@@ -11678,6 +13490,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 /usr/include/boost/mpl/long.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/x86_64-pc-linux-gnu/bits/c++locale.h:
+
+/usr/include/boost/json/detail/handler.hpp:
 
 /usr/include/boost/preprocessor/logical/limits/bool_256.hpp:
 
@@ -11715,6 +13529,10 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 
 /usr/include/boost/mpl/list/aux_/begin_end.hpp:
 
+/home/oster/gcc/gcc-install/include/c++/15.0.1/deque:
+
+/usr/include/boost/units/make_scaled_unit.hpp:
+
 /usr/include/boost/assert.hpp:
 
 /usr/include/boost/units/systems/si/temperature.hpp:
@@ -11732,6 +13550,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_3.cpp.o:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/ext/atomicity.h:
 
 /usr/include/boost/units/base_units/si/candela.hpp:
+
+/usr/include/boost/json/detail/string_impl.hpp:
 
 /usr/include/boost/typeof/detail/requires_cxx11.hpp:
 
@@ -11757,6 +13577,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/boost/units/systems/si/inductance.hpp:
 
+/usr/include/boost/function/function_template.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/initializer_list:
 
 /usr/include/boost/type_traits/is_reference.hpp:
@@ -11764,6 +13586,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/hashtable.h:
 
 /usr/include/boost/type_traits/is_rvalue_reference.hpp:
+
+/usr/include/boost/json/parse_options.hpp:
 
 /usr/include/boost/array.hpp:
 
@@ -11851,6 +13675,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/boost/units/physical_dimensions/magnetic_flux_density.hpp:
 
+/usr/include/boost/mp11/detail/mp_fold.hpp:
+
 /usr/include/boost/units/make_system.hpp:
 
 /usr/include/boost/units/physical_dimensions/absorbed_dose.hpp:
@@ -11862,6 +13688,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /usr/include/boost/units/physical_dimensions/action.hpp:
 
 /usr/include/boost/units/physical_dimensions/amount.hpp:
+
+/usr/include/boost/type_index/type_index_facade.hpp:
 
 /usr/include/boost/units/physical_dimensions/angular_velocity.hpp:
 
@@ -11919,15 +13747,23 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/boost/units/systems/si/area.hpp:
 
+/usr/include/boost/mp11/map.hpp:
+
 /usr/include/boost/units/physical_dimensions/power.hpp:
+
+/usr/include/boost/type_traits/is_default_constructible.hpp:
 
 /usr/include/boost/units/physical_dimensions/pressure.hpp:
 
 /usr/include/boost/units/physical_dimensions/surface_density.hpp:
 
+/usr/include/boost/type_index.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/uio_lim.h:
 
 /usr/include/boost/type_traits/is_pod.hpp:
+
+/usr/include/boost/mp11/integral.hpp:
 
 /usr/include/boost/units/physical_dimensions/temperature.hpp:
 
@@ -11944,6 +13780,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /usr/include/boost/units/static_constant.hpp:
 
 /usr/include/boost/units/static_rational.hpp:
+
+/usr/include/boost/move/detail/meta_utils.hpp:
 
 /usr/include/boost/units/systems/si.hpp:
 
@@ -11979,6 +13817,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/boost/units/systems/si/conductivity.hpp:
 
+/usr/include/boost/mp11/detail/mp_append.hpp:
+
 /usr/include/boost/type_traits/type_identity.hpp:
 
 /usr/include/boost/units/systems/si/dimensionless.hpp:
@@ -12002,6 +13842,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /home/oster/gcc/gcc-install/include/c++/15.0.1/array:
 
 /usr/include/boost/units/systems/si/kinematic_viscosity.hpp:
+
+/usr/include/boost/system/detail/std_category_impl.hpp:
 
 /usr/include/boost/units/systems/si/length.hpp:
 
@@ -12037,6 +13879,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /home/oster/Mashroom/library/include/serialization.h:
 
+/usr/include/boost/json/kind.hpp:
+
 /usr/include/boost/units/systems/si/power.hpp:
 
 /usr/include/boost/units/systems/si/pressure.hpp:
@@ -12050,6 +13894,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /usr/include/boost/units/unit.hpp:
 
 /usr/include/boost/units/units_fwd.hpp:
+
+/usr/include/boost/json/monotonic_resource.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/ios_base.h:
 
@@ -12075,6 +13921,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
 
+/usr/include/boost/json/detail/utf8.hpp:
+
 /usr/include/boost/mpl/times.hpp:
 
 /usr/include/sched.h:
@@ -12091,7 +13939,13 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
 
+/usr/include/boost/smart_ptr/detail/spinlock.hpp:
+
+/usr/include/boost/move/detail/config_end.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
+
+/usr/include/boost/json/value_stack.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
@@ -12103,9 +13957,13 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/errno.h:
 
+/usr/include/boost/system/system_category.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/iscanonical.h:
 
@@ -12153,6 +14011,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 
 /usr/include/x86_64-linux-gnu/bits/time.h:
 
+/usr/include/boost/bind/mem_fn_template.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/time64.h:
 
 /usr/include/x86_64-linux-gnu/bits/timesize.h:
@@ -12176,6 +14036,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /usr/include/boost/concept/usage.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
+
+/usr/include/boost/describe/enum_to_string.hpp:
 
 /usr/include/stdc-predef.h:
 
@@ -12208,6 +14070,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/grid/gaussian.cpp.o:
 /usr/include/boost/units/physical_dimensions/activity.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
+
+/usr/include/boost/json/memory_resource.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
 
@@ -12251,6 +14115,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 
 /home/oster/Mashroom/grib1/src/code_tables/center.cpp:
 
+/usr/include/boost/mp11/set.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/format:
 
 /usr/include/boost/units/base_units/si/second.hpp:
@@ -12266,6 +14132,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 /usr/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_long_long.hpp:
 
 /home/oster/Mashroom/library/include/parsing.h:
+
+/usr/include/boost/system/system_error.hpp:
 
 /usr/include/boost/mpl/pop_front_fwd.hpp:
 
@@ -12286,6 +14154,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 /usr/include/boost/preprocessor/control/detail/limits/while_256.hpp:
 
 /home/oster/Mashroom/grib1/include/sections/grid/lambert.h:
+
+/usr/include/boost/mp11.hpp:
 
 /home/oster/Mashroom/library/include/variant.h:
 
@@ -12393,6 +14263,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 
 /usr/include/boost/container/detail/std_fwd.hpp:
 
+/usr/include/boost/smart_ptr/detail/shared_count.hpp:
+
 /usr/include/boost/core/checked_delete.hpp:
 
 /usr/include/boost/core/cmath.hpp:
@@ -12427,6 +14299,8 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 
 /usr/include/boost/iterator/detail/config_undef.hpp:
 
+/usr/include/boost/json/value_to.hpp:
+
 /home/oster/gcc/gcc-install/include/c++/15.0.1/ranges:
 
 /usr/include/boost/iterator/distance.hpp:
@@ -12455,17 +14329,17 @@ grib1/CMakeFiles/grib1API.dir/src/sections/section_2.cpp.o:
 
 /usr/include/boost/lexical_cast/detail/inf_nan.hpp:
 
-/usr/include/boost/units/make_scaled_unit.hpp:
-
-/home/oster/gcc/gcc-install/include/c++/15.0.1/deque:
-
 /usr/include/boost/lexical_cast/detail/is_character.hpp:
 
 /usr/include/boost/move/detail/std_ns_end.hpp:
 
+/usr/include/boost/move/detail/fwd_macros.hpp:
+
 /usr/include/boost/numeric/conversion/cast.hpp:
 
 /usr/include/boost/numeric/conversion/converter.hpp:
+
+/usr/include/boost/type_traits/is_union.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
 
@@ -12503,6 +14377,8 @@ Debug/lib/liblineNoise.a:
 
 /usr/include/boost/preprocessor/comparison/less_equal.hpp:
 
+/usr/include/boost/system/detail/interop_category.hpp:
+
 /usr/include/boost/preprocessor/repetition/for.hpp:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/vector:
@@ -12514,6 +14390,8 @@ Debug/lib/liblineNoise.a:
 /usr/include/boost/preprocessor/list/detail/fold_right.hpp:
 
 /usr/include/boost/preprocessor/seq/detail/is_empty.hpp:
+
+/usr/include/boost/describe/bases.hpp:
 
 /usr/include/boost/preprocessor/seq/fold_left.hpp:
 
@@ -12681,9 +14559,15 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o:
 
 /home/oster/Mashroom/grib1/include/sections/grid/polar.h:
 
+/home/oster/Mashroom/library/include/boost_functional/json.h:
+
 /home/oster/Mashroom/library/include/int_pow.h:
 
+/usr/include/boost/mp11/function.hpp:
+
 /home/oster/Mashroom/library/include/types/rect.h:
+
+/home/oster/Mashroom/library/include/types/time_interval.h:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/fs_path.h:
 
@@ -12695,6 +14579,6 @@ grib1/CMakeFiles/grib1API.dir/src/message.cpp.o:
 
 /home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_list.h:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_map.h:
+/usr/include/boost/smart_ptr/detail/sp_counted_base_gcc_atomic.hpp:
 
-/home/oster/gcc/gcc-install/include/c++/15.0.1/codecvt:
+/home/oster/gcc/gcc-install/include/c++/15.0.1/bits/stl_map.h:

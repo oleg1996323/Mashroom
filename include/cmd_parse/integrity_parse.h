@@ -4,7 +4,6 @@
 #include "sys/error_code.h"
 #include "proc/integrity.h"
 #include "cmd_parse/cmd_def.h"
-#include "cmd_parse/search_process_parse.h"
 namespace parse{
     class Integrity:public AbstractCLIParser<parse::Integrity>{
         friend AbstractCLIParser;
@@ -12,7 +11,7 @@ namespace parse{
         Integrity():AbstractCLIParser("Integrity options"){}
 
         virtual void init() noexcept override final{
-            descriptor_.add(SearchProcess::instance().descriptor());
+            //descriptor_.add(SearchProcess::instance().descriptor());
             define_uniques();
         }
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final{

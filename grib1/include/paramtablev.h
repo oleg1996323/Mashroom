@@ -18,14 +18,19 @@ struct SearchParamTableVersion{
     bool operator==(const SearchParamTableVersion& other) const{
         return param_==other.param_ && t_ver_==other.t_ver_;
     }
+    bool operator<(const SearchParamTableVersion& other) const{
+        if (t_ver_ != other.t_ver_)
+            return t_ver_ < other.t_ver_;
+        return param_ < other.param_;
+    }
 };
 template<>
 struct std::hash<SearchParamTableVersion>{
     size_t operator()(const SearchParamTableVersion& val) const{
-        return std::hash<uint8_t>{}(val.param_<<8)+std::hash<uint8_t>{}(val.t_ver_);
+        return (static_cast<size_t>(val.param_) << 8) | val.t_ver_;
     }
     size_t operator()(SearchParamTableVersion&& val) const{
-        return std::hash<uint8_t>{}(val.param_<<8)+std::hash<uint8_t>{}(val.t_ver_);
+        return (static_cast<size_t>(val.param_) << 8) | val.t_ver_;
     }
 };
 template<>
@@ -37,8 +42,6 @@ struct std::equal_to<SearchParamTableVersion>{
 template<>
 struct std::less<SearchParamTableVersion>{
     bool operator()(const SearchParamTableVersion& lhs,const SearchParamTableVersion& rhs) const{
-        if(lhs.t_ver_<=rhs.t_ver_)
-            return lhs.param_<rhs.param_;
-        else return false;
+        return lhs<rhs;
     }
 };

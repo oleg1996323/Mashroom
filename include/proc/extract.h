@@ -106,15 +106,15 @@ public:
 
 private:
     TimePeriod t_off_ = TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
-    std::string path_format = std::string("{:%Y") + static_cast<char>(fs::path::preferred_separator) + "%m}";
-    std::string file_format = std::string("{}_{}_{:%Y_%m}");
+    std::string path_format;
+    std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
     void __extract__(const fs::path& file, ExtractedData& ref_data);
     ErrorCode __create_dir_for_file__(const fs::path &out_f_name);
     ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result);
     template <typename... ARGS>
-    fs::path __generate_name__(OutputDataFileFormats format, ARGS &&...args);
+    fs::path __generate_name__(ARGS &&...args);
     template <typename... ARGS>
     fs::path __generate_directory__(ARGS &&...args); // TODO expand extract division
 public:
@@ -214,62 +214,84 @@ public:
         else
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "empty parameters", AT_ERROR_ACTION::CONTINUE);
     }
-    std::string get_dir_file_outp_format() const noexcept
-    {
-        std::string file_format_tmp;
-        std::string dir_format_tmp;
-        if (t_off_.hours_ > std::chrono::seconds(0))
-        {
-            file_format_tmp = file_format_tmp + "S%_M%_H%_";
-            dir_format_tmp = dir_format_tmp + "S%" + fs::path::preferred_separator+
-            "M%" + fs::path::preferred_separator + 
-            "H%" + fs::path::preferred_separator;
-        }
-        else if (t_off_.hours_ > minutes(0))
-        {
-            file_format_tmp = file_format_tmp + "M%_H%_";
-            dir_format_tmp = dir_format_tmp + "M%" + fs::path::preferred_separator + "H%" + fs::path::preferred_separator;
-        }
-        else if (t_off_.hours_ > hours(0))
-        {
-            file_format_tmp = file_format_tmp + "H%_";
-            dir_format_tmp = dir_format_tmp + "H%" + fs::path::preferred_separator;
-        }
-        if (t_off_.days_ > days(0))
-        {
-            file_format_tmp = file_format_tmp + "d%_m%_";
-            dir_format_tmp = dir_format_tmp + "d%" + fs::path::preferred_separator +
-            "m%" + fs::path::preferred_separator;
-        }
-        else if (t_off_.months_ > months(0))
-        {
-            file_format_tmp = file_format_tmp + "m%_";
-            dir_format_tmp = dir_format_tmp + "m%" + fs::path::preferred_separator;
-        }
-        file_format_tmp = file_format_tmp + "Y%";
-        dir_format_tmp = dir_format_tmp + "Y%";
-        std::reverse(file_format_tmp.begin(), file_format_tmp.end());
-        std::reverse(dir_format_tmp.begin(), dir_format_tmp.end());
-        file_format_tmp = "{}_{}_{:" + file_format_tmp + "}";
-        return "{:"s + dir_format_tmp + "}"s;
-    }
 };
 
 template <typename... ARGS>
-fs::path Extract::__generate_name__(OutputDataFileFormats format, ARGS &&...args)
+fs::path Extract::__generate_name__(ARGS &&...args)
 {
     OutputDataFileFormats fmt_tmp = output_format_&~OutputDataFileFormats::ARCHIVED;
-    if (static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) &
-            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::TXT_F) ||
-        static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_) ==
-            static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::DEFAULT))
-    {
-        return std::vformat(file_format + ".txt", std::make_format_args(args...));
+    if(file_format.empty()){
+        auto complete_format = [this](const auto& arg)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>,utc_tp>){
+                auto time_unit = t_off_.min_valuable();
+                file_format = file_format+(!file_format.empty()?"_":"");
+                switch(time_unit){
+                case TIME_UNITS::SECONDS:
+                    file_format = file_format + "{:%Y_%m_%d_%h_%M_%S}";
+                    break;
+                case TIME_UNITS::MINUTES:
+                    file_format = file_format + "{:%Y_%m_%d_%h_%M}";
+                    break;
+                case TIME_UNITS::HOURS:
+                    file_format = file_format + "{:%Y_%m_%d_%h}";
+                    break;
+                case TIME_UNITS::DAYS:
+                    file_format = file_format + "{:%Y_%m_%d}";
+                    break;
+                case TIME_UNITS::MONTHS:
+                    file_format = file_format + "{:%Y_%m}";
+                    break;
+                case TIME_UNITS::YEARS:
+                    file_format = file_format + "{:%Y}";
+                    break;
+                default:
+                    file_format = file_format + "{:%Y_%m_%d_%h_%M_%S}";
+                    break;
+                }
+            }
+            else file_format = file_format+(!file_format.empty()?"_{}":"{}");
+        };
+        (complete_format(args),...);
     }
-
+    switch(fmt_tmp){
+        case OutputDataFileFormats::TXT_F:
+            return std::vformat(file_format + ".txt", std::make_format_args(args...));
+            break;
+        case OutputDataFileFormats::GRIB_F:
+            return std::vformat(file_format + ".grib", std::make_format_args(args...));
+            break;
+        case OutputDataFileFormats::BIN_F:
+            assert(false);
+            return std::vformat(file_format + ".bin", std::make_format_args(args...));
+            break;
+        default:
+            return std::vformat(file_format + ".txt", std::make_format_args(args...));
+            break;
+    }
+    return std::vformat(file_format + ".txt", std::make_format_args(args...));
 }
 template <typename... ARGS>
 fs::path Extract::__generate_directory__(ARGS &&...args)
 {
+    if(path_format.empty()){
+        if (t_off_.seconds_ > std::chrono::seconds(0))
+            path_format = path_format + "S%" + fs::path::preferred_separator+
+            "M%" + fs::path::preferred_separator + 
+            "H%" + fs::path::preferred_separator;
+        else if (t_off_.minutes_ > minutes(0))
+            path_format = path_format + "M%" + fs::path::preferred_separator + "H%" + fs::path::preferred_separator;
+        else if (t_off_.hours_ > hours(0))
+
+            path_format = path_format + "H%" + fs::path::preferred_separator;
+        if (t_off_.days_ > days(0))
+            path_format = path_format + "d%" + fs::path::preferred_separator +
+            "m%" + fs::path::preferred_separator;
+        else if (t_off_.months_ > months(0))
+            path_format = path_format + "m%" + fs::path::preferred_separator;
+        path_format = path_format + "Y%";
+        std::reverse(path_format.begin(), path_format.end());
+        path_format = "{:"s + path_format + "}"s;
+    }
     return out_path_ / std::vformat(path_format, std::make_format_args(args...));
 }

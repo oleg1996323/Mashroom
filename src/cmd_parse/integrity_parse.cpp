@@ -1,7 +1,6 @@
 #include "cmd_parse/integrity_parse.h"
 #include "sys/error_print.h"
 #include "cmd_parse/functions.h"
-#include "search_process_parse.h"
 
 // ErrorCode integrity_parse(const std::vector<std::string_view>& input){
 //     using namespace translate::token;

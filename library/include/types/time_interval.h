@@ -13,12 +13,22 @@ using utc_diff = std::chrono::system_clock::duration;
 
 #include <boost/program_options.hpp>
 
+enum class TIME_UNITS{
+    SECONDS,
+    MINUTES,
+    HOURS,
+    DAYS,
+    MONTHS,
+    YEARS
+};
+
 struct TimePeriod{
     years years_ = years(0);
     months months_ = months(0);
     days days_ = days(0);
     hours hours_ = hours(0);
     minutes minutes_ = minutes(0);
+    
     std::chrono::seconds seconds_ = std::chrono::seconds(0);
     template<bool NETWORK_ORDER>
     friend struct serialization::Serialize;
@@ -48,6 +58,22 @@ struct TimePeriod{
         return years_!=years(0) || months_!=months(0) || days_!=days(0) ||
                 hours_!=hours(0) || minutes_!=minutes(0) || seconds_!=std::chrono::seconds(0);
     }
+
+    TIME_UNITS min_valuable() const noexcept{
+        if(seconds_>std::chrono::seconds())
+            return TIME_UNITS::SECONDS;
+        else if (minutes_>minutes())
+            return TIME_UNITS::MINUTES;
+        else if (hours_>hours())
+            return TIME_UNITS::HOURS;
+        else if (days_>days())
+            return TIME_UNITS::DAYS;
+        else if(months_>months())
+            return TIME_UNITS::MONTHS;
+        else if(years_>years())
+            return TIME_UNITS::YEARS;
+        else return TIME_UNITS::SECONDS;
+    }
 };
 
 struct TimeInterval{
@@ -59,6 +85,22 @@ struct TimeSequence{
     TimeInterval interval_;
     utc_diff discret_;
 };
+
+inline utc_tp operator+(const utc_tp& tp, const TimePeriod& period) noexcept{
+    return tp+period.years_+period.months_+period.days_+period.hours_+period.minutes_+period.seconds_;
+}
+
+inline utc_tp operator+(const TimePeriod& period,const utc_tp& tp) noexcept{
+    return tp+period.years_+period.months_+period.days_+period.hours_+period.minutes_+period.seconds_;
+}
+
+inline utc_tp operator-(const utc_tp& tp, const TimePeriod& period) noexcept{
+    return tp-period.years_-period.months_-period.days_-period.hours_-period.minutes_-period.seconds_;
+}
+
+inline utc_tp operator-(const TimePeriod& period,const utc_tp& tp) noexcept{
+    return tp-period.years_-period.months_-period.days_-period.hours_-period.minutes_-period.seconds_;
+}
 
 template<>
 struct std::hash<TimeInterval>{

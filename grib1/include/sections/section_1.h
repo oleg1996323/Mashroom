@@ -15,7 +15,7 @@
 #include "generated/code_tables/eccodes_tables.h"
 #include <chrono>
 #include <span>
-
+#include "types/time_interval.h"
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)
@@ -42,13 +42,17 @@ struct ProductDefinitionSection
 	unsigned char hour() const noexcept;
 	unsigned char minute() const noexcept;
 	std::chrono::system_clock::time_point date() const noexcept{
-		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration();
+		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration()+time_forecast();
 	}
 	TimeFrame unit_time_range() const noexcept;
+	TimePeriod time_forecast() const noexcept;
 	unsigned char year_of_century() const noexcept;
 	unsigned char century() const noexcept;
 	unsigned short year() const noexcept;
 	unsigned short decimal_scale_factor() const noexcept;
+	unsigned char period1() const noexcept;
+	unsigned char period2() const noexcept;
+	TimeRange time_range() const noexcept;
 	unsigned numberMissingFromAveragesOrAccumulations() const noexcept;
 	unsigned char numberIncludedInAverage() const noexcept;
 	std::string_view parameter_name() const noexcept;

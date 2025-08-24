@@ -25,12 +25,12 @@ std::unordered_set<SearchParamTableVersion> param_by_tv_abbr(Organization center
         std::vector<SearchParamTableVersion> parameters =  multitoken_approx_match_parameter(center,tokens);
         if(parameters.empty()){
             ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                    "not matched partameters",AT_ERROR_ACTION::CONTINUE,std::ranges::join_with_view(tokens," ")|std::ranges::to<std::string>());
+                    "not matched parameters",AT_ERROR_ACTION::CONTINUE,std::ranges::join_with_view(tokens," ")|std::ranges::to<std::string>());
             continue;
         }
         else{
-            std::cout<<"Matched more than 1 parameters:"<<std::endl;
-            std::cout<<parameters_to_txt(center,parameters)<<std::endl;
+            //std::cout<<"Matched more than 1 parameters:"<<std::endl;
+            //std::cout<<parameters_to_txt(center,parameters)<<std::endl;
             result.insert(std::make_move_iterator(parameters.begin()),std::make_move_iterator(parameters.end()));
         }
     }

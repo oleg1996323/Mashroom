@@ -427,6 +427,77 @@ unsigned char ProductDefinitionSection::minute() const noexcept{
 TimeFrame ProductDefinitionSection::unit_time_range() const noexcept{
 	return (TimeFrame)PDS_ForecastTimeUnit(buffer_);
 }
+unsigned char ProductDefinitionSection::period1() const noexcept{
+	return PDS_P1(buffer_);
+}
+unsigned char ProductDefinitionSection::period2() const noexcept{
+	return PDS_P2(buffer_);
+}
+TimeRange ProductDefinitionSection::time_range() const noexcept{
+	return static_cast<TimeRange>(PDS_TimeRange(buffer_));
+}
+/**
+ * @todo Expand to all TimeRanges
+*/
+TimePeriod ProductDefinitionSection::time_forecast() const noexcept{
+	TimeFrame tf = unit_time_range();
+	TimeRange tr = time_range();
+	unsigned char period = 0;
+	{
+		unsigned char P1 = period1();
+		unsigned char P2 = period2();
+		period = P2>0?P2:P1+P2;
+	}
+	using namespace std::chrono;
+	switch(tf){
+	case TimeFrame::CENTURY:
+		return TimePeriod(years(100*period),months(),days(),hours(),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::DAY:
+		return TimePeriod(years(),months(),days((period)),hours(),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::DECADE:
+		return TimePeriod(years(10*period),months(),days(),hours(),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::HALF_HOUR:
+		return TimePeriod(years(),months(),days(),hours(),minutes(30*period),std::chrono::seconds());
+		break;
+	case TimeFrame::HOUR:
+		return TimePeriod(years(),months(),days(),hours(period),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::HOURS_12:
+		return TimePeriod(years(),months(),days(),hours(12*period),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::HOURS_3:
+		return TimePeriod(years(),months(),days(),hours(3*period),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::HOURS_6:
+		return TimePeriod(years(),months(),days(),hours(6*period),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::MINUTE:
+		return TimePeriod(years(),months(),days(),hours(),minutes(period),std::chrono::seconds());
+		break;
+	case TimeFrame::MONTH:
+		return TimePeriod(years(),months(period),days(),hours(),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::QUARTER_HOUR:
+		return TimePeriod(years(),months(),days(),hours(),minutes(15*period),std::chrono::seconds());
+		break;
+	case TimeFrame::SECOND:
+		return TimePeriod(years(),months(),days(),hours(),minutes(),std::chrono::seconds(period));
+		break;
+	case TimeFrame::YEAR:
+		return TimePeriod(years(period),months(),days(),hours(),minutes(),std::chrono::seconds());
+		break;
+	case TimeFrame::NORMAL:
+		return TimePeriod(years(30*period),months(),days(),hours(),minutes(),std::chrono::seconds());
+		break;
+	default:
+		return TimePeriod();
+		break;
+	}	
+	return TimePeriod();
+}
 unsigned char ProductDefinitionSection::year_of_century() const noexcept{
 	return PDS_Year(buffer_);
 }

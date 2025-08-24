@@ -166,7 +166,6 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
 
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
-    path_format = get_dir_file_outp_format();
     if(in_path_.empty()){
         auto matched = Mashroom::instance().data().match(props_.center_.value(),
                                                 props_.fcst_unit_,
@@ -207,6 +206,8 @@ ErrorCode Extract::execute() noexcept{
             __extract__(path.path_,result);
         }
     }
+    if(result.empty())
+        return ErrorCode::NONE;
     utc_tp current_time = utc_tp::max();
     size_t max_length = 0;
     std::vector<decltype(result)::mapped_type*> col_vals_;
@@ -242,8 +243,8 @@ ErrorCode Extract::execute() noexcept{
                 }
             }
             out_f_name/=__generate_directory__(current_time);
-            out_f_name/=__generate_name__(output_format_,center_to_abbr(props_.center_.value()),
-            grid_to_abbr(props_.grid_type_.value()),current_time);
+            out_f_name/=__generate_name__(center_to_abbr(props_.center_.value()),
+                grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,current_time);
             {
                 auto err = __create_file_and_write_header__(out,out_f_name,result);
                 if(err!=ErrorCode::NONE)

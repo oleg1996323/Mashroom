@@ -2,6 +2,7 @@
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "cmd_parse/functions.h"
+#include "cast/grid.h"
 
 void boost::program_options::validate(boost::any& v,const std::vector<std::basic_string<char>>& values,
                                     RepresentationType* target_type,int)
@@ -27,4 +28,19 @@ RepresentationType boost::lexical_cast(const std::string& input){
         throw boost::bad_lexical_cast();
     }
     else return static_cast<RepresentationType>(grid_tmp.value());
+}
+
+std::expected<RepresentationType,ErrorCode> parse::grid_notifier(const std::vector<std::string>& input) noexcept{
+    auto grids = multitoken_approx_match_grid(input);
+    //if abbreviation
+    if(grids.empty())
+        return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                "not matched center",AT_ERROR_ACTION::CONTINUE,input.front()));
+    else if(grids.size()==1)
+        return grids.front();
+    else{
+        std::cout<<"Matched more than 1 grid:"<<std::endl;
+        std::cout<<grid_to_txt(grids)<<std::endl;
+        return std::unexpected(ErrorCode::INTERNAL_ERROR);
+    }
 }
