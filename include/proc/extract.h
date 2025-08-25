@@ -106,17 +106,18 @@ public:
 
 private:
     TimePeriod t_off_ = TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
-    std::string path_format;
-    std::string file_format;
+    mutable std::string path_format;
+    mutable std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
-    void __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
-    void __extract__(const fs::path& file, ExtractedData& ref_data);
-    ErrorCode __create_dir_for_file__(const fs::path &out_f_name);
-    ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result);
+    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
+    ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
+    ErrorCode __create_dir_for_file__(const fs::path &out_f_name) const noexcept;
+    ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result) const noexcept;
     template <typename... ARGS>
-    fs::path __generate_name__(ARGS &&...args);
+    fs::path __generate_name__(ARGS &&...args) const noexcept;
     template <typename... ARGS>
-    fs::path __generate_directory__(ARGS &&...args); // TODO expand extract division
+    fs::path __generate_directory__(ARGS &&...args) const noexcept; // TODO expand extract division
+    ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const noexcept;
 public:
     Extract() = default;
     Extract(const Extract& other)=delete;
@@ -217,7 +218,7 @@ public:
 };
 
 template <typename... ARGS>
-fs::path Extract::__generate_name__(ARGS &&...args)
+fs::path Extract::__generate_name__(ARGS &&...args) const noexcept
 {
     OutputDataFileFormats fmt_tmp = output_format_&~OutputDataFileFormats::ARCHIVED;
     if(file_format.empty()){
@@ -272,7 +273,7 @@ fs::path Extract::__generate_name__(ARGS &&...args)
     return std::vformat(file_format + ".txt", std::make_format_args(args...));
 }
 template <typename... ARGS>
-fs::path Extract::__generate_directory__(ARGS &&...args)
+fs::path Extract::__generate_directory__(ARGS &&...args) const noexcept
 {
     if(path_format.empty()){
         if (t_off_.seconds_ > std::chrono::seconds(0))

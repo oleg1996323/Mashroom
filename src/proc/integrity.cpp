@@ -111,7 +111,7 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
 #include "definitions/def.h"
 #include "grib1/include/message.h"
 #include "data/msg.h"
-void Integrity::__process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) {
+ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) noexcept{
     for (const fs::directory_entry& entry : entries) {
         if (entry.is_regular_file() && entry.path().has_extension() && 
             (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -133,12 +133,14 @@ void Integrity::__process_core__(std::ranges::random_access_range auto&& entries
                 }
                 else
                     file_errors_.push_back(std::make_pair(entry.path(),err));
-                return;
+                continue;
             }
             do{
                 const auto& msg = grib.message();
-                if(!msg.has_value())
-                    throw std::runtime_error("Message undefined");
+                if(!msg.has_value()){
+                    ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+                    continue;
+                }
                 GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
                                             std::move(msg.value().get().section_1_.date()),
                                             grib.current_message_position(),
@@ -173,5 +175,5 @@ void Integrity::__process_core__(std::ranges::random_access_range auto&& entries
             }while(grib.next_message());
         }
     }
-    return;
+    return ErrorCode::NONE;
 }

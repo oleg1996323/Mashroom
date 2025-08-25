@@ -31,7 +31,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 endif()
 load_eccode_header(
 	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes/definitions/grib1"
-	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grib1"
+	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/API/grib1"
     PYTHON_AUTOGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external"
 )
 
@@ -67,8 +67,9 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
+
 add_subdirectory(library)
-add_subdirectory(grib1)
+add_subdirectory(API)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
@@ -81,7 +82,7 @@ target_include_directories(web PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/network)
 
-target_link_libraries(web PUBLIC gribAPI::v1 library system)
+target_link_libraries(web INTERFACE GIAPI PUBLIC library system)
 
 #build command line interpreter parse
 add_library(clip SHARED ${CLparse_SOURCES})
@@ -89,12 +90,12 @@ target_include_directories(clip PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse)
-target_link_libraries(clip PUBLIC gribAPI::v1 library system Boost::program_options )
+target_link_libraries(clip INTERFACE GIAPI PUBLIC library system Boost::program_options )
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC 
-                    gribAPI::v1
+target_link_libraries(Mashroom_lib INTERFACE GIAPI
+                    PUBLIC
                     library
                     system
                     clip

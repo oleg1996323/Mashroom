@@ -41,7 +41,8 @@ class Integrity:public AbstractSearchProcess{
     std::vector<std::pair<fs::path,ErrorCodeData>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
     int cpus = 1;
-    void __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr);
+    ErrorCode __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) noexcept;
+    
     public:
     virtual ErrorCode execute() noexcept override final;
     virtual ErrorCode properties_integrity() const noexcept override final{

@@ -1,0 +1,29 @@
+cmake_minimum_required(VERSION 3.22)
+project("Geoinformational format's API collection")
+enable_testing()
+
+
+
+add_library(GIAPI INTERFACE)
+
+target_include_directories(GIAPI INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+file(GLOB_RECURSE COMMON_SOURCES_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/common/*.h)
+file(GLOB_RECURSE COMMON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/common/src/**.cpp)
+add_library(common_h INTERFACE)
+target_sources(common_h INTERFACE ${COMMON_SOURCES_HEADERS})
+target_include_directories(common_h INTERFACE common)
+if(COMMON_SOURCES)
+    add_library(common PUBLIC ${COMMON_SOURCES})
+    target_link_libraries(common INTERFACE common_h)
+    target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common/include)
+    target_link_libraries(GIAPI INTERFACE common library)
+else()
+    target_link_libraries(GIAPI INTERFACE common_h library)
+endif()
+
+add_subdirectory(grib1)
+set_property(TARGET grib1API APPEND PROPERTY INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(GIAPI INTERFACE gribAPI::v1)
+get_target_property(grib1API_DIR GIAPI INCLUDE_DIRECTORIES)
+message(STATUS ${grib1API_DIR})
