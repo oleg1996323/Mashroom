@@ -32,11 +32,11 @@ class SublimedGribDataInfo;
 namespace fs = std::filesystem;
 class GribDataInfo{
     public:
-    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<GribIndexDataInfo>>>;
+    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
     using sublimed_data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
-    API::ErrorData::Code err = API::ErrorData::Code::NONE_ERR;
+    API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
     friend class Index;
     friend class Integrity;
     friend class Extract;
@@ -48,9 +48,9 @@ class GribDataInfo{
     info_(info){}
     GribDataInfo(data_t&& info):
     info_(std::move(info)){}
-    template<typename CDP = CommonDataProperties, typename GCDI = GribIndexDataInfo>
+    template<typename CDP = CommonDataProperties, typename GCDI = IndexDataInfo<API::GRIB1>>
     void add_info(const path::Storage<false>& path,CDP&& cmn,GCDI&& index_info){
-        if constexpr(std::is_same_v<std::vector<GribIndexDataInfo>,std::decay_t<GCDI>>){
+        if constexpr(std::is_same_v<std::vector<IndexDataInfo<API::GRIB1>>,std::decay_t<GCDI>>){
             info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(index_info));
         }
         else
@@ -58,7 +58,7 @@ class GribDataInfo{
     }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
-    API::ErrorData::Code error() const;
+    API::ErrorData::Code<API::GRIB1>::value error() const;
     const data_t& data() const;
     void swap(GribDataInfo& other) noexcept;
     //void read(const fs::path& path);

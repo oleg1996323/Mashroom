@@ -20,17 +20,17 @@ namespace API::ErrorDataPrint{
 
     template<API::TYPES TYPE,typename... Args>
     std::string message(typename API::ErrorData::Code<TYPE>::value err,const std::string& prompt_txt,  Args&&... args)noexcept {
-        return message(err,prompt_txt.c_str(),std::forward<Args>(args)...);
+        return message<TYPE>(err,prompt_txt.c_str(),std::forward<Args>(args)...);
     }
 
     template<API::TYPES TYPE,typename... Args>
     typename API::ErrorData::Code<TYPE>::value print_error(typename API::ErrorData::Code<TYPE>::value err,const char* prompt_txt,  Args&&... args) noexcept{
-        std::cerr<<message(err,prompt_txt,args...)<<std::endl;
+        std::cerr<<message<TYPE>(err,prompt_txt,args...)<<std::endl;
         return err;
     }
 
     template<API::TYPES TYPE,typename... Args>
     typename API::ErrorData::Code<TYPE>::value print_error(typename API::ErrorData::Code<TYPE>::value err,const std::string& prompt_txt,  Args&&... args) noexcept{
-        return print_error(err,prompt_txt.c_str(),std::forward<Args>(args)...);
+        return print_error<TYPE>(err,prompt_txt.c_str(),std::forward<Args>(args)...);
     }
 }

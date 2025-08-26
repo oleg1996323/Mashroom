@@ -22,7 +22,7 @@ struct GribMsgDataInfo
     TimeFrame t_unit;
     Organization center;
     uint8_t table_version;
-    API::ErrorData::Code err = API::ErrorData::Code::NONE_ERR;
+    API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
 
     GribMsgDataInfo(GridInfo&& grid_data_,
         utc_tp&& date_,

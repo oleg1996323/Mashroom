@@ -205,12 +205,12 @@ API::ErrorData::Code<API_TYPE>::value HGrib1::open_grib(const fs::path& filename
         const auto tmp = current_message_length();
         if(tmp.has_value()){
             if(!memcmp(__f_ptr+current_message_length().value()-5,"7777",4))
-                return API::ErrorDataPrint::print_error(API::ErrorData::Code<API_TYPE>::MISS_END_SECTION_X1,"",filename.string());
+                return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::Code<API_TYPE>::MISS_END_SECTION_X1,"",filename.string());
         }
-        else return API::ErrorDataPrint::print_error(API::ErrorData::ErrorCode<API_TYPE>::DATA_EMPTY_X1,"",filename.string());
+        else return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::ErrorCode<API_TYPE>::DATA_EMPTY_X1,"",filename.string());
     }
     catch(...){
-        return API::ErrorDataPrint::print_error(API::ErrorData::Code<API_TYPE>::BAD_FILE_X1,"",filename.string());
+        return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::Code<API_TYPE>::BAD_FILE_X1,"",filename.string());
     }
     return API::ErrorData::Code<API_TYPE>::NONE_ERR;
 }

@@ -52,7 +52,7 @@ InternalDateFileFormats output_format() const{
 }
 void clear_result(){
     result.info_.clear();
-    result.err = API::ErrorData::Code::NONE_ERR;
+    result.err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
 }
 void set_using_processor_cores(int cores){
     if(cores>0 && cores<std::thread::hardware_concurrency())

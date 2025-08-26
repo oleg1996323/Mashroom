@@ -3,23 +3,23 @@
 namespace fs = std::filesystem;
 void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
     info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(GribIndexDataInfo{
+    .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
         msg_info.buf_pos_,
         msg_info.date,
-        API::ErrorData::Code::NONE_ERR});
+        API::ErrorData::Code<API::GRIB1>::NONE_ERR});
 }
 
 void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
     info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(GribIndexDataInfo{
+    .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
         msg_info.buf_pos_,
         msg_info.date,
-        API::ErrorData::Code::NONE_ERR});
+        API::ErrorData::Code<API::GRIB1>::NONE_ERR});
 }
 
-API::ErrorData::Code GribDataInfo::error() const{
+API::ErrorData::Code<API::GRIB1>::value GribDataInfo::error() const{
     return err;
 }
 const GribDataInfo::data_t& GribDataInfo::data() const {
@@ -41,18 +41,18 @@ SublimedGribDataInfo GribDataInfo::sublime(){
             auto& data_seq_tmp = data_t_tmp[cmn_d];
             //placing without grid to the beginning
             //errorness structures to the end
-            std::ranges::sort(data_seq,[](const GribIndexDataInfo& lhs,const GribIndexDataInfo& rhs)->bool
+            std::ranges::sort(data_seq,[](const IndexDataInfo<API::GRIB1>& lhs,const IndexDataInfo<API::GRIB1>& rhs)->bool
             {
-                if(lhs.err!=API::ErrorData::Code::NONE_ERR)
+                if(lhs.err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
                     return false;
                 if(std::hash<std::optional<GridInfo>>{}(lhs.grid_data)<std::hash<std::optional<GridInfo>>{}(rhs.grid_data))
                     return true;
                 else
                     return lhs.date_time<rhs.date_time;   
             });
-            assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const GribIndexDataInfo& lhs,const GribIndexDataInfo& rhs)
+            assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const IndexDataInfo<API::GRIB1>& lhs,const IndexDataInfo<API::GRIB1>& rhs)
             {
-                if(lhs.err!=API::ErrorData::Code::NONE_ERR)
+                if(lhs.err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
                     return false;
                 if(std::hash<std::optional<GridInfo>>{}(lhs.grid_data)<std::hash<std::optional<GridInfo>>{}(rhs.grid_data))
                     return true;
@@ -60,7 +60,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                     return lhs.date_time<rhs.date_time;   
             }));
             for(int i=0;i<data_seq.size();++i){
-                if(data_seq.at(i).err!=API::ErrorData::Code::NONE_ERR)
+                if(data_seq.at(i).err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
                     continue;
                 if(data_seq_tmp.empty()){
                     data_seq_tmp.emplace_back(SublimedDataInfo{.grid_data_ = data_seq.at(i).grid_data,

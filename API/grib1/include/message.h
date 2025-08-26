@@ -24,7 +24,7 @@ struct Message{
     GridDescriptionSection section_2_;
     BitMapSection section_3_;
     BinaryDataSection section_4_;
-    API::ErrorData::Code<API_TYPE>::value err_;
+    API::ErrorData::Code<API::GRIB1>::value err_;
 
     Message(unsigned char* buffer):section_0_(buffer),
                                     section_1_(buffer+sec_0_min_sz),
@@ -42,7 +42,7 @@ struct Message{
         //                                         section2().has_value()?section_2_.buf_+section_2_.section_length():
         //                                         section_1_.buffer_+section_1_.section_length()));
         if(sec_0_min_sz+section_1_.section_length()+section_2_.section_length()+section_3_.section_length()+section_4_.get_BDS_length()+4!=message_length())
-            err_ = API::ErrorData::Code<API_TYPE>::LEN_UNCONSIST_X1;
+            err_ = API::ErrorData::Code<API::GRIB1>::LEN_UNCONSIST_X1;
     }
 
     unsigned long message_length() const noexcept{
@@ -91,7 +91,7 @@ struct HGrib1
     std::optional<unsigned long> file_size() const noexcept;
     bool is_correct_format() const noexcept;
     std::optional<unsigned char> grib_version() const noexcept;
-    API::ErrorData::Code<API_TYPE>::value open_grib(const fs::path& filename);
+    API::ErrorData::Code<API::GRIB1>::value open_grib(const fs::path& filename);
     bool set_message(ptrdiff_t pos) noexcept;
 };
 

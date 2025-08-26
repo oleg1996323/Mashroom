@@ -68,11 +68,9 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
 
-
+add_subdirectory(library)
 add_subdirectory(API)
 
-
-add_subdirectory(library)
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include)

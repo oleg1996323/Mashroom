@@ -1,7 +1,7 @@
 #pragma once
 
 namespace API{
-    enum class TYPES{
+    enum TYPES{
         COMMON,
         #ifdef GRIB1API
         GRIB1,

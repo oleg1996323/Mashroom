@@ -4,11 +4,17 @@
 #include <optional>
 #include "sections/grid/grid.h"
 #include "err.h"
+#include "common/api_types.h"
+#include "grib1/error_data.h"
 
-struct GribIndexDataInfo
+template<API::TYPES TYPE>
+struct IndexDataInfo;
+
+template<>
+struct IndexDataInfo<API::GRIB1>
 {
     std::optional<GridInfo> grid_data;
     ptrdiff_t buf_pos_;
     std::chrono::system_clock::time_point date_time = std::chrono::system_clock::time_point::max();
-    API::ErrorData::Code err = API::ErrorData::Code::NONE_ERR;
+    API::ErrorData::Code<API::TYPES::GRIB1>::value err = API::ErrorData::Code<API::TYPES::GRIB1>::value::NONE_ERR;
 };
