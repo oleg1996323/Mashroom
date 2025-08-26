@@ -68,9 +68,11 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
 
-add_subdirectory(library)
+
 add_subdirectory(API)
 
+
+add_subdirectory(library)
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include)
@@ -82,20 +84,19 @@ target_include_directories(web PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/network)
 
-target_link_libraries(web INTERFACE GIAPI PUBLIC library system)
+target_link_libraries(web PUBLIC GIAPI library system)
 
-#build command line interpreter parse
+#build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse)
-target_link_libraries(clip INTERFACE GIAPI PUBLIC library system Boost::program_options )
+target_link_libraries(clip PUBLIC GIAPI library system Boost::program_options )
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib INTERFACE GIAPI
-                    PUBLIC
+target_link_libraries(Mashroom_lib PUBLIC GIAPI
                     library
                     system
                     clip

@@ -1,6 +1,7 @@
 #include "message.h"
 #include "int_pow.h"
 #include "error_data.h"
+#include "common/error_data_print.h"
 
 //Bit 3 is set to 1 to indicate that the original data were integers; when this is the case any non-zero reference values should be rounded to an integer value prior to placing in the GRIB BDS
 //Bit 4 is set to 1 to indicate that bits 5 to 12 are contained in octet 14 of the data section.
@@ -180,7 +181,7 @@ std::optional<unsigned char> HGrib1::grib_version() const noexcept{
         return msg_->section_0_.grib_version();
     else return std::nullopt;
 }
-ErrorData::Code HGrib1::open_grib(const fs::path& filename){
+API::ErrorData::Code<API_TYPE>::value HGrib1::open_grib(const fs::path& filename){
     msg_ = nullptr;
     __f_ptr = nullptr;
     current_ptr_ = nullptr;
@@ -191,27 +192,27 @@ ErrorData::Code HGrib1::open_grib(const fs::path& filename){
     }
     file = open(filename.string().c_str(),O_RDONLY | O_DIRECT);
     if(file==-1)
-        return ErrorData::Code::OPEN_ERROR_X1;
+        return API::ErrorData::Code<API_TYPE>::OPEN_ERROR_X1;
     sz_=lseek(file,0,SEEK_END);
     lseek(file,0,SEEK_SET);
     __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_PRIVATE|MAP_LOCKED,file,0);
     madvise(__f_ptr, sz_, MADV_SEQUENTIAL);
     if(!__f_ptr)
-        return ErrorData::Code::READ_POS_X1;
+        return API::ErrorData::Code<API_TYPE>::READ_POS_X1;
     current_ptr_ = __f_ptr;
     msg_ = std::make_unique<Message>(__f_ptr);
     try{
         const auto tmp = current_message_length();
         if(tmp.has_value()){
             if(!memcmp(__f_ptr+current_message_length().value()-5,"7777",4))
-                return ErrorDataPrint::print_error(ErrorData::Code::MISS_END_SECTION,"",filename.string());
+                return API::ErrorDataPrint::print_error(API::ErrorData::Code<API_TYPE>::MISS_END_SECTION_X1,"",filename.string());
         }
-        else return ErrorDataPrint::print_error(ErrorData::Code::DATA_EMPTY,"",filename.string());
+        else return API::ErrorDataPrint::print_error(API::ErrorData::ErrorCode<API_TYPE>::DATA_EMPTY_X1,"",filename.string());
     }
     catch(...){
-        return ErrorDataPrint::print_error(ErrorData::Code::BAD_FILE_X1,"",filename.string());
+        return API::ErrorDataPrint::print_error(API::ErrorData::Code<API_TYPE>::BAD_FILE_X1,"",filename.string());
     }
-    return ErrorData::Code::NONE_ERR;
+    return API::ErrorData::Code<API_TYPE>::NONE_ERR;
 }
 bool HGrib1::set_message(ptrdiff_t pos) noexcept{
     if(pos>=sz_)

@@ -18,7 +18,7 @@ struct std::incrementable_traits<std::chrono::time_point<Clock, Duration>> {
 
 struct ErrorFiles{
     fs::path name;
-    ErrorCodeData code;
+    API::ErrorData::Code code;
 };
 
 struct ProcessResult{
@@ -38,7 +38,7 @@ class Integrity:public AbstractSearchProcess{
     private:
     GribDataInfo data_;
     TimePeriod t_off_;
-    std::vector<std::pair<fs::path,ErrorCodeData>> file_errors_;
+    std::vector<std::pair<fs::path,API::ErrorData::Code>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
     int cpus = 1;
     ErrorCode __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) noexcept;
@@ -78,7 +78,7 @@ class Integrity:public AbstractSearchProcess{
 
     void clear_result(){
         data_.info_.clear();
-        data_.err = ErrorCodeData::NONE_ERR;
+        data_.err = API::ErrorData::Code::NONE_ERR;
     }
     GribDataInfo release_result() noexcept{
         GribDataInfo res(std::move(data_));

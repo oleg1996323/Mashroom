@@ -109,8 +109,8 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
 ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
     HGrib1 grib;
     
-    if(ErrorCodeData err_data = grib.open_grib(file);err_data!=ErrorCodeData::NONE_ERR)
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,ErrorDataPrint::message(err_data))
+    if(API::ErrorData::Code err_data = grib.open_grib(file);err_data!=API::ErrorData::Code::NONE_ERR)
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message(err_data,""),AT_ERROR_ACTION::CONTINUE);
     
     if(grib.file_size()==0)
         return ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);

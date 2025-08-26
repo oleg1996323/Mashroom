@@ -1,7 +1,7 @@
 #pragma once
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include "grib1/include/code_tables/table_0.h"
+#include "code_tables/table_0.h"
 #include "grib1/include/code_tables/table_4.h"
 #include "grib1/include/code_tables/table_5.h"
 #include "grib1/include/code_tables/table_6.h"

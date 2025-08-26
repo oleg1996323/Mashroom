@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "../../Debug/bin/serialization_test"
   "../../Debug/bin/serialization_test.pdb"
-  "CMakeFiles/serialization_test.dir/link.d"
   "CMakeFiles/serialization_test.dir/serialization.cpp.o"
   "CMakeFiles/serialization_test.dir/serialization.cpp.o.d"
 )

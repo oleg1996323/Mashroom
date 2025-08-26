@@ -89,8 +89,8 @@ namespace fs = std::filesystem;
  */
 const GribDataInfo& Index::__index_file__(const fs::path& file){
 	HGrib1 grib;
-	if(grib.open_grib(file)!=ErrorCodeData::NONE_ERR){
-		result.err = ErrorCodeData::OPEN_ERROR;
+	if(grib.open_grib(file)!=API::ErrorData::Code::NONE_ERR){
+		result.err = API::ErrorData::Code::OPEN_ERROR;
 		return result;
 	}
 	if(!output_order_.empty()){

@@ -36,7 +36,7 @@ class GribDataInfo{
     using sublimed_data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
-    ErrorCodeData err = ErrorCodeData::NONE_ERR;
+    API::ErrorData::Code err = API::ErrorData::Code::NONE_ERR;
     friend class Index;
     friend class Integrity;
     friend class Extract;
@@ -58,7 +58,7 @@ class GribDataInfo{
     }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
-    ErrorCodeData error() const;
+    API::ErrorData::Code error() const;
     const data_t& data() const;
     void swap(GribDataInfo& other) noexcept;
     //void read(const fs::path& path);
