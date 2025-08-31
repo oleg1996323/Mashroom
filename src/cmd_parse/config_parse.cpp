@@ -15,15 +15,15 @@
 #include <boost/program_options.hpp>
 
 namespace parse{
-    UserConfig::UserConfig():AbstractCLIParser("Config arguments"){}
+    ProgramConfigOptions::ProgramConfigOptions():AbstractCLIParser("Program configuration options "){}
 
-    void UserConfig::init() noexcept{
-        add_options("name,N",po::value<std::string>(),"Configure the program")
-        ("index-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().index_update_ti_),"Sets the time period of index update");
+    void ProgramConfigOptions::init() noexcept{
+        add_options("name,N",po::value<std::string>(),"Configuration name")
+        ("index-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().index_update_ti_),"Sets the time period of index update")
         ("mashroom-upd-time-period",po::value<TimePeriod>()->default_value(user::default_config().mashroom_update_ti_),"Sets the time period of Mashroom's updates");
         define_uniques();
     }
-    ErrorCode UserConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+    ErrorCode ProgramConfigOptions::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         /**
          * @todo add new config Settings (see /sys)
          */
@@ -49,7 +49,7 @@ namespace parse{
     }
 
     ErrorCode add_user_config_notifier(const std::vector<std::string>& args){
-        return UserConfig::instance().parse(args);
+        return ProgramConfigOptions::instance().parse(args);
     }
     ErrorCode remove_user_config_notifier(const std::string& name){
         if(!Application::config().remove_user_config(name))
@@ -59,33 +59,32 @@ namespace parse{
     }
 
     ErrorCode redefine_user_config_notifier(const std::vector<std::string>& args){
-        UserConfig::instance().parse(args);
-        if(UserConfig::instance().settings()){
-            if(!Application::config().change_user_config(
-                        *UserConfig::instance().settings()))
+        ProgramConfigOptions::instance().parse(args);
+        if(ProgramConfigOptions::instance().settings()){
+            if(!Application::config().setup_user_config(
+                        std::move(*ProgramConfigOptions::instance().settings().release())))
                 return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
                     "config name doesn't exists",
-                    AT_ERROR_ACTION::CONTINUE,UserConfig::instance().settings()->name_);
+                    AT_ERROR_ACTION::CONTINUE,ProgramConfigOptions::instance().settings()->name_);
         }
         else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         return ErrorCode::NONE;
     }
 
-    Config::Config():AbstractCLIParser("Config options:"){}
+    ProgramConfig::ProgramConfig():AbstractCLIParser("Config options:"){}
 
-    void Config::init() noexcept{
-        add_options_instances("add,A",po::value<std::vector<std::string>>(),"Configure the program",UserConfig::instance());
+    void ProgramConfig::init() noexcept{
+        add_options_instances("add,A",po::value<std::vector<std::string>>(),"Configure the program",ProgramConfigOptions::instance());
         add_options
         ("remove,R",po::value<std::string>()->notifier([this](const std::string& name){
             err_ = remove_user_config_notifier(name);
         }),"")
         ("redefine",po::value<std::vector<std::string>>(),"")
         ("get-config",po::value<std::string>(),"Print the confguration with indicated name")
-        ("print-all-configs","Print all accessible configurations");
-        add_options_instances("server","Configure the server settings",ServerAction::instance());
+        ("print-all","Print all accessible program configurations");
         define_uniques();
     }
-    ErrorCode Config::execute(vars& vm,const std::vector<std::string>& args) noexcept{
+    ErrorCode ProgramConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         if(vm.contains("add"))
             return add_user_config_notifier(args);
         else if(vm.contains("redefine"))
@@ -99,13 +98,11 @@ namespace parse{
                 "",AT_ERROR_ACTION::CONTINUE,vm.at("get-config").as<std::string>());
             return ErrorCode::NONE;
         }
-        else if(vm.contains("print-all-configs")){
+        else if(vm.contains("print-all")){
             for(auto& config:app().config().get_user_configs())
                 std::cout<<to_json(config)<<std::endl;
             return ErrorCode::NONE;
         }
-        else if(vm.contains("server"))
-            return ServerAction::instance().parse(args);
         else
             return try_notify(vm);
     }

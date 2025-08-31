@@ -180,7 +180,7 @@ ErrorCode Config::set_server_config_directory(const fs::path& path) noexcept{
     }
 }
 
-bool Config::add_user_config(const user::Settings& settings){
+bool Config::add_user_config(const user::Settings& settings) noexcept{
     if(settings.name_.empty()){
         ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"config settings name",AT_ERROR_ACTION::CONTINUE);
         return false;
@@ -193,21 +193,14 @@ bool Config::add_user_config(const user::Settings& settings){
     else ErrorPrint::print_error(ErrorCode::ALREADY_EXISTING_CONFIG_NAME,"",AT_ERROR_ACTION::CONTINUE,settings.name_);
     return false;
 }
-bool Config::add_server_config(network::server::Config&& set){
+bool Config::add_server_config(network::server::Config&& set) noexcept{
     if(!server_configs_.contains(set)){
         server_configs_.insert(std::move(set));
         return true;
     }
     return false;
 }
-bool Config::setup_server_config(network::server::Config&& set){
-    if(server_configs_.contains(set) && set){
-        server_configs_.insert(std::move(set));
-        return true;
-    }
-    return false;
-}
-bool Config::remove_server_config(std::string_view name){
+bool Config::remove_server_config(std::string_view name) noexcept{
     if(name=="default")
         return false;
     else if(!server_configs_.contains(name))
@@ -218,13 +211,13 @@ bool Config::remove_server_config(std::string_view name){
         return true;
     }
 }
-bool Config::remove_server_config(const std::string& name){
+bool Config::remove_server_config(const std::string& name) noexcept{
     return remove_server_config(std::string_view(name));
 }
-bool Config::remove_user_config(const std::string& name){
+bool Config::remove_user_config(const std::string& name) noexcept{
     return remove_user_config(std::string_view(name));
 }
-bool Config::remove_user_config(std::string_view name){
+bool Config::remove_user_config(std::string_view name) noexcept{
     if(has_config_name(name)){
         auto found = configs_.find(name);
         configs_.erase(found);
@@ -233,7 +226,7 @@ bool Config::remove_user_config(std::string_view name){
     else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,name);
     return false;
 }
-bool Config::change_user_config(const user::Settings& settings){
+bool Config::setup_user_config(const user::Settings& settings) noexcept{
     if(has_config_name(settings.name_)){
         configs_.insert(settings);
         return true;
@@ -241,13 +234,24 @@ bool Config::change_user_config(const user::Settings& settings){
     else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,settings.name_);
     return false;
 }
-const std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual> Config::get_user_configs() const{
+bool Config::setup_server_config(network::server::Config&& settings) noexcept{
+    if(server_configs_.contains(settings) && settings){
+        server_configs_.insert(std::move(settings));
+        return true;
+    }
+    else ErrorPrint::print_error(ErrorCode::CONFIG_NAME_DOESNT_EXISTS_X1,"",AT_ERROR_ACTION::CONTINUE,settings.name_);
+    return false;
+}
+const std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual>& Config::get_user_configs() const noexcept{
     return configs_;
 }
-const user::Settings& Config::get_user_config(const std::string& name) const{
+const std::unordered_set<network::server::Config>& Config::get_server_configs() const noexcept{
+    return server_configs_;
+}
+const user::Settings& Config::get_user_config(const std::string& name) const noexcept{
     return get_user_config(std::string_view(name));
 }
-const user::Settings& Config::get_user_config(std::string_view name) const{
+const user::Settings& Config::get_user_config(std::string_view name) const noexcept{
     if(name.empty()){
         ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"configuration name",AT_ERROR_ACTION::CONTINUE);
         return empty_config_;
@@ -261,31 +265,35 @@ const user::Settings& Config::get_user_config(std::string_view name) const{
         return empty_config_;
     }
 }
-const user::Settings& Config::get_current_user_config() const{
+const user::Settings& Config::get_current_user_config() const noexcept{
     return user_config_;
 }
-const network::server::Config& Config::get_server_config(std::string_view name) const{
+const network::server::Config& Config::get_server_config(std::string_view name) const noexcept{
     if(has_server_config(name))
         return *server_configs_.find(name);
     else return empty_server_config_;
 }
-const network::server::Config& Config::get_server_config(const std::string& name) const{
+const network::server::Config& Config::get_server_config(const std::string& name) const noexcept{
     return get_server_config(std::string_view(name));
 }
-const network::server::Config& Config::get_current_server_config() const{
+const network::server::Config& Config::get_current_server_config() const noexcept{
     return server_config_;
 }
-bool Config::set_current_server_config(const std::string& name) const noexcept{
-    return set_current_server_config(std::string_view(name));
-}
-bool Config::set_current_server_config(std::string_view name) const noexcept{
+bool Config::set_server_config(std::string_view name) const noexcept{
     if(server_configs_.contains(name)){
         server_config_ = *server_configs_.find(name);
         return true;
     }
     return false;
 }
-const network::server::Config& Config::current_server_setting(){
+bool Config::set_user_config(std::string_view name) const noexcept{
+    if(configs_.contains(name)){
+        user_config_ = *configs_.find(name);
+        return true;
+    }
+    return false;
+}
+const network::server::Config& Config::current_server_setting() const noexcept{
     return server_config_;
 }
 //config_file

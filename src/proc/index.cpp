@@ -12,6 +12,7 @@
 #include "definitions/path_process.h"
 #include "network/common/message/message_process.h"
 #include <format>
+#include "error_data_print.h"
 bool Index::check_format(std::string_view fmt){
 	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
 	{
@@ -89,8 +90,9 @@ namespace fs = std::filesystem;
  */
 const GribDataInfo& Index::__index_file__(const fs::path& file){
 	HGrib1 grib;
-	if(grib.open_grib(file)!=API::ErrorData::Code::NONE_ERR){
-		result.err = API::ErrorData::Code::OPEN_ERROR;
+	using namespace API::ErrorData;
+	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		return result;
 	}
 	if(!output_order_.empty()){

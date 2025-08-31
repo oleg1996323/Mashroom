@@ -125,8 +125,8 @@ ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& en
             }
 
             HGrib1 grib;
-            API::ErrorData::Code err = grib.open_grib(entry.path());
-            if(err!=API::ErrorData::Code::NONE_ERR){
+            API::ErrorData::Code<API::GRIB1>::value err = grib.open_grib(entry.path());
+            if(err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
                 if(mute_at_print){
                     std::lock_guard<std::mutex> locked(*mute_at_print);
                     file_errors_.push_back(std::make_pair(entry.path(),err));

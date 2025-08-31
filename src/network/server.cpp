@@ -41,8 +41,9 @@ Server::Server():connection_pool_(*this){
     struct sigaction sa;
     memset(&ainfo_,0,sizeof(ainfo_));
     ainfo_.ai_family = AF_INET;
-    ainfo_.ai_flags = AI_PASSIVE;
+    ainfo_.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     ainfo_.ai_socktype = SOCK_STREAM;
+    ainfo_.ai_protocol = IPPROTO_TCP;
     const char* service;
     int yes=1;
     if(!Application::config().current_server_setting().settings_.service.empty())

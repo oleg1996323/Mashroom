@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Serialization",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "SublimedInfo",
+          "file": "\/home\/oster\/Mashroom\/tests\/mashroom_serialization.cpp",
+          "line": 8
+        },
+        {
+          "name": "PathStorage",
+          "file": "\/home\/oster\/Mashroom\/tests\/mashroom_serialization.cpp",
+          "line": 68
+        },
+        {
+          "name": "SublimedGribDataInfo",
+          "file": "\/home\/oster\/Mashroom\/tests\/mashroom_serialization.cpp",
+          "line": 93
+        }
+      ]
+    }
+  ]
+}

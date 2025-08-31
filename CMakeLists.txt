@@ -68,41 +68,49 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
 
-add_subdirectory(library)
+set(CMAKE_PREFIX_PATH "$ENV{HOME}/OsterLib-install")
+find_package(OsterLib CONFIG REQUIRED)
 add_subdirectory(API)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
-target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
 target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
-target_link_libraries(system PUBLIC library)
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/network)
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/network
+                                    ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC GIAPI library system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional GIAPI system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse)
-target_link_libraries(clip PUBLIC GIAPI library system Boost::program_options )
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse
+                                    ${OsterLib_INCLUDE_DIRS})
+target_link_libraries(clip PUBLIC GIAPI OsterLib::CLInput system Boost::program_options Boost::json)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
 target_link_libraries(Mashroom_lib PUBLIC GIAPI
-                    library
                     system
                     clip
-                    web)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+                    web
+                    OsterLib::serial
+                    OsterLib::boost_functional
+                    OsterLib::bytes
+                    OsterLib::utilities
+                    OsterLib::compressor
+                    OsterLib::types)
+target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR)
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
-target_link_libraries(Mashroom PRIVATE Mashroom_lib library)
+target_link_libraries(Mashroom PRIVATE Mashroom_lib)
 target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
 

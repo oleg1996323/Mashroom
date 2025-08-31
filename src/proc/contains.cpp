@@ -9,7 +9,7 @@ std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::s
     HGrib1 grib;
     if(!is_correct_pos(&coord))
         return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
-    if(grib.open_grib(from)!=API::ErrorData::Code::NONE_ERR)
+    if(grib.open_grib(from)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
         return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
     do{
         const auto& msg = grib.message();
@@ -47,7 +47,7 @@ std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::s
     HGrib1 grib;
     if(!is_correct_pos(&coord))
         return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
-    if(grib.open_grib(from)!=API::ErrorData::Code::NONE_ERR)
+    if(grib.open_grib(from)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
         return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
     do{
         const auto msg = grib.message();

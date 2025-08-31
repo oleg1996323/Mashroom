@@ -7,6 +7,7 @@
 #include "cmd_parse/contains_parse.h"
 #include "cmd_parse/functions.h"
 #include "cmd_parse/server_parse.h"
+#include "cmd_parse/server_config_parse.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include <boost/program_options.hpp>

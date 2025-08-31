@@ -1,100 +1,100 @@
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---exit
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---index --inp dir=~/test_grib
---save
---index --inp dir=~/test_grib
---save
---index --inp dir=~/test_grib
---save
---index --inp dir=~/test_grib
---save
---exit
---index --inp dir=~/test_grib
---save
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---exit
---index --inp dir=~/test_grib
---save
---index --inp dir=~/test_grib
---save
---index --inp dir=~/test_grib
---save
---exit
---index --inp dir=~/test_grib
---save
---exit
---index --inp dir=~/test_grib
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100"
---extract --help
---help --extract
---exit
---help --extract
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt+zip
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt+zip
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon40-lat40 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt+zip
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt+zip
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon18-lat40 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon18.25-lat40 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon18.25-lat40.25 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon40-lat18 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon18-lat40 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon40-lat18 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---index --inp dir=~/test_grib
---exit
---index --inp dir=~/test_grib
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---index --inp dir=~/test_grib
---save
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---index --inp dir=~/test_grib
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---index --inp dir=~/test_grib
---save
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---exit
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind" "Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind speed 10" "Wind speed 100" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind speed 10 component" "Wind speed 100 component" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component" "Wind 100 component" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component -stress" "Wind 100 component -stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component \-stress" "Wind 100 component \-stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component -stress" "Wind 100 component -stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component -stress" "Wind 100 component \-stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component \-stress" "Wind 100 component -stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress" "Wind 100 component '-stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component stress" "Wind 100 component stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress" "Wind 100 component '-stress" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress '-gust speed" "Wind 100 component '-stress '-gust speed" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 '-stress '-gust" "Wind 100 '-stress '-gust" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon45-lat45 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" "Temperature" "Pressure" "humidity" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon18-lat40 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" "Temperature" "Pressure" "humidity" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon40-lat18 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" "Temperature" "Pressure" "humidity" --ext-out-format=txt
---extract --center=ECMWF --grid=Cyl no mod --outp=/home/oster/new-test1 --pos=lon40-lat18 --parameters="Wind 10 component '-stress '-gust" "Wind 100 component '-stress '-gust" "Temperature" --ext-out-format=txt
+--server --launch "Test"
+--help
+--config --help
+--help --config
+--index --help
+--help --config
+--help --config --server
+--config --server --name Test --192.168.0.10 --port 32392 --timeout 20
+--config --server --name=Test --192.168.0.10 --port 32392 --timeout 20
+--config --server --add --name=Test --192.168.0.10 --port 32392 --timeout 20
+--config --server --add --name=Test --host --192.168.0.10 --port 32392 --timeout 20
+--config --server--name Test --host --192.168.0.10 --port 32392 --timeout 20
+--config --server --name Test --host --192.168.0.10 --port 32392 --timeout 20
+--config --server --name Test --host 192.168.0.10 --port 32392 --timeout 20
+--config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --config --server
+--config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --config --server
+--help --config
+--config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --config --server
+--help --config
+--config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--config --server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --config
+--help --program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--help --program-config
+--help --server-config
+--help --server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server --launch
+--server --launch Test
+--help --server --launch
+--help --server
+--server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server --launch
+--server --launch Test
+--server --launch "Test"
+--server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server --launch "Test"
+--server --launch Test
+--server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
+--server --launch Test
+--server --launch
+--help --config
+--help --program-config
+--program-config --print-all-configs
+--server-config --print-all-configs
+--help --server-config
+--help --program-config --add
+--help --server-config
+--help --server-config --add
+--help --server-config --remove
+--help --server-config --setup
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--help --server-config --setup
+--help --server-config --remove
+--help --server-config --add
+--help
+--help --server-config --add
+--help
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--help --server-config --add
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --print-all
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --current
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --current
+--server-config --set Test
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --set Test
+--server-config --current
+--server --launch
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --current
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --set Test
+--server-config --current
+--server-config --add --name Test --host 192.168.0.1 --port 32396
+--server-config --current
+--server --launch
+--server-config --add --name Test --host 192.168.0.12/24 --port 32396
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server --launch
+--server-config --current
+--server-config --set Test
+--server --launch
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server-config --set Test
+--server --launch
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server-config --set Test
+--server --launch

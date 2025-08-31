@@ -13,8 +13,14 @@ namespace parse{
     ErrorCode contains_notifier(const std::vector<std::string>& input) noexcept{
         return Contains::instance().parse(input);
     }
+    ErrorCode server_notifier(const std::vector<std::string>& input) noexcept{
+        return ServerAction::instance().parse(input);
+    }
     ErrorCode config_notifier(const std::vector<std::string>& input) noexcept{
-        return Config::instance().parse(input);
+        return ProgramConfig::instance().parse(input);
+    }
+    ErrorCode serverconfig_notifier(const std::vector<std::string>& input) noexcept{
+        return ServerConfig::instance().parse(input);
     }
     ErrorCode save_notifier() noexcept{
         ::Mashroom::instance().save();
@@ -40,10 +46,13 @@ namespace parse{
         ("contains",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = contains_notifier(items);
         }),"Check if indexd data contains the data specified by properties",Contains::instance())
-        ("config",po::value<std::vector<std::string>>()->zero_tokens(),"Permits to configure the program or server",Config::instance()).
-        add_options("save","Save the current instance")
+        ("program-config",po::value<std::vector<std::string>>()->zero_tokens(),"Configure the program",ProgramConfig::instance())
+        ("server-config",po::value<std::vector<std::string>>()->zero_tokens(),"Configure the server",ServerConfig::instance())
+        ("save","Save the current instance")
+        ("server","Server activities",ServerAction::instance())
         ("help,H","Show help")
         ("exit","Exit from program");
+        assert(!descriptor_.find_nothrow("add",false));
         define_uniques();
     }
     ErrorCode Mashroom::execute(vars& vm,const std::vector<std::string>& args) noexcept{
@@ -55,8 +64,11 @@ namespace parse{
             err_ = save_notifier();
             return err_;
         }
-        else if(vm.contains("config")){
+        else if(vm.contains("program-config")){
             return config_notifier(args);
+        }
+        else if(vm.contains("server-config")){
+            return serverconfig_notifier(args);
         }
         else if(vm.contains("extract")){
             return extract_notifier(args);
@@ -69,6 +81,9 @@ namespace parse{
         }
         else if(vm.contains("contains")){
             return contains_notifier(args);
+        }
+        else if(vm.contains("server")){
+            return server_notifier(args);
         }
         else{
             err_=try_notify(vm);

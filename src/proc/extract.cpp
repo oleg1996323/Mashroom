@@ -18,6 +18,7 @@
 #include "data/info.h"
 #include "generated/code_tables/eccodes_tables.h"
 #include "API/common/error_data.h"
+#include "API/common/error_data_print.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
@@ -109,8 +110,8 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
 ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
     HGrib1 grib;
     
-    if(API::ErrorData::Code err_data = grib.open_grib(file);err_data!=API::ErrorData::Code::NONE_ERR)
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message(err_data,""),AT_ERROR_ACTION::CONTINUE);
+    if(API::ErrorData::Code<API::GRIB1>::value err_data = grib.open_grib(file);err_data!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(err_data,"",file.string()),AT_ERROR_ACTION::CONTINUE);
     
     if(grib.file_size()==0)
         return ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
@@ -168,7 +169,7 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data,con
     }
     
     if(grib.file_size()==0)
-        return;
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
     for(const auto& pos:positions.buf_pos_){
         if(!grib.set_message(pos))
             continue;
@@ -180,7 +181,7 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data,con
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested())
-            return;
+            return ErrorCode::INTERRUPTED;
         GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
                                     msg.value().get().section_1_.date(),
                                     grib.current_message_position(),
@@ -194,7 +195,7 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data,con
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }
-    return;
+    return ErrorCode::NONE;
 }
 
 using namespace std::string_literals;

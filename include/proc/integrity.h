@@ -38,7 +38,7 @@ class Integrity:public AbstractSearchProcess{
     private:
     GribDataInfo data_;
     TimePeriod t_off_;
-    std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>>> file_errors_;
+    std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>::value>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
     int cpus = 1;
     ErrorCode __process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print = nullptr) noexcept;

@@ -51,7 +51,7 @@ namespace parse{
         po::options_description descriptor_;
         std::vector<std::string> unique_values_;
         ErrorCode err_=ErrorCode::NONE;
-        static inline std::unordered_map<std::string_view,const BaseCLIParser&> descriptors_table_;
+        std::unordered_map<std::string_view,const BaseCLIParser&> descriptors_table_;
         BaseCLIParser& add_options_instances(const char *name, const boost::program_options::value_semantic *s,const BaseCLIParser& base) noexcept{
             auto desc = new po::option_description(name,s);
             descriptors_table_.insert({desc->long_name(),base});
@@ -120,15 +120,15 @@ namespace parse{
             err_=ErrorCode::NONE;
         };
         void print_help(std::ostream& stream, std::span<po::option> args) const{
-            const po::options_description* current = &descriptor_;
+            const BaseCLIParser* current = this;
             for(const po::option& arg:args){
-                if(descriptors_table_.contains(arg.string_key)){
+                if(current->descriptors_table_.contains(arg.string_key)){
                     if(!arg.value.empty()){
                         ErrorPrint::print_error(ErrorCode::TO_MANY_ARGUMENTS,"",AT_ERROR_ACTION::CONTINUE);
                         return;
                     }
-                    else if(current->find_nothrow(arg.string_key,false)!=nullptr){
-                        current = &descriptors_table_.at(arg.string_key).descriptor_;
+                    else if(current->descriptor_.find_nothrow(arg.string_key,false)!=nullptr){
+                        current = &current->descriptors_table_.at(arg.string_key);
                         continue;
                     }
                     else{
@@ -140,7 +140,7 @@ namespace parse{
                     if(!arg.value.empty()){
                         continue;
                     }
-                    else if(auto* option = current->find_nothrow(arg.string_key,false); option!=nullptr){
+                    else if(auto* option = current->descriptor_.find_nothrow(arg.string_key,false); option!=nullptr){
                         stream<<option->format_name()<<" "<<option->description()<<std::endl;
                         return;
                     }
@@ -150,7 +150,7 @@ namespace parse{
                     }
                 }
             }
-            current->print(stream);
+            current->descriptor_.print(stream);
             return;
         }
         public:
