@@ -1,45 +1,3 @@
---server --launch "Test"
---help
---config --help
---help --config
---index --help
---help --config
---help --config --server
---config --server --name Test --192.168.0.10 --port 32392 --timeout 20
---config --server --name=Test --192.168.0.10 --port 32392 --timeout 20
---config --server --add --name=Test --192.168.0.10 --port 32392 --timeout 20
---config --server --add --name=Test --host --192.168.0.10 --port 32392 --timeout 20
---config --server--name Test --host --192.168.0.10 --port 32392 --timeout 20
---config --server --name Test --host --192.168.0.10 --port 32392 --timeout 20
---config --server --name Test --host 192.168.0.10 --port 32392 --timeout 20
---config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --config --server
---config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --config --server
---help --config
---config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --config --server
---help --config
---config --server --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---config --server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --config
---help --program-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---help --program-config
---help --server-config
---help --server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server --launch
---server --launch Test
---help --server --launch
---help --server
---server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server --launch
 --server --launch Test
 --server --launch "Test"
 --server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
@@ -97,4 +55,45 @@
 --server --launch
 --server-config --add --name Test --host 192.168.0.12 --port 32396
 --server-config --set Test
+--server --launch
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server-config --set Test
+--server-config --current
+--server --launch
+--server-config --current
+--server-config --set Test
+--server-config --current
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server-config --current
+--server-config --set Test
+--server-config --current
+--server --launch
+--server-config --add --name Test --host 192.168.0.12 --port 32396
+--server-config --set Test
+--server-config --current
+--server --launch
+--server-config --add --name Test_1 --host 192.168.3.143 --port 32396
+--server-config --set Test_LO
+--server-config --current
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --current
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --current
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --current
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--exit
+--server-config --print-all\
+--server-config --print-all
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --print-all
+--server-config --current
 --server --launch

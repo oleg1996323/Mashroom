@@ -8,7 +8,7 @@ struct Settings{
     std::string host;
     std::string service;
     std::string port;
-    std::string protocol;
+    std::string protocol = "tcp";
     int timeout_seconds_=20;
     Settings() = default;
     Settings(const Settings& other)

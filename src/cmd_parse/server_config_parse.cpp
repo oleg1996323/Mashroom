@@ -79,7 +79,7 @@ ErrorCode host_notifier(const std::string& input) noexcept{
 ErrorCode port_notifier(int input) noexcept{
     if(input<1025 || input>std::numeric_limits<uint16_t>::max())
         return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition. Must be bigger than 1024",AT_ERROR_ACTION::CONTINUE,input);
-    ServerConfigOptions::config()->settings_.port=input;
+    ServerConfigOptions::config()->settings_.port=std::to_string(input);
     return ErrorCode::NONE;
 }
 

@@ -1,9 +1,6 @@
 [submodule "/home/oster/Mashroom/external/BLAKE3"]
 	path = /home/oster/Mashroom/external/BLAKE3
 	url = git@github.com:BLAKE3-team/BLAKE3.git
-[submodule "library/linenoise"]
-	path = library/linenoise
-	url = git@github.com:antirez/linenoise.git
 [submodule "external/eccodes"]
 	path = external/eccodes
 	url = git@github.com:ecmwf/eccodes.git

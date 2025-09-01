@@ -2,7 +2,7 @@ if(EXISTS "/home/oster/Mashroom/build/Debug/bin/Mashroom_serialize_test")
   if(NOT EXISTS "/home/oster/Mashroom/build/tests/Mashroom_serialize_test[1]_tests.cmake" OR
      NOT "/home/oster/Mashroom/build/tests/Mashroom_serialize_test[1]_tests.cmake" IS_NEWER_THAN "/home/oster/Mashroom/build/Debug/bin/Mashroom_serialize_test" OR
      NOT "/home/oster/Mashroom/build/tests/Mashroom_serialize_test[1]_tests.cmake" IS_NEWER_THAN "${CMAKE_CURRENT_LIST_FILE}")
-    include("/home/oster/CMake/Modules/GoogleTestAddTests.cmake")
+    include("")
     gtest_discover_tests_impl(
       TEST_EXECUTABLE [==[/home/oster/Mashroom/build/Debug/bin/Mashroom_serialize_test]==]
       TEST_EXECUTOR [==[]==]
@@ -17,7 +17,6 @@ if(EXISTS "/home/oster/Mashroom/build/Debug/bin/Mashroom_serialize_test")
       TEST_LIST [==[Mashroom_serialize_test_TESTS]==]
       CTEST_FILE [==[/home/oster/Mashroom/build/tests/Mashroom_serialize_test[1]_tests.cmake]==]
       TEST_DISCOVERY_TIMEOUT [==[5]==]
-      TEST_DISCOVERY_EXTRA_ARGS [==[]==]
       TEST_XML_OUTPUT_DIR [==[]==]
     )
   endif()

@@ -32,12 +32,13 @@
 *.app
 
 # Directories
-*/build
-*/bin
-*/lib
-*/shared
-*/.cmake
-*/CMakeFiles
+build/*
+bin/*
+lib/*
+shared/*
+.cmake/*
+CMakeFiles/*
+data/*
 
 # Heavy files
 
@@ -52,3 +53,4 @@
 *cmake_install.cmake
 *CMakeCache.txt
 *Makefile
+

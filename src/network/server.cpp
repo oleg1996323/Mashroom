@@ -43,47 +43,52 @@ Server::Server():connection_pool_(*this){
     ainfo_.ai_family = AF_INET;
     ainfo_.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     ainfo_.ai_socktype = SOCK_STREAM;
-    ainfo_.ai_protocol = IPPROTO_TCP;
+    const server::Settings& settings = Application::config().current_server_setting().settings_;
     const char* service;
     int yes=1;
-    if(!Application::config().current_server_setting().settings_.service.empty())
-        service = Application::config().current_server_setting().settings_.service.c_str();
-    else if(!Application::config().current_server_setting().settings_.port.empty())
-        service = Application::config().current_server_setting().settings_.port.c_str();
+    if(!settings.service.empty())
+        service = settings.service.c_str();
+    else if(!settings.port.empty())
+        service = settings.port.c_str();
     else{
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
         return;
     }
     {
         int status=0;
-        status = getaddrinfo(   Application::config().current_server_setting().settings_.host.c_str(),
-                                service,&ainfo_,&server_);
-        // status = getaddrinfo(   NULL,
+        // status = getaddrinfo(   settings.host.c_str(),
         //                         service,&ainfo_,&server_);
+        status = getaddrinfo(   NULL,
+                                service,&ainfo_,&server_);
         if(status!=0){
             std::cout<<gai_strerror(status)<<std::endl;
             err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
             return;
         }
+        //else getnameinfo(ainfo_.ai_addr,ainfo_.ai_addrlen,settings.host.c_str(),settings.host.size(),
     }
+    int last_err = 0;
     for(auto ptr_addr = server_;ptr_addr!=nullptr;ptr_addr=ptr_addr->ai_next){
         server_socket_ = socket(ptr_addr->ai_family,ptr_addr->ai_socktype,ptr_addr->ai_protocol);
         if(server_socket_==-1){
             err_ = ErrorCode::INTERNAL_ERROR;
+            last_err = errno;
             errno=0;
             continue;
         }
-        if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes,
+        if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEPORT, &yes,
             sizeof(int)) == -1) {
             err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
             server_socket_=-1;
+            last_err = errno;
             errno=0;
             continue;
         }
         if(bind(server_socket_,ptr_addr->ai_addr,ptr_addr->ai_addrlen)==-1){
             close(server_socket_);
-            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server binding"s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server binding "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
             server_socket_=-1;
+            last_err = errno;
             errno=0;
             continue;
         }
@@ -96,7 +101,7 @@ Server::Server():connection_pool_(*this){
         return;
     }
     if(__set_no_block__(server_socket_)!=ErrorCode::NONE){
-        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization - "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization - "s+strerror(last_err),AT_ERROR_ACTION::CONTINUE);
         errno = 0;
         return;
     }
