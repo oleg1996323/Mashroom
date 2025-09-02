@@ -1,10 +1,4 @@
 --server --launch Test
---server --launch "Test"
---server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server --launch "Test"
---server --launch Test
---server-config --name "Test" --host 192.168.0.10 --port 32392 --timeout 20
---server --launch Test
 --server --launch
 --help --config
 --help --program-config
@@ -97,3 +91,9 @@
 --server-config --print-all
 --server-config --current
 --server --launch
+--extract --outp /home/oster/new-test --inp host:0.0.0.0 --dfrom 01/01/1970 --
+--extract --outp /home/oster/new-test --inp host:0.0.0.0 --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cyl --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cyl --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp /home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
