@@ -122,5 +122,7 @@ void Mashroom::launch_server(){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR, "server deploy and launching failure",AT_ERROR_ACTION::CONTINUE);
         return;
     }
-    server_->launch();
+    if(server_->get_status()==network::server::Status::INACTIVE)
+        server_->launch();
+    else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server already launched",AT_ERROR_ACTION::CONTINUE);
 }

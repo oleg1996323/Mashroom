@@ -219,7 +219,15 @@ void Server::launch(){
     network::print_ip_port(std::cout,server_);
 }
 void Server::close_connections(bool wait_for_end_connections){
-    ::shutdown(server_socket_,SHUT_RDWR);
+    status_=server::Status::INACTIVE;
+    if(wait_for_end_connections){
+        stop();
+        ::shutdown(server_socket_,SHUT_RDWR);
+    }
+    else{
+        stop();
+        ::shutdown(server_socket_,SHUT_RD);
+    }
 }
 void Server::shutdown(bool wait_for_end_connections){
     if(status_!=server::Status::INACTIVE){

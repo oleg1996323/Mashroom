@@ -1,50 +1,3 @@
---server --launch Test
---server --launch
---help --config
---help --program-config
---program-config --print-all-configs
---server-config --print-all-configs
---help --server-config
---help --program-config --add
---help --server-config
---help --server-config --add
---help --server-config --remove
---help --server-config --setup
---server-config --add --name Test --host 192.168.0.1 --port 32396
---help --server-config --setup
---help --server-config --remove
---help --server-config --add
---help
---help --server-config --add
---help
---server-config --add --name Test --host 192.168.0.1 --port 32396
---help --server-config --add
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --print-all
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --current
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --current
---server-config --set Test
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --set Test
---server-config --current
---server --launch
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --current
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --set Test
---server-config --current
---server-config --add --name Test --host 192.168.0.1 --port 32396
---server-config --current
---server --launch
---server-config --add --name Test --host 192.168.0.12/24 --port 32396
---server-config --add --name Test --host 192.168.0.12 --port 32396
---server --launch
---server-config --current
---server-config --set Test
---server --launch
---server-config --add --name Test --host 192.168.0.12 --port 32396
 --server-config --set Test
 --server --launch
 --server-config --add --name Test --host 192.168.0.12 --port 32396
@@ -97,3 +50,51 @@
 --extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
 --extract --outp /home/oster/new-test --inp dir:/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
 --extract --outp /home/oster/new-test --inp /home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp dir:/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp /home/oster/new-test --inp /home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp=/home/oster/new-test --inp=/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--extract --outp=/home/oster/new-test --inp=/home/oster/test_grib --dfrom=01/01/1970 --dto=01/01/2025 --pos=lat45-lon45 --center=ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --launch
+--server --close
+--server --shutdown
+--server --launch
+--server --close
+--server --shutdown
+--help --server
+--server --launch
+--server --close
+--server --close true
+--server --launch
+--server --close true
+--server --launch
+--server --close true
+--server --launch
+--server --close true
+--server --launch
+--server --close
+--server --close true
+--server --launch
+--server --close true
+--server --launch
+--server --close true
+--server --launch
+--server --close false
+--server --launch
+--server --close false
+--server --launch
+--server --close false

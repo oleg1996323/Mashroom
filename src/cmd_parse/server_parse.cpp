@@ -18,6 +18,7 @@ namespace parse{
     }
 
     ErrorCode shutdown_notifier(bool wait) noexcept{
+        Mashroom::instance().shutdown_server(wait);
         return ErrorCode::NONE;
     }
 
@@ -34,18 +35,21 @@ namespace parse{
     void ServerAction::init() noexcept{
         descriptor_.add_options()
                 ("launch,L",po::value<std::string>()->implicit_value(::app().config().get_current_server_config().name_)->zero_tokens(),"Launch a server with named configuration or configuration which was previously set.")
-                ("shutdown,S",po::bool_switch()->default_value(true),"Shutdown an instance of the server with set configuration.")
-                ("close",po::bool_switch()->default_value(true),"Close a launched server instance");
+                ("shutdown,S",po::value<bool>()->default_value("true"),"Shutdown an instance of the server with set configuration.")
+                ("close",po::value<bool>()->default_value("true"),"Close a launched server instance");
         define_uniques();
     }
 
     ErrorCode ServerAction::execute(vars& vm,const std::vector<std::string>& tokens) noexcept{
-        if(vm.contains("launch"))
+        if(vm.contains("launch")){
             launch_notifier(vm.at("launch").as<std::string>());
-        else if(vm.contains("shutdown"))
-            shutdown_notifier(vm.at("shutdown").as<bool>());
-        else if(vm.contains("close"))
+        }
+        else if(vm.contains("close")){
             closing_notifier(vm.at("close").as<bool>());
+        }
+        else if(vm.contains("shutdown")){
+            shutdown_notifier(vm.at("shutdown").as<bool>());
+        }
         else 
             err_ = try_notify(vm);
         return err_;
