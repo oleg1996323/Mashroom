@@ -34,7 +34,7 @@ namespace parse{
 
     void ServerAction::init() noexcept{
         descriptor_.add_options()
-                ("launch,L",po::value<std::string>()->implicit_value(::app().config().get_current_server_config().name_)->zero_tokens(),"Launch a server with named configuration or configuration which was previously set.")
+                ("launch,L",po::value<std::string>()->value_name("<config name>")->implicit_value("")->zero_tokens(),"Launch a server with named configuration or configuration which was previously set.")
                 ("shutdown,S",po::value<bool>()->default_value("true"),"Shutdown an instance of the server with set configuration.")
                 ("close",po::value<bool>()->default_value("true"),"Close a launched server instance");
         define_uniques();

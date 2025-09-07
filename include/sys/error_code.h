@@ -63,7 +63,8 @@ enum class ErrorCode : uint8_t{
     DESERIALIZATION_ERROR,
     SERIALIZATION_ERROR,
     SERVER_ERROR,
-    DATA_NOT_FOUND
+    DATA_NOT_FOUND,
+    BUFFER_LOW_SIZE
 };
 
 enum class AT_ERROR_ACTION{

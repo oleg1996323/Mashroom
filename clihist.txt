@@ -1,100 +1,99 @@
---server-config --set Test
+--server-config --set Test_LO
 --server --launch
---server-config --add --name Test --host 192.168.0.12 --port 32396
---server-config --set Test
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0:1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server-config --add --name Test --host 192.168.0.12 --port 32396
---server-config --set Test
---server-config --current
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0:1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0:1 --port 32396
+--server-config --set Test_LO
 --server --launch
 --server-config --current
---server-config --set Test
---server-config --current
---server-config --add --name Test --host 192.168.0.12 --port 32396
---server-config --current
---server-config --set Test
---server-config --current
---server --launch
---server-config --add --name Test --host 192.168.0.12 --port 32396
---server-config --set Test
---server-config --current
---server --launch
---server-config --add --name Test_1 --host 192.168.3.143 --port 32396
 --server-config --set Test_LO
 --server-config --current
 --server --launch
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --current
+--server-config --set Test_LO
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0:1 --port 32396
 --server-config --set Test_LO
 --server-config --current
 --server --launch
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0:1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --add --name Test_LO --host 0:0:0:0:0:0:0/1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --current
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
 --server-config --current
---server --launch
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
 --server-config --current
---server --launch
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --setup --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --current
 --exit
---server-config --print-all\
---server-config --print-all
+--server-config --setup --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
---server-config --print-all
+--server --launch
+--server-config --current
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1/8 --port 32396
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --current
+--server-config --set Test_LO
 --server-config --current
 --server --launch
---extract --outp /home/oster/new-test --inp host:0.0.0.0 --dfrom 01/01/1970 --
---extract --outp /home/oster/new-test --inp host:0.0.0.0 --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cyl --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cyl --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp /home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:~/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp dir:/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp /home/oster/new-test --inp /home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp=/home/oster/new-test --inp=/home/oster/test_grib --dfrom 01/01/1970 --dto 01/01/2025 --pos lat45-lon45 --center ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
---extract --outp=/home/oster/new-test --inp=/home/oster/test_grib --dfrom=01/01/1970 --dto=01/01/2025 --pos=lat45-lon45 --center=ECMWF --parameters "wind component 10" "wind component 100" --grid Cylindr --ext-out-format txt
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --current
 --server --launch
---server --close
+--server-config --current
+--server-config --set Test_LO
+--server-config --current
 --server --launch
---server --close
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
---server --shutdown
---server --launch
---server --close
---server --shutdown
+--help --server-config
 --help --server
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close
---server --close true
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close true
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close true
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
 --server --launch
---server --close true
---server --launch
---server --close
---server --close true
---server --launch
---server --close true
---server --launch
---server --close true
---server --launch
---server --close false
---server --launch
---server --close false
---server --launch
---server --close false
+--index --inp host:127.0.0.1 --index-ref
+--index --inp host=127.0.0.1 --index-ref
+--index --inp host=127.0.0.1 port=32396 --index-ref
+--help --index
+--index --inp host=127.0.0.1 port=32396 --index-ref
+--index --inp host=127.0.0.1:32396 --index-ref

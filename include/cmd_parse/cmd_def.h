@@ -214,8 +214,12 @@ namespace parse{
                 return err;
             }
             else {
-                ErrorCode err = execute(vm_res.value(),tokens);
+                execute(vm_res.value(),tokens);
+                if(err_==ErrorCode::NONE)
+                    err_ = try_notify(vm_res.value());
+                ErrorCode err = err_;
                 callback();
+                err_ = ErrorCode::NONE;
                 return err;
             }
         }

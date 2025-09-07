@@ -23,7 +23,7 @@ namespace network{
         network::connection::ConnectionPool connection_pool_;
         std::jthread server_thread_;
         std::stop_token stop_token_;
-        addrinfo* server_=nullptr;
+        std::unique_ptr<sockaddr_storage> server_;
         eventfd_t server_interruptor;
         Socket server_socket_=-1;
         bool interrupt_transactions_ = false;

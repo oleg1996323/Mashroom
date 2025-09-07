@@ -63,17 +63,17 @@ class AbstractSearchProcess{
         if(!fs::exists(in_path))
             return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());
         if(fs::is_regular_file(in_path))
-            in_path_.insert(path::Storage<false>{in_path,path::TYPE::FILE});
+            in_path_.insert(path::Storage<false>::file(in_path,std::chrono::system_clock::now()));
         else if(fs::is_directory(in_path))
-            in_path_.insert(path::Storage<false>{in_path,path::TYPE::DIRECTORY});
+            in_path_.insert(path::Storage<false>::directory(in_path,std::chrono::system_clock::now()));
         else
             return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_REGULAR_FILE_OR_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,in_path);
         return ErrorCode::NONE;
     }
-    ErrorCode add_search_host(std::string_view host){
+    ErrorCode add_search_host(std::string_view host,uint16_t port){
         if(!gethostbyname(host.data()))
             return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,host);
-        in_path_.insert(path::Storage<false>{host,path::TYPE::HOST});
+        in_path_.insert(path::Storage<false>::host(host,port,std::chrono::system_clock::now()));
         return ErrorCode::NONE;
     }
     ErrorCode set_out_path(std::string_view out_path){

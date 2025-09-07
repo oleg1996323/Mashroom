@@ -68,7 +68,7 @@ TEST(Serialization, SublimedInfo){
 TEST(Serialization, PathStorage){
     using namespace serialization;
     std::string path_tmp("a path to serialize");
-    path::Storage<true> path_view(path_tmp,path::TYPE::FILE);
+    auto path_view = path::Storage<true>::file(path_tmp);
     std::vector<char> buf;
     ASSERT_EQ(serialize<true>(path_view,buf),SerializationEC::NONE);
     ASSERT_EQ(serial_size(path_view),sizeof(size_t)+path_view.path_.size()+sizeof(path_view.type_));
@@ -119,7 +119,7 @@ TEST(Serialization,SublimedGribDataInfo){
         str.resize(10);
         std::generate(str.begin(),str.end(),getRandomChar);
         for(int j=0;j<10;++j){
-            auto& vector_seq = data[path::Storage<false>(str,path::TYPE::FILE)][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
+            auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
             for(int m=0;m<10;++m){
                 SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/(i+j+m))),.to_=system_clock::now(),
                         .discret_=system_clock::duration((sub_data.to_-sub_data.from_)/sub_data.buf_pos_.size())};

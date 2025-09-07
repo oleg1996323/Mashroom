@@ -99,7 +99,7 @@ ErrorCode protocol_notifier(const std::string& input) noexcept{
 
 ErrorCode ServerConfigOptions::execute(vars& vm,const std::vector<std::string>& args) noexcept{
     config() = std::make_unique<network::server::Config>();
-    return try_notify(vm);
+    return err_;
 }
 
 ErrorCode ServerConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
@@ -107,7 +107,10 @@ ErrorCode ServerConfig::execute(vars& vm,const std::vector<std::string>& args) n
         err_ = ServerConfigOptions::instance().parse(args);
         if(err_==ErrorCode::NONE)
             app().config().add_server_config(std::move(*ServerConfigOptions::config().release()));
-        else return err_;
+        else {
+            err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"server configuration error",AT_ERROR_ACTION::CONTINUE);
+            return err_;
+        }
     }
     else if(vm.contains("setup")){
         err_ = ServerConfigOptions::instance().parse(args);
@@ -124,7 +127,7 @@ ErrorCode ServerConfig::execute(vars& vm,const std::vector<std::string>& args) n
     else
         for(auto& s_config:app().config().get_server_configs())
             std::cout<<to_json(s_config)<<std::endl;
-    return ErrorCode::NONE;
+    return err_;
 }
 
 void ServerConfigOptions::init() noexcept{
@@ -163,9 +166,9 @@ void ServerConfigOptions::init() noexcept{
 
 void ServerConfig::init() noexcept{
     add_options_instances("add",po::value<std::vector<std::string>>()->zero_tokens(),"Add new server configuration",ServerConfigOptions::instance())
-    ("remove",po::value<std::string>()->required(),"Remove existing server configuration")
-    ("setup",po::value<std::vector<std::string>>()->zero_tokens(),"Reconfig an existing server configuration",ServerConfigOptions::instance())
-    ("set",po::value<std::string>()->required(),"Setup an existing server configuration")
+    ("remove",po::value<std::string>(),"Remove existing server configuration")
+    ("setup",po::value<std::vector<std::string>>(),"Reconfig an existing server configuration",ServerConfigOptions::instance())
+    ("set",po::value<std::string>(),"Setup an existing server configuration")
     ("print-all","Print all accessible server configurations")
     ("current","Print current server configuration");
     define_uniques();

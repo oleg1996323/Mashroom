@@ -10,17 +10,17 @@ namespace network{
         using clients_t = std::unordered_set<network::Client>;
         clients_t clients_;
         using clients_iterator = decltype(clients_)::iterator;
-        clients_iterator __connect_internal__(const std::string& host);
+        clients_iterator __connect_internal__(const std::string& host,const std::string& port);
         public:
-        ErrorCode connect(const std::string& host);
+        ErrorCode connect(const std::string& host,const std::string& port);
         template<network::Client_MsgT::type MSG_T,typename... ARGS>
-        ErrorCode request(const std::string& host,ARGS&&... args);
+        ErrorCode request(const std::string& host,const std::string& port,ARGS&&... args);
         
     };
 
     template<network::Client_MsgT::type MSG_T,typename... ARGS>
-    ErrorCode ClientsHandler::request(const std::string& host,ARGS&&... args){
-        auto client_iter = __connect_internal__(host);
+    ErrorCode ClientsHandler::request(const std::string& host,const std::string& port,ARGS&&... args){
+        auto client_iter = __connect_internal__(host,port);
         if(client_iter==clients_.end())
             return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client connection",AT_ERROR_ACTION::CONTINUE);
         if(client_iter->err_!=ErrorCode::NONE)

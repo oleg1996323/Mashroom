@@ -3,6 +3,7 @@
 #include <program/mashroom.h>
 #include <sys/config.h>
 #include <sys/log_err.h>
+#include <netinet/in.h>
 
 void Server::sigchld_handler(int s){
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -37,65 +38,132 @@ ErrorCode Server::__set_no_block__(int socket){
     return ErrorCode::NONE;
 }
 Server::Server():connection_pool_(*this){
-    struct addrinfo ainfo_;
     struct sigaction sa;
-    memset(&ainfo_,0,sizeof(ainfo_));
-    ainfo_.ai_family = AF_INET;
-    ainfo_.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-    ainfo_.ai_socktype = SOCK_STREAM;
+    server_ = std::make_unique<sockaddr_storage>();
+    memset(server_.get(),0,sizeof(sockaddr_storage));
     const server::Settings& settings = Application::config().current_server_setting().settings_;
-    const char* service;
     int yes=1;
-    if(!settings.service.empty())
-        service = settings.service.c_str();
-    else if(!settings.port.empty())
-        service = settings.port.c_str();
-    else{
-        err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
+    uint16_t port = 0;
+    try{
+        if(settings.service.empty()){
+            if(settings.port.empty()){
+                port = 0;
+            }
+            else port = boost::lexical_cast<uint32_t>(settings.port);
+        }
+        else port = boost::lexical_cast<uint32_t>(settings.service);
+    }
+    catch(const boost::bad_lexical_cast& err){
+        err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid port number",AT_ERROR_ACTION::CONTINUE);
         return;
     }
-    {
-        int status=0;
-        // status = getaddrinfo(   settings.host.c_str(),
-        //                         service,&ainfo_,&server_);
-        status = getaddrinfo(   NULL,
-                                service,&ainfo_,&server_);
-        if(status!=0){
-            std::cout<<gai_strerror(status)<<std::endl;
-            err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
+
+    if(auto sock4 = (sockaddr_in*)server_.get();inet_pton(AF_INET,settings.host.c_str(),&sock4->sin_addr)==1){
+        sock4->sin_family = AF_INET;
+        sock4->sin_port = htons(port);
+    }
+    else{
+        if(auto* sock6 = (sockaddr_in6*)server_.get();inet_pton(AF_INET6,settings.host.c_str(),&sock6->sin6_addr)==1){
+            sock6->sin6_family = AF_INET6;
+            sock6->sin6_port = htons(port);
+        }
+        else{
+            err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid host address",AT_ERROR_ACTION::CONTINUE);
             return;
         }
-        //else getnameinfo(ainfo_.ai_addr,ainfo_.ai_addrlen,settings.host.c_str(),settings.host.size(),
+        
     }
+    // if(settings.host.size()<=14)
+    //     std::strcpy(&ainfo_.ai_addr->sa_data[0],settings.host.c_str());
+    // else{
+    //     err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"host is longer than 14 characters",AT_ERROR_ACTION::CONTINUE);
+    //     return;
+    // }
+    // if(!settings.service.empty())
+    //     service = settings.service.c_str();
+    // else if(!settings.port.empty())
+    //     service = settings.port.c_str();
+    // else{
+    //     err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
+    //     return;
+    // }
+    // {
+    //     int status=0;
+    //     status = getaddrinfo(   settings.host.c_str(),
+    //                             service,&ainfo_,&server_);
+    //     // status = getaddrinfo(   NULL,
+    //     //                         service,&ainfo_,&server_);
+    //     if(status!=0){
+    //         std::cout<<gai_strerror(status)<<std::endl;
+    //         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
+    //         return;
+    //     }
+    //     //else getnameinfo(ainfo_.ai_addr,ainfo_.ai_addrlen,settings.host.c_str(),settings.host.size(),
+    // }
     int last_err = 0;
-    for(auto ptr_addr = server_;ptr_addr!=nullptr;ptr_addr=ptr_addr->ai_next){
-        server_socket_ = socket(ptr_addr->ai_family,ptr_addr->ai_socktype,ptr_addr->ai_protocol);
-        if(server_socket_==-1){
-            err_ = ErrorCode::INTERNAL_ERROR;
-            last_err = errno;
-            errno=0;
-            continue;
-        }
-        if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEPORT, &yes,
-            sizeof(int)) == -1) {
-            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
-            server_socket_=-1;
-            last_err = errno;
-            errno=0;
-            continue;
-        }
-        if(bind(server_socket_,ptr_addr->ai_addr,ptr_addr->ai_addrlen)==-1){
-            close(server_socket_);
-            err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server binding "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
-            server_socket_=-1;
-            last_err = errno;
-            errno=0;
-            continue;
-        }
-        err_=ErrorCode::NONE;
-        server_ = ptr_addr;
-        break;
+    server_socket_ = socket(server_->ss_family,SOCK_STREAM,IPPROTO_TCP);
+    if(server_socket_==-1){
+        err_ = ErrorCode::INTERNAL_ERROR;
+        last_err = errno;
+        errno=0;
+        return;
     }
+    if (server_->ss_family == AF_INET) {
+        sockaddr_in* addr = (sockaddr_in*)server_.get();
+        char ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &addr->sin_addr, ip, INET_ADDRSTRLEN);
+        printf("Binding to IPv4: %s:%d\n", ip, ntohs(addr->sin_port));
+    } else if (server_->ss_family == AF_INET6) {
+        sockaddr_in6* addr = (sockaddr_in6*)server_.get();
+        char ip[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &addr->sin6_addr, ip, INET6_ADDRSTRLEN);
+        printf("Binding to IPv6: [%s]:%d\n", ip, ntohs(addr->sin6_port));
+    }
+    // if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes,
+    //     sizeof(int)) == -1) {
+    //     err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+    //     server_socket_=-1;
+    //     last_err = errno;
+    //     errno=0;
+    //     return;
+    // }
+    socklen_t socklen = server_->ss_family==AF_INET?sizeof(sockaddr_in):(server_->ss_family==AF_INET6?sizeof(sockaddr_in6):sizeof(sockaddr_storage));
+    if(bind(server_socket_,(sockaddr*)server_.get(),socklen)==-1){
+        close(server_socket_);
+        err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server binding "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        server_socket_=-1;
+        last_err = errno;
+        errno=0;
+        return;
+    }
+    // for(auto ptr_addr = server_;ptr_addr!=nullptr;ptr_addr=ptr_addr->ai_next){
+    //     server_socket_ = socket(ptr_addr->ai_family,ptr_addr->ai_socktype,ptr_addr->ai_protocol);
+    //     if(server_socket_==-1){
+    //         err_ = ErrorCode::INTERNAL_ERROR;
+    //         last_err = errno;
+    //         errno=0;
+    //         continue;
+    //     }
+    //     if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEPORT, &yes,
+    //         sizeof(int)) == -1) {
+    //         err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+    //         server_socket_=-1;
+    //         last_err = errno;
+    //         errno=0;
+    //         continue;
+    //     }
+    //     if(bind(server_socket_,ptr_addr->ai_addr,ptr_addr->ai_addrlen)==-1){
+    //         close(server_socket_);
+    //         err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server binding "s+strerror(errno),AT_ERROR_ACTION::CONTINUE);
+    //         server_socket_=-1;
+    //         last_err = errno;
+    //         errno=0;
+    //         continue;
+    //     }
+    //     err_=ErrorCode::NONE;
+    //     server_ = ptr_addr;
+    //     break;
+    // }
     if(server_socket_==-1){
         err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server initialization",AT_ERROR_ACTION::CONTINUE);
         return;
@@ -105,11 +173,11 @@ Server::Server():connection_pool_(*this){
         errno = 0;
         return;
     }
-    if(err_!=ErrorCode::NONE){
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
-        freeaddrinfo(server_);
-        return;
-    }
+    // if(err_!=ErrorCode::NONE){
+    //     ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+    //     freeaddrinfo(server_);
+    //     return;
+    // }
     sa.sa_handler=sigchld_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags=SA_RESTART;
@@ -117,7 +185,7 @@ Server::Server():connection_pool_(*this){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"sigaction",AT_ERROR_ACTION::ABORT);
     {
         std::cout<<"Server ready for launching: ";
-        network::print_ip_port(std::cout,server_);
+        network::print_ip_port(std::cout,server_.get());
     }
 }
 #include <sys/eventfd.h>
@@ -216,7 +284,7 @@ void Server::launch(){
     server_thread_ = std::move(std::jthread(__launch__,this));
     stop_token_ = server_thread_.get_stop_token();
     std::cout<<"Server launched: ";
-    network::print_ip_port(std::cout,server_);
+    network::print_ip_port(std::cout,server_.get());
 }
 void Server::close_connections(bool wait_for_end_connections){
     status_=server::Status::INACTIVE;
@@ -246,9 +314,9 @@ Server::~Server(){
     }
     char ipstr[INET6_ADDRSTRLEN];
     std::cout<<"Server closed: ";
-    network::print_ip_port(std::cout,server_);
-    if(server_)
-        freeaddrinfo(server_);
+    network::print_ip_port(std::cout,server_.get());
+    // if(server_)
+    //     freeaddrinfo(server_);
 }
 void Server::stop() {
     if(server_thread_.joinable()){

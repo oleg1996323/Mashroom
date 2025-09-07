@@ -115,7 +115,7 @@ const GribDataInfo& Index::__index_file__(const fs::path& file){
 			write_res= std::move(__write__(grib_msgs));
 		}
 		for(const auto& [filename,msg]:write_res)
-			result.add_info(path::Storage<false>(filename,path::TYPE::FILE),msg);
+			result.add_info(path::Storage<false>::file(filename),msg);
 		return result;
 	}
 	else{ //only refer (do not overwrite initial files)
@@ -131,7 +131,7 @@ const GribDataInfo& Index::__index_file__(const fs::path& file){
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
 
-				result.add_info(path::Storage<false>(file,path::TYPE::FILE),info);
+				result.add_info(path::Storage<false>::file(file),info);
 			}
 		}while(grib.next_message());
 		return result;
@@ -155,9 +155,14 @@ void Index::execute() noexcept{
 				__index_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
-				if(host_ref_only)
-					Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_);
-				else Mashroom::instance().request<network::Client_MsgT::INDEX>(path.path_);
+				if(host_ref_only){
+					if(path.add_.is<path::TYPE::HOST>())
+						Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_,path.add_.get<path::TYPE::HOST>().port_);
+				}
+				else {
+					if(path.add_.is<path::TYPE::HOST>())
+						Mashroom::instance().request<network::Client_MsgT::INDEX>(path.path_,path.add_.get<path::TYPE::HOST>().port_);
+				}
 				break;
 			default:{
 				continue;

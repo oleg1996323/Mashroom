@@ -58,7 +58,8 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                 __process_core__(entries);
             }
             case path::TYPE::HOST:{
-                Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_);
+                if(path.add_.is<path::TYPE::HOST>())
+                    Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_,path.add_.get<path::TYPE::HOST>().port_);
             }
             default:{
 
@@ -168,9 +169,9 @@ ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& en
                 {
                     if(mute_at_print){
                         std::lock_guard<std::mutex> locked(*mute_at_print);
-                        data_.add_info(path::Storage<false>(entry.path().string(),path::TYPE::FILE),std::move(info));
+                        data_.add_info(path::Storage<false>::file(entry.path().string()),std::move(info));
                     }
-                    else data_.add_info(path::Storage<false>(entry.path().string(),path::TYPE::FILE),std::move(info));
+                    else data_.add_info(path::Storage<false>::file(entry.path().string()),std::move(info));
                 }
             }while(grib.next_message());
         }

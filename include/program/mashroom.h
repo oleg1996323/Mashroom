@@ -74,7 +74,9 @@ class Mashroom{
     ErrorCode connect(const std::string& host);
 
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    ErrorCode request(const std::string& host,ARGS&&... args);
+    ErrorCode request(const std::string& host,const std::string& port,ARGS&&... args);
+    template<network::Client_MsgT::type MSG_T, typename... ARGS>
+    ErrorCode request(const std::string& host,uint16_t port,ARGS&&... args);
     const Data& data(){
         return data_;
     }
@@ -108,6 +110,10 @@ class Mashroom{
 };
 
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
-ErrorCode Mashroom::request(const std::string& host,ARGS&&... args){
-    return clients_.request<MSG_T>(host,std::forward<ARGS>(args)...);
+ErrorCode Mashroom::request(const std::string& host,const std::string& port,ARGS&&... args){
+    return clients_.request<MSG_T>(host,port,std::forward<ARGS>(args)...);
+}
+template<network::Client_MsgT::type MSG_T, typename... ARGS>
+ErrorCode Mashroom::request(const std::string& host,uint16_t port,ARGS&&... args){
+    return clients_.request<MSG_T>(host,std::to_string(port),std::forward<ARGS>(args)...);
 }
