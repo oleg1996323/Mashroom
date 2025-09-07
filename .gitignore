@@ -32,13 +32,14 @@
 *.app
 
 # Directories
-*/build/*
-*/bin/*
-*/lib/*
-*/shared/*
-*/.cmake/*
-*/CMakeFiles/*
-*/data/*
+/build
+*/build
+*/bin
+*/lib
+*/shared
+*/.cmake
+*/CMakeFiles
+/data
 
 # Heavy files
 
