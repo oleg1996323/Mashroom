@@ -32,24 +32,24 @@
 *.app
 
 # Directories
-build/
-bin/
-lib/
-shared/
-.cmake/
-CMakeFiles/
-data/
+**/build
+**/bin
+**/lib
+**/shared
+**/.cmake
+**/CMakeFiles
+**/data
 
 # Heavy files
 
-*.grib
-*.bin
-*.omdb
-*.omdt
-*.gbd
+**.grib
+**.bin
+**.omdb
+**.omdt
+**.gbd
 
 # other
 
-*cmake_install.cmake
-*CMakeCache.txt
-*Makefile
+**/cmake_install.cmake
+**/CMakeCache.txt
+**/Makefile
