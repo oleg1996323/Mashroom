@@ -22,3 +22,25 @@
 --server --close true
 --server --close 1
 --exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server --close
+--server --close true
+--server --launch
+--server --close
+--server --close true
+--server --shutdown true
+--server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit

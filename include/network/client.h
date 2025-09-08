@@ -21,17 +21,20 @@ namespace network{
         friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
         network::connection::Process<Client> process_;
+        friend decltype(process_);
         std::jthread client_thread_;
         std::unique_ptr<sockaddr_storage> client_;
         Socket client_socket_ = -1;
         eventfd_t client_interruptor;
-        mutable ErrorCode err_;
+        mutable ErrorCode err_ = ErrorCode::NONE;
         mutable server::Status server_status_ = server::Status::READY;
         bool temporary_ = true;
         bool retry_connection_ = false;
-        Client();
+        Client(const std::string& host, const std::string& port);
         public:
         Client(Client&& other) noexcept;
+        Client& operator=(Client&& other) noexcept;
+        bool operator==(const Client& other) const noexcept;
         ~Client();
         void cancel();
         ErrorCode connect(const std::string& host, const std::string& port);
@@ -67,7 +70,7 @@ struct std::hash<network::Client>{
 
 template<>
 struct std::equal_to<network::Client>{
-    size_t operator()(const network::Client& lhs,const network::Client& rhs) const{
+    bool operator()(const network::Client& lhs,const network::Client& rhs) const{
     if (lhs.client_.get() == rhs.client_.get()) return true;  // Один и тот же указатель
     if (!lhs.client_.get() || !rhs.client_.get()) return false;  // Один из них nullptr
     if (lhs.client_->ss_family != rhs.client_->ss_family) {

@@ -126,6 +126,20 @@ namespace network{
         friend struct serialization::Max_serial_size;
         template<Side Aside>
         friend class network::MessageProcess;
+
+        MessageHandler(const MessageHandler&) = delete;
+        MessageHandler(MessageHandler&& other) noexcept{
+            *this=other;
+        }
+
+        MessageHandler<S>& operator=(const MessageHandler&) = delete;
+        MessageHandler<S>& operator=(MessageHandler<S>&& other) noexcept{
+            if(this!=&other){
+                network::list_message<S>::type::operator=(std::move(other));
+            }
+            return *this;
+        }
+
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
         ErrorCode emplace_message(ARGS&&... args){

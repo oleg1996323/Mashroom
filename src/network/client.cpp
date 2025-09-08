@@ -1,4 +1,4 @@
-#include <network/client.h>
+#include "network/client.h"
 #include "network/common/message/message_process.h"
 #include <sys/signalfd.h>
 
@@ -12,9 +12,49 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-Client::Client(){
+Client::Client(const std::string& host, const std::string& port):process_(this){
+    uint16_t port_;
+    try{
+        if(port.empty()){
+            port_ = 0;
+        }
+        else port_ = boost::lexical_cast<uint32_t>(port);
+    }
+    catch(const boost::bad_lexical_cast& err){
+        err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid port number",AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
+    if (host.empty()) {
+        err_=ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"host name undefined",AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
+    
+    client_ = std::make_unique<sockaddr_storage>();
+    bzero(client_.get(), sizeof(*client_));
+    if(auto sock4 = (sockaddr_in*)client_.get();inet_pton(AF_INET,host.c_str(),&sock4->sin_addr)==1){
+        sock4->sin_family = AF_INET;
+        sock4->sin_port = htons(port_);
+    }
+    else{
+        if(auto* sock6 = (sockaddr_in6*)client_.get();inet_pton(AF_INET6,host.c_str(),&sock6->sin6_addr)==1){
+            sock6->sin6_family = AF_INET6;
+            sock6->sin6_port = htons(port_);
+        }
+        else{
+            err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid host address",AT_ERROR_ACTION::CONTINUE);
+            return;
+        }
+    }
+    if ((client_socket_ = socket(client_->ss_family, SOCK_STREAM,
+        IPPROTO_TCP)) == -1){
+        err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client: socket",AT_ERROR_ACTION::CONTINUE);
+        return;
+    }
 }
-Client::Client(Client&& other) noexcept{
+Client::Client(Client&& other) noexcept:process_(nullptr){
+    *this=std::move(other);
+}
+Client& Client::operator=(Client&& other) noexcept{
     if(this!=&other){
         process_ = std::move(other.process_);
         client_thread_.swap(other.client_thread_);
@@ -25,7 +65,12 @@ Client::Client(Client&& other) noexcept{
         std::swap(temporary_,other.temporary_);
         std::swap(retry_connection_,other.retry_connection_);
     }
+    return *this;
 }
+bool Client::operator==(const Client& other) const noexcept{
+    return std::equal_to<Client>()(*this,other);
+}
+
 Client::~Client(){
     if(client_){
         disconnect();            
@@ -43,10 +88,6 @@ void Client::cancel(){
     }
 }
 ErrorCode Client::connect(const std::string& host, const std::string& port){
-    // if ((rv = getaddrinfo(host_.c_str(), "" /*port-servive client*/, &hints, client_));rv!= 0) {
-    //     err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"incorrect service/port number",AT_ERROR_ACTION::CONTINUE);
-    //     return err_;
-    // }
     uint16_t port_;
     try{
         if(port.empty()){
@@ -79,11 +120,6 @@ ErrorCode Client::connect(const std::string& host, const std::string& port){
             return err_;
         }
     }
-    if ((client_socket_ = socket(AF_UNSPEC, SOCK_STREAM,
-        SOL_TCP)) == -1){
-        err_ = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"client: socket",AT_ERROR_ACTION::CONTINUE);
-        return err_;
-    }
     if (::connect(client_socket_, (sockaddr*)client_.get(), sizeof(sockaddr)) == -1){
         err_ = ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR_WITH_X1,"client: connect",AT_ERROR_ACTION::CONTINUE,ip_to_text(client_.get())+" "+port_to_text(client_.get()));
         close(client_socket_);
@@ -113,7 +149,7 @@ ErrorCode Client::connect(const std::string& host, const std::string& port){
     // }
     std::cout<<"Client connected to: ";
         network::print_ip_port(std::cout,client_.get());
-    std::cout<<"Ready for request.";
+    std::cout<<"Ready for requests"<<std::endl;
     err_ = ErrorCode::NONE;
     return err_;
 }

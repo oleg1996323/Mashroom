@@ -12,7 +12,22 @@ namespace network{
         friend class MessageProcess;
         MessageHandler<S> hmsg_;
         MessageHandler<sent_from<S>()> recv_hmsg_;
-        ErrorCode err_;
+        ErrorCode err_ = ErrorCode::NONE;
+        public:
+        MessageProcess() = default;
+        MessageProcess(const MessageProcess<S>& other) = delete;
+        MessageProcess(MessageProcess<S>&& other) noexcept{
+            *this=std::move(other);
+        }
+        MessageProcess<S>& operator=(const MessageProcess<S>&) = delete;
+        MessageProcess<S>& operator=(MessageProcess<S>&& other) noexcept{
+            if(this!=&other){
+                std::swap(hmsg_,other.hmsg_);
+                std::swap(recv_hmsg_,other.recv_hmsg_);
+            }
+            return *this;
+        }
+        private:
         template<auto T>
         requires MessageEnumConcept<T>
         ErrorCode __send__(Socket sock) noexcept{

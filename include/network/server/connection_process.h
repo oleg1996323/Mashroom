@@ -30,7 +30,7 @@ namespace network::connection{
         mutable MessageProcess<Side::SERVER> mprocess_;
         mutable std::jthread thread_; //16 byte
         const ConnectionPool& pool_; //8 byte
-        Socket sock_; //4 byte
+        const Server* server_; //4 byte
         mutable std::atomic<bool> busy_ = false; //1 byte
         mutable std::atomic<bool> translating_ = false; //1 byte
         Process(const Process&) = delete;
@@ -42,8 +42,10 @@ namespace network::connection{
         bool __check_and_notify_if_server_inaccessible__() const;
         ErrorCode __execute_heavy_process__(network::Client_MsgT::type msg_t) const; //
         ErrorCode __execute_light_process__(network::Client_MsgT::type msg_t) const; //asyncronously
+        Socket __socket__() const noexcept;
+
         public:
-        Process(int connection_socket,const ConnectionPool& pool);
+        Process(const Server* server,const ConnectionPool& pool);
         Process(Process&& other);
         ~Process();
         ErrorCode send_status_message(server::Status status) const;
@@ -68,7 +70,7 @@ template<>
 struct std::hash<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     size_t operator()(const network::connection::Process<Server>& process) const{
-        return std::hash<size_t>{}(static_cast<size_t>(process.sock_));
+        return std::hash<size_t>{}(static_cast<size_t>(process.__socket__()));
     }
     size_t operator()(Socket sock) const{
         return std::hash<Socket>{}(sock);
@@ -79,7 +81,7 @@ template<>
 struct std::less<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     bool operator()(const network::connection::Process<Server>& lhs,const network::connection::Process<Server>& rhs) const{
-        return lhs.sock_<rhs.sock_;
+        return lhs.__socket__()<rhs.__socket__();
     }
 };
 
@@ -87,12 +89,12 @@ template<>
 struct std::equal_to<network::connection::Process<Server>>{
     using is_transparent = std::true_type;
     bool operator()(const network::connection::Process<Server>& lhs,const network::connection::Process<Server>& rhs) const{
-        return lhs.sock_==rhs.sock_;
+        return lhs.__socket__()==rhs.__socket__();
     }
     bool operator()(const network::connection::Process<Server>& lhs,Socket sock) const{
-        return lhs.sock_==sock;
+        return lhs.__socket__()==sock;
     }
     bool operator()(Socket sock,const network::connection::Process<Server>& rhs) const{
-        return rhs.sock_==sock;
+        return rhs.__socket__()==sock;
     }
 };

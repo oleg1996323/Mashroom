@@ -1,17 +1,26 @@
-#include <program/clients_handler.h>
+#include "program/clients_handler.h"
+#include <ranges>
+#include <algorithm>
 
 using namespace network;
 
 ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std::string& host,const std::string& port){
-    network::Client client;
+    network::Client client(host,port);
     if(client.err_!=ErrorCode::NONE)
         return clients_.end();
-    if(!clients_.contains(client)){
+    if(auto found = std::find(clients_.begin(),clients_.end(),client);found==clients_.end()){
         if(client.connect(host,port)!=ErrorCode::NONE)
             return clients_.end();
-        return clients_.emplace(std::move(client)).first;
+        return clients_.insert(clients_.end(),std::move(client));
     }
-    else return clients_.find(client);
+    else{
+        if(found->connect(host,port)!=ErrorCode::NONE)
+            return found;
+        else {
+            clients_.erase(found);
+            return clients_.end();
+        }
+    }
 }
 
 ErrorCode ClientsHandler::connect(const std::string& host,const std::string& port){

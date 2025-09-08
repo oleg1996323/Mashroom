@@ -156,12 +156,16 @@ void Index::execute() noexcept{
 				break;
 			case path::TYPE::HOST:
 				if(host_ref_only){
-					if(path.add_.is<path::TYPE::HOST>())
+					if(path.add_.is<path::TYPE::HOST>()){
+						std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
 						Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(path.path_,path.add_.get<path::TYPE::HOST>().port_);
+					}
 				}
 				else {
-					if(path.add_.is<path::TYPE::HOST>())
+					if(path.add_.is<path::TYPE::HOST>()){
+						std::cout<<"Indexing from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
 						Mashroom::instance().request<network::Client_MsgT::INDEX>(path.path_,path.add_.get<path::TYPE::HOST>().port_);
+					}
 				}
 				break;
 			default:{

@@ -7,9 +7,9 @@ namespace network{
     class ClientsHandler{
         private:
         mutable std::mutex mute_;
-        using clients_t = std::unordered_set<network::Client>;
+        using clients_t = std::vector<network::Client>;
         clients_t clients_;
-        using clients_iterator = decltype(clients_)::iterator;
+        using clients_iterator = clients_t::iterator;
         clients_iterator __connect_internal__(const std::string& host,const std::string& port);
         public:
         ErrorCode connect(const std::string& host,const std::string& port);

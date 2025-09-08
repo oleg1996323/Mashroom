@@ -4,26 +4,32 @@
 #include "proc/index.h"
 
 using namespace network::connection;
-Process<Server>::Process(int connection_socket,const ConnectionPool& pool):
+Socket Process<Server>::__socket__() const noexcept{
+    if(server_)
+        return server_->server_socket_;
+    else return -1;
+}
+
+Process<Server>::Process(const Server* server,const ConnectionPool& pool):
                     pool_(pool),
-                    sock_(connection_socket){}
+                    server_(server){}
 Process<Server>::Process(Process&& other):pool_(other.pool_){
     if(this!=&other){
         thread_.swap(other.thread_);
-        std::swap(sock_,other.sock_);
+        std::swap(server_,other.server_);
     }
 }
 Process<Server>::~Process(){
     if(thread_.joinable())
         thread_.join();
     if(is_connected()){
-        ::close(sock_);
+        ::close(__socket__());
     }
 }
 ErrorCode Process<Server>::__send_error_and_close_connection__(ErrorCode err, const char* message) const{
     Message<network::Server_MsgT::ERROR> msg_err;
-    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
-    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+    fcntl(__socket__(),F_SETFL,fcntl(__socket__(), F_GETFL, 0)|SOCK_NONBLOCK);
+    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(__socket__(),ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
         close();
         return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
     }
@@ -31,19 +37,19 @@ ErrorCode Process<Server>::__send_error_and_close_connection__(ErrorCode err, co
     return ErrorCode::NONE;
 }
 ErrorCode Process<Server>::__send_error_and_continue__(ErrorCode err,const char* message) const{
-    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)|SOCK_NONBLOCK);
-    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(sock_,ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
+    fcntl(__socket__(),F_SETFL,fcntl(__socket__(), F_GETFL, 0)|SOCK_NONBLOCK);
+    if(err = mprocess_.send_message<network::Server_MsgT::ERROR>(__socket__(),ErrorCode::RECEIVING_MESSAGE_ERROR,pool_.server_status());err!=ErrorCode::NONE){
         close();
         return ErrorPrint::print_error(ErrorCode::CONNECTION_CLOSED,"",AT_ERROR_ACTION::CONTINUE);
     }
-    // if(msg_err.sendto(sock_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
-    //     struct pollfd pfd = {.fd=sock_,.events=POLLOUT,.revents=0};
+    // if(msg_err.sendto(__socket__(),err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK)){
+    //     struct pollfd pfd = {.fd=__socket__(),.events=POLLOUT,.revents=0};
     //     int poll_return = poll(&pfd,1,1000);
     //     if(poll_return>0 && (pfd.revents&POLLOUT)){
-    //         msg_err.sendto(sock_,err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK);
+    //         msg_err.sendto(__socket__(),err,ErrorPrint::message(err,message)) && (errno==EAGAIN || errno==EWOULDBLOCK);
     //     }
     // }
-    fcntl(sock_,F_SETFL,fcntl(sock_, F_GETFL, 0)^SOCK_NONBLOCK);
+    fcntl(__socket__(),F_SETFL,fcntl(__socket__(), F_GETFL, 0)^SOCK_NONBLOCK);
     return ErrorCode::NONE;
 }
 bool Process<Server>::__check_and_notify_if_server_inaccessible__() const{
@@ -56,7 +62,7 @@ bool Process<Server>::__check_and_notify_if_server_inaccessible__() const{
 ErrorCode Process<Server>::execute() const{
     busy_ = true;
     bool heavy = false;
-    ErrorCode err_ = mprocess_.receive_any_message(sock_);
+    ErrorCode err_ = mprocess_.receive_any_message(__socket__());
     auto msg_type = mprocess_.received_message_type();
     if(err_!=ErrorCode::NONE || !msg_type.has_value()){
         return __send_error_and_continue__(err_,"");
@@ -122,10 +128,10 @@ ErrorCode Process<Server>::__execute_heavy_process__(Client_MsgT::type msg_t) co
                         if(fs::file_size(hExtract.out_path())==0)
                             return __send_error_and_continue__(ErrorCode::DATA_NOT_FOUND,"");
                         else{
-                            if(err = mprocess_.send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(sock_,pool_.server_status(),hExtract.out_path(),0,fs::file_size(hExtract.out_path())); err!=ErrorCode::NONE)
+                            if(err = mprocess_.send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(__socket__(),pool_.server_status(),hExtract.out_path(),0,fs::file_size(hExtract.out_path())); err!=ErrorCode::NONE)
                                 __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"");
                             return err;
-                            if(err = mprocess_.receive_message<network::Client_MsgT::TRANSACTION>(sock_);err!=ErrorCode::NONE){
+                            if(err = mprocess_.receive_message<network::Client_MsgT::TRANSACTION>(__socket__());err!=ErrorCode::NONE){
                                 __send_error_and_continue__(ErrorCode::RECEIVING_MESSAGE_ERROR,"");
                                 return err;
                             }
@@ -142,7 +148,7 @@ ErrorCode Process<Server>::__execute_heavy_process__(Client_MsgT::type msg_t) co
                     // else{
                     //     translating_.wait(false);
                     //     for(fs::directory_entry entry:fs::directory_iterator(hExtract.out_path()))
-                    //         if(!reply_msg.sendto(sock_,entry.path())){
+                    //         if(!reply_msg.sendto(__socket__(),entry.path())){
                     //             __send_error_and_continue__(ErrorCode::SENDING_MESSAGE_ERROR,"meteo request");
                     //             err = ErrorCode::SENDING_MESSAGE_ERROR;
                     //             translating_=false;
@@ -173,20 +179,17 @@ ErrorCode Process<Server>::__execute_light_process__(Client_MsgT::type msg_t) co
 }
 ErrorCode Process<Server>::send_status_message(server::Status status) const{
     translating_ = true;
-    if(ErrorCode err = mprocess_.send_message<network::Server_MsgT::SERVER_STATUS>(sock_,pool_.server_status());err!=ErrorCode::NONE){
+    if(ErrorCode err = mprocess_.send_message<network::Server_MsgT::SERVER_STATUS>(__socket__(),pool_.server_status());err!=ErrorCode::NONE){
         __send_error_and_continue__(ErrorCode::SERVER_ERROR,"");
         return err;
     }
     translating_ = false;
     return ErrorCode::NONE;
 }
-int Process<Server>::socket() const{
-    return sock_;
-}
 bool Process<Server>::is_connected() const{
     int error = 0;
     socklen_t len = sizeof(error);
-    int ret = getsockopt(sock_,SOL_SOCKET,SO_ERROR,&error,&len);
+    int ret = getsockopt(__socket__(),SOL_SOCKET,SO_ERROR,&error,&len);
     if(ret!=0 || error!=0)
         return false;
     return true;

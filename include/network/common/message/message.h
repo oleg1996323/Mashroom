@@ -21,9 +21,10 @@ namespace network{
         static constexpr enum_t type_msg_ = MSG_T;
         uint64_t data_sz_ = 0;
         MessageBase(size_t data_sz);
-        MessageBase(MessageBase&& other) noexcept;
+        MessageBase(MessageBase<MSG_T>&& other) noexcept:data_sz_(other.data_sz_){}
+        MessageBase(const MessageBase<MSG_T>& other):data_sz_(other.data_sz_){}
         MessageBase() = default;
-        MessageBase& operator=(MessageBase&& other);
+        MessageBase& operator=(MessageBase<MSG_T>&& other);
         size_t data_size() const{
             return data_sz_;
         }
@@ -127,6 +128,14 @@ namespace network{
         public:
         template<typename... ADD_ARGS>
         Message(ADD_ARGS&&... add_a);
+        Message(const Message<MSG_T>& other):
+        base_(other.base_),
+        additional_(other.additional_),
+        err_(other.err_){}
+        Message(Message<MSG_T>&& other):
+        base_(std::move(other.base_)),
+        additional_(std::move(other.additional_)),
+        err_(other.err_){}
         Message()=default;
         ErrorCode error() const;
         constexpr static type msg_type(){
@@ -149,11 +158,6 @@ namespace network{
     MessageBase<MSG_T>::MessageBase(size_t data_sz):
     data_sz_(data_sz){}
 
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    MessageBase<MSG_T>::MessageBase(MessageBase&& other) noexcept{
-        *this=std::move(other);
-    }
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     MessageBase<MSG_T>& MessageBase<MSG_T>::operator=(MessageBase<MSG_T>&& other){
