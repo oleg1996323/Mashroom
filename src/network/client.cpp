@@ -12,7 +12,7 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-Client::Client(const std::string& host, const std::string& port):process_(this){
+Client::Client(const std::string& host, const std::string& port){
     uint16_t port_;
     try{
         if(port.empty()){
@@ -88,6 +88,9 @@ void Client::cancel(){
     }
 }
 ErrorCode Client::connect(const std::string& host, const std::string& port){
+    if(client_socket_==-1){
+        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Bad socket",AT_ERROR_ACTION::CONTINUE);
+    }
     uint16_t port_;
     try{
         if(port.empty()){
@@ -126,6 +129,7 @@ ErrorCode Client::connect(const std::string& host, const std::string& port){
         client_socket_ = -1;
         return err_;
     }
+    process_ = std::make_unique<network::connection::Process<Client>>(client_socket_);
     // for(auto p = client_; p != nullptr; p = p->ai_next) {
     //     if ((sockfd = socket(p->ai_family, p->ai_socktype,
     //         p->ai_protocol)) == -1){

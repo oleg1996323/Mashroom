@@ -21,6 +21,42 @@ struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
     std::optional<TimePeriod> time_off_;
     size_t parameter_size = 0;
     std::vector<SearchParamTableVersion> parameters_;
+
+    ExtractRequestForm() = default;
+    ExtractRequestForm(const ExtractRequestForm& other){
+        *this = other;
+    }
+    ExtractRequestForm(ExtractRequestForm&& other) noexcept{
+        *this = std::move(other);
+    }
+    ExtractRequestForm& operator=(const ExtractRequestForm& other){
+        if(this!=&other){
+            t_fcst_ = other.t_fcst_;
+            center = other.center;
+            from = other.from;
+            to = other.to;
+            pos = other.pos;
+            rep_t = other.rep_t;
+            time_off_ = other.time_off_;
+            parameter_size = other.parameter_size;
+            parameters_ = other.parameters_;
+        }
+        return *this;
+    }
+    ExtractRequestForm& operator=(ExtractRequestForm&& other) noexcept{
+        if(this!=&other){
+            t_fcst_ = other.t_fcst_;
+            center = other.center;
+            from = other.from;
+            to = other.to;
+            pos = other.pos;
+            rep_t = other.rep_t;
+            time_off_ = other.time_off_;
+            parameter_size = other.parameter_size;
+            parameters_ = std::move(other.parameters_);
+        }
+        return *this;
+    }
 };
 
 using ExtractMeteoGrib = ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>;
@@ -77,15 +113,18 @@ namespace network{
     template<>
     struct MessageAdditional<network::Client_MsgT::DATA_REQUEST>:public ExtractForm{
         public:
-        using variant::variant;
+        using ExtractForm::variant;
         MessageAdditional(ErrorCode& err){
 
         }
         MessageAdditional(const MessageAdditional& other) = default;
         MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
-        MessageAdditional& operator=(const MessageAdditional& other) = default;
-        MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = delete;
+        MessageAdditional& operator=(MessageAdditional&& other) noexcept{
+            ExtractForm::operator=(std::move(other));
+            return *this;
+        }
     };
 }
 
@@ -138,3 +177,5 @@ static_assert(serialization::deserialize_concept<true,network::MessageAdditional
 static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
 static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
 static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
+static_assert(std::is_move_constructible_v<network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);
+static_assert(std::is_move_assignable_v<network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>);

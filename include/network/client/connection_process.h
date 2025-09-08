@@ -17,8 +17,8 @@ namespace network::connection{
         public:
         friend class network::Client;
         mutable MessageProcess<Side::CLIENT> mprocess_;
-        const Client* client_;
-        Process(const Client* client):client_(client){}
+        Socket socket_;
+        Process(Socket sock):socket_(sock){}
         Process(const Process&) = delete;
         Process(Process&& other) noexcept;
         Process& operator=(const Process&) = delete;
@@ -41,3 +41,6 @@ namespace network::connection{
         }
     };
 }
+
+static_assert(std::is_move_constructible_v<std::monostate>);
+static_assert(std::is_move_assignable_v<std::monostate>);

@@ -119,14 +119,14 @@ Server::Server():connection_pool_(*this){
         inet_ntop(AF_INET6, &addr->sin6_addr, ip, INET6_ADDRSTRLEN);
         printf("Binding to IPv6: [%s]:%d\n", ip, ntohs(addr->sin6_port));
     }
-    // if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes,
-    //     sizeof(int)) == -1) {
-    //     err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
-    //     server_socket_=-1;
-    //     last_err = errno;
-    //     errno=0;
-    //     return;
-    // }
+    if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes,
+        sizeof(int)) == -1) {
+        err_ = err_=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
+        server_socket_=-1;
+        last_err = errno;
+        errno=0;
+        return;
+    }
     socklen_t socklen = server_->ss_family==AF_INET?sizeof(sockaddr_in):(server_->ss_family==AF_INET6?sizeof(sockaddr_in6):sizeof(sockaddr_storage));
     if(bind(server_socket_,(sockaddr*)server_.get(),socklen)==-1){
         close(server_socket_);

@@ -11,13 +11,12 @@ namespace network{
         /// @brief operation hash
         size_t op_hash_ = 0;
         Transaction op_status_ = Transaction::DECLINE;
-        MessageAdditional(const MessageAdditional& other):
-        op_hash_(other.op_hash_),op_status_(other.op_status_){}
+        MessageAdditional(const MessageAdditional& other) = delete;
         MessageAdditional(MessageAdditional&& other):
         op_hash_(other.op_hash_),op_status_(other.op_status_){}
         MessageAdditional(ErrorCode& err,Transaction op_status):op_status_(op_status){}
         MessageAdditional() = default;
-        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
@@ -71,3 +70,5 @@ static_assert(serialization::deserialize_concept<true,network::MessageAdditional
 static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Client_MsgT::TRANSACTION>>);
 static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Client_MsgT::TRANSACTION>>);
 static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Client_MsgT::TRANSACTION>>);
+static_assert(std::is_move_constructible_v<network::MessageAdditional<network::Client_MsgT::TRANSACTION>>);
+static_assert(std::is_move_assignable_v<network::MessageAdditional<network::Client_MsgT::TRANSACTION>>);

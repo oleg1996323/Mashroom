@@ -20,9 +20,9 @@ namespace network{
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
-        network::connection::Process<Client> process_;
-        friend decltype(process_);
         std::jthread client_thread_;
+        std::unique_ptr<network::connection::Process<Client>> process_;
+        friend decltype(process_);
         std::unique_ptr<sockaddr_storage> client_;
         Socket client_socket_ = -1;
         eventfd_t client_interruptor;
@@ -42,7 +42,7 @@ namespace network{
         ErrorCode disconnect();
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(ARGS&&... args) const{
-            return process_.send<T>(std::forward<ARGS>(args)...);
+            return process_->send<T>(std::forward<ARGS>(args)...);
         }
 
         server::Status server_status() const;

@@ -32,7 +32,7 @@ namespace network{
     struct MessageVariantFactory<std::variant<Types...>>{
         using VariantType = std::variant<Types...>;
         using ResultType = VariantType;
-
+        
         template<typename... ARGS>
         static ErrorCode emplace(ResultType& result, size_t index,ARGS&&... args) {
             if (index >= sizeof...(Types))
@@ -75,13 +75,24 @@ namespace network{
     template<typename ENUM,typename VARIANT>
     requires (std::is_enum<ENUM>::value && IsStdVariant<VARIANT>)
     class _MessageHandler<ENUM,VARIANT>:public VARIANT{
+        static_assert(std::is_move_constructible_v<VARIANT>);
+        static_assert(std::is_move_assignable_v<VARIANT>);
         public:
         using enum_t = ENUM;
         using VARIANT::variant;
         static_assert(network::check_variant_enum_aligned<ENUM,VARIANT>());
         protected:
         using factory = MessageVariantFactory<VARIANT>;
-        
+        _MessageHandler() = default;
+        _MessageHandler(const _MessageHandler&) = delete;
+        _MessageHandler(_MessageHandler&& other) noexcept:VARIANT(std::move(other)){}
+        _MessageHandler& operator=(const _MessageHandler&)=delete;
+        _MessageHandler& operator=(_MessageHandler&& other) noexcept{
+            if(this!=&other){
+                VARIANT::swap(other);
+            }
+            return *this;
+        }
         template<auto T>
         requires MessageEnumConcept<T>
         const Message<T>& get() const{
@@ -126,20 +137,20 @@ namespace network{
         friend struct serialization::Max_serial_size;
         template<Side Aside>
         friend class network::MessageProcess;
-
+        public:
         MessageHandler(const MessageHandler&) = delete;
         MessageHandler(MessageHandler&& other) noexcept{
-            *this=other;
+            *this = std::move(other);
         }
 
-        MessageHandler<S>& operator=(const MessageHandler&) = delete;
-        MessageHandler<S>& operator=(MessageHandler<S>&& other) noexcept{
+        MessageHandler& operator=(const MessageHandler&) = delete;
+        MessageHandler& operator=(MessageHandler&& other) noexcept{
             if(this!=&other){
                 network::list_message<S>::type::operator=(std::move(other));
             }
             return *this;
         }
-
+        private:
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
         ErrorCode emplace_message(ARGS&&... args){

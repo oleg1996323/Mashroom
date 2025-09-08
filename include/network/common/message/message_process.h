@@ -22,8 +22,7 @@ namespace network{
         MessageProcess<S>& operator=(const MessageProcess<S>&) = delete;
         MessageProcess<S>& operator=(MessageProcess<S>&& other) noexcept{
             if(this!=&other){
-                std::swap(hmsg_,other.hmsg_);
-                std::swap(recv_hmsg_,other.recv_hmsg_);
+                //hmsg_.swap(other.hmsg_);
             }
             return *this;
         }

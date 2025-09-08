@@ -5,10 +5,10 @@ namespace network{
     template<>
     struct MessageAdditional<network::Client_MsgT::INDEX_REF>{
         public:
-        MessageAdditional(const MessageAdditional& other) = default;
+        MessageAdditional(const MessageAdditional& other) = delete;
         MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
-        MessageAdditional& operator=(const MessageAdditional& other) = default;
+        MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;
     };
 }
@@ -62,3 +62,5 @@ static_assert(serialization::deserialize_concept<true,network::MessageAdditional
 static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>);
 static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>);
 static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>);
+static_assert(std::is_move_constructible_v<network::MessageAdditional<network::Client_MsgT::INDEX_REF>>);
+static_assert(std::is_move_assignable_v<network::MessageAdditional<network::Client_MsgT::INDEX_REF>>);

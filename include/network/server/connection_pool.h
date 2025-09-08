@@ -26,7 +26,7 @@ namespace network::connection{
         ErrorCode process_connection(Socket sock) const;
         network::server::Status server_status() const;
         bool is_connected(Socket socket) const;
-        ConnectionPool::iterator add_connection(int connection_socket, size_t buffer_sz=4096);
+        ConnectionPool::iterator add_connection(Socket connection_socket, size_t buffer_sz=4096);
         void update_connections();
     };
 }

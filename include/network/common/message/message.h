@@ -3,8 +3,6 @@
 #include <expected>
 #include <set>
 #include "network/common/def.h"
-#include "program/data.h"
-#include "network/common/message/cashed_data.h"
 #include "serialization.h"
 #include "buffer.h"
 #include "msgdef.h"
@@ -22,8 +20,9 @@ namespace network{
         uint64_t data_sz_ = 0;
         MessageBase(size_t data_sz);
         MessageBase(MessageBase<MSG_T>&& other) noexcept:data_sz_(other.data_sz_){}
-        MessageBase(const MessageBase<MSG_T>& other):data_sz_(other.data_sz_){}
+        MessageBase(const MessageBase<MSG_T>& other) = delete;
         MessageBase() = default;
+        MessageBase& operator=(const MessageBase<MSG_T>& other) = delete;
         MessageBase& operator=(MessageBase<MSG_T>&& other);
         size_t data_size() const{
             return data_sz_;
@@ -108,6 +107,10 @@ namespace network{
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     class Message:public __MessageBuffer__{
+        static_assert(std::is_move_constructible_v<__MessageBuffer__>);
+        static_assert(std::is_move_assignable_v<__MessageBuffer__>);
+        static_assert(std::is_move_constructible_v<MessageBase<MSG_T>>);
+        static_assert(std::is_move_assignable_v<MessageBase<MSG_T>>);
         using type = decltype(MSG_T);
         MessageAdditional<MSG_T> additional_;
         MessageBase<MSG_T> base_;
@@ -128,14 +131,20 @@ namespace network{
         public:
         template<typename... ADD_ARGS>
         Message(ADD_ARGS&&... add_a);
-        Message(const Message<MSG_T>& other):
-        base_(other.base_),
-        additional_(other.additional_),
-        err_(other.err_){}
-        Message(Message<MSG_T>&& other):
+        Message(const Message<MSG_T>&) = delete;
+        Message(Message<MSG_T>&& other) noexcept:
         base_(std::move(other.base_)),
         additional_(std::move(other.additional_)),
         err_(other.err_){}
+        Message& operator=(const Message&) = delete;
+        Message& operator=(Message&& other) noexcept{
+            if(this!=&other){
+                base_ = std::move(other.base_);
+                additional_ = std::move(other.additional_);
+                err_ = other.err_;
+            }
+            return *this;
+        }
         Message()=default;
         ErrorCode error() const;
         constexpr static type msg_type(){
@@ -192,6 +201,16 @@ namespace network{
                         Message<network::Client_MsgT::INDEX_REF>,
                         Message<network::Client_MsgT::TRANSACTION>>;
     };
+    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::DATA_REQUEST>>);
+    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::DATA_REQUEST>>);
+    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::SERVER_STATUS>>);
+    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::SERVER_STATUS>>);
+    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::INDEX>>);
+    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::INDEX>>);
+    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::INDEX_REF>>);
+    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::INDEX_REF>>);
+    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::TRANSACTION>>);
+    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::TRANSACTION>>);
 
     template<>
     struct list_message<Side::SERVER>{
@@ -206,6 +225,24 @@ namespace network{
                         Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>,
                         Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>;
     };
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_FILEINFO>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_FILEINFO>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::SERVER_STATUS>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::SERVER_STATUS>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_INDEX>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_INDEX>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::ERROR>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::ERROR>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::PROGRESS>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::PROGRESS>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::VERSION>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::VERSION>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
+    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>);
+    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>);
 
     constexpr Side get_side(MessageEnumConcept_t auto msg_t){
         using type = decltype(msg_t);
