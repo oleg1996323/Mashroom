@@ -9,6 +9,7 @@
 #include <variant>
 #include "network/client/connection_process.h"
 #include <netdb.h>
+#include <future>
 
 namespace network{
     class ClientsHandler;
@@ -20,11 +21,17 @@ namespace network{
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
-        std::jthread client_thread_;
-        std::unique_ptr<network::connection::Process<Client>> process_;
-        friend decltype(process_);
+        friend class network::connection::Process<Client>;
+        using ThreadResult = std::pair<std::jthread,std::promise<ErrorCode>>;
         std::unique_ptr<sockaddr_storage> client_;
+        /**
+         * @brief don't block the GUI if integrated
+         */
+        mutable std::unique_ptr<ThreadResult> client_thread_;
         Socket client_socket_ = -1;
+        /**
+         * @brief for epoll interruption of processes in thread
+         */
         eventfd_t client_interruptor;
         mutable ErrorCode err_ = ErrorCode::NONE;
         mutable server::Status server_status_ = server::Status::READY;
@@ -42,7 +49,15 @@ namespace network{
         ErrorCode disconnect();
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(ARGS&&... args) const{
-            return process_->send<T>(std::forward<ARGS>(args)...);
+            if(client_thread_)
+                client_thread_->first.join();
+            client_thread_ = std::make_unique<ThreadResult>();
+            client_thread_->first = std::move(std::jthread([&socket = this->client_socket_,&promise = this->client_thread_->second,...Args = std::forward<ARGS>(args)](std::stop_token stoken) mutable{
+                std::unique_ptr<network::connection::Process<Client>> process_ = 
+                    std::make_unique<network::connection::Process<Client>>(socket);
+                promise.set_value(process_->send<T>(std::forward<ARGS>(Args)...));
+            }));            
+            return ErrorCode::NONE;
         }
 
         server::Status server_status() const;

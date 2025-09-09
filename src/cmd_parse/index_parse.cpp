@@ -64,7 +64,7 @@ namespace parse{
 
     ErrorCode Index::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         hIndex = std::make_unique<::Index>();
-        if(vm.contains("index_ref"))
+        if(vm.contains("index-ref"))
             hIndex->set_host_ref_only();
         err_ = try_notify(vm);
         if(err_==ErrorCode::NONE)

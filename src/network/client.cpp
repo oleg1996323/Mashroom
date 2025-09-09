@@ -51,12 +51,11 @@ Client::Client(const std::string& host, const std::string& port){
         return;
     }
 }
-Client::Client(Client&& other) noexcept:process_(nullptr){
+Client::Client(Client&& other) noexcept{
     *this=std::move(other);
 }
 Client& Client::operator=(Client&& other) noexcept{
     if(this!=&other){
-        process_ = std::move(other.process_);
         client_thread_.swap(other.client_thread_);
         std::swap(client_,other.client_);
         std::swap(client_socket_,other.client_socket_);
@@ -79,8 +78,8 @@ Client::~Client(){
     }
 }
 void Client::cancel(){
-    if(client_thread_.joinable()){
-        client_thread_.request_stop();
+    if(client_thread_ && client_thread_->first.joinable()){
+        client_thread_->first.request_stop();
         if (client_interruptor != -1) {
             uint64_t val = 1;
             write(client_interruptor, &val, sizeof(val));
@@ -129,7 +128,6 @@ ErrorCode Client::connect(const std::string& host, const std::string& port){
         client_socket_ = -1;
         return err_;
     }
-    process_ = std::make_unique<network::connection::Process<Client>>(client_socket_);
     // for(auto p = client_; p != nullptr; p = p->ai_next) {
     //     if ((sockfd = socket(p->ai_family, p->ai_socktype,
     //         p->ai_protocol)) == -1){

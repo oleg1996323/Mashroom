@@ -244,7 +244,7 @@ void Server::__launch__(Server* server){
             }
             if(events.at(i).data.fd==server->server_socket_){ //if connection requested
                 Socket tmp_sock = 0;
-                if((tmp_sock = accept(server->server_socket_,(struct sockaddr*)&another,&sin_size))==-1){
+                if((tmp_sock = accept(server->server_socket_,(sockaddr*)&another,&sin_size))==-1){
                     server->err_ = ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,strerror(errno),AT_ERROR_ACTION::CONTINUE);
                     continue;
                 }
@@ -252,6 +252,25 @@ void Server::__launch__(Server* server){
                     //add checking allowed client properties
                     //add checking hash key
                     //if not - close connection and continue
+                    int res = getpeername(tmp_sock, (struct sockaddr *)&another, &sin_size);
+                    char clientip[INET6_ADDRSTRLEN];
+                    strcpy(clientip, inet_ntoa(((sockaddr_in*)&another)->sin_addr));
+                    std::cout<<std::endl;
+                    std::cout<<"Peer IP: ";
+                    for(int i=0;i<sin_size;++i)
+                        std::cout<<clientip[i];
+                    std::cout<<std::endl;
+                    if (another.ss_family == AF_INET) {
+                        sockaddr_in* addr = (sockaddr_in*)&another;
+                        char ip[INET_ADDRSTRLEN];
+                        inet_ntop(AF_INET, &addr->sin_addr, ip, INET_ADDRSTRLEN);
+                        printf("Connecting by IPv4 to: %s:%d\n", ip, ntohs(addr->sin_port));
+                    } else if (another.ss_family == AF_INET6) {
+                        sockaddr_in6* addr = (sockaddr_in6*)&another;
+                        char ip[INET6_ADDRSTRLEN];
+                        inet_ntop(AF_INET6, &addr->sin6_addr, ip, INET6_ADDRSTRLEN);
+                        printf("Connecting by IPv6 to: [%s]:%d\n", ip, ntohs(addr->sin6_port));
+                    }
                     if(__set_no_block__(tmp_sock)!=ErrorCode::NONE)
                         continue;
                 }
@@ -274,6 +293,7 @@ void Server::__new_connection__(Socket connected_client){
         close(connected_client);
     }
     connection_pool_.add_connection(connected_client);
+    std::cout<<"Successfull connection"<<std::endl;
 }
 network::server::Status Server::get_status() const{
     return status_;

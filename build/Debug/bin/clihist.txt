@@ -1,8 +1,3 @@
---index --inp=host:127.0.0.1 --index-ref
---index --inp host:127.0.0.1 --index-ref
---index --inp host:127.0.0.1
---index --inp=host:127.0.0.1 --index-ref
---index --inp dirtest_grib
 --index --inp dir=host:127.0.0.1 --index-ref
 --index --inp dir=127.0.0.1 --index-ref
 --index --inp host=127.0.0.1 --index-ref
@@ -80,4 +75,26 @@
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
 --server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--exit
+--index --inp host=127.0.0.1:32396 --index-ref
+--exit
+--index --inp host=127.0.0.1:32396 --index-ref
+--exit
+--index --inp host=127.0.0.1:32396 --index-ref
 --exit
