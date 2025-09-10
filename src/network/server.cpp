@@ -202,9 +202,12 @@ void Server::__launch__(Server* server){
     
     std::vector<epoll_event> events = server::define_epoll_event();
     epoll_event ev;
-    ev.events = EPOLLIN;
+    ev.events = EPOLLRDNORM | EPOLLRDHUP | EPOLLWRNORM;
     ev.data.fd = server->server_socket_;
-    int epollfd = epoll_create1(0);
+    /**
+     * @todo set correct size of accepted epoll
+     */
+    int epollfd = epoll_create(20);
     if(epollfd==-1)
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"server epoll init. "s+strerror(errno),AT_ERROR_ACTION::ABORT);
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server->server_socket_, &ev) == -1) {
@@ -233,6 +236,7 @@ void Server::__launch__(Server* server){
         int number_epoll_wait;
         if((number_epoll_wait = epoll_wait(epollfd,events.data(),events.size(),-1))==-1 && errno!=EINTR){
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"epoll wait",AT_ERROR_ACTION::CONTINUE);
+            close(epollfd);
             return;
         }
         else
