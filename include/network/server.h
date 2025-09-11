@@ -13,6 +13,7 @@
 #include <vector>
 #include <sys/eventfd.h>
 #include "network/common/credentials.h"
+#include "network/common/socket.h"
 
 using namespace std::string_view_literals;
 namespace network{
@@ -25,14 +26,14 @@ namespace network{
         std::stop_token stop_token_;
         std::unique_ptr<sockaddr_storage> server_;
         eventfd_t server_interruptor;
-        Socket server_socket_=-1;
+        Socket server_socket_;
         bool interrupt_transactions_ = false;
         ErrorCode err_;
         server::Status status_=server::Status::INACTIVE;
         static void __launch__(Server*);
         Server();
-        void __new_connection__(Socket connected_client);
-        ErrorCode __connection_process__(Socket connected_client);
+        void __new_connection__(const Socket& connected_client);
+        ErrorCode __connection_process__(const Socket& connected_client);
         static ErrorCode __set_no_block__(int);
     public:
         server::Status get_status() const;
