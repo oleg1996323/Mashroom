@@ -126,7 +126,8 @@
         "strstream": "cpp",
         "any": "cpp",
         "csignal": "cpp",
-        "flat_set": "cpp"
+        "flat_set": "cpp",
+        "table_5.h": "c"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.errorSquiggles": "enabled",

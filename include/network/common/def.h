@@ -27,8 +27,6 @@
 #include <thread>
 #include "float_conv.h"
 
-
-
 namespace network{
     enum class Side{
         SERVER,
@@ -60,7 +58,6 @@ namespace network{
         CANCEL
     };
 
-    using Socket = int;
     using Port = short;
 }
 

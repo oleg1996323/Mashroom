@@ -12,7 +12,7 @@ class Socket{
     std::unique_ptr<sockaddr_storage> storage;
     int socket_=-1;
     public:
-    Socket(const std::string& address,Port port){
+    Socket(){
         
     }
     int set_no_block(bool noblock) noexcept{
@@ -29,7 +29,7 @@ class Socket{
         int error = 0;
         socklen_t len = sizeof(error);
         if(socket_>=0){
-            int ret = getsockopt(socket_,SOL_SOCKET,SO_ERROR,&error,&len);
+            int ret = getsockopt(socket_,SOL_SOCKET,O_NONBLOCK,&error,&len);
             if(ret!=0 || error!=0)
                 return false;
         }
