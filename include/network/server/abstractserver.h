@@ -16,7 +16,7 @@ namespace network{
     class AbstractServer{
         std::list<Socket> peers_;
         std::unique_ptr<sockaddr_storage> socket_in_;
-        Socket socket_ = -1;
+        Socket socket_;
         ServerError err_;
         public:
         AbstractServer(const server::Settings& settings);

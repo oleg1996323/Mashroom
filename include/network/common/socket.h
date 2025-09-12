@@ -3,8 +3,8 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <memory>
-#include "network/common/def.h"
 #include <stdexcept>
+#include "def.h"
 
 namespace network{
 
@@ -32,7 +32,8 @@ class Socket{
         Datagramm = SOCK_DGRAM,             //Datagram socket.
         Raw = SOCK_RAW,                     //Raw Protocol Interface.
         SequencedPack = SOCK_SEQPACKET,     //Sequenced-packet socket.
-        Stream = SOCK_STREAM                //Byte-stream socket.
+        Stream = SOCK_STREAM,               //Byte-stream socket.
+        NonBlock = SOCK_NONBLOCK            //Non-block socket type         
     };
     std::unique_ptr<sockaddr_storage> storage;
     int socket_=-1;
@@ -62,16 +63,48 @@ class Socket{
     public:
     Socket() = default;
     Socket(Familly fam,Type type,Protocol proto){
-        if(int err = socket(static_cast<int>(fam),static_cast<int>(type),static_cast<int>(proto));err==-1)
+        if(socket_ = socket(static_cast<int>(fam),static_cast<int>(type),static_cast<int>(proto));socket_==-1)
             switch(errno){
-                case EAI_FAMILY:
-                    throw std::invalid_argument(gai_strerror(errno));
+                case EAFNOSUPPORT:
+                case EINVAL:
+                case EMFILE:
+                case EPROTONOSUPPORT:
+                    throw std::invalid_argument(strerror(errno));
+                case ENOBUFS:
+                case ENOMEM:
+                case EACCES:
+                    throw std::runtime_error(strerror(errno));
             }
     }
     ~Socket(){
         close(socket_);
     }
-    int bind() const;
+    int bind(const std::unique_ptr<sockaddr_storage>& socket_addr) const{
+        if(::bind(socket_,(sockaddr*)&socket_addr,socklen)==-1){
+            switch (errno)
+            {
+            case EACCES:
+            case EADDRINUSE:
+            case EBADF:
+            case ENOTSOCK:
+            case ELOOP:
+            case EROFS:
+                throw std::runtime_error(strerror(errno));
+            case EINVAL:
+            case EADDRNOTAVAIL:
+            case EFAULT:
+            case ENAMETOOLONG:
+            case ENOENT:
+            case ENOMEM:
+                throw std::invalid_argument(strerror(errno));
+                break;
+            default:
+                break;
+            }
+            ::close(socket_);
+            return;
+        }
+    }
     int set_no_block(bool noblock) noexcept{
         if(int flags = fcntl(socket_,F_GETFL,0)==-1){
             return flags;
@@ -106,7 +139,7 @@ class Socket{
     bool is_valid() const noexcept{
         int error = 0;
         socklen_t len = sizeof(error);
-        return getsockopt(socket_,SOL_SOCKET,SO_ERROR,&error,&len)==0;
+        return (getsockopt(socket_,SOL_SOCKET,SO_ERROR,&error,&len)==0 && error==0);
     }
 };
 }
