@@ -4,6 +4,7 @@
 #include "network/common/trans/send.h"
 #include "network/common/trans/receive.h"
 #include <cassert>
+#include "network/common/socket.h"
 
 namespace network{
     template<Side S>
@@ -29,19 +30,19 @@ namespace network{
         private:
         template<auto T>
         requires MessageEnumConcept<T>
-        ErrorCode __send__(Socket sock) noexcept{
+        ErrorCode __send__(const Socket& sock) noexcept{
             if(!hmsg_.has_message())
                 return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"not message",AT_ERROR_ACTION::CONTINUE);
             auto& msg_tmp = hmsg_.template get<T>();
             if(serialization::SerializationEC err = serialization::serialize_network(msg_tmp,msg_tmp.buffer());
                     err!=serialization::SerializationEC::NONE)
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
-            return send(sock,msg_tmp.buffer());
+            return send(sock,msg_tmp.buffer())==-1?ErrorCode::SENDING_MESSAGE_ERROR:ErrorCode::NONE;
         }
         template<auto MSG_T>
         requires MessageEnumConcept<MSG_T>
-        ErrorCode __receive_and_define_message__(Socket sock, std::vector<char>& buffer) noexcept;
-        ErrorCode __receive_and_define_any_message__(Socket sock, std::vector<char>& buffer) noexcept;
+        ErrorCode __receive_and_define_message__(const Socket& sock, std::vector<char>& buffer) noexcept;
+        ErrorCode __receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept;
         public:
 
         template<MESSAGE_ID<S>::type MSG_T>
@@ -74,7 +75,7 @@ namespace network{
          */
         template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
         requires MessageEnumConcept<MSG_T>
-        ErrorCode receive_message(Socket sock){
+        ErrorCode receive_message(const Socket& sock){
             std::vector<char> buffer;
             if(ErrorCode err = __receive_and_define_message__<MSG_T>(sock,buffer);
                 err != ErrorCode::NONE)
@@ -82,7 +83,7 @@ namespace network{
             else return ErrorCode::NONE;
         }
 
-        ErrorCode receive_any_message(Socket sock){
+        ErrorCode receive_any_message(const Socket& sock){
             std::vector<char> buffer;
             if(ErrorCode err = __receive_and_define_any_message__(sock,buffer);
                 err != ErrorCode::NONE)
@@ -104,7 +105,7 @@ namespace network{
     template<Side S>
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
-    inline ErrorCode MessageProcess<S>::__receive_and_define_message__(Socket sock, std::vector<char>& buffer) noexcept{
+    inline ErrorCode MessageProcess<S>::__receive_and_define_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
         buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
         if(ErrorCode err = receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size());
             err != ErrorCode::NONE)
@@ -129,7 +130,7 @@ namespace network{
     }
 
     template<Side S>
-    inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(Socket sock, std::vector<char>& buffer) noexcept{
+    inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
         buffer.resize(undefined_msg_type_min_required_size<S>());
         if(ErrorCode err = receive(sock,buffer,undefined_msg_type_min_required_size<S>());
             err != ErrorCode::NONE)
@@ -213,9 +214,9 @@ namespace network{
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         auto& msg = hmsg_.get<network::Server_MsgT::DATA_REPLY_FILEINFO>();
         serialization::SerializationEC code = serialization::serialize_network(msg,msg.buffer());
-        if(err_ = send(sock,std::span<const char>(msg.buffer())); err_!=ErrorCode::NONE){
+        if(send(sock,std::span<const char>(msg.buffer()))==-1){
             if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-                close(sock);
+                return ErrorPrint::print_error(err_,"",AT_ERROR_ACTION::CONTINUE);
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         }
     }

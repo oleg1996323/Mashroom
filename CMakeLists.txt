@@ -68,7 +68,6 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
 
-set(CMAKE_PREFIX_PATH "$ENV{HOME}/OsterLib-install")
 find_package(OsterLib CONFIG REQUIRED)
 add_subdirectory(API)
 

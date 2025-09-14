@@ -1,11 +1,4 @@
 #pragma once
-#include "sys/error_code.h"
-#include "sys/error_print.h"
-#include "code_tables/table_0.h"
-#include "grib1/include/code_tables/table_4.h"
-#include "grib1/include/code_tables/table_5.h"
-#include "grib1/include/code_tables/table_6.h"
-
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -25,7 +18,6 @@
 #include <netinet/tcp.h>
 #include <sys/epoll.h>
 #include <thread>
-#include "float_conv.h"
 
 namespace network{
     enum class Side{
@@ -61,10 +53,7 @@ namespace network{
     enum class Familly : uint8_t{
         UNDEF = AF_UNSPEC,
         IPv4 = AF_INET,
-        IPv6 = AF_INET6,
-        #ifdef unix
-        UNIX = AF_UNIX
-        #endif
+        IPv6 = AF_INET6
     };
 
     enum class Protocol{
@@ -97,13 +86,15 @@ namespace network{
             MPTCP = 262,   /* Multipath TCP connection.  */
     };
 
-    using Port = short;
+    using Port = uint16_t;
+    using FileDescriptor = int;
 }
 
 namespace network{
-    std::ostream& print_ip_port(std::ostream& stream,sockaddr_storage* addr);
-    std::string ip_to_text(sockaddr_storage* addr);
-    std::string port_to_text(sockaddr_storage* addr);
+    std::ostream& print_ip_port(std::ostream& stream,const sockaddr_storage& addr);
+    std::string ip_to_text(const sockaddr_storage& addr);
+    std::string port_to_text(const sockaddr_storage& addr);
+    std::string protocol_to_text(const sockaddr_storage& addr);
     bool is_correct_address(const std::string& text) noexcept;
     bool is_correct_address(std::string_view text) noexcept;
 }

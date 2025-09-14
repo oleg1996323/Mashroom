@@ -22,7 +22,7 @@ std::expected<network::server::Config,std::exception> from_json(const boost::jso
             result.name_=c.at("name").as_string();
             result.settings_.host=c.at("host").as_string();
             result.settings_.service=c.at("service").as_string();
-            result.settings_.port=c.at("port").as_string();
+            result.settings_.port=static_cast<uint16_t>(c.at("port").as_uint64());
             result.settings_.protocol=c.at("protocol").as_string();
             result.settings_.timeout_seconds_=c.at("timeout").as_int64();
             for(auto& accaddr:c.at("accaddr").as_array())

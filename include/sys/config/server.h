@@ -7,9 +7,9 @@ namespace network::server{
 struct Settings{
     std::string host;
     std::string service;
-    std::string port;
     std::string protocol = "tcp";
     int timeout_seconds_=20;
+    int32_t port;
     Settings() = default;
     Settings(const Settings& other)
     {
@@ -45,7 +45,7 @@ struct Settings{
         if(this!=&other){
             host.swap(other.host);
             service.swap(other.service);
-            port.swap(other.port);
+            port = other.port;
             protocol.swap(other.protocol);
             timeout_seconds_=other.timeout_seconds_;
         }

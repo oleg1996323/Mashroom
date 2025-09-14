@@ -20,7 +20,7 @@ namespace network::server{
         return config_;
     }
     Config::operator bool() const{
-        return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port.empty()) && !settings_.protocol.empty() && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
+        return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port>0) && !settings_.protocol.empty() && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
     }
     void Config::print_server_config(std::ostream& stream) const{
         stream<<"Server config name: \""<<name_<<"\""<<std::endl;
