@@ -22,22 +22,18 @@ namespace network{
         friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
         friend class network::connection::Process<Client>;
-        using ThreadResult = std::pair<std::jthread,std::promise<ErrorCode>>;
-        std::unique_ptr<sockaddr_storage> client_;
         /**
          * @brief don't block the GUI if integrated
          */
-        mutable std::unique_ptr<ThreadResult> client_thread_;
-        Socket client_socket_ = -1;
+        std::unique_ptr<connection::Process<Client>> process;
+        Socket client_socket_;
         /**
          * @brief for epoll interruption of processes in thread
          */
         eventfd_t client_interruptor;
         mutable ErrorCode err_ = ErrorCode::NONE;
         mutable server::Status server_status_ = server::Status::READY;
-        bool temporary_ = true;
-        bool retry_connection_ = false;
-        Client(const std::string& host, const std::string& port);
+        Client(const std::string& host, uint16_t port);
         public:
         Client(Client&& other) noexcept;
         Client& operator=(Client&& other) noexcept;

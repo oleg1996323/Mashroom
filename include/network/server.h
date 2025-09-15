@@ -17,34 +17,30 @@
 
 using namespace std::string_view_literals;
 namespace network{
-    class Server:public AbstractServer<Process<Server>>{
+    class Server:public AbstractServer<connection::ConnectionPool>{
     private:
-        network::connection::ConnectionPool connection_pool_;
         std::jthread server_thread_;
         std::stop_token stop_token_;
         server::Status status_=server::Status::INACTIVE;
-        static void __launch__(Server*);
         Server();
         virtual void after_accept(Socket& socket) override{
             try{
                 socket.set_no_block(true).set_option(Socket::Options::KeepAlive,true);
-                connection_pool_.add_connection(socket);
+                using Event_t = Multiplexor::Event;
+                modify_connection(socket,Event_t::EdgeTrigger);
                 std::cout<<"Connecting ";
                 socket.print_address_info(std::cout);
             }
             catch(const std::runtime_error& err){
+                std::cout<<"Error after accepting connection"<<std::endl;
                 return;
             }
             return;
         }
-        void __new_connection__(const Socket& connected_client);
-        ErrorCode __connection_process__(const Socket& connected_client);
     public:
         server::Status get_status() const;
-        void launch();
         void stop();
-        void close_connections(bool wait_for_end_connections = false);
-        void shutdown(bool wait_for_end_connections = false);
+        void collapse(bool wait_for_end_connections = false);
         ~Server();
         static std::unique_ptr<Server> make_instance(ErrorCode& err);
     };

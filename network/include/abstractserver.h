@@ -26,6 +26,8 @@ namespace network{
             throw std::runtime_error(strerror(err));
         }
         void __accept_throw__(const Socket& socket);
+        public:
+        using Event = Multiplexor::Event;
         protected:
         virtual void process_max_fd_reached(int err, const Socket& socket){
             std::cout<<strerror(err)<<std::endl;
@@ -35,6 +37,18 @@ namespace network{
         }
         virtual void connection_aborted(int err,const Socket& socket){
             std::cout<<strerror(err)<<std::endl;
+        }
+        AbstractServer& add_connection(const Socket& socket, Event events_notify){
+            connection_pool.add_connection(socket,events_notify);
+            return *this;
+        }
+        AbstractServer& remove_connection(const Socket& socket, bool wait){
+            remove_connection(socket,wait);
+            return *this;
+        }
+        AbstractServer& modify_connection(const Socket& socket,Event events_notify){
+            connection_pool.modify_connection(socket,events_notify);
+            return *this;
         }
         public:
         AbstractServer(const server::Settings& settings):
@@ -77,6 +91,8 @@ namespace network{
                                 else{
                                     Socket socket(raw_sock,another);
                                     after_accept(socket);
+                                    using Event_t = Multiplexor::Event;
+                                    connection_pool.add_connection(socket,Event_t::HangUp|Event_t::In|Event_t::Out);
                                     continue;
                                 }
                             }

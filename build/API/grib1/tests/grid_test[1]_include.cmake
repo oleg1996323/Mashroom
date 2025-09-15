@@ -2,7 +2,7 @@ if(EXISTS "/home/oster/Mashroom/build/Debug/bin/grid_test")
   if(NOT EXISTS "/home/oster/Mashroom/build/API/grib1/tests/grid_test[1]_tests.cmake" OR
      NOT "/home/oster/Mashroom/build/API/grib1/tests/grid_test[1]_tests.cmake" IS_NEWER_THAN "/home/oster/Mashroom/build/Debug/bin/grid_test" OR
      NOT "/home/oster/Mashroom/build/API/grib1/tests/grid_test[1]_tests.cmake" IS_NEWER_THAN "${CMAKE_CURRENT_LIST_FILE}")
-    include("/usr/share/cmake-3.28/Modules/GoogleTestAddTests.cmake")
+    include("/home/oster/CMake/Modules/GoogleTestAddTests.cmake")
     gtest_discover_tests_impl(
       TEST_EXECUTABLE [==[/home/oster/Mashroom/build/Debug/bin/grid_test]==]
       TEST_EXECUTOR [==[]==]
@@ -17,6 +17,7 @@ if(EXISTS "/home/oster/Mashroom/build/Debug/bin/grid_test")
       TEST_LIST [==[grid_test_TESTS]==]
       CTEST_FILE [==[/home/oster/Mashroom/build/API/grib1/tests/grid_test[1]_tests.cmake]==]
       TEST_DISCOVERY_TIMEOUT [==[5]==]
+      TEST_DISCOVERY_EXTRA_ARGS [==[]==]
       TEST_XML_OUTPUT_DIR [==[]==]
     )
   endif()

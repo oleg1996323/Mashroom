@@ -25,12 +25,23 @@ namespace network{
         AbstractConnectionPool():mp_connections(std::make_unique<Multiplexor>(5)){}
         virtual ~AbstractConnectionPool(){}
         AbstractConnectionPool& add_connection(const Socket& socket, Event events_notify){
-            peers_[socket];
-            mp_connections->add(socket,events_notify);
+            if(!peers_.contains(socket)){
+                peers_[socket];
+                mp_connections->add(socket,events_notify);
+            }
+            return *this;
         }
         AbstractConnectionPool& remove_connection(const Socket& socket, bool wait){
             peers_.erase(socket);
             mp_connections->remove(socket);
+            return *this;
+        }
+        AbstractConnectionPool& modify_connection(const Socket& socket,Event events_notify){
+            if(peers_.contains(socket)){
+                peers_[socket];
+                mp_connections->modify(socket,events_notify);
+            }
+            else throw std::invalid_argument("Connection pool doesn't contains socket");
         }
         virtual AbstractConnectionPool& event_process(const Socket& socket, Event events){
             switch(events){

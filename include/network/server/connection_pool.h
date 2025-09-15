@@ -10,8 +10,6 @@
 
 namespace network::connection{
     class ConnectionPool:public AbstractConnectionPool<Process<Server>>{
-        ::std::unordered_set<network::connection::Process<Server>> data_;
-        std::mutex locker_;
         public:
         ConnectionPool(const Server& server);
         ~ConnectionPool();
