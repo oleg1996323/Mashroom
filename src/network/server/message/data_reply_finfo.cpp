@@ -1,5 +1,5 @@
 #include "network/server/message/data_reply_finfo.h"
-#include "network/common/utility.h"
+#include "utility.h"
 
 namespace network{
     MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>::MessageAdditional(ErrorCode& err,

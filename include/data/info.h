@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cstring>
 #include <netinet/in.h>
-#include "network/common/utility.h"
 #include "grib/index_data_info.h"
 #include "sublimed_info.h"
 #include "serialization.h"

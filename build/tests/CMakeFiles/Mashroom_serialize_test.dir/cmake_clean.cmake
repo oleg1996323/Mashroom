@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "../Debug/bin/Mashroom_serialize_test"
   "../Debug/bin/Mashroom_serialize_test.pdb"
-  "CMakeFiles/Mashroom_serialize_test.dir/link.d"
   "CMakeFiles/Mashroom_serialize_test.dir/mashroom_serialization.cpp.o"
   "CMakeFiles/Mashroom_serialize_test.dir/mashroom_serialization.cpp.o.d"
 )

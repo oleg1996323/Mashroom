@@ -41,6 +41,7 @@ file(GLOB_RECURSE CLparse_SOURCES ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
 file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/network/**.cpp)
 file(GLOB_RECURSE Sys_SOURCES ${CMAKE_SOURCE_DIR}/src/sys/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
+file(GLOB_RECURSE Network_lib_SOURCES ${CMAKE_SOURCE_DIR}/network/src/**.cpp)
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd_parse|sys)/")
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
@@ -67,15 +68,19 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
-
+set(CMAKE_PREFIX_PATH $ENV{HOME})
 find_package(OsterLib CONFIG REQUIRED)
 add_subdirectory(API)
+
+add_library(network_lib SHARED ${Network_lib_SOURCES})
+target_include_directories(network_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/include)
+target_link_libraries(network_lib PUBLIC OsterLib::serial OsterLib::bytes)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
 target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial)
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial network_lib)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 

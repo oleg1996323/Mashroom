@@ -12,6 +12,7 @@
 #include <queue>
 #include <shared_mutex>
 #include "network/common/connection_process.h"
+#include "abstractprocess.h"
 
 namespace network{
     class Server;

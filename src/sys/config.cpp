@@ -4,6 +4,7 @@
 #include <ranges>
 #include "filesystem.h"
 #include "proj.h"
+#include <netdb.h>
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -14,13 +15,13 @@ namespace network::server{
         Config config_;
         config_.settings_.host="10.10.10.10";
         config_.settings_.service="32396";
-        config_.settings_.protocol="tcp";
+        config_.settings_.protocol=static_cast<network::Protocol>(getprotobyname("tcp")->p_proto);
         config_.settings_.timeout_seconds_ = 20;
         config_.name_ = "default";
         return config_;
     }
     Config::operator bool() const{
-        return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port>0) && !settings_.protocol.empty() && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
+        return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port>0) && !(settings_.protocol<0) && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
     }
     void Config::print_server_config(std::ostream& stream) const{
         stream<<"Server config name: \""<<name_<<"\""<<std::endl;

@@ -1,10 +1,10 @@
 #pragma once
 #include "message.h"
 #include "message_handler.h"
-#include "network/common/trans/send.h"
-#include "network/common/trans/receive.h"
+#include "send.h"
+#include "receive.h"
 #include <cassert>
-#include "network/common/socket.h"
+#include "socket.h"
 
 namespace network{
     template<Side S>
