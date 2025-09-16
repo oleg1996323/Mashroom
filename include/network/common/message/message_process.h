@@ -46,14 +46,14 @@ namespace network{
         public:
 
         template<MESSAGE_ID<S>::type MSG_T>
-        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_sending_message() const{
+        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_sending_message() const noexcept{
             if(std::holds_alternative<Message<MSG_T>>(hmsg_))
                 return std::cref(std::get<Message<MSG_T>>(hmsg_));
             else return std::nullopt;
         };
 
         template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
-        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_received_message() const{
+        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_received_message() const noexcept{
             if(std::holds_alternative<Message<MSG_T>>(recv_hmsg_))
                 return std::cref(std::get<Message<MSG_T>>(recv_hmsg_));
             else return std::nullopt;
@@ -61,7 +61,7 @@ namespace network{
 
         template<MESSAGE_ID<S>::type T,typename... ARGS>
         ErrorCode send_message(Socket sock,ARGS... args){
-            if(ErrorCode err = hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);err!=ErrorCode::NONE){
+            if(ErrorCode err = hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);err!=ErrorCode::NONE) noexcept{
                 hmsg_.clear();
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
             }
@@ -75,7 +75,7 @@ namespace network{
          */
         template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
         requires MessageEnumConcept<MSG_T>
-        ErrorCode receive_message(const Socket& sock){
+        ErrorCode receive_message(const Socket& sock) noexcept{
             std::vector<char> buffer;
             if(ErrorCode err = __receive_and_define_message__<MSG_T>(sock,buffer);
                 err != ErrorCode::NONE)
@@ -83,7 +83,7 @@ namespace network{
             else return ErrorCode::NONE;
         }
 
-        ErrorCode receive_any_message(const Socket& sock){
+        ErrorCode receive_any_message(const Socket& sock) noexcept{
             std::vector<char> buffer;
             if(ErrorCode err = __receive_and_define_any_message__(sock,buffer);
                 err != ErrorCode::NONE)
@@ -91,7 +91,7 @@ namespace network{
             else return ErrorCode::NONE;
         }
 
-        std::optional<typename MESSAGE_ID<sent_from<S>()>::type> received_message_type() const{
+        std::optional<typename MESSAGE_ID<sent_from<S>()>::type> received_message_type() const noexcept{
             if(!recv_hmsg_.has_message())
                 return std::nullopt;
             else return static_cast<typename MESSAGE_ID<sent_from<S>()>::type>(recv_hmsg_.index()-1);

@@ -10,30 +10,38 @@
 #include "network/client/connection_process.h"
 #include <netdb.h>
 #include <future>
+#include "abstractclient.h"
 
 namespace network{
     class ClientsHandler;
 }
 namespace network{
 
-    class Client{
+    class Client:public AbstractClient<connection::Process<Client>>{
         private:
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;
         friend typename network::ClientsHandler;
-        friend class network::connection::Process<Client>;
         /**
          * @brief don't block the GUI if integrated
          */
-        std::unique_ptr<connection::Process<Client>> process;
-        Socket client_socket_;
+        MessageProcess<Side::CLIENT> mprocess_;
         /**
          * @brief for epoll interruption of processes in thread
          */
-        eventfd_t client_interruptor;
         mutable ErrorCode err_ = ErrorCode::NONE;
         mutable server::Status server_status_ = server::Status::READY;
+        template<typename... ARGS>
+        static void request(Process::Function_t<MessageProcess<Side::CLIENT>&,ARGS...> function,const Socket& socket,MessageProcess<Side::CLIENT>& proc,ARGS&&... args){
+            if(proc.send_message(socket,std::forward<ARGS>(args)...)!=ErrorCode::NONE)
+                throw std::runtime_error("Error at sending message");
+            else {
+                if(proc.receive_any_message(socket)!=ErrorCode::NONE)
+                    throw std::runtime_error("Error at receiving message");
+            }
+        }
         Client(const std::string& host, uint16_t port);
+        ErrorCode connect()
         public:
         Client(Client&& other) noexcept;
         Client& operator=(Client&& other) noexcept;
@@ -41,30 +49,49 @@ namespace network{
         ~Client();
         void cancel();
         ErrorCode connect(const std::string& host, const std::string& port);
-        bool is_connected() const;
-        ErrorCode disconnect();
-        template<network::Client_MsgT::type T,typename... ARGS>
-        ErrorCode request(ARGS&&... args) const{
-            if(client_thread_)
-                client_thread_->first.join();
-            client_thread_ = std::make_unique<ThreadResult>();
-            client_thread_->first = std::move(std::jthread([&socket = this->client_socket_,&promise = this->client_thread_->second,...Args = std::forward<ARGS>(args)](std::stop_token stoken) mutable{
-                std::unique_ptr<network::connection::Process<Client>> process_ = 
-                    std::make_unique<network::connection::Process<Client>>(socket);
-                promise.set_value(process_->send<T>(std::forward<ARGS>(Args)...));
-            }));            
-            return ErrorCode::NONE;
-        }
+        static std::expected<std::unique_ptr<Client>,ErrorCode> create_and_connect(const std::string& host, uint16_t port){
+            Client client(host,port);
 
+        }
+        template<network::Client_MsgT::type T,typename... ARGS>
+        ErrorCode request(bool wait,ARGS&&... args){
+            try{
+                process = std::move(Process::add_process(Process::));
+                if(wait)
+                    process->wait(-1);
+                return ErrorCode::NONE;
+            }
+            catch(const std::exception& err){
+                return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
+            }
+        }
+        template<network::Client_MsgT::type T,typename... ARGS>
+        ErrorCode request(int timeout_sec,ARGS&&... args){
+            try{
+                process = std::move(Process::add_process(Process::));
+                if(!process->wait(timeout_sec)){
+                    process->request_stop(false,0);
+                    process.reset();
+                    return ErrorPrint::print_error(ErrorCode::TIMEOUT,"request",AT_ERROR_ACTION::CONTINUE);
+                }
+                else return ErrorCode::NONE;
+            }
+            catch(const std::exception& err){
+                return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
+            }
+        }
+        template<MESSAGE_ID<Side::CLIENT>::type MSG_T>
+        auto get_result() const{
+            return mprocess_.get_received_message<MSG_T>();
+        }
         server::Status server_status() const;
-        // static std::unique_ptr<Client> make_instance(const std::string&,ErrorCode&);
     };
 }
 
 template<>
 struct std::hash<network::Client>{
     size_t operator()(const network::Client& client) const{
-        if(client.client_->ss_family==AF_INET){
+        if(client.client_socket_.->ss_family==AF_INET){
             auto addr = (sockaddr_in*)client.client_.get();
             return std::hash<size_t>{}(addr->sin_addr.s_addr)^std::hash<size_t>{}(addr->sin_port);
         }

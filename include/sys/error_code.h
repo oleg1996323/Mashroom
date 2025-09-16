@@ -64,7 +64,8 @@ enum class ErrorCode : uint8_t{
     SERIALIZATION_ERROR,
     SERVER_ERROR,
     DATA_NOT_FOUND,
-    BUFFER_LOW_SIZE
+    BUFFER_LOW_SIZE,
+    TIMEOUT
 };
 
 enum class AT_ERROR_ACTION{

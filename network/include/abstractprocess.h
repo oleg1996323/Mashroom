@@ -9,16 +9,16 @@
 
 namespace network{
 
-template<typename PROCESS_T>
+template<typename PROCESS_T,typename RESULT_T>
 class AbstractQueuableProcess;
 
-template<typename DERIVED>
+template<typename DERIVED,typename RESULT_T = void>
 class AbstractProcess{
     private:
-    friend class AbstractQueuableProcess<DERIVED>;
+    friend class AbstractQueuableProcess<DERIVED,RESULT_T>;
     std::jthread thread;
     std::mutex m;
-    std::shared_future<void> future;
+    std::shared_future<RESULT_T> future;
     virtual bool __ready__(){
         std::lock_guard lk(m);
         return future.valid() && future.wait_for(std::chrono::nanoseconds(1))==std::future_status::ready;
@@ -28,7 +28,7 @@ class AbstractProcess{
     virtual void action_if_process_busy() override{}
     public:
     template<typename... ARGS>
-    using Function_t = std::function<void(std::stop_token,const Socket&,ARGS&&...)>;
+    using Function_t = std::function<RESULT_T(std::stop_token,const Socket&,ARGS&&...)>;
     AbstractProcess() = default;
     AbstractProcess(const AbstractProcess&) = delete;
     AbstractProcess(AbstractProcess&& other) noexcept{
@@ -49,17 +49,26 @@ class AbstractProcess{
     bool busy(){
         return !ready();
     }
-    bool request_stop(){
-        return thread.request_stop();
+    bool wait(int timeout_sec){
+        if(timeout_sec<-1){
+            future.wait();
+            return true;
+        }
+        else return future.wait_for(std::chrono::seconds(timeout_sec))==std::future_status::ready;
+    }
+    virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60){
+        if(wait_finish)
+            future->wait_for(timeout_sec) == std::future_status::ready;
+        thread.request_stop();
     }
 
     template<typename... ARGS>
     static std::unique_ptr<DERIVED> add_process(Function_t<ARGS...> function,const Socket& socket, ARGS&&... args){
-        static_assert(std::is_base_of_v<AbstractProcess,DERIVED>,"Is not derived from AbstractProcess");
+        static_assert(std::is_base_of_v<AbstractProcess<DERIVED>,DERIVED>,"Is not derived from AbstractProcess");
         std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>();
         process->thread =std::jthread([proc = process.get(),sock = socket,func = std::move(function),
                                     ...arguments = std::forward<ARGS>(args)](std::stop_token stop) mutable{
-            std::promise<void> promise;
+            std::promise<RESULT_T> promise;
             proc->future = promise.get_future();
             try{
                 std::invoke(func,stop,sock,std::forward<decltype(arguments)>(arguments)...);

@@ -4,9 +4,9 @@
 #include <mutex>
 
 namespace network{
-    template<typename PROCESS_T>
-    class AbstractQueuableProcess:public AbstractProcess<PROCESS_T>{
-        using Queue_task = std::function<void(std::stop_token)>;
+    template<typename PROCESS_T,typename RESULT_T = void>
+    class AbstractQueuableProcess:public AbstractProcess<PROCESS_T,RESULT_T>{
+        using Queue_task = std::function<RESULT_T(std::stop_token)>;
         std::queue<Queue_task> queue;
         std::condition_variable cv;
         virtual void __after_execution__() override final{
@@ -26,7 +26,7 @@ namespace network{
         }
         public:
         ~AbstractQueuableProcess() = default;
-        void request_stop(bool wait_finish){
+        virtual void request_stop(bool wait_finish) override final{
             std::unique_lock lk(m);
             lk.lock();
             queue.c.clear();
@@ -50,7 +50,7 @@ namespace network{
             Queue_task task = [func = std::move(function),
             sock = socket,
             tup = std::make_tuple(std::forward<ARGS>(args)...),
-            promise = std::promise<void>(),
+            promise = std::promise<RESULT_T>(),
             &future = this->future]
             (std::stop_token stop)
             {

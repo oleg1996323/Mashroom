@@ -16,7 +16,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at indexing: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,46> err_msg={
+constexpr std::array<const char*,47> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -62,5 +62,6 @@ constexpr std::array<const char*,46> err_msg={
     "Serialization error",
     "Server error",
     "Requested data not found",
-    "Not enough buffer size"
+    "Not enough buffer size",
+    "Timeout of operation"
 };

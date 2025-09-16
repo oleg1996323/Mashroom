@@ -47,6 +47,8 @@ class Socket{
     private:
     template<typename DERIVED_CONNECTIONPOOL>
     friend class AbstractServer;
+    template<typename PROCESS_T>
+    friend class AbstractClient;
     friend Multiplexor;
     friend std::hash<Socket>;
     friend std::equal_to<Socket>;
@@ -56,6 +58,9 @@ class Socket{
     std::shared_ptr<sockaddr_storage> storage;
     std::shared_ptr<int> socket_;
     private:
+    const std::shared_ptr<sockaddr_storage>& get_address_storage() const{
+        return storage;
+    }
     int __descriptor__() const noexcept;
     void __init_storage__(std::ranges::common_range auto&& host, Port port);
     Socket(int raw_socket_id,const sockaddr_storage&);
