@@ -21,7 +21,9 @@ namespace network::connection{
         Process& operator=(const Process&) = delete;
         Process& operator=(Process&& other) noexcept;
 
-
+        virtual void action_if_process_busy() override{
+            throw std::runtime_error("Process doesn't finished!");
+        }
         template<auto MSG_T,typename... ARGS>
         requires ClientMessageEnumConcept<MSG_T>
         ErrorCode send(const Socket& socket,ARGS&&... args){

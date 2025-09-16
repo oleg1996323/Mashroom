@@ -24,6 +24,8 @@ namespace network{
         using Event = Multiplexor::Event;
         AbstractConnectionPool():mp_connections(std::make_unique<Multiplexor>(5)){}
         virtual ~AbstractConnectionPool(){}
+
+        virtual void common_execution(std::stop_token,const Socket& socket) const = 0;
         AbstractConnectionPool& add_connection(const Socket& socket, Event events_notify){
             if(!peers_.contains(socket)){
                 peers_[socket];
@@ -78,7 +80,7 @@ namespace network{
                             auto found = peers_.find(event.data.fd);
                             if(found!=peers_.end()){
                                 if(found->first.is_valid() && (!found->second || found->second->ready()))
-                                    found->second = std::move(PROCESS_T::add_process());
+                                    found->second = std::move(PROCESS_T::add_process(std::move(&common_execution),*found->first));
                             }
                             else continue;   
                         }

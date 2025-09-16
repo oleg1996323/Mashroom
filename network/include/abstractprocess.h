@@ -5,19 +5,35 @@
 #include <stdexcept>
 #include <chrono>
 #include <functional>
+#include <any>
 
 namespace network{
 
+template<typename PROCESS_T>
+class AbstractQueuableProcess;
+
 template<typename DERIVED>
 class AbstractProcess{
+    private:
+    friend class AbstractQueuableProcess<DERIVED>;
     std::jthread thread;
-    std::future<void> future;
+    std::mutex m;
+    std::shared_future<void> future;
+    virtual bool __ready__(){
+        std::lock_guard lk(m);
+        return future.valid() && future.wait_for(std::chrono::nanoseconds(1))==std::future_status::ready;
+    }
+    virtual void __after_execution__(){}
+    protected:
+    virtual void action_if_process_busy() override{}
     public:
+    template<typename... ARGS>
+    using Function_t = std::function<void(std::stop_token,const Socket&,ARGS&&...)>;
     AbstractProcess() = default;
     AbstractProcess(const AbstractProcess&) = delete;
-    AbstractProcess(AbstractProcess&& other) noexcept:
-    thread(std::move(other.thread)),
-    future(std::move(other.future)){}
+    AbstractProcess(AbstractProcess&& other) noexcept{
+        *this=std::move(other);
+    }
     AbstractProcess& operator=(const AbstractProcess&) = delete;
     AbstractProcess& operator=(AbstractProcess&& other) noexcept{
         if(this!=&other){
@@ -27,9 +43,8 @@ class AbstractProcess{
         return *this;
     }
     ~AbstractProcess(){}
-    virtual void execute(const std::stop_token& st,const Socket& socket) = 0;
     bool ready(){
-        return future.valid() && future.wait_for(std::chrono::nanoseconds(0))==std::future_status::ready;
+        return __ready__();
     }
     bool busy(){
         return !ready();
@@ -37,13 +52,15 @@ class AbstractProcess{
     bool request_stop(){
         return thread.request_stop();
     }
+
     template<typename... ARGS>
-    static std::unique_ptr<DERIVED> add_process(std::function<void(std::stop_token,const Socket&,ARGS&&...)> function,const Socket& socket, ARGS&&... args){
+    static std::unique_ptr<DERIVED> add_process(Function_t<ARGS...> function,const Socket& socket, ARGS&&... args){
         static_assert(std::is_base_of_v<AbstractProcess,DERIVED>,"Is not derived from AbstractProcess");
         std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>();
-        std::promise<void> promise;
-        process->future = promise.get_future();
-        process->thread =std::jthread([promise = std::move(promise),sock = socket,func = std::move(function),...arguments = std::forward<ARGS>(args)](std::stop_token stop) mutable{
+        process->thread =std::jthread([proc = process.get(),sock = socket,func = std::move(function),
+                                    ...arguments = std::forward<ARGS>(args)](std::stop_token stop) mutable{
+            std::promise<void> promise;
+            proc->future = promise.get_future();
             try{
                 std::invoke(func,stop,sock,std::forward<decltype(arguments)>(arguments)...);
                 promise.set_value();
@@ -51,6 +68,7 @@ class AbstractProcess{
             catch(...){
                 promise.set_exception(std::current_exception());
             }
+            proc->__after_execution__();
         });
         return process;
     }

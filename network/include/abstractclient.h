@@ -6,7 +6,6 @@
 #include <netdb.h>
 #include "socket.h"
 #include "abstractprocess.h"
-#include ""
 
 namespace network{
     class ClientsHandler;
@@ -15,6 +14,8 @@ namespace network{
 
     template<typename PROCESS_T>
     class AbstractClient{
+        static_assert(std::is_base_of_v<AbstractProcess,PROCESS_T>,
+            "Template argument must be derived from network::AbstractProcess class!");
         private:
         /**
          * @brief don't block the GUI if integrated
@@ -37,8 +38,10 @@ namespace network{
         AbstractClient& disconnect(bool wait_finish);
         virtual AbstractClient& after_disconnect(){return *this;}
         template<typename... ARGS>
-        void add_request(std::function<void(const Socket&,ARGS&&...)> function,ARGS&&... args) const{
-
+        void add_request(PROCESS_T::Function_t function,ARGS&&... args) const{
+            if(process && process->busy())
+                process->action_if_process_busy(std::move(function),socket_,std::forward<ARGS>(args)...);
+            else process = PROCESS_T::add_process(std::move(function),socket_,std::forward<ARGS>(args)...);
         }
     };
 }
