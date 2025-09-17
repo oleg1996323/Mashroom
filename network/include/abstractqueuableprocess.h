@@ -7,14 +7,14 @@ namespace network{
     template<typename PROCESS_T,typename RESULT_T = void>
     class AbstractQueuableProcess:public AbstractProcess<PROCESS_T,RESULT_T>{
         using Queue_task = std::function<RESULT_T(std::stop_token)>;
-        std::queue<Queue_task> queue;
+        std::deque<Queue_task> queue;
         std::condition_variable cv;
         virtual void __after_execution__() override final{
             std::unique_lock lk(this->m);
             do{
                 if(!queue.empty()){
                     auto task = std::move(queue.front());
-                    queue.pop();
+                    queue.pop_front();
                     lk.unlock();
                     std::invoke(task,this->thread.get_stop_token());
                     lk.lock();
@@ -29,7 +29,7 @@ namespace network{
         virtual void request_stop_protected(bool wait_finish,uint16_t timeout_sec = 60) override final{
             std::unique_lock lk(this->m);
             lk.lock();
-            queue.c.clear();
+            queue.clear();
             if(!wait_finish)
                 this->thread.request_stop();
             else{
@@ -68,7 +68,7 @@ namespace network{
                 }
             };
             std::lock_guard lock(this->m);
-            queue.push(std::move(task));
+            queue.push_back(std::move(task));
             cv.notify_one();
         }
     };

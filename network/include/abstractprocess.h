@@ -27,7 +27,7 @@ class AbstractProcess{
     protected:
     virtual void request_stop_protected(bool wait_finish, uint16_t timeout_sec = 60){
         if(wait_finish)
-            future->wait_for(timeout_sec) == std::future_status::ready;
+            future.wait_for(std::chrono::seconds(timeout_sec)) == std::future_status::ready;
         thread.request_stop();
     }
     public:
@@ -65,10 +65,10 @@ class AbstractProcess{
         request_stop_protected(wait_finish,timeout_sec);
     }
 
-    template<typename... ARGS>
-    static std::unique_ptr<DERIVED> add_process(Function_t<ARGS...> function,const Socket& socket, ARGS&&... args){
+    template<typename... CONSTR_ARGS,typename... ARGS>
+    static std::unique_ptr<DERIVED> add_process(CONSTR_ARGS&&... constr_args,Function_t<ARGS...> function,const Socket& socket, ARGS&&... args){
         static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
-        std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>();
+        std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>(std::forward<CONSTR_ARGS>(constr_args)...);
         process->thread =std::jthread([proc = process.get(),sock = socket,func = std::move(function),
                                     ...arguments = std::forward<ARGS>(args)](std::stop_token stop) mutable{
             std::promise<RESULT_T> promise;

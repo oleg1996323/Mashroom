@@ -61,22 +61,22 @@ class Mashroom{
      * @brief Suspend active server
      * @todo Expand to different server specified by type (data,cadastre,measurement etc)
      */
-    void collapse_server(bool wait_processes = false);
+    void collapse_server(bool wait_processes, uint16_t timeout_sec = 60);
     /**
      * @brief Close active server and (optionaly close instantly close all existing connection without finishing the processes)
      * @todo Expand to different server specified by type (data,cadastre,measurement etc)
      */
-    void close_server(bool wait_processes = false); //further will be lot of servers (data,cadastre,measurement etc)
-    void shutdown_server(bool wait_processes = false); //further will be lot of servers (data,cadastre,measurement etc)
+    void close_server(bool wait_processes, uint16_t timeout_sec = 60); //further will be lot of servers (data,cadastre,measurement etc)
+    void shutdown_server(); //further will be lot of servers (data,cadastre,measurement etc)
     void deploy_server(); //further will be lot of servers (data,cadastre,measurement etc)
     void launch_server(); //further will be lot of servers (data,cadastre,measurement etc)
     bool read_command();
     ErrorCode connect(const std::string& host);
 
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    ErrorCode request(const std::string& host,const std::string& port,ARGS&&... args);
+    ErrorCode request(bool wait, const std::string& host,Port port,ARGS&&... args);
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    ErrorCode request(const std::string& host,uint16_t port,ARGS&&... args);
+    ErrorCode request(uint16_t timeout_sec, const std::string& host,network::Port port,ARGS&&... args);
     const Data& data(){
         return data_;
     }
@@ -110,10 +110,10 @@ class Mashroom{
 };
 
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
-ErrorCode Mashroom::request(const std::string& host,const std::string& port,ARGS&&... args){
-    return clients_.request<MSG_T>(host,port,std::forward<ARGS>(args)...);
+ErrorCode Mashroom::request(bool wait,const std::string& host,network::Port port,ARGS&&... args){
+    return clients_.request<MSG_T>(wait,host,port,std::forward<ARGS>(args)...);
 }
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
-ErrorCode Mashroom::request(const std::string& host,uint16_t port,ARGS&&... args){
-    return clients_.request<MSG_T>(host,std::to_string(port),std::forward<ARGS>(args)...);
+ErrorCode Mashroom::request(uint16_t timeout_sec,const std::string& host,network::Port port,ARGS&&... args){
+    return clients_.request<MSG_T>(timeout_sec,host,port,std::forward<ARGS>(args)...);
 }

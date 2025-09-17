@@ -11,7 +11,6 @@ Client::Client(Client&& other) noexcept:CommonClient(std::move(other)){
         socket_.swap(other.socket_);
         mprocess_ = std::move(other.mprocess_);
         server_status_ = other.server_status_;
-        this->err_ = other.err_;
     }
 }
 Client& Client::operator=(Client&& other) noexcept{
@@ -20,7 +19,6 @@ Client& Client::operator=(Client&& other) noexcept{
         socket_.swap(other.socket_);
         mprocess_ = std::move(other.mprocess_);
         server_status_ = other.server_status_;
-        this->err_ = other.err_;
     }
     return *this;
 }

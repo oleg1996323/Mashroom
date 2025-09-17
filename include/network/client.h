@@ -21,7 +21,6 @@ namespace network{
         private:
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;
-        friend typename network::ClientsHandler;
         /**
          * @brief don't block the GUI if integrated
          */
@@ -29,10 +28,9 @@ namespace network{
         /**
          * @brief for epoll interruption of processes in thread
          */
-        mutable ErrorCode err_ = ErrorCode::NONE;
         mutable server::Status server_status_ = server::Status::READY;
         template<typename... ARGS>
-        static void request(const Socket& socket,MessageProcess<Side::CLIENT>& proc,ARGS&&... args){
+        static void __request__(const Socket& socket,MessageProcess<Side::CLIENT>& proc,ARGS&&... args){
             if(proc.send_message(socket,std::forward<ARGS>(args)...)!=ErrorCode::NONE)
                 throw std::runtime_error("Error at sending message");
             else {
@@ -40,8 +38,9 @@ namespace network{
                     throw std::runtime_error("Error at receiving message");
             }
         }
-        Client(const std::string& host, uint16_t port);
+        
         public:
+        Client(const std::string& host, uint16_t port);
         Client(Client&& other) noexcept;
         Client& operator=(Client&& other) noexcept;
         bool operator==(const Client& other) const noexcept;
@@ -50,7 +49,7 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(bool wait,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(&Client::request,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::add_process(&Client::__request__<ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
                 if(wait)
                     process->wait(-1);
                 return ErrorCode::NONE;
@@ -62,7 +61,7 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(int timeout_sec,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(&Client::request,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::add_process(&Client::__request__<ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
                 if(!process->wait(timeout_sec)){
                     process->request_stop(false,0);
                     process.reset();

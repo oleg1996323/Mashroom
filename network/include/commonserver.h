@@ -51,33 +51,36 @@ namespace network{
             return *this;
         }
         public:
-        CommonServer(const server::Settings& settings):
-        socket_(Socket(settings.host,settings.port,Socket::Type::Stream,Protocol::TCP)){
+        template<typename... ARGS>
+        CommonServer(const server::Settings& settings,ARGS&&... args):
+        socket_(Socket(settings.host,settings.port,Socket::Type::Stream,Protocol::TCP)),
+        connection_pool(std::forward<ARGS>(args)...){
             socket_.bind();
         }
+        virtual ~CommonServer(){}
         void stop(bool wait_finish) {
             accepter->interrupt();
             connection_pool.stop(wait_finish);
         }
-        virtual void init(const std::vector<std::string>& args){};
         virtual void before_listen(){};
         void listen(int backlog){
             if(::listen(socket_.__descriptor__(),backlog)==-1)
                 __listen_throw__();
         }
-        virtual void after_listen(const Socket& accepted) = 0;
+        virtual void after_listen(const Socket& accepted){};
         virtual void before_accept(){
-            printf("server: waiting for connections…\n");
+            std::cout<<"server: waiting for connections…"<<std::endl;
         };
         Interrupted accept();
         virtual void after_accept(Socket& accepted){};
         virtual void at_close(){
-            connection_pool.stop();
+            connection_pool.stop(false);
         }
-        const std::set<Socket>& peers_list() const;
-        const Socket socket() const;
-        void close();
-        void collapse();
+        const Socket socket() const{
+            return socket_;
+        }
+        void close(bool wait_for_end_connections = false, uint16_t timeout_sec = 60);
+        void collapse(bool wait_for_end_connections = false, uint16_t timeout_sec = 60);
         void launch(){
             if(socket_.is_valid())
                 return;

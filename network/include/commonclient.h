@@ -45,9 +45,9 @@ namespace network{
         }
         bool operator==(const CommonClient& other) = delete;
         ~CommonClient(){
-            disconnect(false,0);            
+            disconnect(false,0).socket_.reset();            
         }
-        void cancel(){
+        CommonClient& cancel(){
             if(process && process->busy())
                 process->request_stop(false);
         }
@@ -59,6 +59,15 @@ namespace network{
             }
             if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
                     __connect_throw__();
+            return *this;
+        }
+        CommonClient& connect(){
+            if(!is_connected() && socket_ && socket_->is_valid()){
+                if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
+                    __connect_throw__();
+                else return *this;
+            }
+            else throw std::runtime_error(strerror(EISCONN));
         }
         virtual CommonClient& after_connect(const Socket&){return *this;}
         bool is_connected() const{
@@ -68,7 +77,7 @@ namespace network{
         CommonClient& disconnect(bool wait_finish, uint16_t timeout_sec = 60){
             if(is_connected() && process && process->busy())
                 process->request_stop(wait_finish,timeout_sec);
-            socket_.reset();
+            return *this;
         }
         virtual CommonClient& after_disconnect(){return *this;}
         template<typename... ARGS>

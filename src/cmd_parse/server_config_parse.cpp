@@ -79,7 +79,7 @@ ErrorCode host_notifier(const std::string& input) noexcept{
 ErrorCode port_notifier(int input) noexcept{
     if(input<1025 || input>std::numeric_limits<uint16_t>::max())
         return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"port definition. Must be bigger than 1024",AT_ERROR_ACTION::CONTINUE,input);
-    ServerConfigOptions::config()->settings_.port=std::to_string(input);
+    ServerConfigOptions::config()->settings_.port=static_cast<Port>(input);
     return ErrorCode::NONE;
 }
 
@@ -91,9 +91,9 @@ ErrorCode timeout_notifier(int timeout) noexcept{
 }
 
 ErrorCode protocol_notifier(const std::string& input) noexcept{
-    if(!getprotobyname(input.c_str()))
+    if(auto proto = getprotobyname(input.c_str());!proto)
         return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"protocol definition",AT_ERROR_ACTION::CONTINUE,input);
-    else ServerConfigOptions::config()->settings_.protocol = input;
+    else ServerConfigOptions::config()->settings_.protocol = static_cast<network::Protocol>(proto->p_proto);
     return ErrorCode::NONE;
 }
 

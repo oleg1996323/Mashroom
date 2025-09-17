@@ -72,21 +72,22 @@ class Socket{
     Socket(Socket&& other);
     Socket() = default;
     Socket(const std::string& host, Port port, Type type,Protocol proto);
-    ~Socket();
+    virtual ~Socket();
     Socket& bind();
     template<typename T>
     Socket& set_option(Options opt,T&& val){
         if(__descriptor__()>=0){
-            if(setsockopt(socket_,SOL_SOCKET,Options::BufferSizeIn,&val,sizeof(T))!=0)
+            if(setsockopt(*socket_,SOL_SOCKET,Options::BufferSizeIn,&val,sizeof(T))!=0)
                 throw std::runtime_error(strerror(errno));
         }
         else throw std::runtime_error(strerror(ENOTSOCK));
+        return *this;
     }
     Socket& set_no_block(bool noblock);
     bool is_non_block() const;
     bool is_connected() const;
     bool is_valid() const;
-    void print_address_info(std::ostream& stream);
+    void print_address_info(std::ostream& stream) const;
 };
 }
 

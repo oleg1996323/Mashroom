@@ -97,22 +97,23 @@ bool Mashroom::read_command(){
     read_command(std::ranges::split_view(CLIHandler::instance().input(std::string_view(">>")),' ')|std::ranges::to<std::vector<std::string>>());
     return true;
 }
-void Mashroom::collapse_server(bool wait_processes){
+void Mashroom::collapse_server(bool wait_processes, uint16_t timeout_sec){
     if(server_)
-        server_->close_connections(wait_processes);
+        server_->collapse(wait_processes,timeout_sec);
     server_.reset();
 }
-void Mashroom::close_server(bool wait_processes){
+void Mashroom::close_server(bool wait_processes, uint16_t timeout_sec){
     if(server_)
-        server_->close_connections(wait_processes);
+        server_->close(wait_processes,timeout_sec);
 }
-void Mashroom::shutdown_server(bool wait_processes){
+void Mashroom::shutdown_server(){
     if(server_)
-        server_->shutdown(wait_processes);
+        server_->close(false);
 }
 void Mashroom::deploy_server(){
     ErrorCode err;
-    server_ = network::Server::make_instance(err);
+    server_ = network::Server::make_instance(
+        Application::config().current_server_setting().settings_);
     return;
 }
 void Mashroom::launch_server(){

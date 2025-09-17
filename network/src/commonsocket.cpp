@@ -168,7 +168,7 @@ namespace network{
         }
         else throw std::runtime_error(strerror(ENOTSOCK));
     }
-    void Socket::print_address_info(std::ostream& stream){
+    void Socket::print_address_info(std::ostream& stream) const{
         if(storage)
             print_ip_port(stream,*storage.get());
         else stream<<"Undefined host:port"<<std::endl;

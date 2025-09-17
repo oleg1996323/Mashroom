@@ -18,7 +18,7 @@ namespace parse{
     }
 
     ErrorCode shutdown_notifier(bool wait) noexcept{
-        Mashroom::instance().shutdown_server(wait);
+        Mashroom::instance().shutdown_server();
         return ErrorCode::NONE;
     }
 

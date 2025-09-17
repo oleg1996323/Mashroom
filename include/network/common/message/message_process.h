@@ -107,18 +107,15 @@ namespace network{
     requires MessageEnumConcept<MSG_T>
     inline ErrorCode MessageProcess<S>::__receive_and_define_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
         buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
-        if(ErrorCode err = receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size());
-            err != ErrorCode::NONE)
-            return err;
+        if(receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size())==-1)
+            return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         else{
             if(auto res = Message<MSG_T>::template data_size_from_buffer<true>(std::span<const char>(buffer));!res.has_value())
                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
             else{
                 buffer.resize(res.value());
-                if(ErrorCode err = receive(sock,buffer,buffer.size());
-                    err != ErrorCode::NONE){
-                    return err;
-                }
+                if(receive(sock,buffer,buffer.size())==-1)
+                    return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
                 else {
                     serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
                     if(code!=serialization::SerializationEC::NONE)
@@ -132,9 +129,8 @@ namespace network{
     template<Side S>
     inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
         buffer.resize(undefined_msg_type_min_required_size<S>());
-        if(ErrorCode err = receive(sock,buffer,undefined_msg_type_min_required_size<S>());
-            err != ErrorCode::NONE)
-            return err;
+        if(receive(sock,buffer,undefined_msg_type_min_required_size<S>()==-1))
+            return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         else{
             auto msg_t_tmp = message_type_from_buffer<S,true>(std::span<const char>(buffer));
             if(!msg_t_tmp.has_value())
@@ -146,10 +142,8 @@ namespace network{
             }
             else {
                 buffer.resize(res.value());
-                if(ErrorCode err = receive(sock,buffer,buffer.size());
-                    err != ErrorCode::NONE){
-                    return err;
-                }
+                if(receive(sock,buffer,buffer.size())==-1)
+                    return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
             }
             serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
             if(code!=serialization::SerializationEC::NONE)

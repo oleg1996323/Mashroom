@@ -4,6 +4,7 @@
 #include <memory>
 #include "variant.h"
 #include "types/time_interval.h"
+#include "definitions.h"
 
 namespace fs = std::filesystem;
 namespace path{
@@ -19,7 +20,7 @@ struct Additional;
 template<>
 struct Additional<TYPE::HOST>{
     utc_tp last_check_ = utc_tp();
-    uint16_t port_ = 0;
+    network::Port port_ = 0;
     Additional(uint16_t port = 0,utc_tp last_check = utc_tp()) noexcept:last_check_(last_check),port_(port){}
     Additional(const Additional&) noexcept = default;
     Additional(Additional&&) noexcept = default;

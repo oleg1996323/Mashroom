@@ -22,26 +22,11 @@ namespace network{
         std::jthread server_thread_;
         std::stop_token stop_token_;
         server::Status status_=server::Status::INACTIVE;
-        Server();
-        virtual void after_accept(Socket& socket) override{
-            try{
-                socket.set_no_block(true).set_option(Socket::Options::KeepAlive,true);
-                using Event_t = Multiplexor::Event;
-                modify_connection(socket,Event_t::EdgeTrigger);
-                std::cout<<"Connecting ";
-                socket.print_address_info(std::cout);
-            }
-            catch(const std::runtime_error& err){
-                std::cout<<"Error after accepting connection"<<std::endl;
-                return;
-            }
-            return;
-        }
+        Server(const server::Settings& settings);
+        virtual void after_accept(Socket& socket) override;
     public:
         server::Status get_status() const;
-        void stop();
-        void collapse(bool wait_for_end_connections = false);
         ~Server();
-        static std::unique_ptr<Server> make_instance(ErrorCode& err);
+        static std::unique_ptr<Server> make_instance(const server::Settings& settings);
     };
 }

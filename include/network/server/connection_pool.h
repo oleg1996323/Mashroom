@@ -9,16 +9,16 @@
 #include "abstractconnectionpool.h"
 
 namespace network::connection{
-    class ConnectionPool:public AbstractConnectionPool<Process<Server>>{
+    class ConnectionPool:public AbstractConnectionPool<Process<network::Server>>{
+        const network::Server& server_;
         public:
-        ConnectionPool(const Server& server);
+        ConnectionPool(const Server& server):server_(server){}
         ~ConnectionPool();
         //make it by UDP
-        void notify_status_all() const;
-        void shutdown_all();
-        void shut_not_processing();
-        void close_all_at_not_busy();
-        void close_all();
+        virtual void execute(std::stop_token stop,const Socket& socket) const override{
+            const std::unique_ptr<Process<Server>>& process = this->process(socket);
+            Process<Server>::reply(stop,socket,*process);
+        }
         network::server::Status server_status() const;
     };
 }
