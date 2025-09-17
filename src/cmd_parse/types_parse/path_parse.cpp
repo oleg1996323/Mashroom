@@ -1,6 +1,7 @@
 #include "path_parse.h"
 #include "filesystem.h"
 #include "network/common/def.h"
+#include "definitions.h"
 
 namespace po = boost::program_options;
 

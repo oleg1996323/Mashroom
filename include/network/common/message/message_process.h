@@ -4,7 +4,7 @@
 #include "send.h"
 #include "receive.h"
 #include <cassert>
-#include "socket.h"
+#include "commonsocket.h"
 
 namespace network{
     template<Side S>
@@ -60,8 +60,8 @@ namespace network{
         };
 
         template<MESSAGE_ID<S>::type T,typename... ARGS>
-        ErrorCode send_message(Socket sock,ARGS... args){
-            if(ErrorCode err = hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);err!=ErrorCode::NONE) noexcept{
+        ErrorCode send_message(Socket sock,ARGS... args) noexcept{
+            if(ErrorCode err = hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);err!=ErrorCode::NONE){
                 hmsg_.clear();
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
             }
@@ -209,7 +209,7 @@ namespace network{
                 const fs::path& path,
                 uint64_t offset,
                 uint64_t size)
-    {
+    noexcept {
         if(err_ = hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);err_!=ErrorCode::NONE)
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         auto& msg = hmsg_.get<network::Server_MsgT::DATA_REPLY_FILEINFO>();

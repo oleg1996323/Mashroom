@@ -1,5 +1,5 @@
 #pragma once
-#include "socket.h"
+#include "commonsocket.h"
 #include <thread>
 #include <future>
 #include <stdexcept>
@@ -25,8 +25,13 @@ class AbstractProcess{
     }
     virtual void __after_execution__(){}
     protected:
-    virtual void action_if_process_busy() override{}
+    virtual void request_stop_protected(bool wait_finish, uint16_t timeout_sec = 60){
+        if(wait_finish)
+            future->wait_for(timeout_sec) == std::future_status::ready;
+        thread.request_stop();
+    }
     public:
+    virtual void action_if_process_busy(){}
     template<typename... ARGS>
     using Function_t = std::function<RESULT_T(std::stop_token,const Socket&,ARGS&&...)>;
     AbstractProcess() = default;
@@ -44,7 +49,7 @@ class AbstractProcess{
     }
     ~AbstractProcess(){}
     bool ready(){
-        return __ready__();
+        return AbstractProcess::__ready__();
     }
     bool busy(){
         return !ready();
@@ -57,14 +62,12 @@ class AbstractProcess{
         else return future.wait_for(std::chrono::seconds(timeout_sec))==std::future_status::ready;
     }
     virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60){
-        if(wait_finish)
-            future->wait_for(timeout_sec) == std::future_status::ready;
-        thread.request_stop();
+        request_stop_protected(wait_finish,timeout_sec);
     }
 
     template<typename... ARGS>
     static std::unique_ptr<DERIVED> add_process(Function_t<ARGS...> function,const Socket& socket, ARGS&&... args){
-        static_assert(std::is_base_of_v<AbstractProcess<DERIVED>,DERIVED>,"Is not derived from AbstractProcess");
+        static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
         std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>();
         process->thread =std::jthread([proc = process.get(),sock = socket,func = std::move(function),
                                     ...arguments = std::forward<ARGS>(args)](std::stop_token stop) mutable{

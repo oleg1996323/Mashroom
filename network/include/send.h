@@ -6,7 +6,7 @@
 #include <cstring>
 #include <ranges>
 #include <cstdint>
-#include "socket.h"
+#include "commonsocket.h"
 
 namespace network{
     template<std::ranges::random_access_range... ARGS>

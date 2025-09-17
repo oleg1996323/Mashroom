@@ -10,28 +10,28 @@ namespace network{
         std::queue<Queue_task> queue;
         std::condition_variable cv;
         virtual void __after_execution__() override final{
-            std::unique_lock lk(m);
+            std::unique_lock lk(this->m);
             do{
                 if(!queue.empty()){
                     auto task = std::move(queue.front());
                     queue.pop();
                     lk.unlock();
-                    std::invoke(task,thread.get_stop_token());
+                    std::invoke(task,this->thread.get_stop_token());
                     lk.lock();
                 }
                 cv.notify_one();
                 cv.wait(lk,[this](){return !this->queue.empty() ||
                     this->thread.get_stop_token().stop_requested();});
-            }while(!thread.get_stop_token().stop_requested());
+            }while(!this->thread.get_stop_token().stop_requested());
         }
         public:
-        ~AbstractQueuableProcess() = default;
-        virtual void request_stop(bool wait_finish) override final{
-            std::unique_lock lk(m);
+        virtual ~AbstractQueuableProcess() = default;
+        virtual void request_stop_protected(bool wait_finish,uint16_t timeout_sec = 60) override final{
+            std::unique_lock lk(this->m);
             lk.lock();
             queue.c.clear();
             if(!wait_finish)
-                request_stop();
+                this->thread.request_stop();
             else{
                 lk.unlock();
                 cv.wait(lk,[this](){
@@ -40,10 +40,10 @@ namespace network{
             }
         }
         bool queue_ready(){
-            return queue.empty() && __ready__();
+            return queue.empty() && this->ready();
         }
         template<typename... ARGS>
-        void enqueue(Function_t<ARGS> function,
+        void enqueue(typename AbstractProcess<PROCESS_T,RESULT_T>::Function_t<ARGS...> function,
                 const Socket& socket,
                 ARGS&&... args)
         {
@@ -67,7 +67,7 @@ namespace network{
                     promise.set_exception(std::current_exception());
                 }
             };
-            std::lock_guard lock(m);
+            std::lock_guard lock(this->m);
             queue.push(std::move(task));
             cv.notify_one();
         }

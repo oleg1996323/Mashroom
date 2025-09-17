@@ -14,7 +14,7 @@
 namespace network{
 
 template<typename DERIVED_CONNECTIONPOOL>
-class AbstractServer;
+class CommonServer;
 class Multiplexor;
 
 class Socket{
@@ -46,9 +46,9 @@ class Socket{
     };
     private:
     template<typename DERIVED_CONNECTIONPOOL>
-    friend class AbstractServer;
+    friend class CommonServer;
     template<typename PROCESS_T>
-    friend class AbstractClient;
+    friend class CommonClient;
     friend Multiplexor;
     friend std::hash<Socket>;
     friend std::equal_to<Socket>;
@@ -67,6 +67,7 @@ class Socket{
     public:
     Socket& operator=(Socket&& other) noexcept;
     Socket& operator=(const Socket& other);
+    bool operator==(const Socket& other) const{return socket_ && other.socket_ && *socket_==*other.socket_;}
     Socket(const Socket& other);
     Socket(Socket&& other);
     Socket() = default;

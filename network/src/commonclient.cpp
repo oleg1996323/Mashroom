@@ -1,8 +1,8 @@
-#include "abstractclient.h"
+#include "commonclient.h"
 
 namespace network{
 template<typename PROCESS_T>
-void AbstractClient<PROCESS_T>::__connect_throw__(){
+void CommonClient<PROCESS_T>::__connect_throw__(){
     int err = errno;
     errno = 0;
     switch(err){

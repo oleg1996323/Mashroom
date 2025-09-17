@@ -4,6 +4,8 @@
 namespace network{
     template<>
     struct MessageAdditional<network::Client_MsgT::INDEX>{
+
+
         MessageAdditional(const MessageAdditional& other) = delete;
         MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;

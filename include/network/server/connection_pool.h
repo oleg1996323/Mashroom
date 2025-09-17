@@ -5,7 +5,7 @@
 #include <network/server/connection_process.h>
 #include <shared_mutex>
 #include "multiplexor.h"
-#include "socket.h"
+#include "commonsocket.h"
 #include "abstractconnectionpool.h"
 
 namespace network::connection{

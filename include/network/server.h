@@ -13,11 +13,11 @@
 #include <vector>
 #include <sys/eventfd.h>
 #include "network/common/credentials.h"
-#include "abstractserver.h"
+#include "commonserver.h"
 
 using namespace std::string_view_literals;
 namespace network{
-    class Server:public AbstractServer<connection::ConnectionPool>{
+    class Server:public CommonServer<connection::ConnectionPool>{
     private:
         std::jthread server_thread_;
         std::stop_token stop_token_;

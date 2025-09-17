@@ -1,6 +1,6 @@
 #pragma once
 #include "multiplexor.h"
-#include "socket.h"
+#include "commonsocket.h"
 #include "abstractprocess.h"
 #include <stdexcept>
 #include <unordered_map>
@@ -11,7 +11,7 @@ namespace network{
         std::unique_ptr<Multiplexor> mp_connections;
         std::unordered_map<Socket,std::unique_ptr<PROCESS_T>,std::hash<Socket>,std::equal_to<Socket>> peers_;
         template<typename DERIVED_CONNECTIONPOOL>
-        friend class AbstractServer;
+        friend class CommonServer;
         bool contains_socket(int raw_socket){
             return peers_.contains(raw_socket);
         }

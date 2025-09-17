@@ -1,6 +1,6 @@
 #pragma once
 #include "definitions.h"
-#include "socket.h"
+#include "commonsocket.h"
 #include <vector>
 #include <sys/epoll.h>
 #include <span>

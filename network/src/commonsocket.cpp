@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "commonsocket.h"
 #include "byte_order.h"
 
 namespace network{
@@ -30,7 +30,7 @@ namespace network{
     storage(std::make_shared<sockaddr_storage>()){}
     Socket& Socket::operator=(Socket&& other) noexcept{
         if(other.__descriptor__()!=__descriptor__()){
-            close(__descriptor__());
+            ::close(__descriptor__());
             socket_ = std::move(other.socket_);
             storage = std::move(other.storage);
         }
@@ -42,7 +42,7 @@ namespace network{
             storage = other.storage;
         }
         else{
-            close(__descriptor__());
+            ::close(__descriptor__());
             socket_ = other.socket_;
             storage = other.storage;
         }
@@ -92,8 +92,11 @@ namespace network{
         else socket_ = std::make_shared<int>(raw_socket);
     }
     Socket::~Socket(){
-        if(socket_.use_count()<=1)
-        close(__descriptor__());
+        if(socket_.use_count()<=1){
+            std::cout<<"Closing connection: fd="<<*socket_<<" "<<std::endl;
+            print_address_info(std::cout);
+            ::close(__descriptor__());
+        }
     }
     Socket& Socket::bind(){
         if(!storage)

@@ -4,7 +4,7 @@
 #include <ranges>
 #include <netdb.h>
 #include "definitions.h"
-#include "socket.h"
+#include "commonsocket.h"
 namespace network{
     /**
      * @brief If there is an error, -1 is returned.
