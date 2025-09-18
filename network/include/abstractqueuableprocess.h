@@ -42,30 +42,37 @@ namespace network{
         bool queue_ready(){
             return queue.empty() && this->ready();
         }
-        template<typename... ARGS>
-        void enqueue(typename AbstractProcess<PROCESS_T,RESULT_T>::Function_t<ARGS...> function,
+        template<typename F,typename... ARGS>
+        void enqueue(F&& function,
                 const Socket& socket,
                 ARGS&&... args)
         {
+            static_assert(std::is_invocable_r_v<RESULT_T,std::decay_t<F>,std::stop_token,const Socket&, ARGS...>);
             Queue_task task = [func = std::move(function),
             sock = socket,
-            tup = std::make_tuple(std::forward<ARGS>(args)...),
+            tup = std::move(std::tuple(capture_arg(std::forward<ARGS>(args))...)),
             promise = std::promise<RESULT_T>(),
             &future = this->future]
             (std::stop_token stop)
             {
                 future = promise.get_future();
-                try{
-                    std::apply([&](auto&&... unpacked)
-                    {
-                        std::invoke(func, stop, sock,
-                            std::forward<decltype(unpacked)>(unpacked)...);
-                    }, tup);
-                    promise.set_value();
-                }
-                catch(...){
-                    promise.set_exception(std::current_exception());
-                }
+                auto body = [&](auto&&... unpacked){
+                    try{
+                        if constexpr (std::is_void_v<RESULT_T>){
+                            std::invoke(func, stop, sock,
+                                unwrap_arg(std::forward<decltype(unpacked)>(unpacked)...));
+                            promise.set_value();
+                        }
+                        else{
+                            promise.set_value(std::invoke(func, stop, sock,
+                                unwrap_arg(std::forward<decltype(unpacked)>(unpacked)...)));
+                        }
+                    }
+                    catch(...){
+                        promise.set_exception(std::current_exception());
+                    }
+                };
+                std::apply(body,std::move(tup));
             };
             std::lock_guard lock(this->m);
             queue.push_back(std::move(task));

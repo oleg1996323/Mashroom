@@ -17,6 +17,16 @@ namespace network{
 }
 namespace network{
 
+    template<network::Client_MsgT::type T,typename... ARGS>
+    void request(std::stop_token stop,const Socket& socket,MessageProcess<Side::CLIENT>& proc,ARGS&&... args){
+        if(proc.send_message<T>(socket,std::forward<ARGS>(args)...)!=ErrorCode::NONE)
+            throw std::runtime_error("Error at sending message");
+        else {
+            if(proc.receive_any_message(socket)!=ErrorCode::NONE)
+                throw std::runtime_error("Error at receiving message");
+        }
+    }
+
     class Client:public CommonClient<connection::Process<Client>>{
         private:
         friend struct std::hash<network::Client>;
@@ -29,15 +39,6 @@ namespace network{
          * @brief for epoll interruption of processes in thread
          */
         mutable server::Status server_status_ = server::Status::READY;
-        template<typename... ARGS>
-        static void __request__(const Socket& socket,MessageProcess<Side::CLIENT>& proc,ARGS&&... args){
-            if(proc.send_message(socket,std::forward<ARGS>(args)...)!=ErrorCode::NONE)
-                throw std::runtime_error("Error at sending message");
-            else {
-                if(proc.receive_any_message(socket)!=ErrorCode::NONE)
-                    throw std::runtime_error("Error at receiving message");
-            }
-        }
         
         public:
         Client(const std::string& host, uint16_t port);
@@ -49,7 +50,7 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(bool wait,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(&Client::__request__<ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::add_process(::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
                 if(wait)
                     process->wait(-1);
                 return ErrorCode::NONE;
@@ -61,7 +62,7 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(int timeout_sec,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(&Client::__request__<ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::add_process(::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
                 if(!process->wait(timeout_sec)){
                     process->request_stop(false,0);
                     process.reset();

@@ -80,8 +80,8 @@ namespace network{
             return *this;
         }
         virtual CommonClient& after_disconnect(){return *this;}
-        template<typename... ARGS>
-        void add_request(typename PROCESS_T::Function_t<ARGS...> func,ARGS&&... args) const{
+        template<typename F,typename... ARGS>
+        void add_request(F&& func,ARGS&&... args) const{
             if(socket_ && process && process->busy())
                 process->action_if_process_busy(std::move(func),*socket_,std::forward<ARGS>(args)...);
             else process = PROCESS_T::add_process(std::move(func),*socket_,std::forward<ARGS>(args)...);
