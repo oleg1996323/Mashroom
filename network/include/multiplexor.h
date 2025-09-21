@@ -15,7 +15,7 @@ namespace network{
         class Interruptor{
             friend Multiplexor;
             eventfd_t fd_=-1;
-            bool interrupted = false;
+            uint64_t interrupted = false;
             Interruptor(eventfd_t fd):fd_(fd){}
             public:
             ~Interruptor(){

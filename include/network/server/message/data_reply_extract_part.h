@@ -9,7 +9,7 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>{
     std::string filename_;
     uintmax_t file_sz_ = 0;      //size of file
 
-    MessageAdditional(ErrorCode& err,const fs::path& file_path, server::Status status);
+    MessageAdditional(const fs::path& file_path, server::Status status);
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),
     filename_(other.filename_),

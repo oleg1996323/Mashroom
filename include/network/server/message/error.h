@@ -6,8 +6,8 @@ template<>
 struct MessageAdditional<network::Server_MsgT::ERROR>{
     server::Status status_;
     ErrorCode err_ = ErrorCode::NONE;
-    MessageAdditional(    ErrorCode& err,ErrorCode error_code,
-                server::Status status = server::Status::READY){}
+    MessageAdditional(ErrorCode error_code,
+                server::Status status = server::Status::READY):err_(error_code){}
     MessageAdditional() = default;
     MessageAdditional& operator=(const MessageAdditional& other) = default;
     MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;

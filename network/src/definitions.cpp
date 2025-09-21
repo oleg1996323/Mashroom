@@ -55,7 +55,7 @@ namespace network{
     }
 
     std::ostream& print_ip_port(std::ostream& stream,const sockaddr_storage& addr){
-        stream<<protocol_to_text(addr)<<":"<<ip_to_text(addr)<<" "<<port_to_text(addr)<<std::endl;
+        stream<<ip_to_text(addr)<<" "<<port_to_text(addr)<<std::endl;
         return stream;
     }
 
@@ -85,5 +85,11 @@ namespace network{
                 return true;
         }
         return false;
+    }
+
+    socklen_t address_struct_size(const sockaddr_storage& storage) noexcept{
+        return storage.ss_family==AF_INET?sizeof(sockaddr_in):
+            (storage.ss_family==AF_INET6?sizeof(sockaddr_in6):
+            sizeof(sockaddr_storage));
     }
 }

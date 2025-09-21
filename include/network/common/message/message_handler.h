@@ -153,8 +153,8 @@ namespace network{
         private:
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
-        ErrorCode emplace_message(ARGS&&... args){
-            return this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...).error();
+        void emplace_message(ARGS&&... args){
+            this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
         }
         template<typename... ARGS>
         ErrorCode emplace_message_by_id(size_t id, ARGS&&... args){

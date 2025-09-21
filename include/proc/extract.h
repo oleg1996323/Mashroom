@@ -188,32 +188,9 @@ public:
     }
     ErrorCode set_by_request(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &form)
     {
-        std::optional<TimeFrame> t_fcst_;
-        if (form.t_fcst_.has_value())
-            set_time_fcst(form.t_fcst_.value());
-        if (form.center.has_value())
-            set_center(form.center.value());
-        else
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "undefined center", AT_ERROR_ACTION::CONTINUE);
-        if (form.from.has_value())
-            set_from_date(form.from.value());
-        if (form.to.has_value())
-            set_to_date(form.to.value());
-        if (form.pos.has_value())
-            set_position(form.pos.value());
-        else
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "undefined grid representation", AT_ERROR_ACTION::CONTINUE);
-        if (form.rep_t.has_value())
-            set_grid_respresentation(form.rep_t.value());
-        else
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "undefined grid representation", AT_ERROR_ACTION::CONTINUE);
-        if (form.time_off_.has_value())
-            set_offset_time_interval(form.time_off_.value());
-        if (!form.parameters_.empty())
-            for (const auto &param : form.parameters_)
-                add_parameter(param);
-        else
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "empty parameters", AT_ERROR_ACTION::CONTINUE);
+        props_ = form.search_props_;
+        set_output_format(form.file_fmt_);
+        return set_offset_time_interval(form.t_separation_);
     }
 };
 

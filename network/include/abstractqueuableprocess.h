@@ -9,7 +9,8 @@ namespace network{
         using Queue_task = std::function<RESULT_T(std::stop_token)>;
         std::deque<Queue_task> queue;
         std::condition_variable cv;
-        virtual void __after_execution__() override final{
+        protected:
+        virtual void after_execution_protected() override final{
             std::unique_lock lk(this->m);
             do{
                 if(!queue.empty()){
@@ -25,7 +26,23 @@ namespace network{
             }while(!this->thread.get_stop_token().stop_requested());
         }
         public:
-        virtual ~AbstractQueuableProcess() = default;
+        AbstractQueuableProcess():AbstractProcess<PROCESS_T,RESULT_T>(){}
+        virtual ~AbstractQueuableProcess(){
+            request_stop_protected(false);
+        }
+        AbstractQueuableProcess(AbstractQueuableProcess&& other) noexcept:
+            AbstractProcess<PROCESS_T,RESULT_T>(std::move(other)),
+            queue(std::move(other.queue)){}
+        AbstractQueuableProcess& operator=(AbstractQueuableProcess&& other) noexcept{
+            if(this!=&other){
+                std::lock_guard lk(this->m);
+                queue=std::move(other.queue);
+                AbstractProcess<PROCESS_T,RESULT_T>::operator=(std::move(other));
+            }
+            return *this;
+        }
+        AbstractQueuableProcess(const AbstractQueuableProcess& other) = delete;
+        AbstractQueuableProcess& operator=(const AbstractQueuableProcess& other) = delete;
         virtual void request_stop_protected(bool wait_finish,uint16_t timeout_sec = 60) override final{
             std::unique_lock lk(this->m);
             lk.lock();

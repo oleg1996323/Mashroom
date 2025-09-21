@@ -2,7 +2,7 @@
 #include "utility.h"
 
 namespace network{
-    MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>::MessageAdditional(ErrorCode& err,
+    MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>::MessageAdditional(
         server::Status status,const fs::path& file_path, uint64_t offset,uint64_t size):
         status_(status),filename_(file_path),offset_(offset),file_sz_(size){
         

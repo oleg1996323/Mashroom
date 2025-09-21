@@ -4,7 +4,7 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/home/oster/Mashroom/build/Debug/bin/Mashroom",//"/home/oster/Mashroom/library/tests/build/serialization_test",
+        "program": "/home/oster/Mashroom/build/Debug/bin/network_lib_test",//"/home/oster/Mashroom/library/tests/build/serialization_test",
         "args": ["launch"],//["-help"],
         //"test"
         //"-index","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"

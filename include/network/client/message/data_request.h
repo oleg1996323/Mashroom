@@ -1,8 +1,12 @@
 #pragma once
 #include "network/common/message/msgdef.h"
+#include "outputdatafileformats.h"
 #include <variant>
 #include <cstdint>
 #include <cstddef>
+#include "types/time_interval.h"
+#include "properties.h"
+#include "serialization.h"
 
 template <Data::TYPE T, Data::FORMAT F>
 struct ExtractRequestForm;
@@ -10,51 +14,27 @@ struct ExtractRequestForm;
 template <>
 struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
 {
-    constexpr static Data::TYPE type = Data::TYPE::METEO;
-    constexpr static Data::FORMAT format = Data::FORMAT::GRIB;
-    std::optional<TimeFrame> t_fcst_;
-    std::optional<Organization> center;
-    std::optional<utc_tp> from; // requested from Date
-    std::optional<utc_tp> to;   // requested to Date
-    std::optional<Coord> pos;   // requested position (in WGS)
-    std::optional<RepresentationType> rep_t;
-    std::optional<TimePeriod> time_off_;
-    size_t parameter_size = 0;
-    std::vector<SearchParamTableVersion> parameters_;
-
+    SearchProperties search_props_;
+    TimePeriod t_separation_;
+    OutputDataFileFormats file_fmt_;
     ExtractRequestForm() = default;
-    ExtractRequestForm(const ExtractRequestForm& other){
-        *this = other;
-    }
+    explicit ExtractRequestForm(const SearchProperties& search_props,
+        const TimePeriod& t_sep,
+        OutputDataFileFormats file_fmt):
+        search_props_(search_props){}
+    explicit ExtractRequestForm(SearchProperties&& search_props,
+        TimePeriod&& t_sep,
+        OutputDataFileFormats file_fmt):search_props_(std::move(search_props)),
+        t_separation_(std::move(t_sep)),
+        file_fmt_(file_fmt){}
+    ExtractRequestForm(const ExtractRequestForm& other) = delete;
     ExtractRequestForm(ExtractRequestForm&& other) noexcept{
         *this = std::move(other);
     }
-    ExtractRequestForm& operator=(const ExtractRequestForm& other){
-        if(this!=&other){
-            t_fcst_ = other.t_fcst_;
-            center = other.center;
-            from = other.from;
-            to = other.to;
-            pos = other.pos;
-            rep_t = other.rep_t;
-            time_off_ = other.time_off_;
-            parameter_size = other.parameter_size;
-            parameters_ = other.parameters_;
-        }
-        return *this;
-    }
+    ExtractRequestForm& operator=(const ExtractRequestForm& other) = delete;
     ExtractRequestForm& operator=(ExtractRequestForm&& other) noexcept{
-        if(this!=&other){
-            t_fcst_ = other.t_fcst_;
-            center = other.center;
-            from = other.from;
-            to = other.to;
-            pos = other.pos;
-            rep_t = other.rep_t;
-            time_off_ = other.time_off_;
-            parameter_size = other.parameter_size;
-            parameters_ = std::move(other.parameters_);
-        }
+        if(this!=&other)
+            search_props_ = std::move(other.search_props_);
         return *this;
     }
 };
@@ -66,21 +46,21 @@ namespace serialization
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractMeteoGrib>{
         auto operator()(const ExtractMeteoGrib& val,std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(val,buf,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return serialize<NETWORK_ORDER>(val,buf,val.search_props_,val.t_separation_,val.file_fmt_);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractMeteoGrib>{
         auto operator()(ExtractMeteoGrib& val,std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(val,buf,val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return deserialize<NETWORK_ORDER>(val,buf,val.search_props_,val.t_separation_,val.file_fmt_);
         }
     };
 
     template<>
     struct Serial_size<ExtractMeteoGrib>{
         auto operator()(const ExtractMeteoGrib& val) const noexcept{
-            return serial_size(val.t_fcst_,val.center,val.from,val.to,val.pos,val.rep_t,val.time_off_,val.parameters_);
+            return serial_size(val.search_props_,val.t_separation_,val.file_fmt_);
         }
     };
 
@@ -89,9 +69,7 @@ namespace serialization
         using type = ExtractMeteoGrib;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<decltype(type::t_fcst_),decltype(type::center),
-            decltype(type::from),decltype(type::to),decltype(type::pos),decltype(type::rep_t),
-            decltype(type::time_off_),decltype(type::parameters_)>();
+            return min_serial_size<decltype(type::search_props_),decltype(type::t_separation_),decltype(type::file_fmt_)>();
         }();
     };
 
@@ -100,9 +78,7 @@ namespace serialization
         using type = ExtractMeteoGrib;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<decltype(type::t_fcst_),decltype(type::center),
-            decltype(type::from),decltype(type::to),decltype(type::pos),decltype(type::rep_t),
-            decltype(type::time_off_),decltype(type::parameters_)>();
+            return max_serial_size<decltype(type::search_props_),decltype(type::t_separation_),decltype(type::file_fmt_)>();
         }();
     };
 }
@@ -111,18 +87,25 @@ using ExtractForm = std::variant<std::monostate,ExtractMeteoGrib>;
 
 namespace network{    
     template<>
-    struct MessageAdditional<network::Client_MsgT::DATA_REQUEST>:public ExtractForm{
+    struct MessageAdditional<network::Client_MsgT::DATA_REQUEST>{
+        ExtractForm form_;
         public:
-        using ExtractForm::variant;
-        MessageAdditional(ErrorCode& err){
-
-        }
-        MessageAdditional(const MessageAdditional& other) = default;
-        MessageAdditional(MessageAdditional&& other)=default;
         MessageAdditional() = default;
+        MessageAdditional(ErrorCode& err){}
+        MessageAdditional(const MessageAdditional& other) = delete;
+        MessageAdditional(MessageAdditional&& other) noexcept{
+            if(this!=&other){
+                *this = std::move(other);
+            }
+        }
+        MessageAdditional(const SearchProperties& search_props,
+        TimePeriod t_sep = TimePeriod(years(0),months(0),days(0),hours(0),minutes(0),std::chrono::seconds(0)),
+        OutputDataFileFormats file_fmt = OutputDataFileFormats::DEFAULT){
+            form_ = std::move(ExtractMeteoGrib(search_props,t_sep,file_fmt));
+        }
         MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept{
-            ExtractForm::operator=(std::move(other));
+            form_ = std::move(other.form_);
             return *this;
         }
     };
@@ -134,7 +117,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER,ExtractForm>(msg,buf);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.form_);
         }
     };
 
@@ -142,7 +125,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER,ExtractForm>(msg,buf);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.form_);
         }
     };
 
@@ -150,7 +133,7 @@ namespace serialization{
     struct Serial_size<MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size<ExtractForm>(msg);
+            return serial_size(msg.form_);
         }
     };
 
@@ -159,7 +142,7 @@ namespace serialization{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<ExtractForm>();
+            return min_serial_size<decltype(type::form_)>();
         }();
     };
 
@@ -168,7 +151,7 @@ namespace serialization{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<ExtractForm>();
+            return max_serial_size<decltype(type::form_)>();
         }();
     };
 }

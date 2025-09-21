@@ -26,10 +26,13 @@ namespace network{
         /**
          * @brief don't block the GUI if integrated
          */
+        virtual void before_connect(){}
+        virtual void after_connect(const Socket&){}
         std::unique_ptr<PROCESS_T> process;
         std::unique_ptr<Socket> socket_;
         using Process = decltype(process)::element_type;
         public:
+        CommonClient() = default;
         CommonClient(const std::string& host, Port port):
         socket_(std::make_unique<Socket>(host,port,Socket::Type::Stream,Protocol::TCP)){}
         CommonClient(CommonClient&& other) noexcept:
@@ -51,25 +54,36 @@ namespace network{
             if(process && process->busy())
                 process->request_stop(false);
         }
-        virtual CommonClient& before_connect(){return *this;}
+        
         CommonClient& connect(const std::string& host, const Port port){
             if(process && process->ready()){
                 process.reset();
                 socket_ = std::make_unique<Socket>(host,port,Socket::Type::Stream,Protocol::TCP);
             }
-            if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
-                    __connect_throw__();
+            if(!socket_)
+                socket_ = std::move(std::make_unique<Socket>(host,port,Socket::Type::Stream,Protocol::TCP));
+
+            try{
+                before_connect();
+                ::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage));
+                    // __connect_throw__();
+                after_connect(*socket_);
+            }
+            catch(const std::exception& err){
+                std::cout<<err.what()<<std::endl;
+            }
             return *this;
         }
         CommonClient& connect(){
-            if(!is_connected() && socket_ && socket_->is_valid()){
+            if(!is_connected() && socket_->is_valid()){
                 if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
                     __connect_throw__();
                 else return *this;
             }
             else throw std::runtime_error(strerror(EISCONN));
+            return *this;
         }
-        virtual CommonClient& after_connect(const Socket&){return *this;}
+        
         bool is_connected() const{
             return socket_ && socket_->is_connected();
         }
@@ -81,10 +95,47 @@ namespace network{
         }
         virtual CommonClient& after_disconnect(){return *this;}
         template<typename F,typename... ARGS>
-        void add_request(F&& func,ARGS&&... args) const{
+        void add_request(F&& func,ARGS&&... args){
             if(socket_ && process && process->busy())
-                process->action_if_process_busy(std::move(func),*socket_,std::forward<ARGS>(args)...);
+                process->action_if_process_busy();
             else process = PROCESS_T::add_process(std::move(func),*socket_,std::forward<ARGS>(args)...);
         }
     };
+}
+
+
+namespace network{
+    template<typename PROCESS_T>
+    void CommonClient<PROCESS_T>::__connect_throw__(){
+        int err = errno;
+        errno = 0;
+        switch(err){
+            case EACCES:
+            case EPERM:
+            case EADDRINUSE:
+            case EAGAIN:
+            case EALREADY:
+            case EBADF:
+            case ECONNREFUSED:
+            case EFAULT:
+            case EINPROGRESS:
+            case EISCONN:
+            case ENETUNREACH:
+            case ENOTSOCK:
+            case ETIMEDOUT:
+                throw std::runtime_error(strerror(err));
+                break;
+            case EADDRNOTAVAIL:
+            case EAFNOSUPPORT:
+            case EPROTOTYPE:
+                throw std::invalid_argument(strerror(err));
+                break;
+            case EINTR:
+                return;
+                break;
+            default:
+                break;
+            return;
+        }
+    }
 }

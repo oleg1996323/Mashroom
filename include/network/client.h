@@ -31,13 +31,7 @@ namespace network{
         private:
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;
-        /**
-         * @brief don't block the GUI if integrated
-         */
         MessageProcess<Side::CLIENT> mprocess_;
-        /**
-         * @brief for epoll interruption of processes in thread
-         */
         mutable server::Status server_status_ = server::Status::READY;
         
         public:

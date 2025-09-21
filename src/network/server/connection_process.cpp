@@ -44,8 +44,16 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
     assert(proc.busy());
 }
 
-Process<Server>::Process(Process&& other):
-    mprocess_(std::move(other.mprocess_)){}
+Process<Server>::Process(Process&& other) noexcept:
+    mprocess_(std::move(other.mprocess_)),
+    AbstractQueuableProcess(std::move(other)){}
+Process<Server>& Process<Server>::operator=(Process&& other) noexcept{
+    if(this!=&other){
+        mprocess_ = std::move(other.mprocess_),
+        AbstractQueuableProcess::operator=(std::move(other));
+    }
+    return *this;
+}
 void Process<Server>::collapse(bool wait_finish,uint16_t timeout_sec){
 
 }

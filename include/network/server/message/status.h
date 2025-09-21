@@ -5,7 +5,7 @@ namespace network{
 template<>
 struct MessageAdditional<network::Server_MsgT::SERVER_STATUS>{
     server::Status status_ = server::Status::READY;
-    MessageAdditional(ErrorCode& err,server::Status status){}
+    MessageAdditional(server::Status status){}
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_){}
     MessageAdditional(MessageAdditional&& other):

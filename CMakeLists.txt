@@ -34,6 +34,7 @@ load_eccode_header(
 	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/API/grib1"
     PYTHON_AUTOGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external"
 )
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
@@ -72,9 +73,7 @@ set(CMAKE_PREFIX_PATH $ENV{HOME})
 find_package(OsterLib CONFIG REQUIRED)
 add_subdirectory(API)
 
-add_library(network_lib SHARED ${Network_lib_SOURCES})
-target_include_directories(network_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/include)
-target_link_libraries(network_lib PUBLIC OsterLib::serial OsterLib::bytes)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/network)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
@@ -88,7 +87,7 @@ target_include_directories(web PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/network
                                     ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC OsterLib::boost_functional GIAPI system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial GIAPI system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})

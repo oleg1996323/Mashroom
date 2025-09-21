@@ -61,12 +61,8 @@ namespace network{
 
         template<MESSAGE_ID<S>::type T,typename... ARGS>
         ErrorCode send_message(Socket sock,ARGS... args) noexcept{
-            if(ErrorCode err = hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);err!=ErrorCode::NONE){
-                hmsg_.clear();
-                return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
-            }
-            else
-                return __send__<T>(sock);
+            hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);
+            return __send__<T>(sock);
         }
 
         /**
@@ -204,8 +200,7 @@ namespace network{
                 uint64_t offset,
                 uint64_t size)
     noexcept {
-        if(err_ = hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);err_!=ErrorCode::NONE)
-            return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+        hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);
         auto& msg = hmsg_.get<network::Server_MsgT::DATA_REPLY_FILEINFO>();
         serialization::SerializationEC code = serialization::serialize_network(msg,msg.buffer());
         if(send(sock,std::span<const char>(msg.buffer()))==-1){

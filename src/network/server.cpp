@@ -21,8 +21,8 @@ Server::Server(const server::Settings& settings):CommonServer(settings,*this){
 
 void Server::after_accept(Socket& socket){
     try{
-        socket.set_no_block(true).set_option(Socket::Options::KeepAlive,true);
         using Event_t = Multiplexor::Event;
+        socket.set_no_block(true);
         modify_connection(socket,Event_t::EdgeTrigger);
         std::cout<<"Connecting ";
         socket.print_address_info(std::cout);

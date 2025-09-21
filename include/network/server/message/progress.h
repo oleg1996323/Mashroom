@@ -7,7 +7,7 @@ template<>
 struct MessageAdditional<network::Server_MsgT::PROGRESS>{
     server::Status status_;
     ProgressBase prog_;
-    MessageAdditional(ErrorCode& err,const ProgressBase& progress,server::Status status):
+    MessageAdditional(const ProgressBase& progress,server::Status status):
     status_(status),prog_(progress){}
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),

@@ -223,7 +223,6 @@ namespace parse{
                 return err;
             }
         }
-
         void define_uniques() noexcept{
             unique_values_ = [this]() noexcept{
                 std::vector<std::string> result;
@@ -233,7 +232,5 @@ namespace parse{
                 return result;
             }();
         }
-
-        
     };
 }

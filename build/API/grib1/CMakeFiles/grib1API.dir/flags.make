@@ -6,5 +6,5 @@ CXX_DEFINES = -DAPI_TYPE=API::GRIB1 -DGRIB1API -Dgrib1API_EXPORTS
 
 CXX_INCLUDES = -I/home/oster/Mashroom/build/API/grib1 -I/home/oster/Mashroom/API/grib1 -I/home/oster/Mashroom/API/grib1/include -I/home/oster/Mashroom/API -isystem /home/oster/OsterLib-install/include -isystem /home/oster/OsterLib-install/include/boost_functional
 
-CXX_FLAGS =  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10
+CXX_FLAGS =  -lzip -static-libstdc++ -g -DDEBUG -std=gnu++23 -fPIC -fPIC -O0 -fconcepts-diagnostics-depth=10
 

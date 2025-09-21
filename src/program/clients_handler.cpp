@@ -12,6 +12,7 @@ ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std:
         Client& client = *found;
         try{
             client.connect(host,port);
+            return found;
         }
         catch(const std::exception& err){
             ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
@@ -21,7 +22,9 @@ ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std:
     }
     else{
         try{
-            clients_.insert(clients_.end(),std::move(Client(host,port)))->connect();
+            auto inserted = clients_.insert(clients_.end(),std::move(Client(host,port)));
+            inserted->connect();
+            return inserted;
         }
         catch(const std::exception& err){
             ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);

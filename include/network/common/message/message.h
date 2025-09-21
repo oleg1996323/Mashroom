@@ -11,7 +11,6 @@ using namespace std::chrono;
 namespace fs = std::filesystem;
 
 namespace network{
-
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     struct MessageBase{
@@ -114,7 +113,6 @@ namespace network{
         using type = decltype(MSG_T);
         MessageAdditional<MSG_T> additional_;
         MessageBase<MSG_T> base_;
-        ErrorCode err_ = ErrorCode::NONE;
 
         template<bool,auto>
         friend struct serialization::Serialize;
@@ -134,19 +132,16 @@ namespace network{
         Message(const Message<MSG_T>&) = delete;
         Message(Message<MSG_T>&& other) noexcept:
         base_(std::move(other.base_)),
-        additional_(std::move(other.additional_)),
-        err_(other.err_){}
+        additional_(std::move(other.additional_)){}
         Message& operator=(const Message&) = delete;
         Message& operator=(Message&& other) noexcept{
             if(this!=&other){
                 base_ = std::move(other.base_);
                 additional_ = std::move(other.additional_);
-                err_ = other.err_;
             }
             return *this;
         }
         Message()=default;
-        ErrorCode error() const;
         constexpr static type msg_type(){
             return decltype(base_)::msg_type();
         }
@@ -179,15 +174,8 @@ namespace network{
     requires MessageEnumConcept<MSG_T>
     template<typename... ADD_ARGS>
     Message<MSG_T>::Message(ADD_ARGS&&... add_a):
-    additional_(err_,std::forward<ADD_ARGS>(add_a)...),
+    additional_(std::forward<ADD_ARGS>(add_a)...),
     base_(serialization::serial_size(additional_)+base_.min_required_defining_size()){}
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    ErrorCode Message<MSG_T>::error() const{
-        return err_;
-    }
-
 
     template<Side S>
     struct list_message;

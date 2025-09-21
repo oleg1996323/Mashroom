@@ -10,6 +10,7 @@
 #include <cassert>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <type_traits>
 
 namespace network{
 
@@ -44,6 +45,14 @@ class Socket{
         Stream = SOCK_STREAM,               //Byte-stream socket.
         NonBlock = SOCK_NONBLOCK            //Non-block socket type         
     };
+    template<typename T>
+    struct Option{
+        T value_;
+        Options opt_;
+        Option() = default;
+        Option(const T& value,Options option):value_(value),opt_(option){}
+        Option(T&& value, Options option) noexcept:value_(std::move(value)),opt_(option){}
+    };
     private:
     template<typename DERIVED_CONNECTIONPOOL>
     friend class CommonServer;
@@ -75,11 +84,18 @@ class Socket{
     virtual ~Socket();
     Socket& bind();
     template<typename T>
-    Socket& set_option(Options opt,T&& val){
+    Socket& set_option(Option<T> option){
         if(__descriptor__()>=0){
-            if(setsockopt(*socket_,SOL_SOCKET,Options::BufferSizeIn,&val,sizeof(T))!=0)
+            if(setsockopt(*socket_,SOL_SOCKET,static_cast<int>(option.opt_),&option.value_,sizeof(T))!=0)
                 throw std::runtime_error(strerror(errno));
         }
+        else throw std::runtime_error(strerror(ENOTSOCK));
+        return *this;
+    }
+    template<typename... ARGS>
+    Socket& set_options(Option<ARGS>... options){
+        if(__descriptor__()>=0)
+            (set_option(options),...);
         else throw std::runtime_error(strerror(ENOTSOCK));
         return *this;
     }
@@ -113,11 +129,20 @@ struct std::equal_to<network::Socket>{
     bool operator()(const network::Socket& lhs,const network::Socket& rhs) const{
         return lhs.__descriptor__()==rhs.__descriptor__();
     }
+    bool operator()(const network::Socket& socket,int raw_socket) const{
+        return socket.__descriptor__()==raw_socket;
+    }
+    bool operator()(int raw_socket,const network::Socket& socket) const{
+        return socket.__descriptor__()==raw_socket;
+    }
 };
 template<>
 struct std::hash<network::Socket>{
     using is_transparent = std::true_type;
     size_t operator()(const network::Socket& socket) const{
         return socket.__descriptor__();
+    }
+    size_t operator()(int raw_socket) const{
+        return raw_socket;
     }
 };

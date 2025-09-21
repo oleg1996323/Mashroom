@@ -15,7 +15,7 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEPART>{
     uint64_t offset_ = 0;
     size_t file_hash_ = 0;
     //const size_t current_hash_ = 0; //TODO: std::hash<fs::path> is temporary solution
-    MessageAdditional(ErrorCode& err,const fs::path& filename,
+    MessageAdditional(const fs::path& filename,
                 uint64_t file_part_sz,uint64_t offset = 0,
                 uint32_t chunk=UINT16_MAX,
                 server::Status status=server::Status::READY);

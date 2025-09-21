@@ -10,6 +10,7 @@ namespace network{
     class AbstractConnectionPool{
         std::unique_ptr<Multiplexor> mp_connections;
         std::unordered_map<Socket,std::unique_ptr<PROCESS_T>,std::hash<Socket>,std::equal_to<Socket>> peers_;
+        std::future<void> result;
         std::mutex m;
         template<typename DERIVED_CONNECTIONPOOL>
         friend class CommonServer;
@@ -28,25 +29,28 @@ namespace network{
         }
         public:
         using Event = Multiplexor::Event;
-        AbstractConnectionPool():mp_connections(std::make_unique<Multiplexor>(5)){}
+        AbstractConnectionPool():mp_connections(std::make_unique<Multiplexor>(5)){
+            std::cout<<"ConnectionPool creation"<<std::endl;
+        }
         virtual ~AbstractConnectionPool(){
-            std::lock_guard lk(m);
-            peers_.clear();
+            stop(false,0);
         }
 
-        virtual void execute(std::stop_token,const Socket& socket) const = 0;
+        virtual void execute(std::stop_token,const Socket& socket) = 0;
         AbstractConnectionPool& add_connection(const Socket& socket, Event events_notify){
             std::lock_guard lk(m);
             if(!peers_.contains(socket)){
                 peers_[socket];
                 mp_connections->add(socket,events_notify);
             }
+            std::cout<<"Added new connection"<<std::endl;
             return *this;
         }
         AbstractConnectionPool& remove_connection(const Socket& socket, bool wait){
             std::lock_guard lk(m);
             peers_.erase(socket);
             mp_connections->remove(socket);
+            std::cout<<"Removed connection"<<std::endl;
             return *this;
         }
         AbstractConnectionPool& modify_connection(const Socket& socket,Event events_notify){
@@ -56,6 +60,7 @@ namespace network{
                 mp_connections->modify(socket,events_notify);
             }
             else throw std::invalid_argument("Connection pool doesn't contains socket");
+            std::cout<<"Modified connection"<<std::endl;
             return *this;
         }
         virtual AbstractConnectionPool& event_process(const Socket& socket, Event events){
@@ -74,6 +79,7 @@ namespace network{
                     peers_.erase(socket);
                     break;
                 case Event::CanReadButHangUp:
+                    peers_.erase(socket);
                     break;
                 case Event::Exclusive:
                     break;
@@ -85,27 +91,46 @@ namespace network{
         }
         //@brief Мультиплексирует соединённые сокеты и распределяет процессы
         void polling_connections(){
-            std::span<network::Multiplexor::Event_t> events;
-            for(;;)
-                try{
-                    events = mp_connections->wait(-1);
-                    for(auto event:events){
-                        if(contains_socket(event.data.fd)){
-                            auto found = peers_.find(event.data.fd);
-                            if(found!=peers_.end()){
-                                if(found->first.is_valid() && (!found->second || found->second->ready()))
-                                    found->second = std::move(PROCESS_T::add_process(std::move(&execute),*found->first));
+            result = std::async(std::launch::async,[this](){
+                std::span<network::Multiplexor::Event_t> events;
+                for(;;)
+                    try{
+                        std::cout<<"Server multiplexor waiting"<<std::endl;
+                        events = mp_connections->wait(-1);
+                        if(mp_connections->interrupted()){
+                            std::cout<<"ConnectionPool interrupted"<<std::endl;
+                            return;
+                        }
+                        for(auto event:events){
+                            std::cout<<"Pool events process"<<std::endl;
+                            if(contains_socket(event.data.fd)){
+                                auto found = peers_.find(event.data.fd);
+                                if(found!=peers_.end()){
+                                    if(event.events&Event::HangUp){
+                                        peers_.erase(found->first);
+                                        continue;
+                                    }
+                                    if(found->first.is_valid() && (!found->second || found->second->ready())){
+                                        std::cout<<"Adding function"<<std::endl;
+                                        found->second = std::move(PROCESS_T::add_process(&AbstractConnectionPool<PROCESS_T>::execute,this,found->first));
+                                    }
+                                }
+                                else continue;   
                             }
-                            else continue;   
                         }
                     }
-                }
-                catch(...){
-                    return;
-                }
+                    catch(const std::exception& err){
+                        std::cout<<err.what()<<std::endl;
+                        return;
+                    }
+            });
         }
         void stop(bool wait_finish, uint16_t timeout_sec = 60){
-            auto result = std::async(std::launch::async,[&wait_finish,
+            if(mp_connections)
+                mp_connections->interrupt();
+            result.wait();
+            std::cout<<"Stop pool"<<std::endl;
+            result = std::async(std::launch::async,[&wait_finish,
                                 &timeout_sec,
                                 &m = this->m,
                                 &peers = this->peers_](){
@@ -124,8 +149,8 @@ namespace network{
                                     proc->request_stop(wait,timeout);
                             }));
                 }
-                return processes_res;
             });
+            std::cout<<"Stop out"<<std::endl;
         }
     };
 }

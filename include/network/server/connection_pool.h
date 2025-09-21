@@ -12,10 +12,10 @@ namespace network::connection{
     class ConnectionPool:public AbstractConnectionPool<Process<network::Server>>{
         const network::Server& server_;
         public:
-        ConnectionPool(const Server& server):server_(server){}
+        ConnectionPool(const Server& server):AbstractConnectionPool(),server_(server){}
         ~ConnectionPool();
         //make it by UDP
-        virtual void execute(std::stop_token stop,const Socket& socket) const override{
+        virtual void execute(std::stop_token stop,const Socket& socket) override{
             const std::unique_ptr<Process<Server>>& process = this->process(socket);
             Process<Server>::reply(stop,socket,*process);
         }

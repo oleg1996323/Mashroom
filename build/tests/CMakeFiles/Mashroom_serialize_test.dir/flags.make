@@ -6,5 +6,5 @@ CXX_DEFINES = -DBOOST_CONTAINER_DYN_LINK -DBOOST_CONTAINER_NO_LIB -DBOOST_JSON_D
 
 CXX_INCLUDES = -I/home/oster/Mashroom/build/tests -I/home/oster/Mashroom/tests -I/home/oster/Mashroom/include -I/home/oster/Mashroom/Oster_INCLUDE_DIR -I/home/oster/Mashroom/API -I/home/oster/Mashroom/API/common -I/home/oster/Mashroom/API/grib1/include -I/home/oster/Mashroom/include/sys -I/home/oster/Mashroom/network/include -I/home/oster/Mashroom/include/cmd_parse -I/home/oster/Mashroom/include/cmd_parse/types_parse -I/home/oster/Mashroom/include/network -isystem /home/oster/OsterLib-install/include -isystem /home/oster/OsterLib-install/include/boost_functional
 
-CXX_FLAGS =  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -O0 -fconcepts-diagnostics-depth=10
+CXX_FLAGS =  -lzip -static-libstdc++ -g -DDEBUG -std=gnu++23 -fPIC -O0 -fconcepts-diagnostics-depth=10
 

@@ -14,7 +14,7 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>{
     uintmax_t file_sz_ = 0;      //size of file
     size_t file_hash_ = 0;
 
-    MessageAdditional(ErrorCode& err,server::Status status,const fs::path& file_path, uint64_t offset,uint64_t size);
+    MessageAdditional(server::Status status,const fs::path& file_path, uint64_t offset,uint64_t size);
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),
     filename_(other.filename_),

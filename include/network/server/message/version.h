@@ -6,7 +6,7 @@ template<>
 struct MessageAdditional<network::Server_MsgT::VERSION>{
     server::Status status_;
     uint64_t version_;
-    MessageAdditional(ErrorCode& err,uint64_t version, server::Status status):
+    MessageAdditional(uint64_t version, server::Status status):
     status_(status),version_(version){}
     MessageAdditional(const MessageAdditional& other):
     status_(other.status_),

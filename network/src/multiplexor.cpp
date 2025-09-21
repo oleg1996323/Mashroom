@@ -47,7 +47,7 @@ void network::Multiplexor::__set_interruptor__(){
         if(int ev = eventfd(0,EFD_NONBLOCK);ev==-1)
             throw std::runtime_error(strerror(errno));
         else interruptor = std::move(std::unique_ptr<Interruptor>(new Interruptor(ev)));
-        epoll_event ev{.events = Event::In};
+        epoll_event ev{.events = Event::In|Event::EdgeTrigger};
         if(epoll_ctl(epollfd,EPOLL_CTL_ADD,interruptor->fd_,&ev)==-1)
             __epoll_ctl_throw__();
         }
@@ -86,7 +86,8 @@ void network::Multiplexor::interrupt() noexcept{
     assert(interruptor);
     interruptor->interrupted = true;
     write(interruptor->fd_, &interruptor->interrupted, sizeof(interruptor->interrupted));
-    read(interruptor->fd_,&interruptor->interrupted,sizeof(interruptor->interrupted));
+    std::cout<<"Interrupted multiplexor"<<std::endl;
+    //read(interruptor->fd_,&interruptor->interrupted,sizeof(interruptor->interrupted));
 }
 bool network::Multiplexor::interrupted() noexcept{
     if(interruptor)
@@ -98,12 +99,15 @@ bool network::Multiplexor::interrupted() noexcept{
  * If timeout == -1 than infinite timeout is set.
  */
 std::span<network::Multiplexor::Event_t> network::Multiplexor::wait(int32_t timeout){
-    events_.clear();
     if(int event_sz = epoll_wait(epollfd,events_.data(),events_.size(),timeout);event_sz==-1){
+        std::cout<<"Multiplexor error occured"<<std::endl;
         __epoll_wait_throw__();
         return std::span<network::Multiplexor::Event_t>();
     }
-    else return std::span(events_).subspan(event_sz);
+    else{
+        std::cout<<"Multiplexor found events"<<std::endl;
+        return std::span(events_).subspan(0,event_sz);
+    }
 }
 
 network::Multiplexor::Event operator|(network::Multiplexor::Event lhs,network::Multiplexor::Event rhs) noexcept{

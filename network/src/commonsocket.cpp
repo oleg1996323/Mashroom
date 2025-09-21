@@ -9,12 +9,12 @@ namespace network{
     }
     void Socket::__init_storage__(std::ranges::common_range auto&& host, Port port){
         std::shared_ptr<sockaddr_storage> tmp = std::make_shared<sockaddr_storage>();
-        if(auto sock4 = (sockaddr_in*)storage.get();inet_pton(AF_INET,host.c_str(),&sock4->sin_addr)==1){
+        if(auto sock4 = (sockaddr_in*)tmp.get();inet_pton(AF_INET,host.c_str(),&sock4->sin_addr)==1){
             sock4->sin_family = AF_INET;
             sock4->sin_port = htons(port);
         }
         else{
-            if(auto* sock6 = (sockaddr_in6*)storage.get();inet_pton(AF_INET6,host.c_str(),&sock6->sin6_addr)==1){
+            if(auto* sock6 = (sockaddr_in6*)tmp.get();inet_pton(AF_INET6,host.c_str(),&sock6->sin6_addr)==1){
                 sock6->sin6_family = AF_INET6;
                 sock6->sin6_port = htons(port);
             }
@@ -25,9 +25,9 @@ namespace network{
         }
         storage = std::move(tmp);
     }
-    Socket::Socket(int raw_socket_id,const sockaddr_storage&):
+    Socket::Socket(int raw_socket_id,const sockaddr_storage& stor):
     socket_(std::make_shared<int>(raw_socket_id)),
-    storage(std::make_shared<sockaddr_storage>()){}
+    storage(std::make_shared<sockaddr_storage>(stor)){}
     Socket& Socket::operator=(Socket&& other) noexcept{
         if(other.__descriptor__()!=__descriptor__()){
             ::close(__descriptor__());
@@ -92,7 +92,7 @@ namespace network{
         else socket_ = std::make_shared<int>(raw_socket);
     }
     Socket::~Socket(){
-        if(socket_.use_count()<=1){
+        if(socket_ && socket_.use_count()<=1){
             std::cout<<"Closing connection: fd="<<*socket_<<" "<<std::endl;
             print_address_info(std::cout);
             ::close(__descriptor__());
@@ -101,9 +101,7 @@ namespace network{
     Socket& Socket::bind(){
         if(!storage)
             throw std::runtime_error("Undefined binding info");
-        socklen_t socklen = storage->ss_family==AF_INET?sizeof(sockaddr_in):
-                            (storage->ss_family==AF_INET6?sizeof(sockaddr_in6):
-                            sizeof(sockaddr_storage));
+        socklen_t socklen = address_struct_size(*storage);
         if(::bind(__descriptor__(),(sockaddr*)storage.get(),socklen)==-1){
             switch (errno)
             {
@@ -141,32 +139,44 @@ namespace network{
         if(__descriptor__()>=0){
             int flags = 0;
             if(flags = fcntl(__descriptor__(),F_GETFL,0);flags==-1 ||
-                fcntl(__descriptor__(),F_SETFL,flags|O_NONBLOCK)==-1){
-                throw std::runtime_error(strerror(errno));
+                fcntl(__descriptor__(),F_SETFL,flags|O_NONBLOCK)==-1)
+            {
+                #ifdef DEBUG
+                    std::cout<<strerror(errno)<<std::endl;
+                #endif
+                return false;
             }
-            return flags&O_NONBLOCK;
+            return (flags&O_NONBLOCK)!=0;
         }
-        else throw std::runtime_error(strerror(ENOTSOCK));
+        else return false;
     }
     bool Socket::is_connected() const{
         int error = 0;
         socklen_t len = sizeof(error);
         if(__descriptor__()>=0){
-            if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0)
-                throw std::runtime_error(strerror(errno));
+            if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0){
+                #ifdef DEBUG
+                std::cout<<strerror(errno)<<std::endl;
+                #endif
+                return false;
+            }
             return error==0;
         }
-        else throw std::runtime_error(strerror(ENOTSOCK));
+        else return false;
     }
     bool Socket::is_valid() const{
         int error = 0;
         socklen_t len = sizeof(error);
         if(__descriptor__()>=0){
-            if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0)
-                throw std::runtime_error(strerror(errno));
+            if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0){
+                #ifdef DEBUG
+                std::cout<<strerror(errno)<<std::endl;
+                #endif
+                return false;
+            }
             return error==0;
         }
-        else throw std::runtime_error(strerror(ENOTSOCK));
+        else return false;
     }
     void Socket::print_address_info(std::ostream& stream) const{
         if(storage)

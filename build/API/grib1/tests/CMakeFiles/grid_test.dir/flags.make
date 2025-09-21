@@ -6,5 +6,5 @@ CXX_DEFINES = -DGRIB1API
 
 CXX_INCLUDES = -I/home/oster/Mashroom/build/API/grib1/tests -I/home/oster/Mashroom/API/grib1/tests -I/home/oster/Mashroom/API/grib1/include -I/home/oster/OsterLib-install/include
 
-CXX_FLAGS =  -lzip -static-libstdc++ -g -std=gnu++23 -fPIC -O0 -fconcepts-diagnostics-depth=10
+CXX_FLAGS =  -lzip -static-libstdc++ -g -DDEBUG -std=gnu++23 -fPIC -O0 -fconcepts-diagnostics-depth=10
 

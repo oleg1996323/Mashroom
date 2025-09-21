@@ -27,14 +27,14 @@ namespace network::connection{
         private:
         MessageProcess<Side::SERVER> mprocess_;
         Process(const Process&) = delete;
-        Process& operator=(Process&& other) = delete;   //thread_ may be launched and 
-                                                        //containing old "other" pointer
         Process& operator=(const Process& other) = delete;
+        Process(Process&& other) noexcept;
+        Process& operator=(Process&& other) noexcept;
         static void reply(std::stop_token stop,const Socket& socket,Process<Server>& proc);
         public:
-        Process();
-        Process(Process&& other);
-        ~Process();
+        Process():AbstractQueuableProcess(){}
+        
+        ~Process() = default;
         void collapse(bool wait_finish,uint16_t timeout_sec);
         void close(bool wait_finish,uint16_t timeout_sec);
     };
