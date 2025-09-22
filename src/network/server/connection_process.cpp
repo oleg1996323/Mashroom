@@ -19,10 +19,10 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
             if(!msg_or_error.has_value())
                 throw std::runtime_error("Invalid message");
             const network::Message<network::Client_MsgT::INDEX>& msg = msg_or_error.value().get();
-            Index hindex;
+            msg.additional().
             Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
-            //rep_msg.additional().blocks_.push_back()
-            //Mashroom::instance().data().data();
+            rep_msg.additional().blocks_.push_back();
+            Mashroom::instance().data().data();
             
         }
         case Client_MsgT::INDEX_REF:{

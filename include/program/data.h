@@ -38,8 +38,12 @@ class Data:public __Data__{
     private:
     template<TYPE DATA_T,FORMAT DATA_F>
     struct __Data_type__{
-        static constexpr uint8_t format_t = DATA_F;
-        static constexpr uint8_t data_t = DATA_T;
+        static constexpr uint8_t format_type() noexcept{
+            return DATA_F;
+        }
+        static constexpr uint8_t data_type() noexcept{
+            return DATA_T;
+        }
     };
 
     struct GribData:__Data_type__<TYPE::METEO,FORMAT::GRIB>{
@@ -109,6 +113,9 @@ class Data:public __Data__{
         const SublimedGribDataInfo& sublimed_data() const{
             return grib_.grib_data_;
         }
+
+        
+
         std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
             Organization center,
             std::optional<TimeFrame> time_fcst,

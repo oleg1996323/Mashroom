@@ -21,10 +21,12 @@ struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
     explicit ExtractRequestForm(const SearchProperties& search_props,
         const TimePeriod& t_sep,
         OutputDataFileFormats file_fmt):
-        search_props_(search_props){}
+        search_props_(search_props),t_separation_(t_sep),
+        file_fmt_(file_fmt){}
     explicit ExtractRequestForm(SearchProperties&& search_props,
         TimePeriod&& t_sep,
-        OutputDataFileFormats file_fmt):search_props_(std::move(search_props)),
+        OutputDataFileFormats file_fmt):
+        search_props_(std::move(search_props)),
         t_separation_(std::move(t_sep)),
         file_fmt_(file_fmt){}
     ExtractRequestForm(const ExtractRequestForm& other) = delete;
