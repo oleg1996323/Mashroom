@@ -14,6 +14,7 @@
 #include "types/time_interval.h"
 #include "definitions/def.h"
 #include "definitions/path_process.h"
+#include <cstdint>
 
 using namespace std::chrono;
 using namespace std::string_literals;
@@ -24,12 +25,12 @@ class Data:public __Data__{
         using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
         using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<path::Storage<true>>>;
         using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<path::Storage<true>>>;
-        enum class TYPE{
+        enum class TYPE:uint8_t{
             METEO,
             TOPO,
             KADASTR
         };
-        enum class ACCESS{
+        enum class ACCESS:uint8_t{
             PUBLIC,
             PROTECTED,
             PRIVATE
@@ -38,10 +39,10 @@ class Data:public __Data__{
     private:
     template<TYPE DATA_T,FORMAT DATA_F>
     struct __Data_type__{
-        static constexpr uint8_t format_type() noexcept{
+        static constexpr FORMAT format_type() noexcept{
             return DATA_F;
         }
-        static constexpr uint8_t data_type() noexcept{
+        static constexpr TYPE data_type() noexcept{
             return DATA_T;
         }
     };
@@ -114,9 +115,19 @@ class Data:public __Data__{
             return grib_.grib_data_;
         }
 
-        
+        int find_all(std::optional<RepresentationType> grid_type_,
+                        std::optional<TimeInterval> time_,
+                        std::optional<TimeFrame> forecast_preference_,
+                        utc_tp last_update_) const{
+            std::optional<GridInfo> grid_data_;
+            std::vector<ptrdiff_t> buf_pos_;
+            utc_tp from_ = utc_tp::max();
+            utc_tp to_ = utc_tp::min();
+            std::chrono::system_clock::duration discret_ = std::chrono::system_clock::duration(0);
 
-        std::unordered_map<path::Storage<true>,SublimedDataInfo> match(
+        }
+
+        std::unordered_map<path::Storage<true>,SublimedDataInfo> match_data(
             Organization center,
             std::optional<TimeFrame> time_fcst,
             const std::unordered_set<SearchParamTableVersion>& parameters,

@@ -31,8 +31,8 @@ class SublimedGribDataInfo;
 namespace fs = std::filesystem;
 class GribDataInfo{
     public:
-    using data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
-    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     protected:
     data_t info_;
     API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
@@ -71,7 +71,7 @@ class SublimedGribDataInfo
 {
     public:
     using sublimed_data_t = std::unordered_map<path::Storage<false>,
-    std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
     template<bool,auto>
     friend struct serialization::Serialize;
     template<bool,auto>
@@ -238,6 +238,6 @@ static_assert(requires {requires serialization::serialize_concept<true,std::opti
 static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribDataInfo::sublimed_data_t>>;});
 static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfo>>);
 static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfo>>);
-static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
-static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
-//std::unordered_map<path::Storage<false>,std::unordered_map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>
+static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
+static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
+//std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>

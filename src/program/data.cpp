@@ -155,7 +155,7 @@ std::unordered_set<CommonDataProperties> get_parameter_variations(Organization c
 
 #include <format>
 #include "definitions/def.h"
-std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match(
+std::unordered_map<path::Storage<true>,SublimedDataInfo> Data::match_data(
     Organization center,
     std::optional<TimeFrame> time_fcst,
     const std::unordered_set<SearchParamTableVersion>& parameters,
