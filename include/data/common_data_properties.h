@@ -12,11 +12,75 @@ struct CommonDataProperties
     std::optional<uint8_t> table_version_ = 0;
     std::optional<uint8_t> parameter_ = 0;
 
-    CommonDataProperties(Organization center,uint8_t table_version,TimeFrame fcst_unit,uint8_t parameter):
+    CommonDataProperties(std::optional<Organization> center,std::optional<uint8_t> table_version,std::optional<TimeFrame> fcst_unit,std::optional<uint8_t> parameter):
     center_(center),table_version_(table_version),fcst_unit_(fcst_unit),parameter_(parameter){}
     CommonDataProperties() = default;
     bool operator==(const CommonDataProperties& other) const{
         return center_==other.center_ && table_version_==other.table_version_ && fcst_unit_==other.fcst_unit_ && parameter_==other.parameter_;
+    }
+
+    static size_t hash(  const std::optional<Organization>& center,
+                                        const std::optional<TimeFrame>& fcst_unit = {},
+                                        const std::optional<uint8_t>& table_version = {},
+                                        const std::optional<uint8_t>& parameter = {})
+    {
+        return  center.has_value()?std::underlying_type_t<Organization>(center.value())<<24:std::numeric_limits<std::underlying_type_t<Organization>>::min()<<24+
+                fcst_unit.has_value()?std::underlying_type_t<TimeFrame>(fcst_unit.value())<<16:std::numeric_limits<std::underlying_type_t<TimeFrame>>::min()<<16+
+                table_version.has_value()?table_version.value()<<8:std::numeric_limits<uint8_t>::min()<<8+
+                parameter.has_value()?parameter.value():std::numeric_limits<uint8_t>::min();
+    }
+
+    static size_t max_definitive_hash(  const std::optional<Organization>& center,
+                                        const std::optional<TimeFrame>& fcst_unit = {},
+                                        const std::optional<uint8_t>& table_version = {},
+                                        const std::optional<uint8_t>& parameter = {})
+    {
+        return  center.has_value()?std::underlying_type_t<Organization>(center.value())<<24:std::numeric_limits<std::underlying_type_t<Organization>>::max()<<24+
+                fcst_unit.has_value()?std::underlying_type_t<TimeFrame>(fcst_unit.value())<<16:std::numeric_limits<std::underlying_type_t<TimeFrame>>::max()<<16+
+                table_version.has_value()?table_version.value()<<8:std::numeric_limits<uint8_t>::max()<<8+
+                parameter.has_value()?parameter.value():std::numeric_limits<uint8_t>::max();
+    }
+
+    size_t max_definitive_hash() const
+    {
+        return  max_definitive_hash(center_,fcst_unit_,table_version_,parameter_);
+    }
+
+    size_t hash() const
+    {
+        return  hash(center_,fcst_unit_,table_version_,parameter_);
+    }
+
+    bool operator<(const std::shared_ptr<CommonDataProperties>& other) const{
+        if(other)
+            return this->hash()<other->hash();
+        else return false;
+    }
+    bool operator>(const std::shared_ptr<CommonDataProperties>& other) const{
+        if(other)
+            return this->hash()>other->hash();
+        else return true;
+    }
+
+    bool operator<(const CommonDataProperties& other) const{
+        return this->hash()<other.hash();
+    }
+    bool operator>(const CommonDataProperties& other) const{
+        return this->hash()>other.hash();
+    }
+};
+
+template<>
+struct std::less<std::shared_ptr<CommonDataProperties>>{
+    using is_transparent = std::true_type;
+    bool operator()(const CommonDataProperties& lhs,const std::shared_ptr<CommonDataProperties>& rhs) const{
+        return lhs<rhs;
+    }
+    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs,const CommonDataProperties& rhs) const{
+        return rhs>lhs;
+    }
+    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs,const std::shared_ptr<CommonDataProperties>& rhs) const{
+        return lhs?(rhs?lhs->hash()<rhs->hash():false):true;
     }
 };
 

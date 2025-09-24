@@ -1,26 +1,6 @@
 #include "program/data.h"
 
 template<>
-inline bool Data::write<Data::TYPE::METEO,Data::FORMAT::GRIB>
-(                   std::vector<char>& buf,
-                    Organization center,
-                    std::optional<TimeFrame> time_fcst,
-                    const std::unordered_set<SearchParamTableVersion>& parameters,
-                    TimeInterval time_interval,
-                    RepresentationType rep_t,
-                    Coord pos)
-{
-    using namespace serialization;
-    for(auto& [path,matched]:match(center,time_fcst,parameters,time_interval,rep_t,pos))
-        if(path.type_==path::TYPE::FILE)
-            serialize_native(matched,buf);
-    for(const SearchParamTableVersion& param:parameters){
-        ///@todo
-    }
-    assert(false);
-}
-
-template<>
 void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
     using namespace serialization;
     std::ifstream file(fn,std::ios::binary);

@@ -89,13 +89,6 @@ class Data:public __Data__{
         }
         void read(const fs::path& filename);
         bool write(const fs::path& filename);
-        template<Data::TYPE,Data::FORMAT>
-        bool write( std::vector<char>& buf,Organization center,
-                    std::optional<TimeFrame> time_fcst,
-                    const std::unordered_set<SearchParamTableVersion>& parameters,
-                    TimeInterval time_interval,
-                    RepresentationType rep_t,
-                    Coord pos);
         void add_data(GribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo& grib_data);
         void add_data(SublimedGribDataInfo&& grib_data);
@@ -124,7 +117,18 @@ class Data:public __Data__{
             utc_tp from_ = utc_tp::max();
             utc_tp to_ = utc_tp::min();
             std::chrono::system_clock::duration discret_ = std::chrono::system_clock::duration(0);
-
+            for(const auto& [path,dat]:data()){
+                if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>last_update_){
+                    CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt);
+                    if(auto begin = dat.lower_bound(searched); begin!=dat.end())
+                        for(const auto& [cmn,sublimed]:std::ranges::subrange(begin,dat.upper_bound(searched))){
+                            if(time_)
+                                for(auto& sub:sublimed)
+                                interval_instersection() //remade this function (check if intersect)
+                                    if(intervals_intersect(*time_,))
+                        }
+                }
+            }
         }
 
         std::unordered_map<path::Storage<true>,SublimedDataInfo> match_data(
