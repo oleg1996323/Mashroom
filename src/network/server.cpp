@@ -33,6 +33,9 @@ void Server::after_accept(Socket& socket){
     }
     return;
 }
+void Server::after_listen(){
+    status_ = server::Status::READY;
+}
 network::server::Status Server::get_status() const{
     return status_;
 }

@@ -7,12 +7,13 @@
 #include "types/time_interval.h"
 #include "properties.h"
 #include "serialization.h"
+#include "types/time_period.h"
 
-template <Data::TYPE T, Data::FORMAT F>
+template <Data_t T, Data_f F>
 struct ExtractRequestForm;
 
 template <>
-struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
+struct ExtractRequestForm<Data_t::METEO, Data_f::GRIB>
 {
     SearchProperties search_props_;
     TimePeriod t_separation_;
@@ -41,7 +42,7 @@ struct ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>
     }
 };
 
-using ExtractMeteoGrib = ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB>;
+using ExtractMeteoGrib = ExtractRequestForm<Data_t::METEO, Data_f::GRIB>;
 
 namespace serialization
 {   
@@ -93,7 +94,6 @@ namespace network{
         ExtractForm form_;
         public:
         MessageAdditional() = default;
-        MessageAdditional(ErrorCode& err){}
         MessageAdditional(const MessageAdditional& other) = delete;
         MessageAdditional(MessageAdditional&& other) noexcept{
             if(this!=&other){

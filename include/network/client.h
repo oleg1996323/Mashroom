@@ -68,9 +68,14 @@ namespace network{
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
             }
         }
-        template<MESSAGE_ID<Side::CLIENT>::type MSG_T>
-        auto get_result() const{
-            return mprocess_.get_received_message<MSG_T>();
+        template<Server_MsgT::type MSG_T>
+        const network::Message<MSG_T>& get_result(int16_t timeout_s) const{
+            if(process){
+                if(!process->ready() && !process->wait(timeout_s))
+                    throw std::runtime_error("Timeout");
+                return mprocess_.get_received_message<MSG_T>();
+            }
+            else throw std::runtime_error("There are not processes");
         }
         server::Status server_status() const;
     };

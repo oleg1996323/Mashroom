@@ -2,28 +2,28 @@
 #include <network/common/def.h>
 #include <network/common/message/msgdef.h>
 #include <optional>
-#include <program/data.h>
 #include "serialization.h"
-#include "program/data.h"
+#include "data/datastruct.h"
 #include <variant>
 using namespace std::chrono;
 namespace fs = std::filesystem;
 namespace network{
 
-template<Data::TYPE, Data::FORMAT>
+template<Data_t T, Data_f F>
 struct BaseIndexResult{
-    std::vector<char> data_;        
+    using data_t = DataStruct<T,F>::find_all_t;
+    data_t data_;
 };
 
 using IndexResult = std::variant<std::monostate,
-                    BaseIndexResult<Data::TYPE::METEO, Data::FORMAT::GRIB>>;
+                    BaseIndexResult<Data_t::METEO, Data_f::GRIB>>;
 
 template<>
     struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>
     {
         std::vector<IndexResult> blocks_;
         public:
-        MessageAdditional(ErrorCode& err,Data::ACCESS access, const std::vector<std::pair<Data::TYPE,Data::FORMAT>>& to_match){}
+        MessageAdditional(ErrorCode& err,Data_a access, const std::vector<std::pair<Data_t,Data_f>>& to_match){}
         MessageAdditional(const MessageAdditional& other):blocks_(other.blocks_){}
         MessageAdditional(MessageAdditional&& other) noexcept:blocks_(std::move(other.blocks_)){}
         MessageAdditional& operator=(const MessageAdditional& other){
@@ -37,7 +37,13 @@ template<>
             return *this;
         }
         MessageAdditional() = default;
-        bool add_block(Data::TYPE T,Data::FORMAT F, Data::ACCESS A);
+        template<Data_t T,Data_f F,typename Type>
+        bool add_block(Data_a A, Type&& block){
+            BaseIndexResult<T,F> result;
+            result.data_ = std::move(block);
+            blocks_.emplace_back(std::move(result));
+            return true;
+        }
     };
 }
 
@@ -85,7 +91,7 @@ namespace serialization{
         }();
     };
 
-    template<bool NETWORK_ORDER,Data::TYPE T, Data::FORMAT F>
+    template<bool NETWORK_ORDER,Data_t T, Data_f F>
     struct Serialize<NETWORK_ORDER,network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
@@ -93,7 +99,7 @@ namespace serialization{
         }
     };
 
-    template<bool NETWORK_ORDER,Data::TYPE T, Data::FORMAT F>
+    template<bool NETWORK_ORDER,Data_t T, Data_f F>
     struct Deserialize<NETWORK_ORDER,network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
@@ -101,7 +107,7 @@ namespace serialization{
         }
     };
 
-    template<Data::TYPE T, Data::FORMAT F>
+    template<Data_t T, Data_f F>
     struct Serial_size<network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
         size_t operator()(const type& msg) const noexcept{
@@ -109,7 +115,7 @@ namespace serialization{
         }
     };
 
-    template<Data::TYPE T, Data::FORMAT F>
+    template<Data_t T, Data_f F>
     struct Min_serial_size<network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
         static constexpr size_t value = []()
@@ -118,7 +124,7 @@ namespace serialization{
         }();
     };
 
-    template<Data::TYPE T, Data::FORMAT F>
+    template<Data_t T, Data_f F>
     struct Max_serial_size<network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
         static constexpr size_t value = []()
@@ -130,9 +136,9 @@ namespace serialization{
 
 static_assert(serialization::deserialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
 static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
-static_assert(serialization::deserialize_concept<true,network::BaseIndexResult<Data::TYPE::METEO, Data::FORMAT::GRIB>>);
-static_assert(serialization::deserialize_concept<false,network::BaseIndexResult<Data::TYPE::METEO, Data::FORMAT::GRIB>>);
+static_assert(serialization::deserialize_concept<true,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB>>);
+static_assert(serialization::deserialize_concept<false,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB>>);
 static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
 static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
-static_assert(serialization::serialize_concept<true,network::BaseIndexResult<Data::TYPE::METEO, Data::FORMAT::GRIB>>);
-static_assert(serialization::serialize_concept<false,network::BaseIndexResult<Data::TYPE::METEO, Data::FORMAT::GRIB>>);
+static_assert(serialization::serialize_concept<true,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB>>);
+static_assert(serialization::serialize_concept<false,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB>>);

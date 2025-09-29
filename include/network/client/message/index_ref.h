@@ -6,9 +6,7 @@
 namespace network{
     template<>
     struct MessageAdditional<network::Client_MsgT::INDEX_REF>{
-        std::optional<RepresentationType> grid_type_;
-        std::optional<TimeInterval> time_;
-        std::optional<TimeFrame> forecast_preference_;
+        std::vector<IndexParameters_t> parameters_;
         utc_tp last_update_;
         public:
         MessageAdditional() = default;
@@ -16,15 +14,19 @@ namespace network{
         MessageAdditional(MessageAdditional&& other) noexcept{
             *this = std::move(other);
         }
-        MessageAdditional(const TimeInterval& tinterval,utc_tp last_update):
-        time_(tinterval),last_update_(last_update){}
+        MessageAdditional(utc_tp last_update):
+        last_update_(last_update){}
         MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept{
             if(this!=&other){
-                time_ = std::move(other.time_);
+                parameters_ = std::move(other.parameters_);
                 last_update_ = std::move(other.last_update_);
             }
             return *this;
+        }
+        template<Data_t T,Data_f F,typename... ARGS>
+        IndexParameters<T,F>& add_indexation_parameters_structure(ARGS&&... args){
+            return parameters_.emplace_back().emplace<IndexParameters<T,F>>(std::forward<ARGS>(args)...);
         }
     };
 }
@@ -35,7 +37,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.grid_type_,msg.time_,msg.forecast_preference_,msg.last_update_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.parameters_,msg.last_update_);
         }
     };
 
@@ -43,7 +45,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.grid_type_,msg.time_,msg.forecast_preference_,msg.last_update_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.parameters_,msg.last_update_);
         }
     };
 
@@ -51,7 +53,7 @@ namespace serialization{
     struct Serial_size<MessageAdditional<network::Client_MsgT::INDEX_REF>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.grid_type_,msg.time_,msg.forecast_preference_,msg.last_update_);
+            return serial_size(msg.parameters_,msg.last_update_);
         }
     };
 
@@ -60,8 +62,7 @@ namespace serialization{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<decltype(type::grid_type_),decltype(type::time_),
-            decltype(type::forecast_preference_),decltype(type::last_update_)>();
+            return min_serial_size<decltype(type::parameters_),decltype(type::last_update_)>();
         }();
     };
 
@@ -70,8 +71,7 @@ namespace serialization{
         using type = MessageAdditional<network::Client_MsgT::INDEX_REF>;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<decltype(type::grid_type_),decltype(type::time_),
-            decltype(type::forecast_preference_),decltype(type::last_update_)>();
+            return max_serial_size<decltype(type::parameters_),decltype(type::last_update_)>();
         }();
     };
 }

@@ -74,9 +74,9 @@ class Mashroom{
     ErrorCode connect(const std::string& host);
 
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    ErrorCode request(bool wait, const std::string& host,Port port,ARGS&&... args);
+    std::shared_ptr<network::RequestInstance> request(bool wait, const std::string& host,Port port,ARGS&&... args);
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    ErrorCode request(uint16_t timeout_sec, const std::string& host,network::Port port,ARGS&&... args);
+    std::shared_ptr<network::RequestInstance> request(uint16_t timeout_sec, const std::string& host,network::Port port,ARGS&&... args);
     const Data& data(){
         return data_;
     }
@@ -110,10 +110,10 @@ class Mashroom{
 };
 
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
-ErrorCode Mashroom::request(bool wait,const std::string& host,network::Port port,ARGS&&... args){
+std::shared_ptr<network::RequestInstance> Mashroom::request(bool wait,const std::string& host,network::Port port,ARGS&&... args){
     return clients_.request<MSG_T>(wait,host,port,std::forward<ARGS>(args)...);
 }
 template<network::Client_MsgT::type MSG_T, typename... ARGS>
-ErrorCode Mashroom::request(uint16_t timeout_sec,const std::string& host,network::Port port,ARGS&&... args){
+std::shared_ptr<network::RequestInstance> Mashroom::request(uint16_t timeout_sec,const std::string& host,network::Port port,ARGS&&... args){
     return clients_.request<MSG_T>(timeout_sec,host,port,std::forward<ARGS>(args)...);
 }

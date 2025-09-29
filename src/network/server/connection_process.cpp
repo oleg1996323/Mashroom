@@ -14,19 +14,29 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
         return;
     switch (msg_type.value())
     {
+        case Client_MsgT::INDEX_REF:
         case Client_MsgT::INDEX:{
-            auto msg_or_error = proc.mprocess_.get_received_message<Client_MsgT::INDEX>();
-            if(!msg_or_error.has_value())
-                throw std::runtime_error("Invalid message");
-            const network::Message<network::Client_MsgT::INDEX>& msg = msg_or_error.value().get();
-            msg.additional().
+            decltype(auto) msg = proc.mprocess_.get_received_message<Client_MsgT::INDEX>();
             Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
-            rep_msg.additional().blocks_.push_back();
-            Mashroom::instance().data().data();
-            
-        }
-        case Client_MsgT::INDEX_REF:{
-            //Index hindex
+            auto find_data = [&msg,&rep_msg](const auto& index_param) ->void
+            {
+                if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,std::monostate>)
+                    return;
+                else if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,IndexParameters<Data_t::METEO,Data_f::GRIB>>){
+                    auto result = Mashroom::instance().data().find_all(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
+                    if(!result.empty())
+                        //@todo add access mode
+                        rep_msg.additional().add_block<Data_t::METEO,Data_f::GRIB>(Data_a::PUBLIC,std::move(result));
+                    else return;
+                }
+                else static_assert(false);
+            };
+            for(auto& param : msg.additional().parameters_) 
+                std::visit(find_data,param);
+            proc.mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX>(socket,std::move(rep_msg));
+            //if(msg_type.value()==Client_MsgT::INDEX)
+                //sendfile
+            //@todo send file
         }
         break;
         case Client_MsgT::DATA_REQUEST:

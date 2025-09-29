@@ -5,13 +5,13 @@
 using namespace network;
 
 ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std::string& host,Port port){
-    auto found = std::find_if(clients_.begin(),clients_.end(),[](const Client& client){
-        return !client.is_connected();
+    auto found = std::find_if(clients_.begin(),clients_.end(),[](const std::shared_ptr<RequestInstance>& client){
+        return client && !client->connection_established();
     });
     if(found != clients_.end()){
-        Client& client = *found;
+        std::shared_ptr<RequestInstance> client = *found;
         try{
-            client.connect(host,port);
+            client->__connect__(host,port);
             return found;
         }
         catch(const std::exception& err){
@@ -22,14 +22,24 @@ ClientsHandler::clients_iterator ClientsHandler::__connect_internal__(const std:
     }
     else{
         try{
-            auto inserted = clients_.insert(clients_.end(),std::move(Client(host,port)));
-            inserted->connect();
+            auto inserted = clients_.insert(clients_.end(),std::move(RequestInstance::__make_instance__(host,port)));
+            (*inserted)->client_.connect();
             return inserted;
         }
-        catch(const std::exception& err){
+        catch(const std::runtime_error& err){
+            if(!clients_.empty());
+                clients_.pop_back();
             ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
-            assert(clients_.empty());
-            clients_.pop_back();
+            return clients_.end();
+        }
+        catch(const std::invalid_argument& err){
+            if(!clients_.empty());
+                clients_.pop_back();
+            ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
+            return clients_.end();
+        }
+        catch(const std::exception& err){
+            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,err.what(),AT_ERROR_ACTION::ABORT);
             return clients_.end();
         }
     }

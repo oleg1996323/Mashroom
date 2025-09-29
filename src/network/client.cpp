@@ -27,9 +27,11 @@ bool Client::operator==(const Client& other) const noexcept{
 }
 
 Client::~Client(){
-    std::cout<<"Closing connection: ";
-    socket_->print_address_info(std::cout);
-    std::cout<<"Connection closed"<<std::endl;
+    if(socket_){
+        std::cout<<"Closing connection: ";
+        socket_->print_address_info(std::cout);
+        std::cout<<"Connection closed"<<std::endl;
+    }
 }
 server::Status Client::server_status() const{
     return server_status_;

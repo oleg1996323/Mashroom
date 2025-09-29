@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sys/mman.h>
 #include "utility.h"
+#include "sys/error_code.h"
 
 //#include "blake3.h"
 

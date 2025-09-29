@@ -141,6 +141,7 @@ const GribDataInfo& Index::__index_file__(const fs::path& file){
 
 void Index::execute() noexcept{
 	for(const path::Storage<false>& path:in_path_){
+		try{
 		switch(path.type_){
 			case path::TYPE::DIRECTORY:
 				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(path.path_)){
@@ -156,24 +157,37 @@ void Index::execute() noexcept{
 				__index_file__(path.path_);
 				break;
 			case path::TYPE::HOST:
-				if(host_ref_only){
-					if(path.add_.is<path::TYPE::HOST>()){
-						std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
-						Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,
-						TimeInterval{.to_ = utc_tp::clock::now()},utc_tp());
+				if(path.add_.is<path::TYPE::HOST>()){
+					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
+					network::Message<network::Client_MsgT::INDEX_REF> msg;
+					msg.additional().add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB>();
+					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
+					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX>(-1);
+					for(auto& block:msg_reply.additional().blocks_){
+						auto add_data = [](auto& block){
+							using decay = std::decay_t<decltype(block)>;
+							if constexpr(std::is_same_v<decay,std::monostate>)
+								return;
+							else if constexpr (std::is_same_v<decay,std::variant_alternative_t<1,IndexResult>>){
+								for(auto& [cmn,sublimed]:block.data_)
+									Mashroom::instance().add_data;
+							}
+						};
+					}
+					if(host_ref_only){
+						//@download filepart
 					}
 				}
-				else {
-					if(path.add_.is<path::TYPE::HOST>()){
-						std::cout<<"Indexing from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
-						Mashroom::instance().request<network::Client_MsgT::INDEX>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,
-						TimeInterval{.to_ = utc_tp::clock::now()},utc_tp());
-					}
-				}
+				else continue;
+				
 				break;
 			default:{
 				continue;
 			}
+		}
+		}
+		catch(const std::exception& err){
+			std::cout<<err.what()<<std::endl;
 		}
 	}
 	Mashroom::instance().add_data(result);

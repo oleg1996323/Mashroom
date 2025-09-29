@@ -30,8 +30,8 @@ TEST(Serialization, SublimedInfo){
     scan.points_sub_i_dir = true;
     scan.points_sub_j_dir = false;
     grid_def.base_.scan_mode = scan;
-    SublimedDataInfo data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now(),
-                        .discret_=system_clock::duration((data.to_-data.from_)/data.buf_pos_.size())};
+    SublimedDataInfo data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
+                        .discret_=system_clock::duration((data.sequence_time_.interval_.to_-data.sequence_time_.interval_.from_)/data.buf_pos_.size())}};
 
     {
         SublimedDataInfo to_check;
@@ -41,9 +41,7 @@ TEST(Serialization, SublimedInfo){
         EXPECT_EQ(serial_size(to_check),serial_size(data));
 
         EXPECT_EQ(to_check.buf_pos_,data.buf_pos_);
-        EXPECT_EQ(to_check.discret_,data.discret_);
-        EXPECT_EQ(to_check.from_,data.from_);
-        EXPECT_EQ(to_check.to_,data.to_);
+        EXPECT_EQ(to_check.sequence_time_,data.sequence_time_);
         EXPECT_EQ(to_check.grid_data_,data.grid_data_);
     }
     {
@@ -58,9 +56,7 @@ TEST(Serialization, SublimedInfo){
         EXPECT_EQ(serial_size(to_check),serial_size(data));
 
         EXPECT_EQ(to_check.buf_pos_,data.buf_pos_);
-        EXPECT_EQ(to_check.discret_,data.discret_);
-        EXPECT_EQ(to_check.from_,data.from_);
-        EXPECT_EQ(to_check.to_,data.to_);
+        EXPECT_EQ(to_check.sequence_time_,data.sequence_time_);
         EXPECT_EQ(to_check.grid_data_,data.grid_data_);
     }
 }
@@ -121,8 +117,8 @@ TEST(Serialization,SublimedGribDataInfo){
         for(int j=0;j<10;++j){
             auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
             for(int m=0;m<10;++m){
-                SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.from_=utc_tp(sys_days(1991y/1/(i+j+m))),.to_=system_clock::now(),
-                        .discret_=system_clock::duration((sub_data.to_-sub_data.from_)/sub_data.buf_pos_.size())};
+                SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
+                        .discret_=system_clock::duration((sub_data.sequence_time_.interval_.to_-sub_data.sequence_time_.interval_.from_)/sub_data.buf_pos_.size())}};
                 vector_seq.push_back(std::move(sub_data));
             }
         }

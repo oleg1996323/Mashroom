@@ -1,4 +1,5 @@
 #include "network/server/message/data_reply_extract_part.h"
+#include "sys/error_print.h"
 
 namespace network{
     MessageAdditional<network::Server_MsgT::DATA_REPLY_EXTRACT>::MessageAdditional(const fs::path& file_path, server::Status status)

@@ -14,7 +14,7 @@ namespace network{
         MessageAdditional(const MessageAdditional& other) = delete;
         MessageAdditional(MessageAdditional&& other):
         op_hash_(other.op_hash_),op_status_(other.op_status_){}
-        MessageAdditional(ErrorCode& err,Transaction op_status):op_status_(op_status){}
+        MessageAdditional(Transaction op_status):op_status_(op_status){}
         MessageAdditional() = default;
         MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept = default;

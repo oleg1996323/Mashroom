@@ -75,7 +75,7 @@ namespace network{
             return *this;
         }
         CommonClient& connect(){
-            if(!is_connected() && socket_->is_valid()){
+            if(socket_ && !is_connected() && socket_->is_valid()){
                 if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
                     __connect_throw__();
                 else return *this;

@@ -22,17 +22,28 @@
 #include "msg.h"
 #include "sys/error_print.h"
 #include "sys/error_code.h"
+#include "data/def.h"
 using namespace std::string_literals;
 
-class SublimedGribDataInfo;
+template<Data_t TYPE,Data_f FORMAT>
+class SublimedFormatDataInfo;
+
+using SublimedGribDataInfo = SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>;
 
 #include <string_view>
 #include "definitions/path_process.h"
 namespace fs = std::filesystem;
-class GribDataInfo{
+
+template<Data_t TYPE,Data_f FORMAT>
+class DataInfo;
+
+using GribDataInfo = DataInfo<Data_t::METEO,Data_f::GRIB>;
+
+template<>
+class DataInfo<Data_t::METEO,Data_f::GRIB>{
     public:
-    using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
-    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedGribDataInfo>>>;
     protected:
     data_t info_;
     API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
@@ -40,26 +51,26 @@ class GribDataInfo{
     friend class Integrity;
     friend class Extract;
     public:
-    GribDataInfo() =default;
-    GribDataInfo(const GribDataInfo& other):info_(other.info_){}
-    GribDataInfo(GribDataInfo&& other):info_(std::move(other.info_)){}
-    GribDataInfo(const data_t& info):
+    DataInfo() =default;
+    DataInfo(const DataInfo& other):info_(other.info_){}
+    DataInfo(DataInfo&& other):info_(std::move(other.info_)){}
+    DataInfo(const data_t& info):
     info_(info){}
-    GribDataInfo(data_t&& info):
+    DataInfo(data_t&& info):
     info_(std::move(info)){}
-    template<typename CDP = CommonDataProperties, typename GCDI = IndexDataInfo<API::GRIB1>>
-    void add_info(const path::Storage<false>& path,CDP&& cmn,GCDI&& index_info){
+    template<typename GCDI = IndexDataInfo<API::GRIB1>>
+    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,GCDI&& index_info){
         if constexpr(std::is_same_v<std::vector<IndexDataInfo<API::GRIB1>>,std::decay_t<GCDI>>){
-            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].append_range(std::forward<GCDI>(index_info));
+            info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].append_range(std::forward<GCDI>(index_info));
         }
         else
-            info_[path][std::make_shared<CommonDataProperties>(std::forward<CDP>(cmn))].push_back(std::forward<GCDI>(index_info));
+            info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(std::forward<GCDI>(index_info));
     }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
     API::ErrorData::Code<API::GRIB1>::value error() const;
     const data_t& data() const;
-    void swap(GribDataInfo& other) noexcept;
+    void swap(DataInfo& other) noexcept;
     //void read(const fs::path& path);
     //void write(const fs::path& dir);
     SublimedGribDataInfo sublime();
@@ -67,11 +78,12 @@ class GribDataInfo{
 #include <unordered_set>
 #include "definitions/path_process.h"
 #include "gtest/gtest_prod.h"
-class SublimedGribDataInfo
+template<>
+class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>
 {
     public:
     using sublimed_data_t = std::unordered_map<path::Storage<false>,
-    std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>;
+    std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>;
     template<bool,auto>
     friend struct serialization::Serialize;
     template<bool,auto>
@@ -82,15 +94,15 @@ class SublimedGribDataInfo
     friend struct serialization::Min_serial_size;
     template<auto>
     friend struct serialization::Max_serial_size;
-    FRIEND_TEST(Serialization,SublimedGribDataInfo);
+    FRIEND_TEST(Serialization,SublimedFormatDataInfo);
     private:
     sublimed_data_t info_;
     std::unordered_set<path::Storage<true>> paths_;
     public:
-    SublimedGribDataInfo() = default;
-    SublimedGribDataInfo(SublimedGribDataInfo&& other):
+    SublimedFormatDataInfo() = default;
+    SublimedFormatDataInfo(SublimedFormatDataInfo&& other):
     info_(std::move(other.info_)){}
-    SublimedGribDataInfo(const SublimedGribDataInfo&) = delete;
+    SublimedFormatDataInfo(const SublimedFormatDataInfo&) = delete;
     const sublimed_data_t& data() const{
         return info_;
     }
@@ -98,7 +110,7 @@ class SublimedGribDataInfo
     const std::unordered_set<path::Storage<true>>& paths() const{
         return paths_;
     }
-    void add_data(SublimedGribDataInfo& grib_data){
+    void add_data(SublimedFormatDataInfo& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
             auto found = info_.find(path);
             if(found==info_.end())
@@ -107,7 +119,7 @@ class SublimedGribDataInfo
                 info_[found->first].swap(file_data);
         }
     }
-    void add_data(SublimedGribDataInfo::sublimed_data_t& grib_data){
+    void add_data(SublimedFormatDataInfo::sublimed_data_t& grib_data){
         for(auto& [path,file_data]:grib_data){
             if(!path.path_.empty()){
                 auto found = info_.find(path);
@@ -119,7 +131,7 @@ class SublimedGribDataInfo
             }
         }
     }
-    void add_data(SublimedGribDataInfo&& grib_data){
+    void add_data(SublimedFormatDataInfo&& grib_data){
         for(auto& [path,file_data]:grib_data.info_){
             if(!path.path_.empty()){
                 auto found = info_.find(path);
@@ -131,7 +143,7 @@ class SublimedGribDataInfo
             }
         }
     }
-    void add_data(SublimedGribDataInfo::sublimed_data_t&& grib_data){
+    void add_data(SublimedFormatDataInfo::sublimed_data_t&& grib_data){
         for(auto& [path,file_data]:grib_data){
             if(!path.path_.empty()){
                 auto found = info_.find(path);
@@ -232,12 +244,12 @@ namespace serialization{
 //@todo make possible serialization
 static_assert(requires{requires std::ranges::range<GribDataInfo::sublimed_data_t>;});
 
-static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<CommonDataProperties> const, std::vector<SublimedDataInfo, std::allocator<SublimedDataInfo>>>>);
-static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<CommonDataProperties> const, std::vector<SublimedDataInfo, std::allocator<SublimedDataInfo>>>>);
+static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
+static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
 static_assert(requires {requires serialization::serialize_concept<true,std::optional<GribDataInfo::sublimed_data_t>>;});
 static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribDataInfo::sublimed_data_t>>;});
-static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfo>>);
-static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfo>>);
-static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
-static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>>);
-//std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfo>>>
+static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
+static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
+static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
+static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
+//std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>

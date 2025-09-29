@@ -2,6 +2,7 @@
 #include <array>
 #include <string>
 #include <string_view>
+#include <cstdint>
 
 constexpr std::string_view bindata_filename = std::string_view("data");
 
@@ -12,7 +13,23 @@ struct __Data__{
         HGT,
         NETCDF
     };
+
+    enum class ACCESS:uint8_t{
+        PUBLIC,
+        PROTECTED,
+        PRIVATE
+    };
+
+    enum class TYPE:uint8_t{
+        METEO,
+        TOPO,
+        KADASTR
+    };
 };
+
+using Data_t = __Data__::TYPE;
+using Data_f = __Data__::FORMAT;
+using Data_a = __Data__::ACCESS;
 
 constexpr std::array<__Data__::FORMAT,3> data_types = {
     __Data__::FORMAT::GRIB,

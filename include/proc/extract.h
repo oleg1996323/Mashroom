@@ -12,84 +12,10 @@
 #include "serialization.h"
 #include "network/client.h"
 #include "network/server.h"
+#include "extract/extracted_value.h"
 
-struct ExtractedValue
-{
-    std::chrono::system_clock::time_point time_date;
-    float value = UNDEFINED;
-
-    ExtractedValue() = default;
-    ExtractedValue(utc_tp time, float val) : time_date(time), value(val) {}
-    ExtractedValue(const ExtractedValue &other)
-    {
-        if (this != &other)
-        {
-            time_date = other.time_date;
-            value = other.value;
-        }
-    }
-    ExtractedValue(ExtractedValue &&other) noexcept
-    {
-        if (this != &other)
-        {
-            time_date = other.time_date;
-            value = other.value;
-        }
-    }
-
-    bool operator<(const ExtractedValue &other) const
-    {
-        return time_date < other.time_date;
-    }
-
-    bool operator>(const ExtractedValue &other) const
-    {
-        return time_date > other.time_date;
-    }
-
-    ExtractedValue &operator=(const ExtractedValue &extracted_val)
-    {
-        if (this != &extracted_val)
-        {
-            time_date = extracted_val.time_date;
-            value = extracted_val.value;
-        }
-        return *this;
-    }
-    ExtractedValue &operator=(ExtractedValue &&extracted_val) noexcept
-    {
-        if (this != &extracted_val)
-        {
-            time_date = extracted_val.time_date;
-            value = extracted_val.value;
-        }
-        return *this;
-    }
-};
-
-template <>
-struct std::less<ExtractedValue>
-{
-    bool operator()(const ExtractedValue &lhs, const ExtractedValue &rhs) const
-    {
-        return lhs < rhs;
-    }
-    bool operator()(const ExtractedValue &lhs, const ExtractedValue &rhs)
-    {
-        return lhs < rhs;
-    }
-};
-
-template <>
-class std::hash<ExtractedValue>
-{
-    size_t operator()(const ExtractedValue &data)
-    {
-        return std::hash<int64_t>{}(static_cast<int64_t>(duration_cast<hours>(data.time_date.time_since_epoch()).count()) << 32 | static_cast<int64_t>(data.value));
-    }
-};
-
-using ExtractedData = std::unordered_map<CommonDataProperties, std::vector<ExtractedValue>>;
+using VariantExtractedData = std::variant<std::unordered_map<Grib1CommonDataProperties, std::vector<ExtractedValue<Data_t::METEO,Data_f::GRIB>>>>;
+using ExtractedData = VariantExtractedData;
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
@@ -97,7 +23,7 @@ namespace fs = std::filesystem;
 #include "proc/interfaces/abstractthreadinterruptor.h"
 #include <netdb.h>
 #include <program/data.h>
-
+#include "types/time_period.h"
 
 
 class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
@@ -109,7 +35,9 @@ private:
     mutable std::string path_format;
     mutable std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
-    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfo &positions);
+    template<Data_t T,Data_f F>
+    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<T,F>&);
+
     ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
     ErrorCode __create_dir_for_file__(const fs::path &out_f_name) const noexcept;
     ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result) const noexcept;

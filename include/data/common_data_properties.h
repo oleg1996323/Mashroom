@@ -5,7 +5,15 @@
 #include "code_tables/table_4.h"
 #include "code_tables/table_0.h"
 
-struct CommonDataProperties
+
+#include "data/def.h"
+template<Data_t TYPE,Data_f FORMAT>
+struct CommonDataProperties;
+
+using Grib1CommonDataProperties = CommonDataProperties<Data_t::METEO,Data_f::GRIB>;
+
+template<>
+struct CommonDataProperties<Data_t::METEO,Data_f::GRIB>
 {
     std::optional<TimeFrame> fcst_unit_ ={};
     std::optional<Organization> center_ = Organization::WMO;
@@ -70,23 +78,26 @@ struct CommonDataProperties
     }
 };
 
+
+using VariantCommonDataProperties = std::variant<Grib1CommonDataProperties>;
+
 template<>
-struct std::less<std::shared_ptr<CommonDataProperties>>{
+struct std::less<std::shared_ptr<Grib1CommonDataProperties>>{
     using is_transparent = std::true_type;
-    bool operator()(const CommonDataProperties& lhs,const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs,const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         return lhs<rhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs,const CommonDataProperties& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs,const Grib1CommonDataProperties& rhs) const{
         return rhs>lhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs,const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs,const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         return lhs?(rhs?lhs->hash()<rhs->hash():false):true;
     }
 };
 
 template<>
-struct std::hash<CommonDataProperties>{
-    size_t operator()(const CommonDataProperties& cs) const{
+struct std::hash<Grib1CommonDataProperties>{
+    size_t operator()(const Grib1CommonDataProperties& cs) const{
         size_t result = std::hash<size_t>{}(static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24);
         result+=std::hash<size_t>{}(static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16);
         result+=std::hash<size_t>{}(static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8);
@@ -100,103 +111,103 @@ struct std::hash<CommonDataProperties>{
 };
 #include <memory>
 template<>
-struct std::hash<std::shared_ptr<CommonDataProperties>>
+struct std::hash<std::shared_ptr<Grib1CommonDataProperties>>
 {
     using is_transparent = std::true_type;
-    size_t operator()(const std::shared_ptr<CommonDataProperties>& node_ptr) const{
-        return std::hash<CommonDataProperties>{}(*node_ptr);
+    size_t operator()(const std::shared_ptr<Grib1CommonDataProperties>& node_ptr) const{
+        return std::hash<Grib1CommonDataProperties>{}(*node_ptr);
     }
-    size_t operator()(const CommonDataProperties& node_ptr) const{
-        return std::hash<CommonDataProperties>{}(node_ptr);
+    size_t operator()(const Grib1CommonDataProperties& node_ptr) const{
+        return std::hash<Grib1CommonDataProperties>{}(node_ptr);
     }
 };
 
 template<>
-struct std::hash<std::weak_ptr<CommonDataProperties>>
+struct std::hash<std::weak_ptr<Grib1CommonDataProperties>>
 {
     using is_transparent = std::true_type;
-    size_t operator()(const std::weak_ptr<CommonDataProperties>& node_ptr) const{
-        return std::hash<CommonDataProperties>{}(*node_ptr.lock());
+    size_t operator()(const std::weak_ptr<Grib1CommonDataProperties>& node_ptr) const{
+        return std::hash<Grib1CommonDataProperties>{}(*node_ptr.lock());
     }
-    size_t operator()(const CommonDataProperties& node_ptr) const{
-        return std::hash<CommonDataProperties>{}(node_ptr);
+    size_t operator()(const Grib1CommonDataProperties& node_ptr) const{
+        return std::hash<Grib1CommonDataProperties>{}(node_ptr);
     }
 };
 
 template<>
-struct std::equal_to<std::shared_ptr<CommonDataProperties>>
+struct std::equal_to<std::shared_ptr<Grib1CommonDataProperties>>
 {
     using is_transparent = std::true_type;
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs, const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs, const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         return *lhs==*rhs;
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         if(lhs.expired())
             return false;
         else
             return *lhs.lock()==*rhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired())
             return false;
         else
             return *lhs==*rhs.lock();
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired() || lhs.expired())
             return false;
         else
             return *lhs.lock()==*rhs.lock();
     }
-    bool operator()(const CommonDataProperties& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired())
             return false;
         else
             return lhs==*rhs.lock();
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const Grib1CommonDataProperties& rhs) const{
         if(lhs.expired())
             return false;
         else
             return *lhs.lock()==rhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs, const Grib1CommonDataProperties& rhs) const{
             return *lhs==rhs;
     }
-    bool operator()(const CommonDataProperties& lhs, const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         return lhs==*rhs;
 }
 };
 
 template<>
-struct std::equal_to<std::weak_ptr<CommonDataProperties>>
+struct std::equal_to<std::weak_ptr<Grib1CommonDataProperties>>
 {
     using is_transparent = std::true_type;
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         if(lhs.expired())
             return false;
         else
             return *lhs.lock()==*rhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired())
             return false;
         else
             return *lhs==*rhs.lock();
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired() || lhs.expired())
             return false;
         else
             return *lhs.lock()==*rhs.lock();
     }
-    bool operator()(const CommonDataProperties& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired())
             return false;
         else
             return lhs==*rhs.lock();
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const Grib1CommonDataProperties& rhs) const{
         if(lhs.expired())
             return false;
         else
@@ -205,29 +216,29 @@ struct std::equal_to<std::weak_ptr<CommonDataProperties>>
 };
 
 template<>
-struct std::equal_to<CommonDataProperties>
+struct std::equal_to<Grib1CommonDataProperties>
 {
     using is_transparent = std::true_type;
     
-    bool operator()(const CommonDataProperties& lhs, const std::weak_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const std::weak_ptr<Grib1CommonDataProperties>& rhs) const{
         if(rhs.expired())
             return false;
         else
             return lhs==*rhs.lock();
     }
-    bool operator()(const std::weak_ptr<CommonDataProperties>& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const std::weak_ptr<Grib1CommonDataProperties>& lhs, const Grib1CommonDataProperties& rhs) const{
         if(lhs.expired())
             return false;
         else
             return *lhs.lock()==rhs;
     }
-    bool operator()(const std::shared_ptr<CommonDataProperties>& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs, const Grib1CommonDataProperties& rhs) const{
             return *lhs==rhs;
     }
-    bool operator()(const CommonDataProperties& lhs, const std::shared_ptr<CommonDataProperties>& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
         return lhs==*rhs;
     }
-    bool operator()(const CommonDataProperties& lhs, const CommonDataProperties& rhs) const{
+    bool operator()(const Grib1CommonDataProperties& lhs, const Grib1CommonDataProperties& rhs) const{
         return lhs==rhs;
     }
 };
@@ -236,32 +247,32 @@ struct std::equal_to<CommonDataProperties>
 
 namespace serialization{
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,CommonDataProperties>{
-        using type = CommonDataProperties;
+    struct Serialize<NETWORK_ORDER,Grib1CommonDataProperties>{
+        using type = Grib1CommonDataProperties;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,CommonDataProperties>{
-        using type = CommonDataProperties;
+    struct Deserialize<NETWORK_ORDER,Grib1CommonDataProperties>{
+        using type = Grib1CommonDataProperties;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
     template<>
-    struct Serial_size<CommonDataProperties>{
-        using type = CommonDataProperties;
+    struct Serial_size<Grib1CommonDataProperties>{
+        using type = Grib1CommonDataProperties;
         size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
     template<>
-    struct Min_serial_size<CommonDataProperties>{
-        using type = CommonDataProperties;
+    struct Min_serial_size<Grib1CommonDataProperties>{
+        using type = Grib1CommonDataProperties;
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<decltype(type::fcst_unit_),decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_)>();
@@ -269,8 +280,8 @@ namespace serialization{
     };
 
     template<>
-    struct Max_serial_size<CommonDataProperties>{
-        using type = CommonDataProperties;
+    struct Max_serial_size<Grib1CommonDataProperties>{
+        using type = Grib1CommonDataProperties;
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<decltype(type::fcst_unit_),decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_)>();

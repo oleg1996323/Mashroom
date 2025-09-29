@@ -94,6 +94,8 @@ namespace network{
         const Socket socket() const{
             return socket_;
         }
+        virtual void at_closing(){}
+        virtual void at_collapsing(){}
         void close(bool wait_for_end_connections = false, uint16_t timeout_sec = 60);
         void collapse(bool wait_for_end_connections = false, uint16_t timeout_sec = 60);
         void launch(){

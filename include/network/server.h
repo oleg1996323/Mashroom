@@ -24,6 +24,13 @@ namespace network{
         server::Status status_=server::Status::INACTIVE;
         Server(const server::Settings& settings);
         virtual void after_accept(Socket& socket) override;
+        virtual void after_listen() override;
+        virtual void at_closing() override{
+            status_ = server::Status::INACTIVE;
+        }
+        virtual void at_collapsing() override{
+            status_ = server::Status::SUSPENDED;
+        }
     public:
         server::Status get_status() const;
         ~Server();

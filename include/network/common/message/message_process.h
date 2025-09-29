@@ -46,17 +46,17 @@ namespace network{
         public:
 
         template<MESSAGE_ID<S>::type MSG_T>
-        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_sending_message() const noexcept{
+        const Message<MSG_T>& get_sending_message() const{
             if(std::holds_alternative<Message<MSG_T>>(hmsg_))
-                return std::cref(std::get<Message<MSG_T>>(hmsg_));
-            else return std::nullopt;
+                return std::get<Message<MSG_T>>(hmsg_);
+            else throw std::runtime_error("Handler didn't sent messages");
         };
 
         template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
-        std::optional<std::reference_wrapper<const Message<MSG_T>>> get_received_message() const noexcept{
+        const Message<MSG_T>& get_received_message() const{
             if(std::holds_alternative<Message<MSG_T>>(recv_hmsg_))
-                return std::cref(std::get<Message<MSG_T>>(recv_hmsg_));
-            else return std::nullopt;
+                return std::get<Message<MSG_T>>(recv_hmsg_);
+            else throw std::runtime_error("Handler didn't received messages");
         };
 
         template<MESSAGE_ID<S>::type T,typename... ARGS>

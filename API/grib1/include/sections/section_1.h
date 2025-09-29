@@ -16,6 +16,7 @@
 #include <chrono>
 #include <span>
 #include "types/time_interval.h"
+#include "types/time_period.h"
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)

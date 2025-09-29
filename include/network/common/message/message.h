@@ -152,6 +152,9 @@ namespace network{
         const auto& additional() const{
             return additional_;
         }
+        auto& additional(){
+            return additional_;
+        }
         const auto& base() const{
             return base_;
         }

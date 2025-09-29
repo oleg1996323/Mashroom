@@ -5,6 +5,7 @@
 #include "types/time_interval.h"
 #include <expected>
 #include "sys/outputdatafileformats.h"
+#include "types/time_period.h"
 
 namespace user{
     struct Settings{

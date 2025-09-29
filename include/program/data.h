@@ -15,53 +15,16 @@
 #include "definitions/def.h"
 #include "definitions/path_process.h"
 #include <cstdint>
+#include "data/datastruct.h"
 
 using namespace std::chrono;
 using namespace std::string_literals;
 
 namespace fs = std::filesystem;
 class Data:public __Data__{
-    public:
-        using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
-        using sublimed_data_by_date_time = std::map<TimeInterval,std::unordered_set<path::Storage<true>>>;
-        using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<path::Storage<true>>>;
-        enum class TYPE:uint8_t{
-            METEO,
-            TOPO,
-            KADASTR
-        };
-        enum class ACCESS:uint8_t{
-            PUBLIC,
-            PROTECTED,
-            PRIVATE
-        };
-    
     private:
-    template<TYPE DATA_T,FORMAT DATA_F>
-    struct __Data_type__{
-        static constexpr FORMAT format_type() noexcept{
-            return DATA_F;
-        }
-        static constexpr TYPE data_type() noexcept{
-            return DATA_T;
-        }
-    };
-
-    struct GribData:__Data_type__<TYPE::METEO,FORMAT::GRIB>{
-        SublimedGribDataInfo grib_data_;
-        sublimed_data_by_common_data by_common_data_;
-        sublimed_data_by_date_time by_date_;
-        sublimed_data_by_grid by_grid_;
-        std::unique_ptr<GribData> unsaved_;
-        GribData() = default;
-        GribData(const GribData&) = delete;
-        GribData(GribData&& other):
-        grib_data_(std::move(other.grib_data_)),
-        by_common_data_(std::move(other.by_common_data_)),
-        by_date_(std::move(other.by_date_)),
-        by_grid_(std::move(other.by_grid_)){}
-    };
-    GribData grib_;
+    using DataTypes = std::variant<Grib1Data>;
+    std::array<DataTypes,std::variant_size_v<DataTypes>> datas_;
     std::set<Data::FORMAT> unsaved_;
     std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
@@ -75,77 +38,99 @@ class Data:public __Data__{
 
     template <size_t I>
     void __write_all__();
-    public:
-        void save();
-        Data():data_directory_(fs::path(get_current_dir_name())/"data"/"bin"){}
-        Data(const fs::path& data_dir):data_directory_(data_dir){}
-        Data(Data&& other):
-        grib_(std::move(other.grib_)),
-        unsaved_(std::move(other.unsaved_)),
-        files_(std::move(other.files_)),
-        data_directory_(std::move(other.data_directory_)){}
-        ~Data(){
-            save();
-        }
-        void read(const fs::path& filename);
-        bool write(const fs::path& filename);
-        void add_data(GribDataInfo& grib_data);
-        void add_data(SublimedGribDataInfo& grib_data);
-        void add_data(SublimedGribDataInfo&& grib_data);
-        bool unsaved() const{
-            return !unsaved_.empty();
-        }
-        const std::unordered_set<path::Storage<true>>& paths() const{
-            return grib_.grib_data_.paths();
-        }
-        auto data() const{
-            return grib_.grib_data_.data();
-        }
-        const std::unordered_map<__Data__::FORMAT,fs::path>& written_files() const{
-            return files_;
-        }
-        const SublimedGribDataInfo& sublimed_data() const{
-            return grib_.grib_data_;
-        }
+    public:    
+    void save();
+    Data():data_directory_(fs::path(get_current_dir_name())/"data"/"bin"){}
+    Data(const fs::path& data_dir):data_directory_(data_dir){}
+    Data(Data&& other):
+    datas_(std::move(other.datas_)),
+    unsaved_(std::move(other.unsaved_)),
+    files_(std::move(other.files_)),
+    data_directory_(std::move(other.data_directory_)){}
+    ~Data(){
+        save();
+    }
+    void read(const fs::path& filename);
+    bool write(const fs::path& filename);
+    void add_data(GribDataInfo& grib_data);
+    void add_data(SublimedGribDataInfo& grib_data);
+    void add_data(SublimedGribDataInfo&& grib_data);
+    bool unsaved() const{
+        return !unsaved_.empty();
+    }
 
-        int find_all(std::optional<RepresentationType> grid_type_,
-                        std::optional<TimeInterval> time_,
-                        std::optional<TimeFrame> forecast_preference_,
-                        utc_tp last_update_) const{
-            std::optional<GridInfo> grid_data_;
-            std::vector<ptrdiff_t> buf_pos_;
-            utc_tp from_ = utc_tp::max();
-            utc_tp to_ = utc_tp::min();
-            std::chrono::system_clock::duration discret_ = std::chrono::system_clock::duration(0);
-            for(const auto& [path,dat]:data()){
-                if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>last_update_){
-                    CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt);
-                    if(auto begin = dat.lower_bound(searched); begin!=dat.end())
-                        for(const auto& [cmn,sublimed]:std::ranges::subrange(begin,dat.upper_bound(searched))){
-                            if(time_)
-                                for(auto& sub:sublimed)
-                                interval_instersection() //remade this function (check if intersect)
-                                    if(intervals_intersect(*time_,))
-                        }
-                }
-            }
-        }
+    template<Data_t T,Data_f F>
+    const std::unordered_set<path::Storage<true>>& paths() const{
+        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
+            auto visitor = [](auto& var_data){
+                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
+                    return true;
+                else static_assert(false);
+            };
+        });found!=datas_.end())
+            return std::get<DataStruct<T,F>>(*found).paths();
+    }
+    template<Data_t T,Data_f F>
+    auto data_struct() const{
+        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
+            auto visitor = [](auto& var_data){
+                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
+                    return true;
+                else static_assert(false);
+            };
+        });found!=datas_.end())
+            return std::get<DataStruct<T,F>>(*found);
+    }
+    const std::unordered_map<Data_f,fs::path>& written_files() const{
+        return files_;
+    }
+    template<Data_t TYPE,Data_f FORMAT>
+    const SublimedDataInfoStruct<TYPE,FORMAT>& sublimed_data() const{
+        return data_struct<TYPE,FORMAT>().sublimed_;
+    }
 
-        std::unordered_map<path::Storage<true>,SublimedDataInfo> match_data(
-            Organization center,
-            std::optional<TimeFrame> time_fcst,
-            const std::unordered_set<SearchParamTableVersion>& parameters,
-            TimeInterval time_interval,
-            RepresentationType rep_t,
-            Coord pos
-        ) const;
-        std::vector<ptrdiff_t> match(
-            path::Storage<true> path,
-            Organization center,
-            std::optional<TimeFrame> time_fcst,
-            const std::unordered_set<SearchParamTableVersion>& parameters,
-            TimeInterval time_interval,
-            RepresentationType rep_t,
-            Coord pos
-        ) const;
+    template<Data_t T,Data_f F,typename... ARGS>
+    std::unordered_map<path::Storage<true>,SublimedDataInfoStruct<T,F>> match_data(
+        ARGS&&... args
+    ) const{
+        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
+            auto visitor = [](auto& var_data){
+                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
+                    return true;
+                else static_assert(false);
+            };
+            return std::visit(visitor,data_type);
+        });found!=datas_.end())
+            return std::get<DataStruct<T,F>>(*found).match_data(std::forward<ARGS>(args)...);
+    }
+
+    template<Data_t T,Data_f F,typename RESULT,typename... ARGS>
+    RESULT match(
+        ARGS&&... args
+    ) const{
+        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
+            auto visitor = [](auto& var_data){
+                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
+                    return true;
+                else static_assert(false);
+            };
+            return std::visit(visitor,data_type);
+        });found!=datas_.end())
+            return std::get<DataStruct<T,F>>(*found).match(std::forward<ARGS>(args)...);
+    }
+
+    template<Data_t T,Data_f F,typename RESULT,typename... ARGS>
+    RESULT find_all(
+        ARGS&&... args
+    ) const{
+        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
+            auto visitor = [](auto& var_data){
+                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
+                    return true;
+                else static_assert(false);
+            };
+            return std::visit(visitor,data_type);
+        });found!=datas_.end())
+            return std::get<DataStruct<T,F>>(*found).find_all(std::forward<ARGS>(args)...);
+    }
 };

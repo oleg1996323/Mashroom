@@ -65,19 +65,22 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                 if(data_seq_tmp.empty()){
                     data_seq_tmp.emplace_back(SublimedDataInfo{.grid_data_ = data_seq.at(i).grid_data,
                                                                         .buf_pos_={},
-                                                                        .from_ = data_seq.at(i).date_time,
-                                                                        .to_ = data_seq.at(i).date_time,
-                                                                        .discret_={}})
+                                                                        .sequence_time_={.interval_=
+                                                                            {
+                                                                                .from_ = data_seq.at(i).date_time,
+                                                                                .to_ = data_seq.at(i).date_time
+                                                                            },
+                                                                            .discret_={}}})
                                                                         .buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     continue;
                 }
-                if(data_seq_tmp.back().discret_!=std::chrono::system_clock::duration(0)){
-                    if(data_seq.at(i).date_time==data_seq_tmp.back().to_+data_seq_tmp.back().discret_){
-                        data_seq_tmp.back().to_=data_seq.at(i).date_time;
+                if(data_seq_tmp.back().sequence_time_.discret_!=std::chrono::system_clock::duration(0)){
+                    if(data_seq.at(i).date_time==data_seq_tmp.back().sequence_time_.interval_.to_+data_seq_tmp.back().sequence_time_.discret_){
+                        data_seq_tmp.back().sequence_time_.interval_.to_=data_seq.at(i).date_time;
                         data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     }
-                    else if(data_seq.at(i).date_time==data_seq_tmp.back().from_-data_seq_tmp.back().discret_){
-                        data_seq_tmp.back().from_=data_seq.at(i).date_time;
+                    else if(data_seq.at(i).date_time==data_seq_tmp.back().sequence_time_.interval_.from_-data_seq_tmp.back().sequence_time_.discret_){
+                        data_seq_tmp.back().sequence_time_.interval_.from_=data_seq.at(i).date_time;
                         data_seq_tmp.back().buf_pos_.insert(
                         data_seq_tmp.back().buf_pos_.begin(),data_seq.at(i).buf_pos_);
                     }
@@ -85,23 +88,22 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                         data_seq_tmp.emplace_back(SublimedDataInfo
                                                                             {.grid_data_ = data_seq.at(i).grid_data,
                                                                             .buf_pos_={},
-                                                                            .from_ = data_seq.at(i).date_time,
-                                                                            .to_ = data_seq.at(i).date_time,
-                                                                            .discret_={}})
+                                                                            .sequence_time_={.interval_={.from_=data_seq.at(i).date_time,.to_=data_seq.at(i).date_time},
+                                                                            .discret_={}}})
                                                                             .buf_pos_.push_back(data_seq.at(i).buf_pos_);
                         continue;
                     }
                 }
                 else{
-                    assert(data_seq_tmp.back().from_==data_seq_tmp.back().to_);
-                    if(data_seq.at(i).date_time<data_seq_tmp.back().from_){
-                        data_seq_tmp.back().from_=data_seq.at(i).date_time;
-                        data_seq_tmp.back().discret_ = data_seq_tmp.back().to_-data_seq_tmp.back().from_;
+                    assert(data_seq_tmp.back().sequence_time_.interval_.from_==data_seq_tmp.back().sequence_time_.interval_.to_);
+                    if(data_seq.at(i).date_time<data_seq_tmp.back().sequence_time_.interval_.from_){
+                        data_seq_tmp.back().sequence_time_.interval_.from_=data_seq.at(i).date_time;
+                        data_seq_tmp.back().sequence_time_.discret_ = data_seq_tmp.back().sequence_time_.interval_.to_-data_seq_tmp.back().sequence_time_.interval_.from_;
                         data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     }
-                    else if(data_seq.at(i).date_time>data_seq_tmp.back().from_){
-                        data_seq_tmp.back().to_=data_seq.at(i).date_time;
-                        data_seq_tmp.back().discret_ = data_seq_tmp.back().to_-data_seq_tmp.back().from_;
+                    else if(data_seq.at(i).date_time>data_seq_tmp.back().sequence_time_.interval_.from_){
+                        data_seq_tmp.back().sequence_time_.interval_.to_=data_seq.at(i).date_time;
+                        data_seq_tmp.back().sequence_time_.discret_ = data_seq_tmp.back().sequence_time_.interval_.to_-data_seq_tmp.back().sequence_time_.interval_.from_;
                         data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     }
                 }

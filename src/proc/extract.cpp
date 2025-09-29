@@ -158,7 +158,8 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
     return ErrorCode::NONE;
 }
 
-ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data,const SublimedDataInfo& positions){
+template<>
+ErrorCode Extract::__extract__<Data_t::METEO,Data_f::GRIB>(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB> &positions){
     HGrib1 grib;
     try{
         grib.open_grib(file);
@@ -249,7 +250,7 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
     if(in_path_.empty()){
-        auto matched = Mashroom::instance().data().match(props_.center_.value(),
+        auto matched = Mashroom::instance().data().match_data(props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
                                                 TimeInterval{props_.from_date_,props_.to_date_},

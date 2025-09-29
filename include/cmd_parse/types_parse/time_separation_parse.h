@@ -10,6 +10,7 @@
 #include "functions.h"
 #include "code_tables/table_0.h"
 #include "types/time_interval.h"
+#include "types/time_period.h"
 
 namespace boost{
 namespace program_options{
