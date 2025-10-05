@@ -18,12 +18,12 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
         case Client_MsgT::INDEX:{
             decltype(auto) msg = proc.mprocess_.get_received_message<Client_MsgT::INDEX>();
             Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
-            auto find_data = [&msg,&rep_msg](const auto& index_param) ->void
+            auto find_data = [&msg,&rep_msg](const auto& index_param) mutable ->void
             {
                 if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,std::monostate>)
                     return;
                 else if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,IndexParameters<Data_t::METEO,Data_f::GRIB>>){
-                    auto result = Mashroom::instance().data().find_all(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
+                    auto result = Mashroom::instance().data().find_all<Data_t::METEO,Data_f::GRIB>(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
                     if(!result.empty())
                         //@todo add access mode
                         rep_msg.additional().add_block<Data_t::METEO,Data_f::GRIB>(Data_a::PUBLIC,std::move(result));
@@ -32,7 +32,7 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
                 else static_assert(false);
             };
             for(auto& param : msg.additional().parameters_) 
-                std::visit(find_data,param);
+                std::visit (find_data,param);
             proc.mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX>(socket,std::move(rep_msg));
             //if(msg_type.value()==Client_MsgT::INDEX)
                 //sendfile

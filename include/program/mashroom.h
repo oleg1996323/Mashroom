@@ -77,11 +77,11 @@ class Mashroom{
     std::shared_ptr<network::RequestInstance> request(bool wait, const std::string& host,Port port,ARGS&&... args);
     template<network::Client_MsgT::type MSG_T, typename... ARGS>
     std::shared_ptr<network::RequestInstance> request(uint16_t timeout_sec, const std::string& host,network::Port port,ARGS&&... args);
-    const Data& data(){
+    const Data& data() const{
         return data_;
     }
-    void add_data(GribDataInfo& data){
-        data_.add_data(data);
+    Data& data(){
+        return data_;
     }
     bool save(){
         if(data_.unsaved()){

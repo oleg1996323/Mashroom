@@ -164,13 +164,18 @@ void Index::execute() noexcept{
 					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
 					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX>(-1);
 					for(auto& block:msg_reply.additional().blocks_){
-						auto add_data = [](auto& block){
+						auto add_data = [&path](auto& block){
 							using decay = std::decay_t<decltype(block)>;
 							if constexpr(std::is_same_v<decay,std::monostate>)
 								return;
 							else if constexpr (std::is_same_v<decay,std::variant_alternative_t<1,IndexResult>>){
+								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>::sublimed_data_t d;
+								auto& host_data = d[path::Storage<false>(path.path_,path::TYPE::HOST)];
 								for(auto& [cmn,sublimed]:block.data_)
-									Mashroom::instance().add_data;
+									host_data[std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(cmn)] = sublimed;
+								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB> msg_data;
+								msg_data.add_data(d);
+								Mashroom::instance().data().add_data(std::move(msg_data));
 							}
 						};
 					}
@@ -190,7 +195,7 @@ void Index::execute() noexcept{
 			std::cout<<err.what()<<std::endl;
 		}
 	}
-	Mashroom::instance().add_data(result);
+	Mashroom::instance().data().add_data(std::move(result.sublime()));
 }
 
 ErrorCode Index::add_in_path(const path::Storage<false>& path){

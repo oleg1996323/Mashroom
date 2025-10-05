@@ -2,9 +2,11 @@
 #include "byte_order.h"
 #include <unordered_map>
 #include <optional>
+#include <limits>
 #include "code_tables/table_4.h"
 #include "code_tables/table_0.h"
-
+#include <variant>
+#include <memory>
 
 #include "data/def.h"
 template<Data_t TYPE,Data_f FORMAT>

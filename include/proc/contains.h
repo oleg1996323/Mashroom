@@ -40,15 +40,31 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     std::vector<VariantFoundDataInfo> data_; //make_templated further
     ContainOutputFilter filter_;
     bool integral_only_; //search only integral time-series in searching time interval
+
+    template<Data_t T,Data_f F>
+    ErrorCode __execute__() noexcept;
+
     public:
     virtual ErrorCode execute() noexcept override final{
-        if(     !props_.center_.has_value() && 
+        
+    }
+    void set_integral_only(bool integral);
+    virtual ErrorCode properties_integrity() const noexcept override final{
+        if(out_path_.empty())
+            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);
+        return ErrorCode::NONE;
+    }
+};
+
+template<>
+inline ErrorCode Contains::__execute__<Data_t::METEO,Data_f::GRIB>() noexcept{
+    if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 
                 props_.from_date_==utc_tp() && 
                 time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
                 !props_.grid_type_.has_value() &&
                 !props_.parameters_.empty()){
-            for(auto& [file,file_data]:Mashroom::instance().data().data_struct()){
+            for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::METEO,Data_f::GRIB>().data()){
                 for(auto& [common,info_seq]:file_data)
                     for(auto& info:info_seq){
                         if(stop_token_.stop_requested())
@@ -75,23 +91,16 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
             assert(false);
         }
         return ErrorCode::NONE;
-    }
-    void set_integral_only(bool integral);
-    virtual ErrorCode properties_integrity() const noexcept override final{
-        if(out_path_.empty())
-            return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);
-        return ErrorCode::NONE;
-    }
-};
+}
 
-std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
-    std::optional<RepresentationType> grid_type = {},
-    std::optional<Organization> center = {},
-    std::optional<uint8_t> table_version = {},
-    std::optional<TimeFrame> fcst = {});
+// std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+//     std::optional<RepresentationType> grid_type = {},
+//     std::optional<Organization> center = {},
+//     std::optional<uint8_t> table_version = {},
+//     std::optional<TimeFrame> fcst = {});
 
-std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
-    const CommonDataProperties& data,std::optional<RepresentationType> grid_type = {});
+// std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+//     const CommonDataProperties& data,std::optional<RepresentationType> grid_type = {});
 
-std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
-    Organization center, uint8_t table_version, uint8_t parameter,std::optional<RepresentationType> grid_type = {});
+// std::expected<bool,ErrorCode> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,
+//     Organization center, uint8_t table_version, uint8_t parameter,std::optional<RepresentationType> grid_type = {});

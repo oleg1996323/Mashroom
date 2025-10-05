@@ -2,7 +2,7 @@
 
 namespace fs = std::filesystem;
 void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
-    info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
+    info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
         msg_info.buf_pos_,
@@ -11,7 +11,7 @@ void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataI
 }
 
 void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
-    info_[path][std::make_shared<CommonDataProperties>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
+    info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
         msg_info.buf_pos_,
@@ -63,7 +63,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                 if(data_seq.at(i).err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
                     continue;
                 if(data_seq_tmp.empty()){
-                    data_seq_tmp.emplace_back(SublimedDataInfo{.grid_data_ = data_seq.at(i).grid_data,
+                    data_seq_tmp.emplace_back(GribSublimedDataInfoStruct{.grid_data_ = data_seq.at(i).grid_data,
                                                                         .buf_pos_={},
                                                                         .sequence_time_={.interval_=
                                                                             {
@@ -85,7 +85,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                         data_seq_tmp.back().buf_pos_.begin(),data_seq.at(i).buf_pos_);
                     }
                     else{
-                        data_seq_tmp.emplace_back(SublimedDataInfo
+                        data_seq_tmp.emplace_back(GribSublimedDataInfoStruct
                                                                             {.grid_data_ = data_seq.at(i).grid_data,
                                                                             .buf_pos_={},
                                                                             .sequence_time_={.interval_={.from_=data_seq.at(i).date_time,.to_=data_seq.at(i).date_time},

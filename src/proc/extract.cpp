@@ -23,13 +23,36 @@
 namespace fs = std::filesystem;
 using namespace std::chrono;
 
+auto get_columns(ExtractedData& result){
+    auto define_cols_t = [](auto& ed) -> std::vector<const typename std::decay_t<decltype(ed)>::mapped_type*>
+    {
+        return std::vector<const typename std::decay_t<decltype(ed)>::mapped_type*>();
+    };
+    return std::visit(define_cols_t,result);
+}
+
+auto& get_result(ExtractedData& result){
+    auto get = [](auto& ed) -> decltype(ed)&
+    {
+        return ed;
+    };
+    return std::visit(get,result);
+}
+
+const auto& get_result(const ExtractedData& result){
+    auto get = [](auto& ed) -> decltype(ed)&{
+        return ed;
+    };
+    return std::visit(get,result);
+}
+
 ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const noexcept{
     switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
         case OutputDataFileFormats::TXT_F:{
             utc_tp current_time = utc_tp::max();
             size_t max_length = 0;
-            std::vector<const std::decay_t<decltype(result)>::mapped_type*> col_vals_;
-            for(auto& [cmn_data,values]:result){
+            auto col_vals_ = get_columns(result);
+            for(auto& [cmn_data,values]:get_result(result)){
                 std::sort(values.begin(),values.end(),std::less());
                 if(!values.empty()){
                     current_time = std::min(values.front().time_date,current_time);
@@ -151,7 +174,7 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
                 continue;
         }
         if(msg_info.grid_data.has_grid())
-            ref_data[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
+            get_result(ref_data)[Grib1CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }while(grib.next_message());
@@ -192,7 +215,7 @@ ErrorCode Extract::__extract__<Data_t::METEO,Data_f::GRIB>(const fs::path &file,
                                     msg.value().get().section_1_.center(),
                                     msg.value().get().section_1_.table_version());
         if(msg_info.grid_data.has_grid())
-            ref_data[CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
+            get_result(ref_data)[Grib1CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }
@@ -233,7 +256,7 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
     //print header
     //print data to file
     file<<std::left<<std::setw(18)<<"Time"<<"\t";
-    for(auto& [cmn_data,values]:result){
+    for(auto& [cmn_data,values]:get_result(result)){
         file<<std::left<<std::setw(10)<<parameter_table(
                 cmn_data.center_.has_value()?
                 cmn_data.center_.value():
@@ -250,7 +273,7 @@ ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
     if(in_path_.empty()){
-        auto matched = Mashroom::instance().data().match_data(props_.center_.value(),
+        auto matched = Mashroom::instance().data().match_data<Data_t::METEO,Data_f::GRIB>(props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
                                                 TimeInterval{props_.from_date_,props_.to_date_},
@@ -277,8 +300,8 @@ ErrorCode Extract::execute() noexcept{
     }
     else{
         for(const auto& path:in_path_){
-            if(Mashroom::instance().data().paths().contains(path))
-                Mashroom::instance().data().match(
+            if(Mashroom::instance().data().paths<Data_t::METEO,Data_f::GRIB>().contains(path))
+                Mashroom::instance().data().match<Data_t::METEO,Data_f::GRIB>(
                                                 path,
                                                 props_.center_.value(),
                                                 props_.fcst_unit_,
@@ -289,7 +312,7 @@ ErrorCode Extract::execute() noexcept{
             __extract__(path.path_,result);
         }
     }
-    if(result.empty())
+    if(get_result(result).empty())
         return ErrorCode::NONE;
         
     __write_file__(result,output_format_);

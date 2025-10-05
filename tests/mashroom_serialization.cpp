@@ -9,7 +9,7 @@ TEST(Serialization, SublimedInfo){
     using namespace serialization;
     using namespace std::chrono;
     std::vector<char> buf;
-    decltype(SublimedDataInfo::buf_pos_) buf_pos(100);
+    decltype(::GribSublimedDataInfoStruct::buf_pos_) buf_pos(100);
     std::ranges::iota(buf_pos,0);
     GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid_def;
     grid_def.base_.x1=18;
@@ -30,11 +30,11 @@ TEST(Serialization, SublimedInfo){
     scan.points_sub_i_dir = true;
     scan.points_sub_j_dir = false;
     grid_def.base_.scan_mode = scan;
-    SublimedDataInfo data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
+    GribSublimedDataInfoStruct data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
                         .discret_=system_clock::duration((data.sequence_time_.interval_.to_-data.sequence_time_.interval_.from_)/data.buf_pos_.size())}};
 
     {
-        SublimedDataInfo to_check;
+        GribSublimedDataInfoStruct to_check;
         ASSERT_EQ(serialize<true>(data,buf),serialization::SerializationEC::NONE);
         ASSERT_EQ(deserialize<true>(to_check,std::span<const char>(buf)),serialization::SerializationEC::NONE);
 
@@ -48,7 +48,7 @@ TEST(Serialization, SublimedInfo){
         std::ofstream ofile("tmp",std::fstream::out|std::fstream::trunc);
         ASSERT_EQ(serialize_to_file(data,ofile),serialization::SerializationEC::NONE);
         ofile.close();
-        SublimedDataInfo to_check;
+        GribSublimedDataInfoStruct to_check;
         std::ifstream ifile("tmp",std::fstream::in);
         ASSERT_EQ(deserialize_from_file(to_check,ifile),serialization::SerializationEC::NONE);
         ifile.close();
@@ -88,7 +88,7 @@ TEST(Serialization, PathStorage){
 
 TEST(Serialization,SublimedGribDataInfo){
     using namespace serialization;
-    decltype(SublimedDataInfo::buf_pos_) buf_pos(100);
+    decltype(GribSublimedDataInfoStruct::buf_pos_) buf_pos(100);
     std::ranges::iota(buf_pos,0);
     GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid_def;
     grid_def.base_.x1=18;
@@ -115,9 +115,9 @@ TEST(Serialization,SublimedGribDataInfo){
         str.resize(10);
         std::generate(str.begin(),str.end(),getRandomChar);
         for(int j=0;j<10;++j){
-            auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
+            auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
             for(int m=0;m<10;++m){
-                SublimedDataInfo sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
+                GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
                         .discret_=system_clock::duration((sub_data.sequence_time_.interval_.to_-sub_data.sequence_time_.interval_.from_)/sub_data.buf_pos_.size())}};
                 vector_seq.push_back(std::move(sub_data));
             }

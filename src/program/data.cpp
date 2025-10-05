@@ -6,17 +6,18 @@ void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
     std::ifstream file(fn,std::ios::binary);
     if(!file.is_open())
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
-    deserialize_from_file(grib_.grib_data_,file);
-    for(auto& [filename,file_data]:grib_.sublimed_.data()){
+    auto& ds = data_struct<Data_t::METEO,Data_f::GRIB>();
+    deserialize_from_file(ds.sublimed_,file);
+    for(auto& [filename,file_data]:ds.sublimed_.data()){
         for(auto& [common,grib_data]:file_data){
             // std::cout<<"Added to \"by common\":"<<*grib_.by_common_data_[common].insert(filename).first<<std::endl;
             // std::cout<<"Parameter: "<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name<<std::endl;
             // std::cout<<"Center name: "<<center_to_abbr(common->center_.value())<<std::endl;
             // std::cout<<"Table version: "<<(int)common->table_version_.value()<<std::endl;
-            grib_.by_common_data_[common].insert(filename);
+            ds.by_common_data_[common].insert(filename);
             for(const auto& sub_data:grib_data){
-                grib_.by_date_[sub_data.sequence_time_].insert(filename);
-                grib_.by_grid_[sub_data.grid_data_].insert(filename);
+                ds.by_date_[sub_data.sequence_time_].insert(filename);
+                ds.by_grid_[sub_data.grid_data_].insert(filename);
             }
         }
     }
@@ -31,7 +32,7 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     fs::path save_file = dir/filename_by_type(Data::FORMAT::GRIB);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
-    SerializationEC err = serialize_to_file(grib_.grib_data_,file);
+    SerializationEC err = serialize_to_file(data_struct<Data_t::METEO,Data_f::GRIB>().sublimed_,file);
     if(err==SerializationEC::NONE)
         files_[Data::FORMAT::GRIB]=save_file;
     else ErrorPrint::print_error(ErrorCode::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
@@ -96,67 +97,6 @@ bool Data::write(const fs::path& filename){
 
 #include <format>
 #include "definitions/def.h"
-
-std::vector<ptrdiff_t> Data::match(
-    path::Storage<true> path,
-    Organization center,
-    std::optional<TimeFrame> time_fcst,
-    const std::unordered_set<SearchParamTableVersion>& parameters,
-    TimeInterval time_interval,
-    RepresentationType rep_t,
-    Coord pos
-) const{
-    std::vector<ptrdiff_t> result;
-    std::unordered_set<CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
-    if(grib_.sublimed_.data().contains(path))
-        return result;
-    auto& file_data = grib_.sublimed_.data().at(path);
-    for(const auto& common:param_variations){
-        auto found = file_data.find(common);
-        if(found!=file_data.end()){
-            for(auto info:found->second){
-                if(info.grid_data_.has_value() &&
-                    info.grid_data_.value().type()==rep_t &&
-                    pos_in_grid(pos,info.grid_data_.value()) &&
-                    intervals_intersect(info.sequence_time_.interval_,time_interval))
-                {
-                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{info.sequence_time_.interval_.from_,info.sequence_time_.interval_.to_},info.sequence_time_.discret_);
-                    result.append_range(info.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
-                }
-            }
-        }
-    }
-    std::sort(result.begin(),result.end());
-    return result;
-}
-
-void Data::add_data(SublimedGribDataInfo& grib_data){
-    if(grib_data.data().empty()){
-        std::cout<<"Nothing changes"<<std::endl;
-        return;
-    }
-    grib_.sublimed_.add_data(grib_data);
-    for(auto& [filename,file_data]:grib_data.data()){
-        const auto& tmp_view = grib_.sublimed_.data().find(filename)->first;
-        for(auto& [common,grib_data]:grib_.sublimed_.data().find(filename)->second){
-            grib_.by_common_data_[common].insert(tmp_view);
-            for(const auto& sub_data:grib_data){
-                grib_.by_date_[sub_data.sequence_time_].insert(tmp_view);
-                grib_.by_grid_[sub_data.grid_data_].insert(tmp_view);
-            }
-        }
-    }
-    unsaved_.insert(FORMAT::GRIB);
-    std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
-}
-
-void Data::add_data(SublimedGribDataInfo&& grib_data){
-    add_data(grib_data);
-}
-
-void Data::add_data(GribDataInfo& grib_data){
-    add_data(grib_data.sublime());
-}
 
 template <size_t I=0>
 void Data::__write_all__(){

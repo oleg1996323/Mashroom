@@ -23,9 +23,8 @@ using namespace std::string_literals;
 namespace fs = std::filesystem;
 class Data:public __Data__{
     private:
-    using DataTypes = std::variant<Grib1Data>;
-    std::array<DataTypes,std::variant_size_v<DataTypes>> datas_;
-    std::set<Data::FORMAT> unsaved_;
+    std::unordered_set<std::unique_ptr<AbstractDataStruct>> datas_;
+    std::set<Data_f> unsaved_;
     std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
 
@@ -38,10 +37,17 @@ class Data:public __Data__{
 
     template <size_t I>
     void __write_all__();
+    template<Data_t T,Data_f F>
+    DataStruct<T,F>& data_struct(){
+        decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
+        assert(found!=datas_.end());
+        return *dynamic_cast<DataStruct<T,F>*>(found->get());
+    }
     public:    
     void save();
     Data():data_directory_(fs::path(get_current_dir_name())/"data"/"bin"){}
     Data(const fs::path& data_dir):data_directory_(data_dir){}
+    Data(const Data&) = delete;
     Data(Data&& other):
     datas_(std::move(other.datas_)),
     unsaved_(std::move(other.unsaved_)),
@@ -52,85 +58,59 @@ class Data:public __Data__{
     }
     void read(const fs::path& filename);
     bool write(const fs::path& filename);
-    void add_data(GribDataInfo& grib_data);
-    void add_data(SublimedGribDataInfo& grib_data);
-    void add_data(SublimedGribDataInfo&& grib_data);
     bool unsaved() const{
         return !unsaved_.empty();
     }
 
     template<Data_t T,Data_f F>
     const std::unordered_set<path::Storage<true>>& paths() const{
-        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
-            auto visitor = [](auto& var_data){
-                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
-                    return true;
-                else static_assert(false);
-            };
-        });found!=datas_.end())
-            return std::get<DataStruct<T,F>>(*found).paths();
+        return data_struct<T,F>().paths();
     }
     template<Data_t T,Data_f F>
-    auto data_struct() const{
-        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
-            auto visitor = [](auto& var_data){
-                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
-                    return true;
-                else static_assert(false);
-            };
-        });found!=datas_.end())
-            return std::get<DataStruct<T,F>>(*found);
+    const DataStruct<T,F>& data_struct() const{
+        decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
+        assert(found!=datas_.end());
+        return *dynamic_cast<const DataStruct<T,F>*>(found->get());
     }
     const std::unordered_map<Data_f,fs::path>& written_files() const{
         return files_;
     }
     template<Data_t TYPE,Data_f FORMAT>
-    const SublimedDataInfoStruct<TYPE,FORMAT>& sublimed_data() const{
+    const SublimedFormatDataInfo<TYPE,FORMAT>& sublimed_data() const{
         return data_struct<TYPE,FORMAT>().sublimed_;
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
-    std::unordered_map<path::Storage<true>,SublimedDataInfoStruct<T,F>> match_data(
+    typename DataStruct<T,F>::match_data_t match_data(
         ARGS&&... args
     ) const{
-        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
-            auto visitor = [](auto& var_data){
-                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
-                    return true;
-                else static_assert(false);
-            };
-            return std::visit(visitor,data_type);
-        });found!=datas_.end())
-            return std::get<DataStruct<T,F>>(*found).match_data(std::forward<ARGS>(args)...);
+        return data_struct<T,F>().match_data(std::forward<ARGS>(args)...);
     }
 
-    template<Data_t T,Data_f F,typename RESULT,typename... ARGS>
-    RESULT match(
+    template<Data_t T,Data_f F,typename... ARGS>
+    typename DataStruct<T,F>::match_t match(
         ARGS&&... args
     ) const{
-        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
-            auto visitor = [](auto& var_data){
-                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
-                    return true;
-                else static_assert(false);
-            };
-            return std::visit(visitor,data_type);
-        });found!=datas_.end())
-            return std::get<DataStruct<T,F>>(*found).match(std::forward<ARGS>(args)...);
+        return data_struct<T,F>().match(std::forward<ARGS>(args)...);
     }
 
-    template<Data_t T,Data_f F,typename RESULT,typename... ARGS>
-    RESULT find_all(
+    template<Data_t T,Data_f F,typename... ARGS>
+    FoundSublimedDataInfo<T,F> find_all(
         ARGS&&... args
     ) const{
-        if(auto found = std::find(datas_.begin(),datas_.end(),[](const DataTypes& data_type){
-            auto visitor = [](auto& var_data){
-                if constexpr(var_data.format_type()==F && var_data.data_type()==T)
-                    return true;
-                else static_assert(false);
-            };
-            return std::visit(visitor,data_type);
-        });found!=datas_.end())
-            return std::get<DataStruct<T,F>>(*found).find_all(std::forward<ARGS>(args)...);
+        return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
+    }
+
+    template<Data_t T, Data_f F>
+    void add_data(SublimedFormatDataInfo<T,F>& data){
+        data_struct<T,F>().add_data(data);
+        unsaved_.insert(F);
+        std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+    }
+    template<Data_t T, Data_f F>
+    void add_data(SublimedFormatDataInfo<T,F>&& data){
+        data_struct<T,F>().add_data(std::move(data));
+        unsaved_.insert(F);
+        std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }
 };
