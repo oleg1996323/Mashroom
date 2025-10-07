@@ -60,7 +60,7 @@ namespace network{
                 process.reset();
                 socket_ = std::make_unique<Socket>(host,port,Socket::Type::Stream,Protocol::TCP);
             }
-            if(!socket_)
+            if(!has_socket())
                 socket_ = std::move(std::make_unique<Socket>(host,port,Socket::Type::Stream,Protocol::TCP));
 
             try{
@@ -75,7 +75,7 @@ namespace network{
             return *this;
         }
         CommonClient& connect(){
-            if(socket_ && !is_connected() && socket_->is_valid()){
+            if(has_socket() && socket_->is_valid()){
                 if(::connect(*(socket_->socket_.get()),reinterpret_cast<sockaddr*>(socket_->get_address_storage().get()),sizeof(sockaddr_storage))==-1)
                     __connect_throw__();
                 else return *this;
@@ -84,19 +84,19 @@ namespace network{
             return *this;
         }
         
-        bool is_connected() const{
-            return socket_ && socket_->is_connected();
+        bool has_socket() const{
+            return socket_.get()!=nullptr;
         }
         virtual CommonClient& before_disconnect(const Socket&){return *this;}
         CommonClient& disconnect(bool wait_finish, uint16_t timeout_sec = 60){
-            if(is_connected() && process && process->busy())
+            if(has_socket() && process && process->busy())
                 process->request_stop(wait_finish,timeout_sec);
             return *this;
         }
         virtual CommonClient& after_disconnect(){return *this;}
         template<typename F,typename... ARGS>
         void add_request(F&& func,ARGS&&... args){
-            if(socket_ && process && process->busy())
+            if(has_socket() && process && process->busy())
                 process->action_if_process_busy();
             else process = PROCESS_T::add_process(std::move(func),*socket_,std::forward<ARGS>(args)...);
         }

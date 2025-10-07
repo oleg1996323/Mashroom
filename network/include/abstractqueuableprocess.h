@@ -54,7 +54,10 @@ namespace network{
                 cv.wait(lk,[this](){
                     return queue_ready();
                 });
+                return;
             }
+            lk.unlock();
+            return;
         }
         bool queue_ready(){
             return queue.empty() && this->ready();

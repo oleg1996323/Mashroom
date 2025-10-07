@@ -27,13 +27,14 @@ void network::Multiplexor::__epoll_ctl_throw__(){
 void network::Multiplexor::__epoll_wait_throw__(){
     int err = errno;
     errno = 0;
-    switch(errno){
+    switch(err){
         case EBADF:
         case EFAULT:
         throw std::runtime_error(strerror(err));
             break;
         case EINTR:
         //ignore interruptions
+            return;
             break;
         case EINVAL:
             throw std::invalid_argument(strerror(err));

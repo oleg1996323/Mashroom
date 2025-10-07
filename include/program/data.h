@@ -40,7 +40,8 @@ class Data:public __Data__{
     template<Data_t T,Data_f F>
     DataStruct<T,F>& data_struct(){
         decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
-        assert(found!=datas_.end());
+        if(found==datas_.end())
+            found = datas_.insert(std::move(std::make_unique<DataStruct<T,F>>())).first;
         return *dynamic_cast<DataStruct<T,F>*>(found->get());
     }
     public:    

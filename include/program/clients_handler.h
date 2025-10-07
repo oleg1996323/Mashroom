@@ -13,10 +13,13 @@ namespace network{
             return *this;
         }
         static std::shared_ptr<RequestInstance> __make_instance__(const std::string& host, uint16_t port){
-            return std::make_shared<RequestInstance>(std::move(Client(host,port)));
+            return std::make_shared<RequestInstance>(host,port);
         } 
         public:
-        RequestInstance(Client&& client):client_(std::move(client)){}
+        RequestInstance(const std::string& host, uint16_t port):client_(host,port){}
+        ~RequestInstance(){
+            std::cout<<"Instance destroyed"<<std::endl;
+        }
         template<network::Server_MsgT::type MSG>
         const auto& get_result(int16_t timeout_s) const{
             return client_.get_result<MSG>(timeout_s);
@@ -28,7 +31,7 @@ namespace network{
             return shared_from_this();
         }
         bool connection_established() const{
-            return client_.is_connected();
+            return client_.has_socket();
         }
         template<network::Client_MsgT::type T,typename... ARGS>
         void request(bool wait,ARGS&&... args){

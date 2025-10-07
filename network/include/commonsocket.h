@@ -101,7 +101,7 @@ class Socket{
     }
     Socket& set_no_block(bool noblock);
     bool is_non_block() const;
-    bool is_connected() const;
+    //bool is_connected() const;
     bool is_valid() const;
     void print_address_info(std::ostream& stream) const;
 };

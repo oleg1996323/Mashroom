@@ -150,20 +150,20 @@ namespace network{
         }
         else return false;
     }
-    bool Socket::is_connected() const{
-        int error = 0;
-        socklen_t len = sizeof(error);
-        if(__descriptor__()>=0){
-            if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0){
-                #ifdef DEBUG
-                std::cout<<strerror(errno)<<std::endl;
-                #endif
-                return false;
-            }
-            return error==0;
-        }
-        else return false;
-    }
+    // bool Socket::is_connected() const{
+    //     int error = 0;
+    //     socklen_t len = sizeof(error);
+    //     if(__descriptor__()>=0){
+    //         if(getsockopt(__descriptor__(),SOL_SOCKET,SO_ERROR,&error,&len)!=0){
+    //             #ifdef DEBUG
+    //             std::cout<<strerror(errno)<<std::endl;
+    //             #endif
+    //             return false;
+    //         }
+    //         return error==0;
+    //     }
+    //     else return false;
+    // }
     bool Socket::is_valid() const{
         int error = 0;
         socklen_t len = sizeof(error);

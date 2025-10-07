@@ -114,7 +114,7 @@ namespace network{
             accept();
         }
         bool is_launched() const{
-            return socket_.is_connected() && accepter;
+            return socket_.is_valid() && accepter;
         }
         #ifdef DEBUG
         const DERIVED_CONNECTIONPOOL& get_connection_pool() const{
@@ -191,9 +191,9 @@ namespace network{
                                 }
                                 else{
                                     Socket socket(raw_sock,another);
-                                    after_accept(socket);
                                     using Event_t = Multiplexor::Event;
                                     connection_pool.add_connection(socket,Event_t::HangUp|Event_t::In);
+                                    after_accept(socket);
                                     continue;
                                 }
                             }

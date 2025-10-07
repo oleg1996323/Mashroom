@@ -65,7 +65,7 @@ class AbstractProcess{
         return !ready();
     }
     bool wait(int timeout_sec){
-        if(timeout_sec<-1){
+        if(timeout_sec<0){
             future.wait();
             return true;
         }

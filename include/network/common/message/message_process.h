@@ -125,7 +125,7 @@ namespace network{
     template<Side S>
     inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
         buffer.resize(undefined_msg_type_min_required_size<S>());
-        if(receive(sock,buffer,undefined_msg_type_min_required_size<S>()==-1))
+        if(receive(sock,buffer,undefined_msg_type_min_required_size<S>())==-1)
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         else{
             auto msg_t_tmp = message_type_from_buffer<S,true>(std::span<const char>(buffer));
