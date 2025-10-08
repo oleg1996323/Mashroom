@@ -98,7 +98,10 @@ namespace network{
         void add_request(F&& func,ARGS&&... args){
             if(has_socket() && process && process->busy())
                 process->action_if_process_busy();
-            else process = PROCESS_T::add_process(std::move(func),*socket_,std::forward<ARGS>(args)...);
+            else {
+                process = PROCESS_T::make_process();
+                PROCESS_T::execute_process(process,std::move(func),*socket_,std::forward<ARGS>(args)...);
+            }
         }
     };
 }

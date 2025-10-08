@@ -112,7 +112,8 @@ namespace network{
                                     }
                                     if(found->first.is_valid() && (!found->second || found->second->ready())){
                                         std::cout<<"Adding function"<<std::endl;
-                                        found->second = std::move(PROCESS_T::add_process(&AbstractConnectionPool<PROCESS_T>::execute,this,found->first));
+                                        found->second = std::move(PROCESS_T::make_process(/*@todo Add constructor arguments*/));
+                                        PROCESS_T::execute_process(found->second,&AbstractConnectionPool<PROCESS_T>::execute,this,found->first);
                                     }
                                 }
                                 else continue;   

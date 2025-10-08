@@ -1,7 +1,3 @@
---server --launch
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
 --server --launch
@@ -16,30 +12,6 @@
 --index --inp host=127.0.0.1:32396 --index-ref
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
 --server --launch
 --index --inp host=127.0.0.1:32396 --index-ref
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
@@ -98,3 +70,31 @@
 --server-config --set Test_LO
 --server --launch
 --index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--index --inp host=127.0.0.1:32396 --index-ref
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch
+--server-config --add --name Test_LO --host 127.0.0.1 --port 32396
+--server-config --set Test_LO
+--server --launch

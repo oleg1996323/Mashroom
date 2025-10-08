@@ -17,7 +17,8 @@ namespace network::connection{
         //make it by UDP
         virtual void execute(std::stop_token stop,const Socket& socket) override{
             const std::unique_ptr<Process<Server>>& process = this->process(socket);
-            Process<Server>::reply(stop,socket,*process);
+            assert(process);
+            process->reply(stop,socket);
         }
         network::server::Status server_status() const;
     };

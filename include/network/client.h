@@ -44,7 +44,8 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(bool wait,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::make_process());
+                Process::execute_process(process,::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...);
                 if(wait)
                     process->wait(-1);
                 return ErrorCode::NONE;
@@ -56,7 +57,8 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(int timeout_sec,ARGS&&... args){
             try{
-                process = std::move(Process::add_process(::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...));
+                process = std::move(Process::make_process());
+                Process::execute_process(process,::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...);
                 if(!process->wait(timeout_sec)){
                     process->request_stop(false,0);
                     process.reset();

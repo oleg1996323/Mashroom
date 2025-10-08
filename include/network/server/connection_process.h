@@ -30,7 +30,7 @@ namespace network::connection{
         Process& operator=(const Process& other) = delete;
         Process(Process&& other) noexcept;
         Process& operator=(Process&& other) noexcept;
-        static void reply(std::stop_token stop,const Socket& socket,Process<Server>& proc);
+        void reply(std::stop_token stop,const Socket& socket);
         public:
         Process():AbstractQueuableProcess(){}
         

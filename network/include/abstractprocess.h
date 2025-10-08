@@ -75,10 +75,12 @@ class AbstractProcess{
         request_stop_protected(wait_finish,timeout_sec);
     }
 
-    template<typename... CONSTR_ARGS,typename F,typename CLASS,typename... ARGS>
-    static std::unique_ptr<DERIVED> add_process(CONSTR_ARGS&&... constr_args,F&& function,CLASS class_ptr,const Socket& socket, ARGS&&... args);
-    template<typename... CONSTR_ARGS,typename F,typename... ARGS>
-    static std::unique_ptr<DERIVED> add_process(CONSTR_ARGS&&... constr_args,F&& function,const Socket& socket, ARGS&&... args);
+    template<typename... CONSTR_ARGS>
+    static std::unique_ptr<DERIVED> make_process(CONSTR_ARGS&&... constr_args);
+    template<typename F,typename CLASS,typename... ARGS>
+    static void execute_process(const std::unique_ptr<DERIVED>& process,F&& function,CLASS class_ptr,const Socket& socket, ARGS&&... args);
+    template<typename F,typename... ARGS>
+    static void execute_process(const std::unique_ptr<DERIVED>& process,F&& function,const Socket& socket, ARGS&&... args);
 };
 }
 
@@ -123,11 +125,8 @@ constexpr decltype(auto) unwrap_arg(T&& v)
 }
 
 template<typename DERIVED, typename RESULT_T>
-template<typename... CONSTR_ARGS,typename F,typename... ARGS>
-std::unique_ptr<DERIVED> AbstractProcess<DERIVED,RESULT_T>::add_process(CONSTR_ARGS&&... constr_args,F&& function,const Socket& socket, ARGS&&... args){
-    static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
-    static_assert(std::is_invocable_r_v<RESULT_T,std::decay_t<F>,std::stop_token,const Socket&,ARGS...>);
-    std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>(std::forward<CONSTR_ARGS>(constr_args)...);
+template<typename F,typename... ARGS>
+void AbstractProcess<DERIVED,RESULT_T>::execute_process(const std::unique_ptr<DERIVED>& process,F&& function,const Socket& socket, ARGS&&... args){
     process->thread =std::jthread([ proc = process.get(),
                                     sock = socket,
                                     func = std::move(function),
@@ -161,16 +160,14 @@ std::unique_ptr<DERIVED> AbstractProcess<DERIVED,RESULT_T>::add_process(CONSTR_A
         std::apply(body, std::move(arguments));
         proc->after_execution();
     });
-    return process;
 }
 
 template<typename DERIVED, typename RESULT_T>
-template<typename... CONSTR_ARGS,typename F,typename CLASS,typename... ARGS>
-std::unique_ptr<DERIVED> AbstractProcess<DERIVED,RESULT_T>::add_process(CONSTR_ARGS&&... constr_args,F&& function,CLASS class_ptr,const Socket& socket, ARGS&&... args){
+template<typename F,typename CLASS,typename... ARGS>
+void AbstractProcess<DERIVED,RESULT_T>::execute_process(const std::unique_ptr<DERIVED>& process,F&& function,CLASS class_ptr,const Socket& socket, ARGS&&... args){
     static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
     static_assert(std::is_pointer_v<CLASS>);
     static_assert(std::is_invocable_r_v<RESULT_T,std::decay_t<F>,CLASS,std::stop_token,const Socket&,ARGS...>);
-    std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>(std::forward<CONSTR_ARGS>(constr_args)...);
     process->thread =std::jthread([ proc = process.get(),
                                     sock = socket,
                                     func = std::move(function),
@@ -205,6 +202,13 @@ std::unique_ptr<DERIVED> AbstractProcess<DERIVED,RESULT_T>::add_process(CONSTR_A
         std::apply(body, std::move(arguments));
         proc->after_execution();
     });
+}
+
+template<typename DERIVED, typename RESULT_T>
+template<typename... CONSTR_ARGS>
+std::unique_ptr<DERIVED> AbstractProcess<DERIVED,RESULT_T>::make_process(CONSTR_ARGS&&... constr_args){
+    static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
+    std::unique_ptr<DERIVED> process = std::make_unique<DERIVED>(std::forward<CONSTR_ARGS>(constr_args)...);
     return process;
 }
 

@@ -6,17 +6,17 @@
 
 using namespace network::connection;
 
-void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Server>& proc){
+void Process<Server>::reply(std::stop_token stop,const Socket& socket){
     bool heavy = false;
-    ErrorCode err_ = proc.mprocess_.receive_any_message(socket);
-    auto msg_type = proc.mprocess_.received_message_type();
+    ErrorCode err_ = mprocess_.receive_any_message(socket);
+    auto msg_type = mprocess_.received_message_type();
     if(err_!=ErrorCode::NONE || !msg_type.has_value())
         return;
     switch (msg_type.value())
     {
         case Client_MsgT::INDEX_REF:
         case Client_MsgT::INDEX:{
-            decltype(auto) msg = proc.mprocess_.get_received_message<Client_MsgT::INDEX>();
+            decltype(auto) msg = mprocess_.get_received_message<Client_MsgT::INDEX>();
             Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
             auto find_data = [&msg,&rep_msg](const auto& index_param) mutable ->void
             {
@@ -33,7 +33,7 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
             };
             for(auto& param : msg.additional().parameters_) 
                 std::visit (find_data,param);
-            proc.mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX>(socket,std::move(rep_msg));
+            mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX>(socket,std::move(rep_msg));
             //if(msg_type.value()==Client_MsgT::INDEX)
                 //sendfile
             //@todo send file
@@ -51,7 +51,7 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket,Process<Se
         default:
             break;
     }
-    assert(proc.busy());
+    assert(busy());
 }
 
 Process<Server>::Process(Process&& other) noexcept:

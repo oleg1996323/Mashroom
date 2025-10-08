@@ -45,18 +45,19 @@ namespace network{
         AbstractQueuableProcess& operator=(const AbstractQueuableProcess& other) = delete;
         virtual void request_stop_protected(bool wait_finish,uint16_t timeout_sec = 60) override final{
             std::unique_lock lk(this->m);
-            lk.lock();
             queue.clear();
-            if(!wait_finish)
-                this->thread.request_stop();
-            else{
+            if(!wait_finish){
                 lk.unlock();
+                cv.notify_one();
+                this->thread.request_stop();
+            }
+            else{
                 cv.wait(lk,[this](){
                     return queue_ready();
                 });
+                lk.unlock();
                 return;
             }
-            lk.unlock();
             return;
         }
         bool queue_ready(){
