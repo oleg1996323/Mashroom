@@ -58,6 +58,8 @@ namespace network{
         CommonServer(const server::Settings& settings,CONNPOOL_ARGS&&... args):
         socket_(Socket(settings.host,settings.port,Socket::Type::Stream,settings.protocol)),
         connection_pool(std::forward<CONNPOOL_ARGS>(args)...){
+            if(settings.reuse_address)
+                socket_.set_option(network::Socket::Option<int>(1,Socket::Options::ReuseAddress));
             socket_.bind();
         }
         virtual ~CommonServer(){

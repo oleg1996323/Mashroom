@@ -10,6 +10,7 @@ struct Settings{
     Protocol protocol = Protocol::TCP;
     int timeout_seconds_=20;
     int32_t port;
+    bool reuse_address = true;
     Settings() = default;
     Settings(const Settings& other)
     {
@@ -19,6 +20,7 @@ struct Settings{
             port=other.port;
             protocol=other.protocol;
             timeout_seconds_=other.timeout_seconds_;
+            reuse_address = other.reuse_address;
         }
     }
     Settings(Settings&& other)
@@ -29,6 +31,7 @@ struct Settings{
             port=std::move(other.port);
             protocol=std::move(other.protocol);
             timeout_seconds_=other.timeout_seconds_;
+            reuse_address = other.reuse_address;
         }
     }
     Settings& operator=(const Settings& other){
@@ -38,6 +41,7 @@ struct Settings{
             port=other.port;
             protocol=other.protocol;
             timeout_seconds_=other.timeout_seconds_;
+            reuse_address = other.reuse_address;
         }
         return *this;
     }
@@ -48,6 +52,7 @@ struct Settings{
             port = other.port;
             protocol = other.protocol;
             timeout_seconds_=other.timeout_seconds_;
+            reuse_address = other.reuse_address;
         }
         return *this;
     }  

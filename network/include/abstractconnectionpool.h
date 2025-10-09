@@ -95,24 +95,28 @@ namespace network{
                 std::span<network::Multiplexor::Event_t> events;
                 for(;;)
                     try{
-                        std::cout<<"Server multiplexor waiting"<<std::endl;
+                        //std::cout<<"Server multiplexor waiting"<<std::endl;
                         events = mp_connections->wait(-1);
                         if(mp_connections->interrupted()){
-                            std::cout<<"ConnectionPool interrupted"<<std::endl;
+                            //std::cout<<"ConnectionPool interrupted"<<std::endl;
                             return;
                         }
                         for(auto event:events){
-                            std::cout<<"Pool events process"<<std::endl;
+                            //std::cout<<"Pool events process"<<std::endl;
                             if(contains_socket(event.data.fd)){
                                 auto found = peers_.find(event.data.fd);
                                 if(found!=peers_.end()){
                                     if(event.events&Event::HangUp){
+                                        std::lock_guard lk(m);
                                         peers_.erase(found->first);
                                         continue;
                                     }
                                     if(found->first.is_valid() && (!found->second || found->second->ready())){
-                                        std::cout<<"Adding function"<<std::endl;
-                                        found->second = std::move(PROCESS_T::make_process(/*@todo Add constructor arguments*/));
+                                        //std::cout<<"Adding function"<<std::endl;
+                                        {
+                                            std::lock_guard lk(m);
+                                            found->second = std::move(PROCESS_T::make_process(/*@todo Add constructor arguments*/));
+                                        }
                                         PROCESS_T::execute_process(found->second,&AbstractConnectionPool<PROCESS_T>::execute,this,found->first);
                                     }
                                 }
@@ -129,8 +133,9 @@ namespace network{
         void stop(bool wait_finish, uint16_t timeout_sec = 60){
             if(mp_connections)
                 mp_connections->interrupt();
-            result.wait();
-            std::cout<<"Stop pool"<<std::endl;
+            if(result.valid())
+                result.wait();
+            //std::cout<<"Stop pool"<<std::endl;
             result = std::async(std::launch::async,[&wait_finish,
                                 &timeout_sec,
                                 &m = this->m,
@@ -151,7 +156,7 @@ namespace network{
                             }));
                 }
             });
-            std::cout<<"Stop out"<<std::endl;
+            //std::cout<<"Stop out"<<std::endl;
         }
     };
 }

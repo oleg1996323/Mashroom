@@ -182,6 +182,7 @@ namespace network{
                     return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
                 else return arg.data_size_buffer();
             };
+            std::cout<<(S==Side::SERVER?"Server side. ":"Client side. ")<<"Num type: "<<this->index()<<std::endl;
             return std::visit(visitor,*this);
         }
     };

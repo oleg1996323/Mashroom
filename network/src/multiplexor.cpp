@@ -101,12 +101,12 @@ bool network::Multiplexor::interrupted() noexcept{
  */
 std::span<network::Multiplexor::Event_t> network::Multiplexor::wait(int32_t timeout){
     if(int event_sz = epoll_wait(epollfd,events_.data(),events_.size(),timeout);event_sz==-1){
-        std::cout<<"Multiplexor error occured"<<std::endl;
+        //std::cout<<"Multiplexor error occured"<<std::endl;
         __epoll_wait_throw__();
         return std::span<network::Multiplexor::Event_t>();
     }
     else{
-        std::cout<<"Multiplexor found events"<<std::endl;
+        //std::cout<<"Multiplexor found events"<<std::endl;
         return std::span(events_).subspan(0,event_sz);
     }
 }

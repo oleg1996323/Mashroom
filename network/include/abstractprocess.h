@@ -127,14 +127,15 @@ constexpr decltype(auto) unwrap_arg(T&& v)
 template<typename DERIVED, typename RESULT_T>
 template<typename F,typename... ARGS>
 void AbstractProcess<DERIVED,RESULT_T>::execute_process(const std::unique_ptr<DERIVED>& process,F&& function,const Socket& socket, ARGS&&... args){
+    std::promise<RESULT_T> promise;
+    process->future = promise.get_future();
     process->thread =std::jthread([ proc = process.get(),
                                     sock = socket,
                                     func = std::move(function),
+                                    prom = std::move(promise),
                                     arguments = std::move(std::tuple(capture_arg(std::forward<ARGS>(args))...))]
             (std::stop_token stop) mutable
     {
-        std::promise<RESULT_T> prom;
-        proc->future = prom.get_future();
         auto body = [&](auto&&... tupArgs)
         {
             try
@@ -168,15 +169,16 @@ void AbstractProcess<DERIVED,RESULT_T>::execute_process(const std::unique_ptr<DE
     static_assert(std::is_base_of_v<AbstractProcess<DERIVED,RESULT_T>,DERIVED>,"Is not derived from AbstractProcess");
     static_assert(std::is_pointer_v<CLASS>);
     static_assert(std::is_invocable_r_v<RESULT_T,std::decay_t<F>,CLASS,std::stop_token,const Socket&,ARGS...>);
+    std::promise<RESULT_T> promise;
+    process->future = promise.get_future();
     process->thread =std::jthread([ proc = process.get(),
                                     sock = socket,
                                     func = std::move(function),
+                                    prom = std::move(promise),
                                     ptr = class_ptr,
                                     arguments = std::move(std::tuple(capture_arg(std::forward<ARGS>(args))...))]
             (std::stop_token stop) mutable
     {
-        std::promise<RESULT_T> prom;
-        proc->future = prom.get_future();
         auto body = [&](auto&&... tupArgs)
         {
             try

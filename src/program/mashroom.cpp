@@ -112,8 +112,13 @@ void Mashroom::shutdown_server(){
 }
 void Mashroom::deploy_server(){
     ErrorCode err;
-    server_ = network::Server::make_instance(
+    try{
+        server_ = network::Server::make_instance(
         Application::config().current_server_setting().settings_);
+    }
+    catch(const std::exception& err){
+        std::cout<<err.what()<<std::endl;
+    }
     return;
 }
 void Mashroom::launch_server(){
