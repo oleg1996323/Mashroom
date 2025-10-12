@@ -1,7 +1,7 @@
 #pragma once
 #include <variant>
 #include "network/common/message/msgdef.h"
-#include "API/grib1/include/code_tables.h"
+#include "grib1/include/code_tables.h"
 
 namespace network{
 template<Data_t T,Data_f F>

@@ -45,13 +45,12 @@ class AbstractProcess{
     AbstractProcess() = default;
     AbstractProcess(const AbstractProcess&) = delete;
     AbstractProcess(AbstractProcess&& other) noexcept{
-        std::lock_guard lk(this->m);
         *this=std::move(other);
     }
     AbstractProcess& operator=(const AbstractProcess&) = delete;
     AbstractProcess& operator=(AbstractProcess&& other) noexcept{
+        std::lock_guard lk(this->m);
         if(this!=&other){
-            std::lock_guard lk(this->m);
             thread = std::move(other.thread);
             future = std::move(other.future);
         }
@@ -66,10 +65,17 @@ class AbstractProcess{
     }
     bool wait(int timeout_sec){
         if(timeout_sec<0){
+            if(thread.joinable())
+                thread.join();
             future.wait();
             return true;
         }
-        else return future.wait_for(std::chrono::seconds(timeout_sec))==std::future_status::ready;
+        else {
+            auto ready = (future.wait_for(std::chrono::seconds(timeout_sec))==std::future_status::ready);
+            if(!ready)
+                thread.join();
+            return ready;
+        }
     }
     virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60){
         request_stop_protected(wait_finish,timeout_sec);

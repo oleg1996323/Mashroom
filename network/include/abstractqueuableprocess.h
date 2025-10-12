@@ -20,7 +20,7 @@ namespace network{
                     std::invoke(task,this->thread.get_stop_token());
                     lk.lock();
                 }
-                cv.notify_one();
+
                 cv.wait(lk,[this](){return !this->queue.empty() ||
                     this->thread.get_stop_token().stop_requested();});
             }while(!this->thread.get_stop_token().stop_requested());

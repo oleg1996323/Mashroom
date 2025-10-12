@@ -43,6 +43,10 @@ namespace network{
         void cancel();
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(bool wait,ARGS&&... args){
+            if(socket_){
+                socket_->set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutIn)));
+                socket_->set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutOut)));
+            }
             try{
                 process = std::move(Process::make_process());
                 Process::execute_process(process,::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...);
@@ -56,6 +60,8 @@ namespace network{
         }
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(int timeout_sec,ARGS&&... args){
+            if(socket_)
+                socket_->set_no_block(true);
             try{
                 process = std::move(Process::make_process());
                 Process::execute_process(process,::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...);

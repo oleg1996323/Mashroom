@@ -2,9 +2,7 @@
 #include <optional>
 #include "network/common/def.h"
 #include "data/def.h"
-#include "network/common/message/cashed_data.h"
 #include "serialization.h"
-#include "buffer.h"
 #include <expected>
 
 using namespace std::chrono;
@@ -81,6 +79,8 @@ namespace network{
         }
     };
 
+    template<Side S>
+    using Message_t = typename MESSAGE_ID<S>::type;
     using Server_MsgT = MESSAGE_ID<Side::SERVER>;
     using Client_MsgT = MESSAGE_ID<Side::CLIENT>;
 

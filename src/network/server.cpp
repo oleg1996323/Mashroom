@@ -21,9 +21,10 @@ Server::Server(const server::Settings& settings):CommonServer(settings,*this){
 
 void Server::after_accept(Socket& socket){
     try{
+        socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=5,.tv_usec = 0},Socket::Options::TimeOutIn)));
+        socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=5,.tv_usec = 0},Socket::Options::TimeOutOut)));
         using Event_t = Multiplexor::Event;
-        socket.set_no_block(true);
-        modify_connection(socket,Event_t::EdgeTrigger|Event_t::In|Event_t::Error|Event_t::Exclusive|Event_t::HangUp);
+        modify_connection(socket,Event_t::EdgeTrigger|Event_t::In|Event_t::HangUp);
         std::cout<<"Connecting ";
         socket.print_address_info(std::cout);
     }

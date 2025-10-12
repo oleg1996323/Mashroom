@@ -21,6 +21,35 @@ namespace network{
                 errno= 0;
                 if(read_num==EINTR)
                     read_num=0;
+                else if(read_num==EAGAIN)
+                    read_num=0;
+                else
+                    return -1;
+            }
+            else {
+                n-=read_num;
+                continue;
+            }
+        }
+        return 0;
+    }
+
+    int receive(const Socket& socket,std::ranges::view auto buffer, uint64_t n) noexcept 
+    requires std::ranges::random_access_range<decltype(buffer)>
+    {
+        if(n==0)
+            return 0;
+        assert(buffer.size()>=n);
+        ssize_t read_num = 0;
+        while(n!=0){
+            read_num = recv(socket.__descriptor__(),buffer.data(),n,0);
+            if(read_num<0){
+                std::cout<<"Receiving error: "<<strerror(errno)<<std::endl;
+                errno= 0;
+                if(read_num==EINTR)
+                    read_num=0;
+                else if(read_num==EAGAIN)
+                    read_num=0;
                 else
                     return -1;
             }

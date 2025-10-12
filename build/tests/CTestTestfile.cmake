@@ -5,3 +5,4 @@
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
 include("/home/oster/Mashroom/build/tests/Mashroom_serialize_test[1]_include.cmake")
+include("/home/oster/Mashroom/build/tests/Mashroom_messages_test[1]_include.cmake")

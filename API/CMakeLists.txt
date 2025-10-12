@@ -5,7 +5,7 @@ include(GoogleTest)
 
 add_library(GIAPI INTERFACE)
 
-target_include_directories(GIAPI INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${OsterLib_INCLUDE_DIRS})
+target_include_directories(GIAPI INTERFACE ${CMAKE_CURRENT_LIST_DIR} ${OsterLib_INCLUDE_DIRS})
 
 file(GLOB_RECURSE COMMON_SOURCES_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/common/*.h)
 file(GLOB_RECURSE COMMON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/common/src/**.cpp)

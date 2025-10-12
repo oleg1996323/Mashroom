@@ -62,6 +62,8 @@ class Socket{
     friend std::hash<Socket>;
     friend std::equal_to<Socket>;
     friend int receive(const Socket& socket,std::ranges::random_access_range auto& buffer, uint64_t n) noexcept;
+    friend int receive(const Socket& socket,std::ranges::view auto buffer, uint64_t n) noexcept 
+                    requires std::ranges::random_access_range<decltype(buffer)>;
     template<std::ranges::random_access_range... ARGS>
     friend int send(const Socket& socket,const std::ranges::random_access_range auto&... buffers) noexcept;
     std::shared_ptr<sockaddr_storage> storage;

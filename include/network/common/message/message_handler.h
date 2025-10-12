@@ -32,7 +32,9 @@ namespace network{
     struct MessageVariantFactory<std::variant<Types...>>{
         using VariantType = std::variant<Types...>;
         using ResultType = VariantType;
-        
+        static constexpr size_t var_sz(){
+            return sizeof...(Types);
+        }
         template<typename... ARGS>
         static ErrorCode emplace(ResultType& result, size_t index,ARGS&&... args) {
             if (index >= sizeof...(Types))
@@ -64,7 +66,7 @@ namespace network{
                     return return_error(result.template emplace<ID>());
                 else return ErrorCode::INVALID_ARGUMENT;
             };
-            ((err!=ErrorCode::NONE?(err = try_emplace.template operator()<Is>()):(err=err)),...);
+            (((err = try_emplace.template operator()<Is>())!=ErrorCode::NONE) && ...);
             return err;
         }
     };
@@ -83,6 +85,7 @@ namespace network{
         static_assert(network::check_variant_enum_aligned<ENUM,VARIANT>());
         protected:
         using factory = MessageVariantFactory<VARIANT>;
+        static_assert(factory::var_sz()==std::variant_size_v<VARIANT>);
         _MessageHandler() = default;
         _MessageHandler(const _MessageHandler&) = delete;
         _MessageHandler(_MessageHandler&& other) noexcept:VARIANT(std::move(other)){}
@@ -121,6 +124,7 @@ namespace network{
 
     template<Side S>
     class MessageHandler:public _MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
+        std::vector<char> buffer_;
         public:
         using _handler = _MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
         using _handler::_MessageHandler;
@@ -138,6 +142,8 @@ namespace network{
         template<Side Aside>
         friend class network::MessageProcess;
         public:
+        FRIEND_TEST(NetworkMesssageHandler,ClientSide);
+        FRIEND_TEST(NetworkMesssageHandler,ServerSide);
         MessageHandler(const MessageHandler&) = delete;
         MessageHandler(MessageHandler&& other) noexcept{
             *this = std::move(other);
@@ -146,21 +152,21 @@ namespace network{
         MessageHandler& operator=(const MessageHandler&) = delete;
         MessageHandler& operator=(MessageHandler&& other) noexcept{
             if(this!=&other){
+                buffer_ = std::move(other.buffer_);
                 network::list_message<S>::type::operator=(std::move(other));
             }
             return *this;
         }
-        private:
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
         void emplace_message(ARGS&&... args){
             this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
         }
         template<typename... ARGS>
-        ErrorCode emplace_message_by_id(size_t id, ARGS&&... args){
+        ErrorCode emplace_message_by_id(Message_t<S> id, ARGS&&... args){
             return _handler::emplace_message_by_id(id,std::forward<ARGS>(args)...);
         }
-        ErrorCode emplace_default_message_by_id(size_t id){
+        ErrorCode emplace_default_message_by_id(Message_t<S> id){
             return _handler::emplace_message_by_id(id);
         }
         void clear(){
@@ -171,11 +177,15 @@ namespace network{
                 return true;
             else return false;
         }
+
+        std::vector<char>& buffer(){
+            return buffer_;
+        }
         
         template<bool NETWORK_ORDER>
-        std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept{
-            assert(buffer.size()>=undefined_msg_type_min_required_size<S>());
-            auto visitor = [&buffer](auto& arg) mutable noexcept -> std::expected<uint64_t,serialization::SerializationEC>
+        std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer() noexcept{
+            assert(buffer_.size()>=undefined_msg_type_min_required_size<S>());
+            auto visitor = [this](auto& arg) mutable noexcept -> std::expected<uint64_t,serialization::SerializationEC>
             {
                 using type = decltype(arg);
                 if constexpr (!Data_Size_Buffer<type>)

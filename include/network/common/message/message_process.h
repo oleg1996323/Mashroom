@@ -7,6 +7,20 @@
 #include "commonsocket.h"
 
 namespace network{
+
+    template<Side S, bool NETWORK_ORDER>
+    std::expected<Message_t<S>,serialization::SerializationEC> message_type_from_buffer(std::span<const char> buffer) noexcept{
+        using namespace serialization;
+        using id_t = size_t;//std::invoke_result_t<decltype(&MessageHandler<S>::index), MessageHandler<S>>;
+        assert(buffer.size()>=sizeof(id_t));
+        id_t result;
+        if(SerializationEC code = deserialize<NETWORK_ORDER>(result,buffer);code!=SerializationEC::NONE)
+            return std::unexpected(code);
+        if(result+1>=MESSAGE_ID<S>::count())
+            return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
+        else return static_cast<Message_t<S>>(result+1);
+    }
+
     template<Side S>
     class MessageProcess{
         template<Side ASide>
@@ -33,16 +47,15 @@ namespace network{
         ErrorCode __send__(const Socket& sock) noexcept{
             if(!hmsg_.has_message())
                 return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"not message",AT_ERROR_ACTION::CONTINUE);
-            auto& msg_tmp = hmsg_.template get<T>();
-            if(serialization::SerializationEC err = serialization::serialize_network(msg_tmp,msg_tmp.buffer());
+            if(serialization::SerializationEC err = serialization::serialize_network(hmsg_,hmsg_.buffer());
                     err!=serialization::SerializationEC::NONE)
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
-            return send(sock,msg_tmp.buffer())==-1?ErrorCode::SENDING_MESSAGE_ERROR:ErrorCode::NONE;
+            return send(sock,hmsg_.buffer())==-1?ErrorCode::SENDING_MESSAGE_ERROR:ErrorCode::NONE;
         }
         template<auto MSG_T>
         requires MessageEnumConcept<MSG_T>
-        ErrorCode __receive_and_define_message__(const Socket& sock, std::vector<char>& buffer) noexcept;
-        ErrorCode __receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept;
+        ErrorCode __receive_and_define_message__(const Socket& sock) noexcept;
+        ErrorCode __receive_and_define_any_message__(const Socket& sock) noexcept;
         public:
 
         template<MESSAGE_ID<S>::type MSG_T>
@@ -72,16 +85,14 @@ namespace network{
         template<MESSAGE_ID<sent_from<S>()>::type MSG_T>
         requires MessageEnumConcept<MSG_T>
         ErrorCode receive_message(const Socket& sock) noexcept{
-            std::vector<char> buffer;
-            if(ErrorCode err = __receive_and_define_message__<MSG_T>(sock,buffer);
+            if(ErrorCode err = __receive_and_define_message__<MSG_T>(sock);
                 err != ErrorCode::NONE)
                 return err;
             else return ErrorCode::NONE;
         }
 
         ErrorCode receive_any_message(const Socket& sock) noexcept{
-            std::vector<char> buffer;
-            if(ErrorCode err = __receive_and_define_any_message__(sock,buffer);
+            if(ErrorCode err = __receive_and_define_any_message__(sock);
                 err != ErrorCode::NONE)
                 return err;
             else return ErrorCode::NONE;
@@ -101,7 +112,9 @@ namespace network{
     template<Side S>
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
-    inline ErrorCode MessageProcess<S>::__receive_and_define_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
+    inline ErrorCode MessageProcess<S>::__receive_and_define_message__(const Socket& sock) noexcept{
+        decltype(auto) buffer = recv_hmsg_.buffer();
+        buffer.clear();
         buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
         if(receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size())==-1)
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
@@ -123,28 +136,38 @@ namespace network{
     }
 
     template<Side S>
-    inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock, std::vector<char>& buffer) noexcept{
-        buffer.resize(undefined_msg_type_min_required_size<S>());
-        if(receive(sock,buffer,undefined_msg_type_min_required_size<S>())==-1)
+    inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock) noexcept{
+        using namespace serialization;
+        auto& buffer = recv_hmsg_.buffer();
+        size_t head_data = undefined_msg_type_min_required_size<sent_from<S>()>()+sizeof(size_t);
+        buffer.clear();
+        buffer.resize(head_data);
+        if(receive(sock,buffer,head_data)==-1)
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
         else{
-            auto msg_t_tmp = message_type_from_buffer<S,true>(std::span<const char>(buffer));
-            if(!msg_t_tmp.has_value())
-                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message type",AT_ERROR_ACTION::CONTINUE);
-            if(auto res = recv_hmsg_.emplace_default_message_by_id(size_t(msg_t_tmp.value()));res!=ErrorCode::NONE)
-                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
-            if(auto res = recv_hmsg_.template data_size_from_buffer<true>(std::span<const char>(buffer));!res.has_value()){
-                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
-            }
-            else {
-                buffer.resize(res.value());
-                if(receive(sock,buffer,buffer.size())==-1)
-                    return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-            }
-            serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
-            if(code!=serialization::SerializationEC::NONE)
-                return ErrorCode::DESERIALIZATION_ERROR;
+            uint64_t data_sz=0;
+            if(serialization::deserialize_network(data_sz,std::span<const char>(buffer).subspan(sizeof(size_t)))!=serialization::SerializationEC::NONE)
+                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message. Cannot define message size",AT_ERROR_ACTION::CONTINUE);
+            buffer.resize(head_data+data_sz);
+            std::cout<<"Buffer increased by "<<data_sz<<" bytes"<<std::endl;
+            std::cout<<"Receiving full message"<<std::endl;
+            if(receive(sock,std::views::drop(buffer,head_data),data_sz)==-1)
+                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+            if(serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer))!=serialization::SerializationEC::NONE)
+                return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message. Cannot define message type/structure",AT_ERROR_ACTION::CONTINUE);
             else return ErrorCode::NONE;
+            // if(auto res = recv_hmsg_.template data_size_from_buffer<true>();!res.has_value()){
+            //     return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
+            // }
+            // else {
+            //     buffer.resize(res.value());
+            //     if(receive(sock,buffer,buffer.size())==-1)
+            //         return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+            // }
+            // serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
+            // if(code!=serialization::SerializationEC::NONE)
+            //     return ErrorCode::DESERIALIZATION_ERROR;
+            // else return ErrorCode::NONE;
         }
     }
 
@@ -201,9 +224,8 @@ namespace network{
                 uint64_t size)
     noexcept {
         hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);
-        auto& msg = hmsg_.get<network::Server_MsgT::DATA_REPLY_FILEINFO>();
-        serialization::SerializationEC code = serialization::serialize_network(msg,msg.buffer());
-        if(send(sock,std::span<const char>(msg.buffer()))==-1){
+        serialization::SerializationEC code = serialization::serialize_network(hmsg_,hmsg_.buffer());
+        if(send(sock,std::span<const char>(hmsg_.buffer()))==-1){
             if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
                 return ErrorPrint::print_error(err_,"",AT_ERROR_ACTION::CONTINUE);
             return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);

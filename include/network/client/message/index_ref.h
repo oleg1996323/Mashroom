@@ -1,7 +1,7 @@
 #pragma once
 #include "network/common/message/msgdef.h"
 #include "types/time_interval.h"
-#include "API/grib1/include/sections/grid/grid.h"
+#include "grib1/include/sections/grid/grid.h"
 
 namespace network{
     template<>

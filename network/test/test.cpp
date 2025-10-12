@@ -51,7 +51,7 @@ class Server:public CommonServer<ConnectionPool>{
     FRIEND_TEST(Client_server,ping);
     void after_accept(network::Socket& socket) override{
         try{
-            socket.set_no_block(true);
+            socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutOut)));
             using Event_t = Multiplexor::Event;
             std::cout<<"Connecting ";
             socket.print_address_info(std::cout);

@@ -16,8 +16,8 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
     {
         case Client_MsgT::INDEX_REF:
         case Client_MsgT::INDEX:{
-            decltype(auto) msg = mprocess_.get_received_message<Client_MsgT::INDEX>();
-            Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
+            decltype(auto) msg = mprocess_.get_received_message<Client_MsgT::INDEX_REF>();
+            Message<Server_MsgT::DATA_REPLY_INDEX_REF> rep_msg;
             auto find_data = [&msg,&rep_msg](const auto& index_param) mutable ->void
             {
                 if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,std::monostate>)
@@ -33,7 +33,7 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
             };
             for(auto& param : msg.additional().parameters_) 
                 std::visit (find_data,param);
-            mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX>(socket,std::move(rep_msg));
+            mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX_REF>(socket,std::move(rep_msg));
             //if(msg_type.value()==Client_MsgT::INDEX)
                 //sendfile
             //@todo send file

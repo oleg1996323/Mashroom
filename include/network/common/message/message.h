@@ -4,7 +4,6 @@
 #include <set>
 #include "definitions.h"
 #include "serialization.h"
-#include "buffer.h"
 #include "msgdef.h"
 
 using namespace std::chrono;
@@ -20,7 +19,6 @@ namespace network{
         MessageBase(size_t data_sz);
         MessageBase(MessageBase<MSG_T>&& other) noexcept:data_sz_(other.data_sz_){}
         MessageBase(const MessageBase<MSG_T>& other) = delete;
-        MessageBase() = default;
         MessageBase& operator=(const MessageBase<MSG_T>& other) = delete;
         MessageBase& operator=(MessageBase<MSG_T>&& other);
         size_t data_size() const{
@@ -30,9 +28,22 @@ namespace network{
             return MSG_T;
         }
         constexpr static uint64_t min_required_defining_size(){
-            return sizeof(MSG_T)+sizeof(data_sz_);
+            return sizeof(data_sz_);
         }
     };
+
+    template<auto MSG_T>
+    requires MessageEnumConcept<MSG_T>
+    MessageBase<MSG_T>::MessageBase(size_t data_sz):
+    data_sz_(data_sz){}
+
+    template<auto MSG_T>
+    requires MessageEnumConcept<MSG_T>
+    MessageBase<MSG_T>& MessageBase<MSG_T>::operator=(MessageBase<MSG_T>&& other){
+        if(this!=&other)
+            data_sz_= other.data_sz_;
+        return *this;
+    }
 }
 
 namespace serialization{
@@ -105,9 +116,7 @@ namespace network{
 
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
-    class Message:public __MessageBuffer__{
-        static_assert(std::is_move_constructible_v<__MessageBuffer__>);
-        static_assert(std::is_move_assignable_v<__MessageBuffer__>);
+    class Message{
         static_assert(std::is_move_constructible_v<MessageBase<MSG_T>>);
         static_assert(std::is_move_assignable_v<MessageBase<MSG_T>>);
         using type = decltype(MSG_T);
@@ -141,7 +150,6 @@ namespace network{
             }
             return *this;
         }
-        Message()=default;
         constexpr static type msg_type(){
             return decltype(base_)::msg_type();
         }
@@ -159,26 +167,13 @@ namespace network{
             return base_;
         }
     };
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    MessageBase<MSG_T>::MessageBase(size_t data_sz):
-    data_sz_(data_sz){}
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    MessageBase<MSG_T>& MessageBase<MSG_T>::operator=(MessageBase<MSG_T>&& other){
-        if(this!=&other)
-            data_sz_= other.data_sz_;
-        return *this;
-    }
     
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     template<typename... ADD_ARGS>
     Message<MSG_T>::Message(ADD_ARGS&&... add_a):
     additional_(std::forward<ADD_ARGS>(add_a)...),
-    base_(serialization::serial_size(additional_)+base_.min_required_defining_size()){}
+    base_(serialization::serial_size(additional_)){}
 
     template<Side S>
     struct list_message;
@@ -262,18 +257,6 @@ namespace network{
         max_size(std::make_index_sequence<std::variant_size_v<typename list_message<S>::type>>{});
         
         return result;
-    }
-
-    template<Side S, bool NETWORK_ORDER>
-    std::expected<typename MESSAGE_ID<S>::type,serialization::SerializationEC> message_type_from_buffer(std::span<const char> buffer) noexcept{
-        using namespace serialization;
-        assert(buffer.size()>=undefined_msg_type_min_required_size<S>());
-        typename MESSAGE_ID<S>::type result;
-        if(SerializationEC code = deserialize<NETWORK_ORDER>(result,buffer);code!=SerializationEC::NONE)
-            return std::unexpected(code);
-        if(result>=MESSAGE_ID<S>::count())
-            return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
-        else return result;
     }
 
     template<auto MSG_T>

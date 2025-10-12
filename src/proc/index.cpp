@@ -159,8 +159,9 @@ void Index::execute() noexcept{
 			case path::TYPE::HOST:
 				if(path.add_.is<path::TYPE::HOST>()){
 					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
-					network::Message<network::Client_MsgT::INDEX_REF> msg;
-					msg.additional().add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB>();
+					auto add_msg = network::make_additional<network::Client_MsgT::INDEX_REF>();
+					add_msg.add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB>();
+					network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(add_msg));
 					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
 					if(!instance)
 						return;
