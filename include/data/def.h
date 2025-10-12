@@ -38,11 +38,11 @@ constexpr std::array<__Data__::FORMAT,1> data_types = {
     __Data__::FORMAT::NETCDF */
 };
 
-__Data__::FORMAT text_to_data_type(const char* text) noexcept;
+__Data__::FORMAT text_to_data_type(std::string_view text) noexcept;
 
-constexpr std::array<const char*,2> data_extensions ={
-    "",     //undefined
-    ".gbd"  //grib binary data
+constexpr std::array<std::string_view,2> data_extensions ={
+    std::string_view(""),     //undefined
+    std::string_view(".gbd")  //grib binary data
 };
 
 static const std::unordered_map<const char*,Data_f> formats = {
@@ -51,7 +51,7 @@ static const std::unordered_map<const char*,Data_f> formats = {
                     /* {"hgt",Data_f::HGT},
                     {"netCDF",Data_f::NETCDF} };*/
 
-__Data__::FORMAT extension_to_type(const char* extension) noexcept;
+__Data__::FORMAT extension_to_type(std::string_view extension) noexcept;
 constexpr const char* format_name(__Data__::FORMAT fmt) noexcept{
     switch(fmt){
         case __Data__::FORMAT::GRIB:
@@ -64,5 +64,5 @@ constexpr const char* format_name(__Data__::FORMAT fmt) noexcept{
             return "Undefined";
     }
 }
-const char* type_to_extension(__Data__::FORMAT type_extension) noexcept;
+std::string_view type_to_extension(__Data__::FORMAT type_extension) noexcept;
 std::string filename_by_type(__Data__::FORMAT type);

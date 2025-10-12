@@ -22,17 +22,18 @@ using namespace std::string_literals;
 
 namespace fs = std::filesystem;
 class Data:public __Data__{
-    private:
+    protected:
     std::unordered_set<std::unique_ptr<AbstractDataStruct>> datas_;
     std::set<Data_f> unsaved_;
     std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
 
+    friend class DataTestClass;
     template<Data::FORMAT>
     void __read__(const fs::path& filename);
     template<Data::FORMAT>
     void __write__(const fs::path& filename){
-
+        
     }
 
     template <size_t I>

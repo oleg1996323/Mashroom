@@ -7,20 +7,7 @@ void Data::__read__<Data::FORMAT::GRIB>(const fs::path& fn){
     if(!file.is_open())
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
     auto& ds = data_struct<Data_t::METEO,Data_f::GRIB>();
-    deserialize_from_file(ds.sublimed_,file);
-    for(auto& [filename,file_data]:ds.sublimed_.data()){
-        for(auto& [common,grib_data]:file_data){
-            // std::cout<<"Added to \"by common\":"<<*grib_.by_common_data_[common].insert(filename).first<<std::endl;
-            // std::cout<<"Parameter: "<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name<<std::endl;
-            // std::cout<<"Center name: "<<center_to_abbr(common->center_.value())<<std::endl;
-            // std::cout<<"Table version: "<<(int)common->table_version_.value()<<std::endl;
-            ds.by_common_data_[common].insert(filename);
-            for(const auto& sub_data:grib_data){
-                ds.by_date_[sub_data.sequence_time_].insert(filename);
-                ds.by_grid_[sub_data.grid_data_].insert(filename);
-            }
-        }
-    }
+    deserialize_from_file(ds,file);
     file.close();
 }
 
@@ -32,7 +19,7 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
     fs::path save_file = dir/filename_by_type(Data::FORMAT::GRIB);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
-    SerializationEC err = serialize_to_file(data_struct<Data_t::METEO,Data_f::GRIB>().sublimed_,file);
+    SerializationEC err = serialize_to_file(data_struct<Data_t::METEO,Data_f::GRIB>(),file);
     if(err==SerializationEC::NONE)
         files_[Data::FORMAT::GRIB]=save_file;
     else ErrorPrint::print_error(ErrorCode::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
@@ -40,7 +27,7 @@ void Data::__write__<Data::FORMAT::GRIB>(const fs::path& dir){
 }
 void Data::read(const fs::path& filename){
     if(fs::exists(filename)){
-        __Data__::FORMAT fmt = extension_to_type(filename.extension().c_str());
+        __Data__::FORMAT fmt = extension_to_type(filename.extension().string());
         if(fmt==__Data__::FORMAT::UNDEF){
             ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
             return;

@@ -165,7 +165,7 @@ void Index::execute() noexcept{
 					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
 					if(!instance)
 						return;
-					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX>(-1);
+					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(-1);
 					for(auto& block:msg_reply.additional().blocks_){
 						auto add_data = [&path](auto& block){
 							using decay = std::decay_t<decltype(block)>;

@@ -86,3 +86,62 @@ struct DataStruct<Data_t::METEO,Data_f::GRIB>:public AbstractDataStruct{
                                                     std::optional<TimeFrame>,
                                                     utc_tp>;
 };
+
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,DataStruct<Data_t::METEO,Data_f::GRIB>>{
+        using type = DataStruct<Data_t::METEO,Data_f::GRIB>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.sublimed_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,DataStruct<Data_t::METEO,Data_f::GRIB>>{
+        using type = DataStruct<Data_t::METEO,Data_f::GRIB>;
+        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+            if(auto err = deserialize<NETWORK_ORDER>(msg,buf,msg.sublimed_);err!=SerializationEC::NONE)
+                return err;
+            else{
+                for(auto& [filename,file_data]:msg.sublimed_.data()){
+                    for(auto& [common,grib_data]:file_data){
+                        msg.by_common_data_[common].insert(filename);
+                        for(const auto& sub_data:grib_data){
+                            msg.by_date_[sub_data.sequence_time_].insert(filename);
+                            msg.by_grid_[sub_data.grid_data_].insert(filename);
+                        }
+                    }
+                }
+                return SerializationEC::NONE;
+            }
+        }
+    };
+
+    template<>
+    struct Serial_size<DataStruct<Data_t::METEO,Data_f::GRIB>>{
+        using type = DataStruct<Data_t::METEO,Data_f::GRIB>;
+        size_t operator()(const type& msg) const noexcept{
+            return serial_size(msg.sublimed_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<DataStruct<Data_t::METEO,Data_f::GRIB>>{
+        using type = DataStruct<Data_t::METEO,Data_f::GRIB>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::sublimed_)>();
+        }();
+    };
+
+    template<>
+    struct Max_serial_size<DataStruct<Data_t::METEO,Data_f::GRIB>>{
+        using type = DataStruct<Data_t::METEO,Data_f::GRIB>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::sublimed_)>();
+        }();
+    };
+}

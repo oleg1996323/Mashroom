@@ -43,10 +43,10 @@ path::Storage<false> boost::lexical_cast(const std::string& input){
         std::string type;
         if(match[1].str().size()>0){
             std::string path;
-            if(match[2].str().size()>0)
-                match[2].str();
+            if(match[3].str().size()>0)
+                path = match[3].str();
             else throw po::validation_error(po::validation_error::invalid_option_value,input);
-            type = match[1].str();
+            type = match[2].str();
             if(path.starts_with("~"s+fs::separator()))
                 path = std::string(getenv("HOME"))+fs::separator()+path.substr(2);
             if(type=="dir")
