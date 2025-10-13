@@ -69,8 +69,8 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #including other build-modules
 find_package(GTest CONFIG REQUIRED)
-set(CMAKE_PREFIX_PATH $ENV{HOME})
-find_package(OsterLib CONFIG REQUIRED)
+message(STATUS ${OSTERLIB_PATH})
+find_package(OsterLib CONFIG REQUIRED PATHS ${OSTERLIB_PATH})
 add_subdirectory(API)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/network)

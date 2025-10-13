@@ -18,15 +18,16 @@ class DataTestClass:public Data,public testing::Test{
         grid.base_.ny=50;
         grid.base_.x1=0;
         grid.base_.x2=50;
-        grid.base_.y1=0;
-        grid.base_.y2=50;
+        grid.base_.y1=50;
+        grid.base_.y2=0;
         auto any = path::Storage<false>::file("any_path.grib"sv,utc_tp::clock::now());
-        for(int h=0;h<8760;++h)
+        uint64_t count = 0;
+        for(int d=0;d<(sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1);++d)
         {
             for(int table_v = 128;table_v<229;table_v+=228-128)
                 for(int param = 16;param<130;param+=16)
-                    gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+hours(h),
-                                300000*h,300000,128,TimeFrame::HOUR,Organization::ECMWF,128));
+                    gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
+                                1000*count++,1000,128,TimeFrame::HOUR,Organization::ECMWF,128));
         }
         sublimed.add_data(gribdata);
         ds->add_data(sublimed);
@@ -59,11 +60,17 @@ TEST_F(DataTestClass,MatchTest){
                                         TimeFrame::HOUR,
                                         params,
                                         TimeInterval{.from_=sys_days(year(1990)/month(1)/day(1)),
-                                            .to_=sys_days(year(1990)/month(12)/day(25))},
+                                            .to_=sys_days(year(1990)/month(1)/day(31))},
                                         RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
                                         Coord{.lat_=25,.lon_=25});
-    EXPECT_EQ(matched_grib1.size(),( sys_days(year(1990)/month(12)/day(25))-
-                                        sys_days(year(1990)/month(1)/day(1)))/hours(1)*params.size());
+    EXPECT_EQ(matched_grib1.size(),( sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1)*params.size());
+    {
+        ptrdiff_t expected = 0;
+        for(auto ptr:matched_grib1){
+            EXPECT_EQ(expected,ptr);
+            expected+=1000;
+        }
+    }
 }
 
 int main(int argc, char* argv[]){

@@ -104,7 +104,7 @@ std::vector<ptrdiff_t> Grib1Data::match(
 {
     std::vector<ptrdiff_t> result;
     std::unordered_set<Grib1CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
-    if(sublimed_.data().contains(path))
+    if(!sublimed_.data().contains(path))
         return result;
     auto& file_data = sublimed_.data().at(path);
     for(const auto& common:param_variations){
@@ -138,7 +138,7 @@ FoundSublimedDataInfo<Data_t::METEO,Data_f::GRIB> Grib1Data::find_all(std::optio
                 for(const auto& [cmn,sublimed]:std::ranges::subrange(begin,dat.upper_bound(searched))){
                     if(time_){
                         for(auto& sub:sublimed){
-                            if( auto instersection = interval_instersection(time_->interval_,sub.sequence_time_.interval_);
+                            if( auto instersection = interval_intersection(time_->interval_,sub.sequence_time_.interval_);
                                 instersection.has_value())
                                 result[*cmn].push_back(sub);
                             else continue;

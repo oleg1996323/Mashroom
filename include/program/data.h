@@ -126,3 +126,19 @@ class Data:public __Data__{
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }
 };
+
+template<Data_t T,Data_f F>
+struct DataMethodType{
+    template<typename... ARGS>
+    using match_t = std::invoke_result_t<decltype(&Data::match<T,F>),
+                                        Data*,
+                                        ARGS...>;
+    template<typename... ARGS>
+    using match_data_t = std::invoke_result_t<decltype(&Data::match_data<T,F>),
+                                        Data*,
+                                        ARGS...>;
+    template<typename... ARGS>
+    using find_all_t = std::invoke_result_t<decltype(&Data::find_all<T,F>),
+                                        Data*,
+                                        ARGS...>;
+};
