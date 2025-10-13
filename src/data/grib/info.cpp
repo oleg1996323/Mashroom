@@ -110,6 +110,6 @@ SublimedGribDataInfo GribDataInfo::sublime(){
             }
         }
     }
-    returned.add_data(result);
+    returned.add_data(std::move(result));
     return returned;
 }

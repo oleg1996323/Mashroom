@@ -4,7 +4,7 @@
 __Data__::FORMAT extension_to_type(std::string_view extension) noexcept{
     for(int i=1;i<data_extensions.size();++i)
         if(extension==data_extensions[i])
-            return static_cast<__Data__::FORMAT>(i+1);
+            return static_cast<__Data__::FORMAT>(i);
     return __Data__::FORMAT::UNDEF;    
 }
 

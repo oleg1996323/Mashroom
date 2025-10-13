@@ -301,7 +301,7 @@ ErrorCode Extract::execute() noexcept{
     else{
         for(const auto& path:in_path_){
             if(Mashroom::instance().data().paths<Data_t::METEO,Data_f::GRIB>().contains(path))
-                Mashroom::instance().data().match<Data_t::METEO,Data_f::GRIB>(
+                Mashroom::instance().data().match(
                                                 path,
                                                 props_.center_.value(),
                                                 props_.fcst_unit_,

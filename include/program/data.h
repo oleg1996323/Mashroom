@@ -90,10 +90,20 @@ class Data:public __Data__{
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
-    typename DataStruct<T,F>::match_t match(
-        ARGS&&... args
-    ) const{
-        return data_struct<T,F>().match(std::forward<ARGS>(args)...);
+    typename DataStruct<T,F>::match_t match(ARGS&&... args){
+        return data_struct<T,F>(std::forward<ARGS>(args)...);
+    }
+
+    DataStruct<Data_t::METEO,Data_f::GRIB>::match_t match(
+        path::Storage<true> path,
+        Organization center,
+        std::optional<TimeFrame> timeframe,
+        const std::unordered_set<SearchParamTableVersion>& param_tables,
+        TimeInterval t_interval,
+        RepresentationType grid_type,
+        Coord pos) const{
+        return data_struct<Data_t::METEO,Data_f::GRIB>().match(
+            path,center,timeframe,param_tables,t_interval,grid_type,pos);
     }
 
     template<Data_t T,Data_f F,typename... ARGS>

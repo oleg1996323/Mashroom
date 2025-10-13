@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "program/data.h"
 
+using namespace std::string_view_literals;
+
 class DataTestClass:public Data,public testing::Test{
     protected:
     std::string fn;
@@ -18,7 +20,7 @@ class DataTestClass:public Data,public testing::Test{
         grid.base_.x2=50;
         grid.base_.y1=0;
         grid.base_.y2=50;
-        auto any = path::Storage<false>::file(std::string("any_path.grib"),utc_tp::clock::now());
+        auto any = path::Storage<false>::file("any_path.grib"sv,utc_tp::clock::now());
         for(int h=0;h<8760;++h)
         {
             for(int table_v = 128;table_v<229;table_v+=228-128)
@@ -34,11 +36,11 @@ class DataTestClass:public Data,public testing::Test{
     }
 
     ~DataTestClass(){
-        std::filesystem::remove(fn);
+        assert(std::filesystem::remove(fn));
     }
 };
 
-using namespace std::string_view_literals;
+
 
 TEST_F(DataTestClass,InitTest){
     read(fn);
@@ -48,7 +50,20 @@ TEST_F(DataTestClass,InitTest){
 }
 
 TEST_F(DataTestClass,MatchTest){
-    
+    read(fn);
+    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB>();
+    std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
+                                                        SearchParamTableVersion{.param_=48,.t_ver_=228}};
+    auto matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
+                                        Organization::ECMWF,
+                                        TimeFrame::HOUR,
+                                        params,
+                                        TimeInterval{.from_=sys_days(year(1990)/month(1)/day(1)),
+                                            .to_=sys_days(year(1990)/month(12)/day(25))},
+                                        RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
+                                        Coord{.lat_=25,.lon_=25});
+    EXPECT_EQ(matched_grib1.size(),( sys_days(year(1990)/month(12)/day(25))-
+                                        sys_days(year(1990)/month(1)/day(1)))/hours(1)*params.size());
 }
 
 int main(int argc, char* argv[]){

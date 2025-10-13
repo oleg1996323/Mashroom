@@ -110,50 +110,43 @@ class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>
     const std::unordered_set<path::Storage<true>>& paths() const{
         return paths_;
     }
-    void add_data(SublimedFormatDataInfo& grib_data){
-        for(auto& [path,file_data]:grib_data.info_){
-            auto found = info_.find(path);
-            if(found==info_.end())
-                info_[path].swap(file_data);
-            else 
-                info_[found->first].swap(file_data);
-        }
+    void add_data(const SublimedFormatDataInfo& grib_data){
+        add_data(grib_data.info_);
     }
-    void add_data(SublimedFormatDataInfo::sublimed_data_t& grib_data){
-        for(auto& [path,file_data]:grib_data){
-            if(!path.path_.empty()){
-                auto found = info_.find(path);
-                if(found==info_.end())
-                    info_[path].swap(file_data);
-                else 
-                    info_[found->first].swap(file_data);
-                paths_.insert(path);
-            }
-        }
-    }
-    void add_data(SublimedFormatDataInfo&& grib_data){
-        for(auto& [path,file_data]:grib_data.info_){
-            if(!path.path_.empty()){
-                auto found = info_.find(path);
-                if(found==info_.end())
-                    info_[path].swap(file_data);
-                else 
-                    info_[found->first].swap(file_data);
-                paths_.insert(path);
-            }
-        }
-    }
-    void add_data(SublimedFormatDataInfo::sublimed_data_t&& grib_data){
+    void add_data(const SublimedFormatDataInfo::sublimed_data_t& grib_data){
+        std::unordered_set<path::Storage<true>>::iterator iter;
         for(auto& [path,file_data]:grib_data){
             if(!path.path_.empty()){
                 auto found = info_.find(path);
                 if(found==info_.end()){
-                    info_[path].swap(file_data);
+                    found = info_.insert({path,file_data}).first;
+                    iter = paths_.insert(found->first).first;
+                    assert(paths_.contains(found->first));
                 }
                 else{
-                    info_[found->first].swap(file_data);
+                    assert(paths_.contains(found->first));
+                    info_[found->first].insert(file_data.begin(),file_data.end());
                 }
-                paths_.insert(path);
+            }
+        }
+    }
+    void add_data(SublimedFormatDataInfo&& grib_data){
+        add_data(std::move(grib_data.info_));
+    }
+    void add_data(SublimedFormatDataInfo::sublimed_data_t&& grib_data){
+        for(auto&& [path,file_data]:grib_data){
+            if(!path.path_.empty()){
+                auto found = info_.find(path);
+                if(found==info_.end()){
+                    found = info_.insert({std::move(path),std::move(file_data)}).first;
+                    paths_.insert(found->first);
+                    assert(paths_.contains(found->first));
+                }
+                else{
+                    assert(paths_.contains(found->first));
+                    info_[found->first].insert( std::make_move_iterator(file_data.begin()),
+                                                std::make_move_iterator(file_data.end()));                    
+                }
             }
         }        
     }
@@ -168,9 +161,7 @@ namespace serialization{
         using type = SublimedGribDataInfo;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             SerializationEC err = SerializationEC::NONE;
-            auto type_enum = __Data__::FORMAT::GRIB;
             using val_t = type::sublimed_data_t::value_type;
-            serialize<NETWORK_ORDER>(type_enum,buf);
             auto existing_paths = std::ranges::copy_if_result(msg.info_,[](const val_t& pair) noexcept{
                                         const auto& pathstore = std::get<0>(pair);
                                         if(fs::exists(pathstore.path_) || 
@@ -179,15 +170,7 @@ namespace serialization{
                                         }
                                         else return false;
                                     }).in;
-            // size_t info_sz = existing_paths.size();
             err = serialize<NETWORK_ORDER>(existing_paths,buf);
-            // for(const auto& [path,filedata]: existing_paths)
-            // {
-            //     if(err==SerializationEC::NONE)
-            //         err = serialize<NETWORK_ORDER>(path,buf);
-            //     if(err==SerializationEC::NONE)
-            //         err = serialize<NETWORK_ORDER>(filedata,buf);
-            // }
             return err;
         }
     };
@@ -197,10 +180,9 @@ namespace serialization{
         using type = SublimedGribDataInfo;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             SerializationEC err=SerializationEC::NONE;
-            __Data__::FORMAT enum_type = __Data__::FORMAT::UNDEF;
-            err = deserialize<NETWORK_ORDER>(enum_type,buf);
-            if(err==SerializationEC::NONE)
-                err = deserialize<NETWORK_ORDER>(msg.info_,buf.subspan(serial_size(enum_type)));
+            err = deserialize<NETWORK_ORDER>(msg.info_,buf);
+            for(auto& [path,val]:msg.info_)
+                msg.paths_.insert(path);
             return err;
         }
     };
@@ -218,7 +200,7 @@ namespace serialization{
                                         }
                                         else return false;
                                     }).in;
-            return serial_size(__Data__::FORMAT::GRIB,existing_paths);
+            return serial_size(existing_paths);
         }
     };
 
@@ -227,7 +209,7 @@ namespace serialization{
         using type = SublimedGribDataInfo;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<decltype(__Data__::FORMAT::GRIB),decltype(type::info_)>();
+            return min_serial_size<decltype(type::info_)>();
         }();
     };
 
@@ -236,7 +218,7 @@ namespace serialization{
         using type = SublimedGribDataInfo;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<decltype(__Data__::FORMAT::GRIB),decltype(type::info_)>();
+            return max_serial_size<decltype(type::info_)>();
         }();
     };
 }
