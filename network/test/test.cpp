@@ -51,8 +51,11 @@ class Server:public CommonServer<ConnectionPool>{
     FRIEND_TEST(Client_server,ping);
     void after_accept(network::Socket& socket) override{
         try{
-            socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutOut)));
+            socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=3,.tv_usec = 0},Socket::Options::TimeOutIn)));
+            socket.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=3,.tv_usec = 0},Socket::Options::TimeOutOut)));
+            socket.set_no_block(false);
             using Event_t = Multiplexor::Event;
+            modify_connection(socket,Event_t::EdgeTrigger|Event_t::In|Event_t::HangUp);
             std::cout<<"Connecting ";
             socket.print_address_info(std::cout);
         }
@@ -65,8 +68,10 @@ class Server:public CommonServer<ConnectionPool>{
 };
 
 class Client:public CommonClient<ProcessPing>{
-    virtual void after_connect(const Socket& sock) override{
-        sock.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutIn)));
+    virtual void after_connect(Socket& sock) override{
+        sock.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=3,.tv_usec = 0},Socket::Options::TimeOutIn)));
+        sock.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=3,.tv_usec = 0},Socket::Options::TimeOutOut)));
+        sock.set_no_block(false);
         std::cout<<"Connected to: ";
         sock.print_address_info(std::cout);
     }
@@ -83,11 +88,11 @@ TEST(Client_server,ping){
     auto future = std::async(std::launch::async,[&server,&settings](){
         EXPECT_NO_THROW(server.launch());
     });
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     Client client;
     EXPECT_NO_THROW(client.connect(settings.host,settings.port));
     client.add_request(send_byte);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(server.get_connection_pool().count_recv,5);
 }
 
@@ -177,13 +182,13 @@ TEST(Client_server,pingpong){
     auto future = std::async(std::launch::async,[&server,&settings](){
         EXPECT_NO_THROW(server.launch());
     });
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     ClientPingPong client;
     int count_send = 0;
     int count_recv = 0;
     EXPECT_NO_THROW(client.connect(settings.host,settings.port));
     client.add_request(pingpong,count_send,count_recv);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(server.get_connection_pool().count_recv,5);
     EXPECT_EQ(server.get_connection_pool().count_send,5);
     EXPECT_EQ(count_send,5);

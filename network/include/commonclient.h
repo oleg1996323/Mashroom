@@ -27,7 +27,7 @@ namespace network{
          * @brief don't block the GUI if integrated
          */
         virtual void before_connect(){}
-        virtual void after_connect(const Socket&){}
+        virtual void after_connect(Socket&){}
         std::unique_ptr<PROCESS_T> process;
         std::unique_ptr<Socket> socket_;
         using Process = decltype(process)::element_type;

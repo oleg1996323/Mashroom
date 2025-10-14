@@ -37,7 +37,7 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 #include "proc/interfaces/abstractsearchprocess.h"
 class Integrity:public AbstractSearchProcess{
     private:
-    GribDataInfo data_;
+    GribProxyDataInfo data_;
     TimePeriod t_off_;
     std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>::value>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
@@ -81,8 +81,8 @@ class Integrity:public AbstractSearchProcess{
         data_.info_.clear();
         data_.err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
     }
-    GribDataInfo release_result() noexcept{
-        GribDataInfo res(std::move(data_));
+    GribProxyDataInfo release_result() noexcept{
+        GribProxyDataInfo res(std::move(data_));
         return res;
     }
 };

@@ -19,7 +19,7 @@ namespace fs = std::filesystem;
 using namespace std::string_literals;
 class Index{
 private:
-GribDataInfo result;
+GribProxyDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
 fs::path dest_directory_;
 std::string_view output_order_;
@@ -28,7 +28,7 @@ int cpus = 1;
 InternalDateFileFormats output_format_ = InternalDateFileFormats::NATIVE;
 bool host_ref_only = false;
 std::vector<std::pair<fs::path,GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
-const GribDataInfo& __index_file__(const fs::path& file);
+const GribProxyDataInfo& __index_file__(const fs::path& file);
 public:
 static bool check_format(std::string_view fmt);
 void execute() noexcept;
@@ -44,7 +44,7 @@ ErrorCode set_output_order(std::string_view order){
 void set_output_format(InternalDateFileFormats format){
     output_format_ = format;
 }
-const GribDataInfo& get_result() const{
+const GribProxyDataInfo& get_result() const{
     return result;
 }
 InternalDateFileFormats output_format() const{
@@ -59,8 +59,8 @@ void set_using_processor_cores(int cores){
         cpus=cores;
     else cpus = 1;
 }
-GribDataInfo release_result() noexcept{
-    GribDataInfo res(std::move(result));
+GribProxyDataInfo release_result() noexcept{
+    GribProxyDataInfo res(std::move(result));
     return res;
 }
 void set_host_ref_only(){

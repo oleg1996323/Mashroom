@@ -89,7 +89,7 @@ namespace fs = std::filesystem;
 /**
  * @brief Execute message indexing of concrete file.
  */
-const GribDataInfo& Index::__index_file__(const fs::path& file){
+const GribProxyDataInfo& Index::__index_file__(const fs::path& file){
 	HGrib1 grib;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
@@ -148,7 +148,7 @@ void Index::execute() noexcept{
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 						std::cout<<entry.path()<<std::endl;
-						const GribDataInfo& index_data = __index_file__(entry.path());
+						const GribProxyDataInfo& index_data = __index_file__(entry.path());
 					}
 					else continue;
 				}

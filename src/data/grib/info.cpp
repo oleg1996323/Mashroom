@@ -1,7 +1,7 @@
 #include "data/info.h"
 
 namespace fs = std::filesystem;
-void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
+void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
     info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
@@ -10,7 +10,7 @@ void GribDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataI
         API::ErrorData::Code<API::GRIB1>::NONE_ERR});
 }
 
-void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
+void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
     info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
     .emplace_back(IndexDataInfo<API::GRIB1>{
         msg_info.grid_data,
@@ -19,20 +19,20 @@ void GribDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& 
         API::ErrorData::Code<API::GRIB1>::NONE_ERR});
 }
 
-API::ErrorData::Code<API::GRIB1>::value GribDataInfo::error() const{
+API::ErrorData::Code<API::GRIB1>::value GribProxyDataInfo::error() const{
     return err;
 }
-const GribDataInfo::data_t& GribDataInfo::data() const {
+const GribProxyDataInfo::data_t& GribProxyDataInfo::data() const {
     return info_;
 }
-void GribDataInfo::swap(GribDataInfo& other) noexcept{
+void GribProxyDataInfo::swap(GribProxyDataInfo& other) noexcept{
     std::swap(info_,other.info_);
 }
 #include "sys/error_print.h"
 #include "sections/section_1.h"
 using namespace std::string_literals;
 
-SublimedGribDataInfo GribDataInfo::sublime(){
+SublimedGribDataInfo GribProxyDataInfo::sublime(){
     SublimedGribDataInfo returned;
     sublimed_data_t result;
     for(auto& [path,path_data]:info_){
@@ -50,6 +50,7 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                 else
                     return lhs.date_time<rhs.date_time;   
             });
+            
             assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const IndexDataInfo<API::GRIB1>& lhs,const IndexDataInfo<API::GRIB1>& rhs)
             {
                 if(lhs.err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
@@ -59,6 +60,8 @@ SublimedGribDataInfo GribDataInfo::sublime(){
                 else
                     return lhs.date_time<rhs.date_time;   
             }));
+            auto iter = std::unique(data_seq.begin(),data_seq.end());
+            data_seq.erase(iter,data_seq.end());
             for(int i=0;i<data_seq.size();++i){
                 if(data_seq.at(i).err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
                     continue;

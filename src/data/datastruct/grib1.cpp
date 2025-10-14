@@ -116,7 +116,8 @@ std::vector<ptrdiff_t> Grib1Data::match(
                     pos_in_grid(pos,info.grid_data_.value()) &&
                     intervals_intersect(info.sequence_time_.interval_,time_interval))
                 {
-                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{info.sequence_time_.interval_.from_,info.sequence_time_.interval_.to_},info.sequence_time_.discret_);
+                    std::cout<<"From: "<<info.sequence_time_.interval_.from_<<"; to: "<<info.sequence_time_.interval_.to_<<" ; discret: "<<info.sequence_time_.discret_<<std::endl;
+                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{.from_=info.sequence_time_.interval_.from_,.to_=info.sequence_time_.interval_.to_},info.sequence_time_.discret_);
                     result.append_range(info.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
                 }
             }

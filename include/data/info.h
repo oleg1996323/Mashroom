@@ -35,12 +35,12 @@ using SublimedGribDataInfo = SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>;
 namespace fs = std::filesystem;
 
 template<Data_t TYPE,Data_f FORMAT>
-class DataInfo;
+class ProxyDataInfo;
 
-using GribDataInfo = DataInfo<Data_t::METEO,Data_f::GRIB>;
+using GribProxyDataInfo = ProxyDataInfo<Data_t::METEO,Data_f::GRIB>;
 
 template<>
-class DataInfo<Data_t::METEO,Data_f::GRIB>{
+class ProxyDataInfo<Data_t::METEO,Data_f::GRIB>{
     public:
     using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
     using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<GribSublimedDataInfoStruct>>>;
@@ -51,26 +51,27 @@ class DataInfo<Data_t::METEO,Data_f::GRIB>{
     friend class Integrity;
     friend class Extract;
     public:
-    DataInfo() =default;
-    DataInfo(const DataInfo& other):info_(other.info_){}
-    DataInfo(DataInfo&& other):info_(std::move(other.info_)){}
-    DataInfo(const data_t& info):
+    ProxyDataInfo() =default;
+    ProxyDataInfo(const ProxyDataInfo& other):info_(other.info_){}
+    ProxyDataInfo(ProxyDataInfo&& other):info_(std::move(other.info_)){}
+    ProxyDataInfo(const data_t& info):
     info_(info){}
-    DataInfo(data_t&& info):
+    ProxyDataInfo(data_t&& info):
     info_(std::move(info)){}
-    template<typename GCDI = IndexDataInfo<API::GRIB1>>
-    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,GCDI&& index_info){
-        if constexpr(std::is_same_v<std::vector<IndexDataInfo<API::GRIB1>>,std::decay_t<GCDI>>){
-            info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].append_range(std::forward<GCDI>(index_info));
-        }
-        else
-            info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(std::forward<GCDI>(index_info));
+    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,std::ranges::random_access_range auto&& index_info){
+            info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].append_range(std::forward<decltype(index_info)>(index_info));
+    }
+    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,IndexDataInfo<API::GRIB1>&& index_info){
+        info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(std::move(index_info));
+    }
+    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,const IndexDataInfo<API::GRIB1>& index_info){
+        info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(index_info);
     }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
     API::ErrorData::Code<API::GRIB1>::value error() const;
     const data_t& data() const;
-    void swap(DataInfo& other) noexcept;
+    void swap(ProxyDataInfo& other) noexcept;
     //void read(const fs::path& path);
     //void write(const fs::path& dir);
     SublimedGribDataInfo sublime();
@@ -150,7 +151,7 @@ class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>
             }
         }        
     }
-    void add_data(GribDataInfo& grib_data){
+    void add_data(GribProxyDataInfo& grib_data){
         add_data(grib_data.sublime());
     }
 };
@@ -224,12 +225,12 @@ namespace serialization{
 }
 
 //@todo make possible serialization
-static_assert(requires{requires std::ranges::range<GribDataInfo::sublimed_data_t>;});
+static_assert(requires{requires std::ranges::range<GribProxyDataInfo::sublimed_data_t>;});
 
 static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
 static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
-static_assert(requires {requires serialization::serialize_concept<true,std::optional<GribDataInfo::sublimed_data_t>>;});
-static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribDataInfo::sublimed_data_t>>;});
+static_assert(requires {requires serialization::serialize_concept<true,std::optional<GribProxyDataInfo::sublimed_data_t>>;});
+static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribProxyDataInfo::sublimed_data_t>>;});
 static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
 static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
 static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);

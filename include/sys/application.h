@@ -22,7 +22,7 @@ class Application{
     static std::string_view program_name();
     private:
 
-    // static std::unique_ptr<DataInfo> d_info_;
+    // static std::unique_ptr<ProxyDataInfo> d_info_;
 };
 
 inline std::unique_ptr<Application> Application::app_=std::make_unique<Application>();
