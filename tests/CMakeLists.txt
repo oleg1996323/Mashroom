@@ -12,3 +12,4 @@ target_link_libraries(Mashroom_data_test INTERFACE GIAPI PUBLIC GTest::gtest Mas
 message(STATUS "Current bin: ${CMAKE_CURRENT_BINARY_DIR}")
 gtest_discover_tests(Mashroom_serialize_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 gtest_discover_tests(Mashroom_messages_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+gtest_discover_tests(Mashroom_data_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

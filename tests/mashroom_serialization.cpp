@@ -67,7 +67,7 @@ TEST(Serialization, PathStorage){
     auto path_view = path::Storage<true>::file(path_tmp);
     std::vector<char> buf;
     ASSERT_EQ(serialize<true>(path_view,buf),SerializationEC::NONE);
-    ASSERT_EQ(serial_size(path_view),sizeof(size_t)+path_view.path_.size()+sizeof(path_view.type_));
+    ASSERT_EQ(serial_size(path_view),serial_size(path_view.add_)+path_view.path_.size()+sizeof(path_view.type_));
     {
         path::Storage<false> path;
         ASSERT_EQ(deserialize<true>(path,std::span<const char>(buf)),SerializationEC::NONE);

@@ -65,7 +65,8 @@ class Server:public CommonServer<ConnectionPool>{
 };
 
 class Client:public CommonClient<ProcessPing>{
-    virtual void after_connect(const Socket& sock){
+    virtual void after_connect(const Socket& sock) override{
+        sock.set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutIn)));
         std::cout<<"Connected to: ";
         sock.print_address_info(std::cout);
     }
