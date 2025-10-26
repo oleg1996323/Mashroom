@@ -13,19 +13,19 @@ namespace network::server{
     constexpr int min_timeout_seconds = 1;
     Config get_default_server_config(){
         Config config_;
-        config_.settings_.host="10.10.10.10";
-        config_.settings_.service="32396";
-        config_.settings_.protocol=static_cast<network::Protocol>(getprotobyname("tcp")->p_proto);
+        config_.settings_.host_="10.10.10.10";
+        config_.settings_.service_="32396";
+        config_.settings_.protocol_=static_cast<network::Protocol>(getprotobyname("tcp")->p_proto);
         config_.settings_.timeout_seconds_ = 20;
         config_.name_ = "default";
         return config_;
     }
     Config::operator bool() const{
-        return !settings_.host.empty() && (!settings_.service.empty() || !settings_.port>0) && !(settings_.protocol<0) && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
+        return !settings_.host_.empty() && (!settings_.service_.empty() || !settings_.port_>0) && !(settings_.protocol_<0) && settings_.timeout_seconds_>=min_timeout_seconds && !name_.empty();
     }
     void Config::print_server_config(std::ostream& stream) const{
         stream<<"Server config name: \""<<name_<<"\""<<std::endl;
-        stream<<"Host: \'"<<settings_.host<<"\' service: \'"<<settings_.service<<"\' port: \'"<<settings_.port<<"\' protocol: \'"<<settings_.protocol<<"\' timeout: "<<settings_.timeout_seconds_<<" seconds"<<std::endl;
+        stream<<"Host: \'"<<settings_.host_<<"\' service: \'"<<settings_.service_<<"\' port: \'"<<settings_.port_<<"\' protocol: \'"<<settings_.protocol_<<"\' timeout: "<<settings_.timeout_seconds_<<" seconds"<<std::endl;
         stream<<"Accepted addresses: ";
         auto joined = accepted_addresses_ | std::views::join_with(';');
         for (char addr : joined)

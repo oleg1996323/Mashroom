@@ -4,3 +4,6 @@
 [submodule "external/eccodes"]
 	path = external/eccodes
 	url = git@github.com:ecmwf/eccodes.git
+[submodule "/home/oster/Mashroom/external/external/eccodes"]
+	path = /home/oster/Mashroom/external/external/eccodes
+	url = https://github.com/ecmwf/eccodes.git

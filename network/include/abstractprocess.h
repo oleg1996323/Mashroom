@@ -38,6 +38,10 @@ class AbstractProcess{
         thread.request_stop();
     }
     public:
+    void throw_if_ready_and_error(){
+        if(__ready__())
+            future.get();
+    }
     void after_execution(){
         return after_execution_protected();
     }
@@ -65,8 +69,10 @@ class AbstractProcess{
     }
     bool wait(int timeout_sec){
         if(timeout_sec<0){
-            if(thread.joinable())
+            if(thread.joinable()){
+                std::cout<<"Join thread"<<std::endl;
                 thread.join();
+            }
             future.wait();
             return true;
         }
@@ -100,18 +106,6 @@ constexpr decltype(auto) capture_arg(T&& v)
         return std::reference_wrapper<std::remove_reference_t<T>>(v);
     else return std::forward<T>(v);
 }
-
-// template<typename T>
-// struct IsReferenceWrapper:std::false_type{};
-
-// template<typename T>
-// struct IsReferenceWrapper:std::true_type{
-//     using decay = std::decay_t<T>
-//     typename T::type;
-//     static_assert(std::is_same_v<
-//                       decay,
-//                       std::reference_wrapper<typename decay::type>>);
-// };
 
 template<typename T>
 concept is_reference_wrapper = requires (const T&){

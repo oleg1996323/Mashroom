@@ -30,8 +30,8 @@ TEST(Serialization, SublimedInfo){
     scan.points_sub_i_dir = true;
     scan.points_sub_j_dir = false;
     grid_def.base_.scan_mode = scan;
-    GribSublimedDataInfoStruct data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
-                        .discret_=system_clock::duration((data.sequence_time_.interval_.to_-data.sequence_time_.interval_.from_)/data.buf_pos_.size())}};
+    GribSublimedDataInfoStruct data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = TimeSequence(utc_tp(sys_days(1991y/1/1d)),system_clock::now(),
+                        system_clock::duration((data.sequence_time_.get_interval().to()-data.sequence_time_.get_interval().from())/data.buf_pos_.size()))};
 
     {
         GribSublimedDataInfoStruct to_check;
@@ -117,8 +117,8 @@ TEST(Serialization,SublimedGribDataInfo){
         for(int j=0;j<10;++j){
             auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
             for(int m=0;m<10;++m){
-                GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_{.interval_{.from_=utc_tp(sys_days(1991y/1/1d)),.to_=system_clock::now()},
-                        .discret_=system_clock::duration((sub_data.sequence_time_.interval_.to_-sub_data.sequence_time_.interval_.from_)/sub_data.buf_pos_.size())}};
+                GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = TimeSequence(utc_tp(sys_days(1991y/1/1d)),system_clock::now(),
+                        system_clock::duration((sub_data.sequence_time_.get_interval().to()-sub_data.sequence_time_.get_interval().from())/sub_data.buf_pos_.size()))};
                 vector_seq.push_back(std::move(sub_data));
             }
         }

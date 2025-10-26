@@ -34,6 +34,9 @@ namespace network{
         MessageProcess(MessageProcess<S>&& other) noexcept{
             *this=std::move(other);
         }
+        ~MessageProcess(){
+            std::cout<<"MessageProcess deleted"<<std::endl;
+        }
         MessageProcess<S>& operator=(const MessageProcess<S>&) = delete;
         MessageProcess<S>& operator=(MessageProcess<S>&& other) noexcept{
             if(this!=&other){
@@ -45,12 +48,24 @@ namespace network{
         template<auto T>
         requires MessageEnumConcept<T>
         ErrorCode __send__(const Socket& sock) noexcept{
+            hmsg_.buffer().clear();
             if(!hmsg_.has_message())
                 return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"not message",AT_ERROR_ACTION::CONTINUE);
+            if(serialization::SerializationEC err = serialization::serialize_network(static_cast<uint64_t>(serialization::serial_size(hmsg_)),hmsg_.buffer());
+                    err!=serialization::SerializationEC::NONE)
+                return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
+            std::cout<<serialization::serial_size(hmsg_)<<" data_size"<<std::endl;
             if(serialization::SerializationEC err = serialization::serialize_network(hmsg_,hmsg_.buffer());
                     err!=serialization::SerializationEC::NONE)
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"serialization",AT_ERROR_ACTION::CONTINUE);
-            return send(sock,hmsg_.buffer())==-1?ErrorCode::SENDING_MESSAGE_ERROR:ErrorCode::NONE;
+            auto err = send(sock,hmsg_.buffer())==-1?ErrorCode::SENDING_MESSAGE_ERROR:ErrorCode::NONE;
+            if(hmsg_.buffer().size()>100){
+                std::ofstream out("/home/oster/Mashroom/sent.txt",std::ofstream::trunc|std::ofstream::out);
+                for(int i = 0;i<100;++i)
+                    out<<static_cast<int>(hmsg_.buffer().at(i))<<" ";
+                out.flush();
+            }
+            return err;
         }
         template<auto MSG_T>
         requires MessageEnumConcept<MSG_T>
@@ -113,174 +128,76 @@ namespace network{
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     inline ErrorCode MessageProcess<S>::__receive_and_define_message__(const Socket& sock) noexcept{
-        decltype(auto) buffer = recv_hmsg_.buffer();
+        std::vector<char> buffer;
         buffer.clear();
-        buffer.resize(MessageBase<MSG_T>::min_required_defining_size());
-        if(receive(sock,buffer,MessageBase<MSG_T>::min_required_defining_size())==-1)
+        buffer.resize(sizeof(uint64_t));
+        if(receive(sock,buffer,buffer.size())==-1){
+            recv_hmsg_.buffer().swap(buffer);
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+        }
         else{
-            if(auto res = Message<MSG_T>::template data_size_from_buffer<true>(std::span<const char>(buffer));!res.has_value())
+            if(auto res = Message<MSG_T>::template data_size_from_buffer<true>(std::span<const char>(buffer));!res.has_value()){
+                recv_hmsg_.buffer().swap(buffer);
                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
+            }
             else{
                 buffer.resize(res.value());
-                if(receive(sock,buffer,buffer.size())==-1)
+                if(receive(sock,buffer,buffer.size())){
+                    recv_hmsg_.buffer().swap(buffer);
                     return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+                }
                 else {
                     serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
-                    if(code!=serialization::SerializationEC::NONE)
+                    if(code!=serialization::SerializationEC::NONE){
+                        recv_hmsg_.buffer().swap(buffer);
                         return ErrorCode::DESERIALIZATION_ERROR;
-                    else return ErrorCode::NONE;
+                    }
+                    else{
+                        recv_hmsg_.buffer().swap(buffer);
+                        return ErrorCode::NONE;
+                    }
                 }
             }
         }
+        
     }
 
     template<Side S>
     inline ErrorCode MessageProcess<S>::__receive_and_define_any_message__(const Socket& sock) noexcept{
         using namespace serialization;
-        auto& buffer = recv_hmsg_.buffer();
-        size_t head_data = undefined_msg_type_min_required_size<sent_from<S>()>()+sizeof(size_t);
-        buffer.clear();
-        buffer.resize(head_data);
-        if(receive(sock,buffer,head_data)==-1)
+        std::vector<char> buffer;
+        buffer.resize(sizeof(uint64_t));
+        if(receive(sock,buffer,buffer.size())==-1){
+            recv_hmsg_.buffer().swap(buffer);
             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
+        }
         else{
             uint64_t data_sz=0;
-            if(serialization::deserialize_network(data_sz,std::span<const char>(buffer).subspan(sizeof(size_t)))!=serialization::SerializationEC::NONE)
+            if(serialization::deserialize_network(data_sz,std::span<const char>(buffer))!=serialization::SerializationEC::NONE){
+                recv_hmsg_.buffer().swap(buffer);
                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message. Cannot define message size",AT_ERROR_ACTION::CONTINUE);
-            buffer.resize(head_data+data_sz);
-            std::cout<<"Buffer increased by "<<data_sz<<" bytes"<<std::endl;
-            std::cout<<"Receiving full message"<<std::endl;
-            if(receive(sock,std::views::drop(buffer,head_data),data_sz)==-1)
+            }
+            std::cout<<"Buffer increased by "<<data_sz<<std::endl;
+            buffer.clear();
+            buffer.resize(data_sz,0);
+            if(receive(sock,buffer,buffer.size())==-1){
+                recv_hmsg_.buffer().swap(buffer);
                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-            if(serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer))!=serialization::SerializationEC::NONE)
+            }
+            if(buffer.size()>100){
+                std::ofstream out("/home/oster/Mashroom/recv.txt",std::ofstream::trunc|std::ofstream::out);
+                for(int i = 0;i<100;++i)
+                    out<<static_cast<int>(buffer.at(i))<<" ";
+                out.flush();
+            }
+            if(serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer))!=serialization::SerializationEC::NONE){
+                recv_hmsg_.buffer().swap(buffer);
                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message. Cannot define message type/structure",AT_ERROR_ACTION::CONTINUE);
-            else return ErrorCode::NONE;
-            // if(auto res = recv_hmsg_.template data_size_from_buffer<true>();!res.has_value()){
-            //     return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"invalid message",AT_ERROR_ACTION::CONTINUE);
-            // }
-            // else {
-            //     buffer.resize(res.value());
-            //     if(receive(sock,buffer,buffer.size())==-1)
-            //         return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-            // }
-            // serialization::SerializationEC code = serialization::deserialize_network(recv_hmsg_,std::span<const char>(buffer));
-            // if(code!=serialization::SerializationEC::NONE)
-            //     return ErrorCode::DESERIALIZATION_ERROR;
-            // else return ErrorCode::NONE;
+            }
+            else{
+                recv_hmsg_.buffer().swap(buffer);
+                return ErrorCode::NONE;
+            }
         }
     }
-
-    // /// @brief 
-    // /// @param sock socket
-    // /// @param status server status
-    // /// @param err error code
-    // /// @return 
-    // template<>
-    // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::ERROR>(Socket sock,ErrorCode err,server::Status status){
-    //     if(ErrorCode err = hmsg_.emplace_message<network::Server_MsgT::ERROR>(err_);err!=ErrorCode::NONE){
-    //         hmsg_.clear();
-    //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     else
-    //         return __send__<network::Server_MsgT::ERROR>(sock);
-    // }
-
-    // /// @brief 
-    // /// @param sock socket
-    // /// @param status server status
-    // /// @param err error code
-    // /// @return 
-    // template<>
-    // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::SERVER_STATUS>(Socket sock,server::Status status){
-    //     if(ErrorCode err = hmsg_.emplace_message<network::Server_MsgT::SERVER_STATUS>(status);err!=ErrorCode::NONE){
-    //         hmsg_.clear();
-    //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     else return __send__<network::Server_MsgT::SERVER_STATUS>(sock);
-    // }
-
-    // template<>
-    // template<>
-    // inline ErrorCode MessageProcess<Side::CLIENT>::send_message<network::Client_MsgT::TRANSACTION>(Socket sock, Transaction transaction)
-    // {
-    //     err_ = hmsg_.emplace_message<network::Client_MsgT::TRANSACTION>(transaction);
-    //     if(err_!=ErrorCode::NONE){
-    //         hmsg_.clear();
-    //         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"creation error message",AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     else return __send__<network::Client_MsgT::TRANSACTION>(sock);
-    // }
-
-    template<>
-    template<>
-    inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(
-                Socket sock,
-                server::Status status,
-                const fs::path& path,
-                uint64_t offset,
-                uint64_t size)
-    noexcept {
-        hmsg_.emplace_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(status,path,offset,size);
-        serialization::SerializationEC code = serialization::serialize_network(hmsg_,hmsg_.buffer());
-        if(send(sock,std::span<const char>(hmsg_.buffer()))==-1){
-            if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-                return ErrorPrint::print_error(err_,"",AT_ERROR_ACTION::CONTINUE);
-            return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-        }
-    }
-
-    // /// @brief 
-    // /// @details Send header with file information. If accepted by client, the file will be sent by parts.
-    // /// @param sock socket
-    // /// @param status server status
-    // /// @param chunk part of file data by message
-    // /// @param path path destination of file
-    // /// @return success or failure of sending
-    // template<>
-    // template<>
-    // inline ErrorCode MessageProcess<Side::SERVER>::send_message<network::Server_MsgT::DATA_REPLY_FILEPART>(
-    //                 Socket sock,
-    //                 server::Status status,
-    //                 uint32_t chunk,
-    //                 const fs::path& path,
-    //                 uint64_t offset,
-    //                 uint64_t size)
-    // {
-    //     if(err_ = send_message<network::Server_MsgT::DATA_REPLY_FILEINFO>(sock,status,path,offset,size); err_!=ErrorCode::NONE){
-    //         if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-    //             close(sock);
-    //         return ErrorPrint::print_error(ErrorCode::SENDING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     if(err_ = receive_message<network::Client_MsgT::TRANSACTION>(sock);err_!=ErrorCode::NONE){
-    //         if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-    //             close(sock);
-    //         return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     assert(recv_hmsg_.msg_type() == Client_MsgT::TRANSACTION);
-    //     auto& transaction_ = recv_hmsg_.get<network::Client_MsgT::TRANSACTION>();
-    //     if(transaction_.additional_.op_status_==Transaction::ACCEPT){
-    //         SendingFileInstance Ifile(path,chunk,offset);
-    //         if(Ifile.err_!=ErrorCode::NONE){
-    //             if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-    //                 close(sock);
-    //             return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-    //         }
-    //         else{
-    //             for(;next_chunk(Ifile) && Ifile.err_==ErrorCode::NONE;){
-    //                 //previously send file-part info
-    //                 send(sock,std::span<const char>(Ifile.from_mapping_,Ifile.from_mapping_+Ifile.chunk_));
-    //             }
-    //             if(Ifile.err_!=ErrorCode::NONE){
-    //                 if(err_ = send_message<network::Server_MsgT::ERROR>(sock,err_,server::Status::READY); err_!=ErrorCode::NONE)
-    //                     close(sock);
-    //                 return ErrorPrint::print_error(ErrorCode::RECEIVING_MESSAGE_ERROR,"",AT_ERROR_ACTION::CONTINUE);
-    //             }
-    //             else return ErrorCode::NONE;
-    //         }
-    //     }
-    //     else return ErrorPrint::print_error(ErrorCode::TRANSACTION_REFUSED,"",AT_ERROR_ACTION::CONTINUE);
-    // }
 }

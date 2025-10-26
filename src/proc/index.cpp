@@ -167,20 +167,25 @@ void Index::execute() noexcept{
 						return;
 					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(-1);
 					for(auto& block:msg_reply.additional().blocks_){
-						auto add_data = [&path](auto& block){
+						auto add_data = [&path](auto&& block){
 							using decay = std::decay_t<decltype(block)>;
 							if constexpr(std::is_same_v<decay,std::monostate>)
 								return;
 							else if constexpr (std::is_same_v<decay,std::variant_alternative_t<1,IndexResult>>){
 								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>::sublimed_data_t d;
-								auto& host_data = d[path::Storage<false>(path.path_,path::TYPE::HOST)];
-								for(auto& [cmn,sublimed]:block.data_)
-									host_data[std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(cmn)] = sublimed;
+								auto& host_data = d[path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now())];
+								for(auto& [cmn,sublimed]:block.data_){
+									std::decay_t<decltype(host_data)>::iterator found = host_data.find(cmn);
+									if(found!=host_data.end())
+										found->second=sublimed;
+									else host_data[std::make_shared<std::decay_t<decltype(host_data)>::key_type::element_type>(cmn)] = sublimed;
+								}
 								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB> msg_data;
-								msg_data.add_data(d);
+								msg_data.add_data(std::move(d));
 								Mashroom::instance().data().add_data(std::move(msg_data));
 							}
 						};
+						std::visit(add_data,block);
 					}
 					if(host_ref_only){
 						//@download filepart

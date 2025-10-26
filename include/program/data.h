@@ -23,7 +23,7 @@ using namespace std::string_literals;
 namespace fs = std::filesystem;
 class Data:public __Data__{
     protected:
-    std::unordered_set<std::unique_ptr<AbstractDataStruct>> datas_;
+    mutable std::unordered_set<std::unique_ptr<AbstractDataStruct>> datas_;
     std::set<Data_f> unsaved_;
     std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
@@ -38,6 +38,8 @@ class Data:public __Data__{
 
     template <size_t I>
     void __write_all__();
+    //@todo make private
+    public:
     template<Data_t T,Data_f F>
     DataStruct<T,F>& data_struct(){
         decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
@@ -71,8 +73,10 @@ class Data:public __Data__{
     template<Data_t T,Data_f F>
     const DataStruct<T,F>& data_struct() const{
         decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
-        assert(found!=datas_.end());
-        return *dynamic_cast<const DataStruct<T,F>*>(found->get());
+        if(found!=datas_.end())
+            return *dynamic_cast<const DataStruct<T,F>*>(found->get());
+        else
+            return *dynamic_cast<const DataStruct<T,F>*>(datas_.insert(std::make_unique<DataStruct<T,F>>()).first->get());
     }
     const std::unordered_map<Data_f,fs::path>& written_files() const{
         return files_;
@@ -94,6 +98,17 @@ class Data:public __Data__{
         return data_struct<T,F>(std::forward<ARGS>(args)...);
     }
 
+    DataStruct<Data_t::METEO,Data_f::GRIB>::match_data_t match_data(
+        Organization center,
+        std::optional<TimeFrame> time_fcst,
+        const std::unordered_set<SearchParamTableVersion>& parameters,
+        TimeInterval time_interval,
+        RepresentationType rep_t,
+        Coord pos
+    ){
+        return data_struct<Data_t::METEO,Data_f::GRIB>().match_data(center,time_fcst,parameters,time_interval,rep_t,pos);
+    }
+
     DataStruct<Data_t::METEO,Data_f::GRIB>::match_t match(
         path::Storage<true> path,
         Organization center,
@@ -111,6 +126,13 @@ class Data:public __Data__{
         ARGS&&... args
     ) const{
         return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
+    }
+
+    DataStruct<Data_t::METEO,Data_f::GRIB>::find_all_t find_all(std::optional<RepresentationType> grid_type_,
+    std::optional<TimeSequence> time_,
+    std::optional<TimeFrame> forecast_preference_,
+    utc_tp last_update_) const{
+        return data_struct<Data_t::METEO,Data_f::GRIB>().find_all(grid_type_,time_,forecast_preference_,last_update_);
     }
 
     template<Data_t T, Data_f F>

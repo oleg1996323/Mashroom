@@ -84,8 +84,8 @@ enum class Organization:int{
   UK_MOE_1=75,
   Moscow_2=76,
   Reserved_77=77,
-  Offenbach=78,
-  Offenbach_1=79,
+  DWD=78,
+  DWD_1=79,
   Rome=80,
   Rome_1=81,
   Norrköping=82,
@@ -502,11 +502,11 @@ case Organization::Moscow_2:
 case Organization::Reserved_77:
      return "Reserved";
      break;
-case Organization::Offenbach:
-     return "Offenbach";
+case Organization::DWD:
+     return "DWD";
      break;
-case Organization::Offenbach_1:
-     return "Offenbach";
+case Organization::DWD_1:
+     return "DWD";
      break;
 case Organization::Rome:
      return "Rome";
@@ -1280,10 +1280,10 @@ case Organization::Moscow_2:
 case Organization::Reserved_77:
      return "Reserved";
      break;
-case Organization::Offenbach:
+case Organization::DWD:
      return "Offenbach (RSMC)";
      break;
-case Organization::Offenbach_1:
+case Organization::DWD_1:
      return "Offenbach (RSMC)";
      break;
 case Organization::Rome:
@@ -1977,10 +1977,10 @@ if(abbr=="Moscow_2")
      return Organization::Moscow_2;
 if(abbr=="Reserved_77")
      return Organization::Reserved_77;
-if(abbr=="Offenbach")
-     return Organization::Offenbach;
-if(abbr=="Offenbach_1")
-     return Organization::Offenbach_1;
+if(abbr=="DWD")
+     return Organization::DWD;
+if(abbr=="DWD_1")
+     return Organization::DWD_1;
 if(abbr=="Rome")
      return Organization::Rome;
 if(abbr=="Rome_1")

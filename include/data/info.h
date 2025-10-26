@@ -43,7 +43,7 @@ template<>
 class ProxyDataInfo<Data_t::METEO,Data_f::GRIB>{
     public:
     using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
-    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<GribSublimedDataInfoStruct>>>;
+    using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::deque<GribSublimedDataInfoStruct>>>;
     protected:
     data_t info_;
     API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
@@ -84,7 +84,7 @@ class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>
 {
     public:
     using sublimed_data_t = std::unordered_map<path::Storage<false>,
-    std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>;
+    std::map<std::shared_ptr<Grib1CommonDataProperties>,std::deque<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>;
     template<bool,auto>
     friend struct serialization::Serialize;
     template<bool,auto>

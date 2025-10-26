@@ -17,12 +17,11 @@ struct SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>
     std::vector<ptrdiff_t> buf_pos_;
     //TODO: make sorted by date-time vector with buf_pos and date-time
     //erase discret and to. Make representation_type instead of GridInfo (very hard)
-    TimeSequence sequence_time_ = {.interval_={.from_=utc_tp::max(),.to_=utc_tp::min()},.discret_=std::chrono::system_clock::duration(0)};
+    TimeSequence sequence_time_ = TimeSequence(utc_tp::max(),utc_tp::min(),std::chrono::system_clock::duration(0));
     bool operator==(const SublimedDataInfoStruct& other) const noexcept{
         if(this==&other)
             return true;
-        return grid_data_==other.grid_data_ && buf_pos_==other.buf_pos_ && sequence_time_.interval_.from_==other.sequence_time_.interval_.from_ && 
-        sequence_time_.interval_.to_ == other.sequence_time_.interval_.to_ && sequence_time_.discret_==other.sequence_time_.discret_;
+        return grid_data_==other.grid_data_ && buf_pos_==other.buf_pos_ && sequence_time_==other.sequence_time_;
     }
     bool operator!=(const SublimedDataInfoStruct& other) const noexcept{
         return !(*this==other);

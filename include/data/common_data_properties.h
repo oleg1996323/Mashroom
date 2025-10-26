@@ -7,7 +7,7 @@
 #include "code_tables/table_0.h"
 #include <variant>
 #include <memory>
-
+#include <bitset>
 #include "data/def.h"
 template<Data_t TYPE,Data_f FORMAT>
 struct CommonDataProperties;
@@ -17,10 +17,10 @@ using Grib1CommonDataProperties = CommonDataProperties<Data_t::METEO,Data_f::GRI
 template<>
 struct CommonDataProperties<Data_t::METEO,Data_f::GRIB>
 {
-    std::optional<TimeFrame> fcst_unit_ ={};
-    std::optional<Organization> center_ = Organization::WMO;
-    std::optional<uint8_t> table_version_ = 0;
-    std::optional<uint8_t> parameter_ = 0;
+    std::optional<TimeFrame> fcst_unit_;
+    std::optional<Organization> center_;
+    std::optional<uint8_t> table_version_;
+    std::optional<uint8_t> parameter_;
 
     CommonDataProperties(std::optional<Organization> center,std::optional<uint8_t> table_version,std::optional<TimeFrame> fcst_unit,std::optional<uint8_t> parameter):
     center_(center),table_version_(table_version),fcst_unit_(fcst_unit),parameter_(parameter){}
@@ -29,26 +29,47 @@ struct CommonDataProperties<Data_t::METEO,Data_f::GRIB>
         return center_==other.center_ && table_version_==other.table_version_ && fcst_unit_==other.fcst_unit_ && parameter_==other.parameter_;
     }
 
-    static size_t hash(  const std::optional<Organization>& center,
-                                        const std::optional<TimeFrame>& fcst_unit = {},
-                                        const std::optional<uint8_t>& table_version = {},
-                                        const std::optional<uint8_t>& parameter = {})
+static size_t hash(  const std::optional<Organization>& center,
+                                        const std::optional<TimeFrame>& fcst_unit,
+                                        const std::optional<uint8_t>& table_version,
+                                        const std::optional<uint8_t>& parameter)
     {
-        return  center.has_value()?std::underlying_type_t<Organization>(center.value())<<24:std::numeric_limits<std::underlying_type_t<Organization>>::min()<<24+
-                fcst_unit.has_value()?std::underlying_type_t<TimeFrame>(fcst_unit.value())<<16:std::numeric_limits<std::underlying_type_t<TimeFrame>>::min()<<16+
-                table_version.has_value()?table_version.value()<<8:std::numeric_limits<uint8_t>::min()<<8+
-                parameter.has_value()?parameter.value():std::numeric_limits<uint8_t>::min();
+        size_t hash = 0;
+        if(center.has_value())
+            hash|=static_cast<uint64_t>(center.value())<<24;
+        else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<24;
+        if(fcst_unit.has_value())
+            hash|=static_cast<uint64_t>(fcst_unit.value())<<16;
+        else hash|=(static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeFrame>>::max())<<16);
+        if(table_version.has_value())
+            hash|=(static_cast<uint64_t>(table_version.value())<<8);
+        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<8);
+        if(parameter.has_value())
+            hash|=parameter.value();
+        else hash|=std::numeric_limits<uint8_t>::max();
+        return hash;
     }
 
+    //@brief Designated for search by hash the upper-bound in sorted range
     static size_t max_definitive_hash(  const std::optional<Organization>& center,
-                                        const std::optional<TimeFrame>& fcst_unit = {},
-                                        const std::optional<uint8_t>& table_version = {},
-                                        const std::optional<uint8_t>& parameter = {})
+                                        const std::optional<TimeFrame>& fcst_unit,
+                                        const std::optional<uint8_t>& table_version,
+                                        const std::optional<uint8_t>& parameter)
     {
-        return  center.has_value()?std::underlying_type_t<Organization>(center.value())<<24:std::numeric_limits<std::underlying_type_t<Organization>>::max()<<24+
-                fcst_unit.has_value()?std::underlying_type_t<TimeFrame>(fcst_unit.value())<<16:std::numeric_limits<std::underlying_type_t<TimeFrame>>::max()<<16+
-                table_version.has_value()?table_version.value()<<8:std::numeric_limits<uint8_t>::max()<<8+
-                parameter.has_value()?parameter.value():std::numeric_limits<uint8_t>::max();
+        uint64_t hash = 0;
+        if(center.has_value())
+            hash|=static_cast<uint64_t>(center.value())<<24;
+        else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<24;
+        if(fcst_unit.has_value())
+            hash|=static_cast<uint64_t>(fcst_unit.value())<<16;
+        else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeFrame>>::max())<<16;
+        if(fcst_unit.has_value())
+            hash|=static_cast<uint64_t>(table_version.value())<<8;
+        else hash|=static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<8;
+        if(fcst_unit.has_value())
+            hash|=static_cast<uint64_t>(parameter.value());
+        else hash|=static_cast<uint64_t>(std::numeric_limits<uint8_t>::max());
+        return hash;
     }
 
     size_t max_definitive_hash() const
@@ -64,12 +85,12 @@ struct CommonDataProperties<Data_t::METEO,Data_f::GRIB>
     bool operator<(const std::shared_ptr<CommonDataProperties>& other) const{
         if(other)
             return this->hash()<other->hash();
-        else return false;
+        else return true;
     }
     bool operator>(const std::shared_ptr<CommonDataProperties>& other) const{
         if(other)
             return this->hash()>other->hash();
-        else return true;
+        else return false;
     }
 
     bool operator<(const CommonDataProperties& other) const{
@@ -87,28 +108,23 @@ template<>
 struct std::less<std::shared_ptr<Grib1CommonDataProperties>>{
     using is_transparent = std::true_type;
     bool operator()(const Grib1CommonDataProperties& lhs,const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
-        return lhs<rhs;
+        return lhs<(*rhs);
     }
     bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs,const Grib1CommonDataProperties& rhs) const{
-        return rhs>lhs;
+        return rhs>(*lhs);
     }
     bool operator()(const std::shared_ptr<Grib1CommonDataProperties>& lhs,const std::shared_ptr<Grib1CommonDataProperties>& rhs) const{
-        return lhs?(rhs?lhs->hash()<rhs->hash():false):true;
+        if(lhs)
+            return (*lhs)<(*rhs);
+        else
+            return true;
     }
 };
 
 template<>
 struct std::hash<Grib1CommonDataProperties>{
     size_t operator()(const Grib1CommonDataProperties& cs) const{
-        size_t result = std::hash<size_t>{}(static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24);
-        result+=std::hash<size_t>{}(static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16);
-        result+=std::hash<size_t>{}(static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8);
-        result+=std::hash<size_t>{}(cs.parameter_.has_value()?cs.parameter_.value():0);
-        return result;
-        return std::hash<size_t>{}((static_cast<size_t>(cs.center_.has_value()?cs.center_.value():Organization::Undefined)<<24)+
-        (static_cast<size_t>(cs.table_version_.has_value()?cs.table_version_.value():0)<<16)+
-        (static_cast<size_t>(cs.fcst_unit_.has_value()?cs.fcst_unit_.value():0)<<8)+
-        cs.parameter_.has_value()?cs.parameter_.value():0);
+        return cs.hash();
     }
 };
 #include <memory>

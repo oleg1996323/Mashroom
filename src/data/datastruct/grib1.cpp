@@ -35,6 +35,7 @@ void Grib1Data::add_data(SublimedGribDataInfo&& grib_data){
     }
 }
 
+//match data and return files and corresponding sublimed data
 std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::match_data(
     Organization center,
     std::optional<TimeFrame> time_fcst,
@@ -53,7 +54,7 @@ std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::ma
         }
     }
     for(const auto& [date_interval,seq_fn]:by_date_){
-        if(!intervals_intersect(time_interval,date_interval.interval_))
+        if(!intervals_intersect(time_interval,date_interval.get_interval()))
             for(auto fn:seq_fn){
                 result.erase(fn);
             }
@@ -75,15 +76,16 @@ std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::ma
                 for(const auto& d:data){
                     if(d.grid_data_.has_value() && 
                         d.grid_data_.value().type()==rep_t && 
-                        intervals_intersect(d.sequence_time_.interval_.from_,d.sequence_time_.interval_.to_,time_interval.from_,time_interval.to_) && 
+                        intervals_intersect(d.sequence_time_.get_interval().from(),d.sequence_time_.get_interval().to(),time_interval.from(),time_interval.to()) && 
                         pos_in_grid(pos,d.grid_data_.value()))
                     {
                         std::cout<<" "<<std::string_view(parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name)<<std::flush;
-                        auto beg_end = interval_intersection_pos(time_interval,d.sequence_time_.interval_,d.sequence_time_.discret_);
-                        ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
-                        ptrs.sequence_time_.interval_.from_ = d.sequence_time_.interval_.from_;
-                        ptrs.sequence_time_.interval_.to_ = d.sequence_time_.interval_.to_;
-                        ptrs.sequence_time_.discret_ = d.sequence_time_.discret_;
+                        auto beg_end = interval_intersection_pos(time_interval,TimeSequence(d.sequence_time_.get_interval().from(),d.sequence_time_.get_interval().to(),d.sequence_time_.discret()));
+                        if(beg_end.has_value())
+                            ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end->first)|std::views::take(beg_end->second-beg_end->first+1));
+                        auto interseq_interval = interval_intersection(d.sequence_time_.get_interval(),time_interval);
+                        assert(interseq_interval.has_value());
+                        ptrs.sequence_time_ = std::move(TimeSequence(interseq_interval->from(),interseq_interval->to(),d.sequence_time_.discret()));
                         ptrs.grid_data_ = d.grid_data_;
                     }
                 }
@@ -92,6 +94,7 @@ std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::ma
     return result;
 }
 
+//match data by specified file
 std::vector<ptrdiff_t> Grib1Data::match(
         path::Storage<true> path,
         Organization center,
@@ -114,11 +117,11 @@ std::vector<ptrdiff_t> Grib1Data::match(
                 if(info.grid_data_.has_value() &&
                     info.grid_data_.value().type()==rep_t &&
                     pos_in_grid(pos,info.grid_data_.value()) &&
-                    intervals_intersect(info.sequence_time_.interval_,time_interval))
+                    intervals_intersect(info.sequence_time_.get_interval(),time_interval))
                 {
-                    std::cout<<"From: "<<info.sequence_time_.interval_.from_<<"; to: "<<info.sequence_time_.interval_.to_<<" ; discret: "<<info.sequence_time_.discret_<<std::endl;
-                    auto beg_end = interval_intersection_pos(time_interval,TimeInterval{.from_=info.sequence_time_.interval_.from_,.to_=info.sequence_time_.interval_.to_},info.sequence_time_.discret_);
-                    result.append_range(info.buf_pos_|std::views::drop(beg_end.first)|std::views::take(beg_end.second-beg_end.first));
+                    auto beg_end = interval_intersection_pos(time_interval,TimeSequence(info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to(),info.sequence_time_.discret()));
+                    if(beg_end.has_value())
+                        result.append_range(std::move(info.buf_pos_|std::views::drop(beg_end->first)|std::views::take(beg_end->second-beg_end->first+1)));
                 }
             }
         }
@@ -135,20 +138,25 @@ FoundSublimedDataInfo<Data_t::METEO,Data_f::GRIB> Grib1Data::find_all(std::optio
     for(const auto& [path,dat]:this->sublimed_.data()){
         if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>=last_update_){
             Grib1CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt);
-            if(auto begin = dat.lower_bound(searched); begin!=dat.end()){
-                for(const auto& [cmn,sublimed]:std::ranges::subrange(begin,dat.upper_bound(searched))){
-                    if(time_){
-                        for(auto& sub:sublimed){
-                            if( auto instersection = interval_intersection(time_->interval_,sub.sequence_time_.interval_);
-                                instersection.has_value())
-                                result[*cmn].push_back(sub);
-                            else continue;
-                        }
+            auto filtered = std::views::filter(dat,[&](const std::decay_t<decltype(dat)>::value_type& cmn){
+                return cmn.first && forecast_preference_?cmn.first->fcst_unit_==forecast_preference_:true;
+            });
+            for(const auto& [cmn,sublimed_deque]:filtered){
+                if(time_){
+                    for(auto& sub:sublimed_deque){
+                        if( auto intersection = interval_intersection(time_->get_interval(),sub.sequence_time_.get_interval());
+                            intersection.has_value())
+                            result[*cmn].push_back(sub);
+                        else continue;
                     }
-                    else result[*cmn].insert_range(result[*cmn].begin(),sublimed);
+                }
+                else {
+                    auto& sub_deq_res = result[*cmn];
+                    sub_deq_res.resize(sub_deq_res.size()+sublimed_deque.size());
+                    for(int id = 0;id<sublimed_deque.size();++id)
+                        sub_deq_res[sub_deq_res.size()-sublimed_deque.size()+id]=sublimed_deque[id];
                 }
             }
-            else continue;
         }
         else continue;
     }

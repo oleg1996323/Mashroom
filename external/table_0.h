@@ -859,9 +859,9 @@ inline const char* center_to_abbr(Organization center){
     case Organization::Moscow_RSMC_2:
         return "Moscow";
     case Organization::DWD:
-        return "Offenbach";
+        return "DWD";
     case Organization::DWD_1:
-        return "Offenbach";
+        return "DWD";
     case Organization::Rome_RSMC:
         return "Rome";
     case Organization::Rome_RSMC_1:

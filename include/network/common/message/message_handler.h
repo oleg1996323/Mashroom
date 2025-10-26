@@ -178,6 +178,12 @@ namespace network{
             else return false;
         }
 
+        MESSAGE_ID<S> message_type(){
+            if(has_message())
+                return static_cast<MESSAGE_ID<S>>(_handler::index()-1);
+            else throw std::runtime_error("Handler does not contains message");
+        }
+
         std::vector<char>& buffer(){
             return buffer_;
         }

@@ -83,7 +83,7 @@ inline ErrorCode Contains::__execute__<Data_t::METEO,Data_f::GRIB>() noexcept{
                         if(filter_.grid_info)
                             std::cout<<info.grid_data_->print_grid_info()<<std::endl;
                         if(filter_.time_interval)
-                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.sequence_time_.interval_.from_,info.sequence_time_.interval_.to_)<<std::endl;
+                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to())<<std::endl;
                     }
             }
         }

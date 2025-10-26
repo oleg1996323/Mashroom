@@ -22,18 +22,11 @@ add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
 #adding imported submodules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
-#including autogeneration code (code_tables)
-include(autogen)
-include(loadCodeTables)
 #execute autogeneration of code tables
 if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
     execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 endif()
-load_eccode_header(
-	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/eccodes/definitions/grib1"
-	OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/API/grib1"
-    PYTHON_AUTOGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external"
-)
+add_subdirectory(external)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 #getting source files from modules

@@ -61,7 +61,8 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(int timeout_sec,ARGS&&... args){
             if(socket_)
-                socket_->set_no_block(true);
+                socket_->set_no_block(false);
+            else ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,"connection not established",AT_ERROR_ACTION::CONTINUE);
             try{
                 process = std::move(Process::make_process());
                 Process::execute_process(process,::request<T,ARGS...>,*socket_,mprocess_,std::forward<ARGS>(args)...);
@@ -70,7 +71,15 @@ namespace network{
                     process.reset();
                     return ErrorPrint::print_error(ErrorCode::TIMEOUT,"request",AT_ERROR_ACTION::CONTINUE);
                 }
-                else return ErrorCode::NONE;
+                else{
+                    try{
+                        process->throw_if_ready_and_error();
+                        return ErrorCode::NONE;
+                    }
+                    catch(const std::exception& err){
+                        return ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
+                    }
+                }
             }
             catch(const std::exception& err){
                 return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,err.what(),AT_ERROR_ACTION::CONTINUE);
@@ -79,7 +88,9 @@ namespace network{
         template<Server_MsgT::type MSG_T>
         const network::Message<MSG_T>& get_result(int16_t timeout_s) const{
             if(process){
-                if(!process->ready() && !process->wait(timeout_s))
+                if(process->ready())
+                    process->throw_if_ready_and_error();
+                if(!process->wait(timeout_s))
                     throw std::runtime_error("Timeout");
                 return mprocess_.get_received_message<MSG_T>();
             }

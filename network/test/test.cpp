@@ -79,9 +79,9 @@ class Client:public CommonClient<ProcessPing>{
 
 TEST(Client_server,ping){
     server::Settings settings;
-    settings.host = "127.0.0.1";
-    settings.port = 32396;
-    settings.protocol = Protocol::TCP;
+    settings.host_ = "127.0.0.1";
+    settings.port_ = 32396;
+    settings.protocol_ = Protocol::TCP;
     Server server;
     EXPECT_NO_THROW(server.configure(settings,Socket::Option(1,Socket::Options::KeepAlive),
                         Socket::Option(1,Socket::Options::ReuseAddress)));
@@ -90,7 +90,7 @@ TEST(Client_server,ping){
     });
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     Client client;
-    EXPECT_NO_THROW(client.connect(settings.host,settings.port));
+    EXPECT_NO_THROW(client.connect(settings.host_,settings.port_));
     client.add_request(send_byte);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(server.get_connection_pool().count_recv,5);
@@ -173,9 +173,9 @@ void pingpong(std::stop_token stop,const Socket& socket,int& count_send,int& cou
 
 TEST(Client_server,pingpong){
     server::Settings settings;
-    settings.host = "127.0.0.1";
-    settings.port = 32396;
-    settings.protocol = Protocol::TCP;
+    settings.host_ = "127.0.0.1";
+    settings.port_ = 32396;
+    settings.protocol_ = Protocol::TCP;
     ServerPingPong server;
     EXPECT_NO_THROW(server.configure(settings,Socket::Option(1,Socket::Options::KeepAlive),
                         Socket::Option(1,Socket::Options::ReuseAddress)));
@@ -186,7 +186,7 @@ TEST(Client_server,pingpong){
     ClientPingPong client;
     int count_send = 0;
     int count_recv = 0;
-    EXPECT_NO_THROW(client.connect(settings.host,settings.port));
+    EXPECT_NO_THROW(client.connect(settings.host_,settings.port_));
     client.add_request(pingpong,count_send,count_recv);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_EQ(server.get_connection_pool().count_recv,5);

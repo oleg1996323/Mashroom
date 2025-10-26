@@ -2,21 +2,34 @@
 
 namespace fs = std::filesystem;
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
-    info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(IndexDataInfo<API::GRIB1>{
-        msg_info.grid_data,
-        msg_info.buf_pos_,
-        msg_info.date,
-        API::ErrorData::Code<API::GRIB1>::NONE_ERR});
+    CommonDataProperties<Data_t::METEO,Data_f::GRIB> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    auto found = info_[path].find(cmn);
+    auto index = IndexDataInfo<API::GRIB1>{
+            msg_info.grid_data,
+            msg_info.buf_pos_,
+            msg_info.date,
+            API::ErrorData::Code<API::GRIB1>::NONE_ERR};
+    if(found==info_[path].end())
+        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(std::move(cmn))]
+        .emplace_back(std::move(index));
+    else found->second.emplace_back(std::move(index));
 }
 
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
-    info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)]
-    .emplace_back(IndexDataInfo<API::GRIB1>{
-        msg_info.grid_data,
-        msg_info.buf_pos_,
-        msg_info.date,
-        API::ErrorData::Code<API::GRIB1>::NONE_ERR});
+    CommonDataProperties<Data_t::METEO,Data_f::GRIB> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    auto found = info_[path].find(cmn);
+    auto index = IndexDataInfo<API::GRIB1>{
+            .grid_data=std::move(msg_info.grid_data),
+            .buf_pos_ = msg_info.buf_pos_,
+            .date_time = msg_info.date,
+            .err = API::ErrorData::Code<API::GRIB1>::NONE_ERR};
+    if(found==info_[path].end())
+        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(std::move(cmn))]
+        .emplace_back(std::move(index));
+    else{
+        found->second.emplace_back(std::move(index));
+        assert(found->first && *found->first==cmn);
+    }
 }
 
 API::ErrorData::Code<API::GRIB1>::value GribProxyDataInfo::error() const{
@@ -50,16 +63,6 @@ SublimedGribDataInfo GribProxyDataInfo::sublime(){
                 else
                     return lhs.date_time<rhs.date_time;   
             });
-            
-            assert(std::is_sorted(data_seq.begin(),data_seq.end(),[](const IndexDataInfo<API::GRIB1>& lhs,const IndexDataInfo<API::GRIB1>& rhs)
-            {
-                if(lhs.err!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
-                    return false;
-                if(std::hash<std::optional<GridInfo>>{}(lhs.grid_data)<std::hash<std::optional<GridInfo>>{}(rhs.grid_data))
-                    return true;
-                else
-                    return lhs.date_time<rhs.date_time;   
-            }));
             auto iter = std::unique(data_seq.begin(),data_seq.end());
             data_seq.erase(iter,data_seq.end());
             for(int i=0;i<data_seq.size();++i){
@@ -68,46 +71,21 @@ SublimedGribDataInfo GribProxyDataInfo::sublime(){
                 if(data_seq_tmp.empty()){
                     data_seq_tmp.emplace_back(GribSublimedDataInfoStruct{.grid_data_ = data_seq.at(i).grid_data,
                                                                         .buf_pos_={},
-                                                                        .sequence_time_={.interval_=
-                                                                            {
-                                                                                .from_ = data_seq.at(i).date_time,
-                                                                                .to_ = data_seq.at(i).date_time
-                                                                            },
-                                                                            .discret_={}}})
+                                                                        .sequence_time_=TimeSequence(data_seq.at(i).date_time)
+                                                                        })
                                                                         .buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     continue;
                 }
-                if(data_seq_tmp.back().sequence_time_.discret_!=std::chrono::system_clock::duration(0)){
-                    if(data_seq.at(i).date_time==data_seq_tmp.back().sequence_time_.interval_.to_+data_seq_tmp.back().sequence_time_.discret_){
-                        data_seq_tmp.back().sequence_time_.interval_.to_=data_seq.at(i).date_time;
+                else{
+                    if(data_seq_tmp.back().sequence_time_.push_time_after(data_seq.at(i).date_time))
                         data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
-                    }
-                    else if(data_seq.at(i).date_time==data_seq_tmp.back().sequence_time_.interval_.from_-data_seq_tmp.back().sequence_time_.discret_){
-                        data_seq_tmp.back().sequence_time_.interval_.from_=data_seq.at(i).date_time;
-                        data_seq_tmp.back().buf_pos_.insert(
-                        data_seq_tmp.back().buf_pos_.begin(),data_seq.at(i).buf_pos_);
-                    }
                     else{
-                        data_seq_tmp.emplace_back(GribSublimedDataInfoStruct
-                                                                            {.grid_data_ = data_seq.at(i).grid_data,
+                        data_seq_tmp.emplace_back(GribSublimedDataInfoStruct{.grid_data_ = data_seq.at(i).grid_data,
                                                                             .buf_pos_={},
-                                                                            .sequence_time_={.interval_={.from_=data_seq.at(i).date_time,.to_=data_seq.at(i).date_time},
-                                                                            .discret_={}}})
+                                                                            .sequence_time_=TimeSequence(data_seq.at(i).date_time)
+                                                                            })
                                                                             .buf_pos_.push_back(data_seq.at(i).buf_pos_);
                         continue;
-                    }
-                }
-                else{
-                    assert(data_seq_tmp.back().sequence_time_.interval_.from_==data_seq_tmp.back().sequence_time_.interval_.to_);
-                    if(data_seq.at(i).date_time<data_seq_tmp.back().sequence_time_.interval_.from_){
-                        data_seq_tmp.back().sequence_time_.interval_.from_=data_seq.at(i).date_time;
-                        data_seq_tmp.back().sequence_time_.discret_ = data_seq_tmp.back().sequence_time_.interval_.to_-data_seq_tmp.back().sequence_time_.interval_.from_;
-                        data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
-                    }
-                    else if(data_seq.at(i).date_time>data_seq_tmp.back().sequence_time_.interval_.from_){
-                        data_seq_tmp.back().sequence_time_.interval_.to_=data_seq.at(i).date_time;
-                        data_seq_tmp.back().sequence_time_.discret_ = data_seq_tmp.back().sequence_time_.interval_.to_-data_seq_tmp.back().sequence_time_.interval_.from_;
-                        data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     }
                 }
             }

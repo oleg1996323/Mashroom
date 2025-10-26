@@ -56,9 +56,9 @@ namespace network{
         CommonServer(CONNPOOL_ARGS&&... args):connection_pool(std::forward<CONNPOOL_ARGS>(args)...){}
         template<typename... CONNPOOL_ARGS>
         CommonServer(const server::Settings& settings,CONNPOOL_ARGS&&... args):
-        socket_(Socket(settings.host,settings.port,Socket::Type::Stream,settings.protocol)),
+        socket_(Socket(settings.host_,settings.port_,Socket::Type::Stream,settings.protocol_)),
         connection_pool(std::forward<CONNPOOL_ARGS>(args)...){
-            if(settings.reuse_address)
+            if(settings.reuse_address_)
                 socket_.set_option(network::Socket::Option<int>(1,Socket::Options::ReuseAddress));
             socket_.bind();
         }
@@ -71,7 +71,7 @@ namespace network{
         template<typename... ARGS>
         void configure(const server::Settings& settings, Socket::Option<ARGS>... options){
             if(!is_launched()){
-                socket_ = Socket(settings.host,settings.port,Socket::Type::Stream,settings.protocol);
+                socket_ = Socket(settings.host_,settings.port_,Socket::Type::Stream,settings.protocol_);
                 socket_.set_options(std::forward<decltype(options)>(options)...);
                 socket_.bind();
             }

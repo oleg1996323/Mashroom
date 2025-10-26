@@ -21,7 +21,8 @@ enum TimeFrame:uint8_t{
 };
 
 #include <stdbool.h>
-const bool is_time[255]={
+#include <array>
+constexpr std::array<bool,256> is_time={
     1,1,1,1,1,
     1,1,1,1,1,
     1,1,1,1,1,

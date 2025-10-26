@@ -18,7 +18,7 @@
 using namespace std::string_view_literals;
 namespace network{
     class Server:public CommonServer<connection::ConnectionPool>{
-    private:
+    protected:
         std::jthread server_thread_;
         std::stop_token stop_token_;
         server::Status status_=server::Status::INACTIVE;

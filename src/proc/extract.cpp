@@ -276,7 +276,7 @@ ErrorCode Extract::execute() noexcept{
         auto matched = Mashroom::instance().data().match_data<Data_t::METEO,Data_f::GRIB>(props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
-                                                TimeInterval{props_.from_date_,props_.to_date_},
+                                                TimeInterval(props_.from_date_,props_.to_date_),
                                                 props_.grid_type_.value(),
                                                 props_.position_.value());
         
@@ -306,7 +306,7 @@ ErrorCode Extract::execute() noexcept{
                                                 props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
-                                                TimeInterval{props_.from_date_,props_.to_date_},
+                                                TimeInterval(props_.from_date_,props_.to_date_),
                                                 props_.grid_type_.value(),
                                                 props_.position_.value());
             __extract__(path.path_,result);

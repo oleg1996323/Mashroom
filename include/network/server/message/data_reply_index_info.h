@@ -10,6 +10,27 @@ template<Data_t T, Data_f F>
 struct BaseIndexResult{
     using data_t = DataStruct<T,F>::find_all_t;
     data_t data_;
+    BaseIndexResult() = default;
+    BaseIndexResult(const BaseIndexResult::data_t& other_data){
+        data_ = other_data;
+    }
+    BaseIndexResult(BaseIndexResult::data_t&& other_data){
+        data_ = std::move(other_data);
+    }
+    BaseIndexResult(const BaseIndexResult& other):data_(other.data_){}
+    BaseIndexResult(BaseIndexResult&& other):data_(std::move(other.data_)){}
+    BaseIndexResult& operator=(const BaseIndexResult& other){
+        if(this!=&other){
+            data_ = other.data_;
+        }
+        return *this;
+    }
+    BaseIndexResult& operator=(BaseIndexResult&& other) noexcept{
+        if(this!=&other){
+            data_ = std::move(other.data_);
+        }
+        return *this;
+    }
 };
 
 using IndexResult = std::variant<std::monostate,
@@ -37,9 +58,7 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>
     MessageAdditional() = default;
     template<Data_t T,Data_f F,typename Type>
     bool add_block(Data_a A, Type&& block){
-        BaseIndexResult<T,F> result;
-        result.data_ = std::move(block);
-        blocks_.emplace_back(std::move(result));
+        blocks_.emplace_back(BaseIndexResult<T,F>(std::move(block)));
         return true;
     }
 };

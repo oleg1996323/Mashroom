@@ -25,7 +25,7 @@ struct AbstractDataStruct{
     virtual ~AbstractDataStruct() = default;
 };
 template<Data_t TYPE,Data_f FORMAT>
-using FoundSublimedDataInfo = std::map<CommonDataProperties<TYPE,FORMAT>, std::vector<SublimedDataInfoStruct<TYPE,FORMAT>>>;
+using FoundSublimedDataInfo = std::map<CommonDataProperties<TYPE,FORMAT>, std::deque<SublimedDataInfoStruct<TYPE,FORMAT>>>;
 
 template<>
 struct std::hash<std::unique_ptr<AbstractDataStruct>>{

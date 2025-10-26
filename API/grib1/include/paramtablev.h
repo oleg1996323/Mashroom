@@ -27,16 +27,14 @@ struct SearchParamTableVersion{
 template<>
 struct std::hash<SearchParamTableVersion>{
     size_t operator()(const SearchParamTableVersion& val) const{
-        return (static_cast<size_t>(val.param_) << 8) | val.t_ver_;
-    }
-    size_t operator()(SearchParamTableVersion&& val) const{
-        return (static_cast<size_t>(val.param_) << 8) | val.t_ver_;
+        auto hash =(static_cast<size_t>(val.param_) << 8) | static_cast<size_t>(val.t_ver_);
+        return (static_cast<size_t>(val.param_) << 8) | static_cast<size_t>(val.t_ver_);
     }
 };
 template<>
 struct std::equal_to<SearchParamTableVersion>{
     bool operator()(const SearchParamTableVersion& lhs,const SearchParamTableVersion& rhs) const{
-        return lhs.param_==rhs.param_ && lhs.t_ver_==rhs.t_ver_;
+        return lhs==rhs;
     }
 };
 template<>
