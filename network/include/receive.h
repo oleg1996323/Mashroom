@@ -25,7 +25,7 @@ namespace network{
                 else if(read_num==EAGAIN)
                     read_num=0;
                 else{
-                    std::cout<<"Receiving error: "<<strerror(err)<<"Error code: "<<errno<<std::endl;
+                    std::cout<<"Receiving error: "<<strerror(err)<<"Error code: "<<err<<std::endl;
                     return -1;
                 }
             }
@@ -59,7 +59,7 @@ namespace network{
                     return -1;
             }
             else {
-                n-=read_num;
+                n-=read_num;6
                 continue;
             }
         }

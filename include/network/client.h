@@ -44,8 +44,12 @@ namespace network{
         template<network::Client_MsgT::type T,typename... ARGS>
         ErrorCode request(bool wait,ARGS&&... args){
             if(socket_){
+                socket_->set_no_block(false);
                 socket_->set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutIn)));
                 socket_->set_option(Socket::Option<timeval>(Socket::Option(timeval{.tv_sec=30,.tv_usec = 0},Socket::Options::TimeOutOut)));
+            }
+            else{
+                return ErrorPrint::print_error(ErrorCode::CONNECTION_ERROR,"not established",AT_ERROR_ACTION::CONTINUE);
             }
             try{
                 process = std::move(Process::make_process());
