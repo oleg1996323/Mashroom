@@ -130,9 +130,21 @@ namespace network{
         return *this;
     }
     Socket& Socket::set_no_block(bool noblock){
-        if(int flags = fcntl(__descriptor__(),F_GETFL,0);flags==-1 ||
-            fcntl(__descriptor__(),F_SETFL,flags|O_NONBLOCK)==-1)
+        int flags = fcntl(__descriptor__(),F_GETFL,0);
+        if(flags==-1)
             throw std::runtime_error(strerror(errno));
+        else{
+            if(noblock){
+                if(fcntl(__descriptor__(),F_SETFL,flags|O_NONBLOCK)==-1)
+                    throw std::runtime_error(strerror(errno));
+                else return *this;
+            }
+            else{
+                if(fcntl(__descriptor__(),F_SETFL,flags&~O_NONBLOCK)==-1)\
+                    throw std::runtime_error(strerror(errno));
+                else return *this;
+            }
+        }
         return *this;
     }
     bool Socket::is_non_block() const{

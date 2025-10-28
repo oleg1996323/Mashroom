@@ -88,7 +88,7 @@ class Socket{
     template<typename T>
     Socket& set_option(Option<T> option){
         if(__descriptor__()>=0){
-            if(setsockopt(*socket_,SOL_SOCKET,static_cast<int>(option.opt_),&option.value_,sizeof(T))!=0)
+            if(setsockopt(*socket_,SOL_SOCKET,static_cast<int>(option.opt_),(const char*)&option.value_,sizeof(T))!=0)
                 throw std::runtime_error(strerror(errno));
         }
         else throw std::runtime_error(strerror(ENOTSOCK));

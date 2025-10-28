@@ -15,24 +15,34 @@ namespace network{
         assert(buffer.size()>=n);
         ssize_t read_num = 0;
         uint16_t called = 0;
+        uint16_t retry = 0;
         while(n!=0){
             read_num = recv(socket.__descriptor__(),buffer.data()+buffer.size()-n,n,0);
             if(read_num<0){
                 auto err = errno;
                 errno= 0;
+                std::cout<<"Receiving error: "<<strerror(err)<<"Error code: "<<err<<std::endl;
                 if(read_num==EINTR)
                     read_num=0;
                 else if(read_num==EAGAIN)
                     read_num=0;
                 else{
-                    std::cout<<"Receiving error: "<<strerror(err)<<"Error code: "<<err<<std::endl;
+                    
                     return -1;
                 }
             }
             else {
-                ++called;
-                n-=read_num;
-                continue;
+                if(read_num==0){
+                    if(retry<10)
+                        ++retry;
+                    else return -1;
+                }
+                else{
+                    ++called;
+                    n-=read_num;
+                    retry = 0;
+                    continue;
+                }
             }
         }
         std::cout<<"Called "<<called<<std::endl;
@@ -59,7 +69,7 @@ namespace network{
                     return -1;
             }
             else {
-                n-=read_num;6
+                n-=read_num;
                 continue;
             }
         }
