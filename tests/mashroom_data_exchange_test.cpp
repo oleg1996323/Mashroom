@@ -72,8 +72,7 @@ TEST_F(DataTestClass,DataExchangeTest){
     auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
     EXPECT_EQ(err,ErrorCode::NONE);
     auto& result = client.get_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
-    EXPECT_EQ(result.additional().blocks_.size(),1);
-    
+    EXPECT_EQ(result.additional().blocks_.size(),1);    
 }
 
 int main(int argc,char* argv[]){

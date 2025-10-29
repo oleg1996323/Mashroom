@@ -14,6 +14,9 @@
 
 namespace network{
 
+enum class SEND_FLAGS;
+enum class RECV_FLAGS;
+
 template<typename DERIVED_CONNECTIONPOOL>
 class CommonServer;
 class Multiplexor;
@@ -61,11 +64,14 @@ class Socket{
     friend Multiplexor;
     friend std::hash<Socket>;
     friend std::equal_to<Socket>;
-    friend int receive(const Socket& socket,std::ranges::random_access_range auto& buffer, uint64_t n) noexcept;
-    friend int receive(const Socket& socket,std::ranges::view auto buffer, uint64_t n) noexcept 
-                    requires std::ranges::random_access_range<decltype(buffer)>;
-    template<std::ranges::random_access_range... ARGS>
-    friend int send(const Socket& socket,const std::ranges::random_access_range auto&... buffers) noexcept;
+    friend int receive(const Socket& socket,auto&& buffer, uint64_t n,RECV_FLAGS flags) noexcept requires(
+        (std::ranges::view<std::decay_t<decltype(buffer)>> && 
+        std::ranges::random_access_range<std::decay_t<decltype(buffer)>> &&
+        std::is_rvalue_reference_v<decltype(buffer)>) || 
+        (std::ranges::random_access_range<std::decay_t<decltype(buffer)>> &&
+        std::is_lvalue_reference_v<decltype(buffer)>));
+    friend int send(const Socket& socket,SEND_FLAGS flags,const std::ranges::random_access_range auto&... buffers) noexcept requires((
+        sizeof(decltype(buffers))+...)>0);
     std::shared_ptr<sockaddr_storage> storage;
     std::shared_ptr<int> socket_;
     private:
