@@ -8,7 +8,7 @@ namespace network{
     class AbstractQueuableProcess:public AbstractProcess<PROCESS_T,RESULT_T>{
         using Queue_task = std::function<RESULT_T(std::stop_token)>;
         std::deque<Queue_task> queue;
-        std::condition_variable cv;
+        std::condition_variable_any cv;
         protected:
         virtual void after_execution_protected() override final{
             std::unique_lock lk(this->m);

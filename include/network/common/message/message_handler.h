@@ -187,20 +187,6 @@ namespace network{
         std::vector<char>& buffer(){
             return buffer_;
         }
-        
-        template<bool NETWORK_ORDER>
-        std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer() noexcept{
-            assert(buffer_.size()>=undefined_msg_type_min_required_size<S>());
-            auto visitor = [this](auto& arg) mutable noexcept -> std::expected<uint64_t,serialization::SerializationEC>
-            {
-                using type = decltype(arg);
-                if constexpr (!Data_Size_Buffer<type>)
-                    return std::unexpected(serialization::SerializationEC::UNMATCHED_TYPE);
-                else return arg.data_size_buffer();
-            };
-            std::cout<<(S==Side::SERVER?"Server side. ":"Client side. ")<<"Num type: "<<this->index()<<std::endl;
-            return std::visit(visitor,*this);
-        }
     };
 }
 

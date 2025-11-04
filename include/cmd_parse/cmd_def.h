@@ -198,7 +198,7 @@ namespace parse{
                     return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,parse_result.value().options.front().string_key);
                 }
             }
-            auto vm_res = try_store(parse_result.value());
+            auto vm_res = try_store(parse_result.value());//@todo delete from this
             if(!vm_res.has_value())
                 return vm_res.error();
             if(vm_res.value().empty())

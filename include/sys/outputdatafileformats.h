@@ -29,3 +29,15 @@ inline OutputDataFileFormats operator^(OutputDataFileFormats lhs,OutputDataFileF
 inline OutputDataFileFormats operator~(OutputDataFileFormats val){
     return (OutputDataFileFormats)(~(static_cast<uint32_t>(val)));
 }
+inline bool operator==(int lhs,OutputDataFileFormats rhs) noexcept{
+    return lhs==static_cast<std::underlying_type_t<OutputDataFileFormats>>(rhs);
+}
+inline bool operator==(OutputDataFileFormats lhs,int rhs) noexcept{
+    return rhs==lhs;
+}
+inline bool operator!=(int lhs,OutputDataFileFormats rhs) noexcept{
+    return !(lhs==rhs);
+}
+inline bool operator!=(OutputDataFileFormats lhs,int rhs) noexcept{
+    return rhs!=lhs;
+}

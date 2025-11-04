@@ -14,8 +14,6 @@
 #include "network/server.h"
 #include "extract/extracted_value.h"
 
-using VariantExtractedData = std::variant<std::unordered_map<Grib1CommonDataProperties, std::vector<ExtractedValue<Data_t::METEO,Data_f::GRIB>>>>;
-using ExtractedData = VariantExtractedData;
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
@@ -39,13 +37,7 @@ private:
     ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<T,F>&);
 
     ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
-    ErrorCode __create_dir_for_file__(const fs::path &out_f_name) const noexcept;
-    ErrorCode __create_file_and_write_header__(std::ofstream &file, const fs::path &out_f_name, const ExtractedData &result) const noexcept;
-    template <typename... ARGS>
-    fs::path __generate_name__(ARGS &&...args) const noexcept;
-    template <typename... ARGS>
-    fs::path __generate_directory__(ARGS &&...args) const noexcept; // TODO expand extract division
-    ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const noexcept;
+    ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const;
 public:
     Extract() = default;
     Extract(const Extract& other)=delete;
@@ -117,87 +109,11 @@ public:
     ErrorCode set_by_request(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &form)
     {
         props_ = form.search_props_;
-        set_output_format(form.file_fmt_);
-        return set_offset_time_interval(form.t_separation_);
+        if(form.file_fmt_.has_value())
+            set_output_format(*form.file_fmt_|OutputDataFileFormats::ARCHIVED);
+        else set_output_format(OutputDataFileFormats::DEFAULT|OutputDataFileFormats::ARCHIVED);
+        if(form.t_separation_.has_value())
+            return set_offset_time_interval(*form.t_separation_);
+        else return set_offset_time_interval(TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0)));
     }
 };
-
-template <typename... ARGS>
-fs::path Extract::__generate_name__(ARGS &&...args) const noexcept
-{
-    OutputDataFileFormats fmt_tmp = output_format_&~OutputDataFileFormats::ARCHIVED;
-    if(file_format.empty()){
-        auto complete_format = [this](const auto& arg)
-        {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>,utc_tp>){
-                auto time_unit = t_off_.min_valuable();
-                file_format = file_format+(!file_format.empty()?"_":"");
-                switch(time_unit){
-                case TIME_UNITS::SECONDS:
-                    file_format = file_format + "{:%Y_%m_%d_%h_%M_%S}";
-                    break;
-                case TIME_UNITS::MINUTES:
-                    file_format = file_format + "{:%Y_%m_%d_%h_%M}";
-                    break;
-                case TIME_UNITS::HOURS:
-                    file_format = file_format + "{:%Y_%m_%d_%h}";
-                    break;
-                case TIME_UNITS::DAYS:
-                    file_format = file_format + "{:%Y_%m_%d}";
-                    break;
-                case TIME_UNITS::MONTHS:
-                    file_format = file_format + "{:%Y_%m}";
-                    break;
-                case TIME_UNITS::YEARS:
-                    file_format = file_format + "{:%Y}";
-                    break;
-                default:
-                    file_format = file_format + "{:%Y_%m_%d_%h_%M_%S}";
-                    break;
-                }
-            }
-            else file_format = file_format+(!file_format.empty()?"_{}":"{}");
-        };
-        (complete_format(args),...);
-    }
-    switch(fmt_tmp){
-        case OutputDataFileFormats::TXT_F:
-            return std::vformat(file_format + ".txt", std::make_format_args(args...));
-            break;
-        case OutputDataFileFormats::GRIB_F:
-            return std::vformat(file_format + ".grib", std::make_format_args(args...));
-            break;
-        case OutputDataFileFormats::BIN_F:
-            assert(false);
-            return std::vformat(file_format + ".bin", std::make_format_args(args...));
-            break;
-        default:
-            return std::vformat(file_format + ".txt", std::make_format_args(args...));
-            break;
-    }
-    return std::vformat(file_format + ".txt", std::make_format_args(args...));
-}
-template <typename... ARGS>
-fs::path Extract::__generate_directory__(ARGS &&...args) const noexcept
-{
-    if(path_format.empty()){
-        if (t_off_.seconds_ > std::chrono::seconds(0))
-            path_format = path_format + "S%" + fs::path::preferred_separator+
-            "M%" + fs::path::preferred_separator + 
-            "H%" + fs::path::preferred_separator;
-        else if (t_off_.minutes_ > minutes(0))
-            path_format = path_format + "M%" + fs::path::preferred_separator + "H%" + fs::path::preferred_separator;
-        else if (t_off_.hours_ > hours(0))
-
-            path_format = path_format + "H%" + fs::path::preferred_separator;
-        if (t_off_.days_ > days(0))
-            path_format = path_format + "d%" + fs::path::preferred_separator +
-            "m%" + fs::path::preferred_separator;
-        else if (t_off_.months_ > months(0))
-            path_format = path_format + "m%" + fs::path::preferred_separator;
-        path_format = path_format + "Y%";
-        std::reverse(path_format.begin(), path_format.end());
-        path_format = "{:"s + path_format + "}"s;
-    }
-    return out_path_ / std::vformat(path_format, std::make_format_args(args...));
-}

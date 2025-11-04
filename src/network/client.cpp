@@ -4,13 +4,16 @@
 
 namespace network
 {
-Client::Client(const std::string& host, Port port):CommonClient(host,port){}
+Client::Client(const std::string& host, Port port): CommonClient(host,port),
+                                                    cv_(std::make_shared<std::condition_variable_any>())
+                                                    {}
 Client::Client(Client&& other) noexcept:CommonClient(std::move(other)){
     if(this!=&other){
         process = std::move(other.process);
         socket_.swap(other.socket_);
         mprocess_ = std::move(other.mprocess_);
         server_status_ = other.server_status_;
+        cv_.swap(other.cv_);
     }
 }
 Client& Client::operator=(Client&& other) noexcept{
@@ -19,6 +22,7 @@ Client& Client::operator=(Client&& other) noexcept{
         socket_.swap(other.socket_);
         mprocess_ = std::move(other.mprocess_);
         server_status_ = other.server_status_;
+        cv_.swap(other.cv_);
     }
     return *this;
 }

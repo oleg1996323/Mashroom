@@ -38,6 +38,9 @@ class AbstractProcess{
         thread.request_stop();
     }
     public:
+    std::unique_lock<std::mutex> locker(){
+        return std::unique_lock(m,std::defer_lock);
+    }
     void throw_if_ready_and_error(){
         if(__ready__())
             future.get();

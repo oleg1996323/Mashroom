@@ -35,7 +35,7 @@ std::expected<RepresentationType,ErrorCode> parse::grid_notifier(const std::vect
     //if abbreviation
     if(grids.empty())
         return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "not matched center",AT_ERROR_ACTION::CONTINUE,input.front()));
+                "not matched grid",AT_ERROR_ACTION::CONTINUE,input.front()));
     else if(grids.size()==1)
         return grids.front();
     else{

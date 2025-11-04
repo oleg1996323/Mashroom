@@ -1,10 +1,3 @@
---exit
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---index --inp dir=/home/oster/test_grib
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---index --inp dir=/home/oster/test_grib
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
 --server-config --set Test_LO
 --server --launch
@@ -89,11 +82,18 @@
 --server-config --set Test_LO
 --server --launch
 --index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
+--help
+--help --extract
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center="ECMWF" --parameters="wind speed" --grid="latlon"
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind speed" --grid="latlon"
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind speed" --grid=latlon
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind speed" --grid="cyl no mod"
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind speed" --grid="Cylindr no mod"
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind speed" --grid=Cylindr no mod
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod
+--help --extract
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format=txt|zip
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt|zip
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip\
+--extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip

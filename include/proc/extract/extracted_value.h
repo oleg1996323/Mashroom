@@ -61,8 +61,6 @@ struct ExtractedValue<Data_t::METEO,Data_f::GRIB>
     }
 };
 
-
-
 template <Data_t T,Data_f F>
 struct std::less<ExtractedValue<T,F>>
 {
@@ -85,5 +83,10 @@ class std::hash<ExtractedValue<Data_t::METEO,Data_f::GRIB>>
     }
 };
 
+#include "data/common_data_properties.h"
+template<Data_t T,Data_f F>
+using ExtractedValues = std::unordered_map<CommonDataProperties<T,F>, std::vector<ExtractedValue<T,F>>>;
 
 using VariantExtractedValue = std::variant<ExtractedValue<Data_t::METEO,Data_f::GRIB>>;
+using VariantExtractedData = std::variant<ExtractedValues<Data_t::METEO,Data_f::GRIB>>;
+using ExtractedData = VariantExtractedData;

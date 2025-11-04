@@ -10,7 +10,6 @@
 #include <regex>
 #include "program/mashroom.h"
 #include "proc/extract.h"
-#include "compressor.h"
 #include <iostream>
 #include "proc/extract.h"
 #include "message.h"
@@ -19,102 +18,23 @@
 #include "generated/code_tables/eccodes_tables.h"
 #include "API/common/error_data.h"
 #include "API/common/error_data_print.h"
+#include "proc/extract/gen.h"
+#include "proc/extract/write.h"
+#include "compressor.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
 
-auto get_columns(ExtractedData& result){
-    auto define_cols_t = [](auto& ed) -> std::vector<const typename std::decay_t<decltype(ed)>::mapped_type*>
-    {
-        return std::vector<const typename std::decay_t<decltype(ed)>::mapped_type*>();
-    };
-    return std::visit(define_cols_t,result);
-}
-
-auto& get_result(ExtractedData& result){
-    auto get = [](auto& ed) -> decltype(ed)&
-    {
-        return ed;
-    };
-    return std::visit(get,result);
-}
-
-const auto& get_result(const ExtractedData& result){
-    auto get = [](auto& ed) -> decltype(ed)&{
-        return ed;
-    };
-    return std::visit(get,result);
-}
-
-ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const noexcept{
+ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
+    ErrorCode err = ErrorCode::NONE;
+    std::unordered_set<fs::path> paths;
     switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
+        case OutputDataFileFormats::DEFAULT:
         case OutputDataFileFormats::TXT_F:{
-            utc_tp current_time = utc_tp::max();
-            size_t max_length = 0;
-            auto col_vals_ = get_columns(result);
-            for(auto& [cmn_data,values]:get_result(result)){
-                std::sort(values.begin(),values.end(),std::less());
-                if(!values.empty()){
-                    current_time = std::min(values.front().time_date,current_time);
-                    col_vals_.push_back(&values);
-                }
-                max_length = std::max(max_length,values.size());
-            }
-
-            std::vector<int> rows;
-            rows.resize(col_vals_.size());
-            utc_tp file_end_time = t_off_.get_next_tp(current_time);
-            std::ofstream out;
-            fs::path out_f_name;
-            cpp::zip_ns::Compressor cmprs(out_path_,"any.zip");
-            for(int row=0;row<max_length;++row){
-                if(stop_token_.stop_requested())
-                    return ErrorCode::INTERRUPTED;
-                //if current_time>file_end_time
-                current_time = utc_tp::max();
-                for(int col=0;col<col_vals_.size();++col)
-                    if(rows[col]<col_vals_[col]->size())
-                        current_time = std::min((*col_vals_.at(col))[rows.at(col)].time_date,current_time);
-                if(current_time>=file_end_time || !out.is_open()){
-                    if(out.is_open()){
-                        out.close();
-                        if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
-                        static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
-                            cmprs.add_file(out_path_,out_f_name);              
-                        }
-                    }
-                    out_f_name/=__generate_directory__(current_time);
-                    out_f_name/=__generate_name__(center_to_abbr(props_.center_.value()),
-                        grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,current_time);
-                    {
-                        ErrorCode err = __create_file_and_write_header__(out,out_f_name,result);
-                        if(err!=ErrorCode::NONE)
-                            return err;
-                    }
-                    file_end_time = t_off_.get_next_tp(current_time);
-                }
-                out<<std::format("{:%Y/%m/%d %H:%M:%S}",time_point_cast<std::chrono::seconds>(current_time))<<'\t';
-                for(int col=0;col<col_vals_.size();++col){
-                    if(rows[col]<col_vals_[col]->size()){
-                        if((*col_vals_[col])[rows[col]].time_date==current_time){
-                            out<<std::left<<std::setw(10)<<(*col_vals_[col])[rows[col]].value<<'\t';
-                            ++rows[col];
-                        }
-                        else{
-                            out<<std::left<<std::setw(10)<<"NaN"<<'\t';
-                        }
-                    }
-                    else out<<std::left<<std::setw(10)<<"NaN"<<'\t';
-                }
-                out<<std::endl;
-            }
-            if(out.is_open()){
-                out.close();
-                if(static_cast<std::underlying_type_t<OutputDataFileFormats>>(output_format_)&
-                static_cast<std::underlying_type_t<OutputDataFileFormats>>(OutputDataFileFormats::ARCHIVED)){
-                    cmprs.add_file(out_path_,out_f_name);              
-                }
-            }
+            err = write_txt_file(stop_token_,result,props_,t_off_,out_path_,
+            generate_directory_format(t_off_),
+            generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_),
+            output_format_,paths);
             break;
         }
         case OutputDataFileFormats::BIN_F:{
@@ -124,7 +44,21 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
             break;
         }
         default:{
+            return write_txt_file(stop_token_,result,props_,t_off_,out_path_,std::string(),std::string(),output_format_,paths);
             break;
+        }
+    }
+    if((FORMAT&OutputDataFileFormats::ARCHIVED)!=0){
+        try{
+            auto cmprs = cpp::zip_ns::Compressor::create_archive(out_path_,std::to_string(utc_tp::clock::now().time_since_epoch().count()));
+            for(auto& path:paths){
+                if(!cmprs.add_file(out_path_,path))
+                    err = ErrorCode::INTERNAL_ERROR;
+                else continue;
+            }
+        }
+        catch(const std::exception& err){
+            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"arhive creation failure",AT_ERROR_ACTION::CONTINUE);
         }
     }
     return ErrorCode::NONE;
@@ -226,49 +160,6 @@ using namespace std::string_literals;
 
 #include <format>
 #include <chrono>
-
-ErrorCode Extract::__create_dir_for_file__(const fs::path& out_f_name) const noexcept{
-    if(!fs::exists(out_f_name.parent_path()))
-        if(!fs::create_directories(out_f_name.parent_path())){
-            log().record_log(ErrorCodeLog::CANNOT_ACCESS_PATH_X1,"",out_f_name.relative_path().c_str());
-            return ErrorCode::INTERNAL_ERROR;
-        }
-    return ErrorCode::NONE;
-}
-
-ErrorCode Extract::__create_file_and_write_header__(std::ofstream& file,const fs::path& out_f_name,const ExtractedData& result) const noexcept{
-    {
-        ErrorCode err = __create_dir_for_file__(out_f_name);
-        if(err!=ErrorCode::NONE)
-            return err;
-    }
-    file.open(out_f_name,std::ios::trunc|std::ios::out);
-    if(!file.is_open()){
-        if(fs::exists(out_f_name) && fs::is_regular_file(out_f_name) && fs::status(out_f_name).permissions()>fs::perms::none){
-            log().record_log(ErrorCodeLog::FILE_X1_PERM_DENIED,"",out_f_name.c_str());
-            return ErrorCode::INTERNAL_ERROR;
-        }   
-    }
-    else
-        std::cout<<"Writing to "<<out_f_name<<std::endl;
-
-    file<<"Mashroom extractor v=0.01\nData formats: "<<center_to_abbr(props_.center_.value())<<"\nSource: https://cds.climate.copernicus.eu/\nDistributor: Oster Industries LLC\n";
-    //print header
-    //print data to file
-    file<<std::left<<std::setw(18)<<"Time"<<"\t";
-    for(auto& [cmn_data,values]:get_result(result)){
-        file<<std::left<<std::setw(10)<<parameter_table(
-                cmn_data.center_.has_value()?
-                cmn_data.center_.value():
-                Organization::Undefined,
-                cmn_data.table_version_.has_value()?
-                cmn_data.table_version_.value():
-                0,cmn_data.parameter_.has_value()?
-                cmn_data.parameter_.value():0)->name<<'\t';
-    }
-    file<<std::endl;
-    return ErrorCode::NONE;
-}
 
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;

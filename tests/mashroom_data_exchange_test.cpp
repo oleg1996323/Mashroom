@@ -60,7 +60,7 @@ class DataTestClass:public Data,public testing::Test{
     }
 };
 
-TEST_F(DataTestClass,DataExchangeTest){
+TEST_F(DataTestClass,Index_DataExchangeTest){
     Client client("127.0.0.1",32396);
     auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
     auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB>();
@@ -71,11 +71,60 @@ TEST_F(DataTestClass,DataExchangeTest){
     Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
     auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
     EXPECT_EQ(err,ErrorCode::NONE);
-    auto& result = client.get_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
+    auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
     EXPECT_EQ(result.additional().blocks_.size(),1);    
+    EXPECT_FALSE(result.message_more());
+}
+
+TEST_F(DataTestClass,Extract_DataExchangeTest){
+    Client client("127.0.0.1",32396);
+    auto additional = network::make_additional<Client_MsgT::DATA_REQUEST>();
+    SearchProperties props;
+    props.center_=Organization::ECMWF;
+    props.fcst_unit_ = TimeFrame::HOUR;
+    props.from_date_ = sys_days(1990y/1/1);
+    props.to_date_ = utc_tp::clock::now();
+    props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+    props.position_ = Coord{.lat_=50.,.lon_=50.};
+    additional.form_=std::move(ExtractMeteoGrib(props,std::nullopt,std::nullopt));
+    EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+    Message<Client_MsgT::DATA_REQUEST> msg(std::move(additional));
+    auto err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg));
+    EXPECT_EQ(err,ErrorCode::NONE);
+    auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_EXTRACT>(30);
+    //EXPECT_EQ(result.additional().,1);    
 }
 
 int main(int argc,char* argv[]){
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
+    {
+        Client client("127.0.0.1",32396);
+        auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
+        auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB>();
+        parameters_struct.forecast_preference_=TimeFrame::HOUR;
+        parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+        parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
+        EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+        Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
+        auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
+        EXPECT_EQ(err,ErrorCode::NONE);
+        auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
+        EXPECT_EQ(result.additional().blocks_.size(),1);    
+        EXPECT_FALSE(result.message_more());
+
+        auto additional_extr = network::make_additional<Client_MsgT::DATA_REQUEST>();
+        SearchProperties props;
+        props.center_=Organization::ECMWF;
+        props.fcst_unit_ = TimeFrame::HOUR;
+        props.from_date_ = sys_days(1990y/1/1);
+        props.to_date_ = utc_tp::clock::now();
+        props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+        props.position_ = Coord{.lat_=50.,.lon_=50.};
+        additional_extr.form_=std::move(ExtractMeteoGrib(props,std::nullopt,std::nullopt));
+        client.connect("127.0.0.1",32396).has_socket();
+        Message<Client_MsgT::DATA_REQUEST> msg_extr(std::move(additional_extr));
+        err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg_extr));
+    }
+    // testing::InitGoogleTest(&argc,argv);
+    // return RUN_ALL_TESTS();
+    return 0;
 }

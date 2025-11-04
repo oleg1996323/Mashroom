@@ -8,4 +8,5 @@
  * prefix and suffix are only printed if EC_ext has text
  */
 
+//@todo check and remove if necessary
 void EC_ext(unsigned char *pds, char *prefix, char *suffix, int verbose);

@@ -13,13 +13,16 @@ using namespace network;
 namespace network::connection{
     template<>
     class Process<Client>:public AbstractProcess<Process<Client>>{
+        std::shared_ptr<std::condition_variable_any> cv_;
         public:
-        Process() = default;
+        Process(const std::shared_ptr<std::condition_variable_any>& cv):cv_(cv){}
         Process(const Process&) = delete;
         Process(Process&& other) noexcept;
         Process& operator=(const Process&) = delete;
         Process& operator=(Process&& other) noexcept;
-
+        std::condition_variable_any& cv() noexcept{
+            return *cv_;
+        }
         virtual void action_if_process_busy() override{
             throw std::runtime_error("Process doesn't finished!");
         }

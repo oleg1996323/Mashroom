@@ -16,17 +16,17 @@ template <>
 struct ExtractRequestForm<Data_t::METEO, Data_f::GRIB>
 {
     SearchProperties search_props_;
-    TimePeriod t_separation_;
-    OutputDataFileFormats file_fmt_;
+    std::optional<TimePeriod> t_separation_;
+    std::optional<OutputDataFileFormats> file_fmt_;
     ExtractRequestForm() = default;
     explicit ExtractRequestForm(const SearchProperties& search_props,
-        const TimePeriod& t_sep,
-        OutputDataFileFormats file_fmt):
+        std::optional<TimePeriod> t_sep,
+        std::optional<OutputDataFileFormats> file_fmt):
         search_props_(search_props),t_separation_(t_sep),
         file_fmt_(file_fmt){}
     explicit ExtractRequestForm(SearchProperties&& search_props,
-        TimePeriod&& t_sep,
-        OutputDataFileFormats file_fmt):
+        std::optional<TimePeriod>&& t_sep,
+        std::optional<OutputDataFileFormats> file_fmt):
         search_props_(std::move(search_props)),
         t_separation_(std::move(t_sep)),
         file_fmt_(file_fmt){}
@@ -99,11 +99,6 @@ namespace network{
             if(this!=&other){
                 *this = std::move(other);
             }
-        }
-        MessageAdditional(const SearchProperties& search_props,
-        TimePeriod t_sep = TimePeriod(years(0),months(0),days(0),hours(0),minutes(0),std::chrono::seconds(0)),
-        OutputDataFileFormats file_fmt = OutputDataFileFormats::DEFAULT){
-            form_ = std::move(ExtractMeteoGrib(search_props,t_sep,file_fmt));
         }
         MessageAdditional& operator=(const MessageAdditional& other) = delete;
         MessageAdditional& operator=(MessageAdditional&& other) noexcept{

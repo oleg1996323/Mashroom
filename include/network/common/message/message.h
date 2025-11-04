@@ -16,6 +16,7 @@ namespace network{
         using enum_t = decltype(MSG_T);
         static constexpr enum_t type_msg_ = MSG_T;
         uint64_t data_sz_ = 0;
+        bool msg_more_ = false;
         MessageBase(size_t data_sz);
         MessageBase(MessageBase<MSG_T>&& other) noexcept:data_sz_(other.data_sz_){}
         MessageBase(const MessageBase<MSG_T>& other) = delete;
@@ -27,9 +28,6 @@ namespace network{
         constexpr static enum_t msg_type(){
             return MSG_T;
         }
-        constexpr static uint64_t min_required_defining_size(){
-            return sizeof(data_sz_);
-        }
     };
 
     template<auto MSG_T>
@@ -40,8 +38,10 @@ namespace network{
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
     MessageBase<MSG_T>& MessageBase<MSG_T>::operator=(MessageBase<MSG_T>&& other){
-        if(this!=&other)
+        if(this!=&other){
             data_sz_= other.data_sz_;
+            msg_more_ = other.msg_more_;
+        }
         return *this;
     }
 }
@@ -53,7 +53,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.data_sz_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.data_sz_,msg.msg_more_);
         }
     };
 
@@ -62,7 +62,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.data_sz_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.data_sz_,msg.msg_more_);
         }
     };
 
@@ -71,7 +71,7 @@ namespace serialization{
     struct Serial_size<MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.data_sz_);
+            return serial_size(msg.data_sz_,msg.msg_more_);
         }
     };
 
@@ -81,7 +81,7 @@ namespace serialization{
         using type = MessageBase<MSG_T>;
         static constexpr size_t value = []()
         {
-            return min_serial_size<decltype(type::data_sz_)>();
+            return min_serial_size<decltype(type::data_sz_),decltype(type::msg_more_)>();
         }();
     };
 
@@ -91,7 +91,7 @@ namespace serialization{
         using type = MessageBase<MSG_T>;
         static constexpr size_t value = []()
         {
-            return max_serial_size<decltype(type::data_sz_)>();
+            return max_serial_size<decltype(type::data_sz_),decltype(type::msg_more_)>();
         }();
     };
 }
@@ -104,11 +104,6 @@ namespace network{
     template<typename MSG>
     concept Data_Size_Buffer = requires(const MSG& val){
         {std::declval<MSG>().data_size_buffer()} -> std::same_as<uint64_t>;
-    };
-
-    template<typename T>
-    concept Min_Req_Def_Size = requires(const T& val){
-        {T::min_required_defining_size()} -> std::same_as<uint64_t>;
     };
 
     template<Side S>
@@ -150,13 +145,16 @@ namespace network{
             }
             return *this;
         }
+        void set_message_more() noexcept{
+            base_.msg_more_ = true;
+        }
+        bool message_more() const noexcept{
+            return base_.msg_more_;
+        }
         constexpr static type msg_type(){
             return decltype(base_)::msg_type();
         }
         
-        template<bool NETWORK_ORDER>
-        static std::expected<uint64_t,serialization::SerializationEC> data_size_from_buffer(std::span<const char> buffer) noexcept;
-        constexpr static uint64_t min_required_defining_size();
         const auto& additional() const{
             return additional_;
         }
@@ -237,43 +235,6 @@ namespace network{
         else if constexpr(std::is_same_v<type,MESSAGE_ID<Side::CLIENT>::type>)
             return MESSAGE_ID<Side::CLIENT>::side();
         else static_assert(false,"Undefined side");
-    }
-
-    template<Side S>
-    constexpr uint64_t undefined_msg_type_min_required_size(){
-        uint64_t result = 0;
-        
-        constexpr auto max_size_by_type = []<typename T>() -> uint64_t
-        {
-            if constexpr(!Min_Req_Def_Size<T>)
-                return 0;
-            else return T::min_required_defining_size();
-        };
-
-        auto max_size = [&result,&max_size_by_type]<size_t... IDs>(std::integer_sequence<size_t, IDs...>) {
-            ((result = std::max(result, max_size_by_type. template operator()<std::variant_alternative_t<IDs, typename list_message<S>::type>>())), ...);
-        };
-        
-        max_size(std::make_index_sequence<std::variant_size_v<typename list_message<S>::type>>{});
-        
-        return result;
-    }
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    template<bool NETWORK_ORDER>
-    std::expected<uint64_t,serialization::SerializationEC> Message<MSG_T>::data_size_from_buffer(std::span<const char> buffer) noexcept{
-        assert(buffer.size()>=min_required_defining_size());
-        MessageBase<MSG_T> tmp;
-        if(serialization::SerializationEC err = serialization::deserialize<NETWORK_ORDER>(tmp,buffer);err!=serialization::SerializationEC::NONE)
-            return std::unexpected(err);
-        return tmp.data_sz_;
-    }
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
-    constexpr uint64_t Message<MSG_T>::min_required_defining_size(){
-        return decltype(base_)::min_required_defining_size();
     }
 }
 

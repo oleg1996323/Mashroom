@@ -17,7 +17,7 @@ namespace network{
     template<typename DERIVED_CONNECTIONPOOL>
     class CommonServer{
         std::unique_ptr<Multiplexor> accepter;
-        DERIVED_CONNECTIONPOOL connection_pool;
+        DERIVED_CONNECTIONPOOL connection_pool_;
         Socket socket_;
         using Interrupted = bool;
         std::future<Interrupted> accept_result;
@@ -40,7 +40,7 @@ namespace network{
             std::cout<<strerror(err)<<std::endl;
         }
         CommonServer& add_connection(const Socket& socket, Event events_notify){
-            connection_pool.add_connection(socket,events_notify);
+            connection_pool_.add_connection(socket,events_notify);
             return *this;
         }
         CommonServer& remove_connection(const Socket& socket, bool wait){
@@ -48,16 +48,16 @@ namespace network{
             return *this;
         }
         CommonServer& modify_connection(const Socket& socket,Event events_notify){
-            connection_pool.modify_connection(socket,events_notify);
+            connection_pool_.modify_connection(socket,events_notify);
             return *this;
         }
         public:
         template<typename... CONNPOOL_ARGS>
-        CommonServer(CONNPOOL_ARGS&&... args):connection_pool(std::forward<CONNPOOL_ARGS>(args)...){}
+        CommonServer(CONNPOOL_ARGS&&... args):connection_pool_(std::forward<CONNPOOL_ARGS>(args)...){}
         template<typename... CONNPOOL_ARGS>
         CommonServer(const server::Settings& settings,CONNPOOL_ARGS&&... args):
         socket_(Socket(settings.host_,settings.port_,Socket::Type::Stream,settings.protocol_)),
-        connection_pool(std::forward<CONNPOOL_ARGS>(args)...){
+        connection_pool_(std::forward<CONNPOOL_ARGS>(args)...){
             if(settings.reuse_address_)
                 socket_.set_option(network::Socket::Option<int>(1,Socket::Options::ReuseAddress));
             socket_.bind();
@@ -65,7 +65,7 @@ namespace network{
         virtual ~CommonServer(){
             if(accepter)
                 accepter->interrupt();
-            connection_pool.stop(false);
+            connection_pool_.stop(false);
             accept_result.wait();
         }
         template<typename... ARGS>
@@ -118,11 +118,9 @@ namespace network{
         bool is_launched() const{
             return socket_.is_valid() && accepter;
         }
-        #ifdef DEBUG
         const DERIVED_CONNECTIONPOOL& get_connection_pool() const{
-            return connection_pool;
+            return connection_pool_;
         }
-        #endif
     };
 }
 
@@ -165,7 +163,7 @@ namespace network{
     template<typename DERIVED_CONNECTIONPOOL>
     void CommonServer<DERIVED_CONNECTIONPOOL>::accept(){
         accept_result= std::async(std::launch::async,[this](){
-            connection_pool.polling_connections();
+            connection_pool_.polling_connections();
             socklen_t sin_size = address_struct_size(*socket_.storage);
             for(;;){
                 if (accepter->interrupted()){
@@ -194,7 +192,7 @@ namespace network{
                                 else{
                                     Socket socket(raw_sock,another);
                                     using Event_t = Multiplexor::Event;
-                                    connection_pool.add_connection(socket,Event_t::HangUp|Event_t::In);
+                                    connection_pool_.add_connection(socket,Event_t::HangUp|Event_t::In);
                                     after_accept(socket);
                                     continue;
                                 }
@@ -205,8 +203,8 @@ namespace network{
                             }
                         }
                         else{
-                            if(connection_pool.contains_socket(event.data.fd))
-                                connection_pool.get_socket(event.data.fd);
+                            if(connection_pool_.contains_socket(event.data.fd))
+                                connection_pool_.get_socket(event.data.fd);
                         }
                     }
                 }
@@ -224,7 +222,7 @@ namespace network{
         
         if(accepter)
             accepter->interrupt();
-        connection_pool.stop(wait_for_end_connections,timeout_sec);
+        connection_pool_.stop(wait_for_end_connections,timeout_sec);
         accept_result.wait();
     }
     template<typename DERIVED_CONNECTIONPOOL>
