@@ -1,4 +1,4 @@
-#include "proc/extract/gen.h"
+#include "proc/common/gen.h"
 
 std::string generate_format_from_time_period(const TimePeriod& t_off) noexcept{
     auto time_unit = t_off.min_valuable();
