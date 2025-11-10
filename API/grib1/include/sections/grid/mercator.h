@@ -89,5 +89,11 @@ namespace serialization{
     };
 }
 
+template<>
+std::expected<grid::GridBase<MERCATOR>,std::exception> from_json<grid::GridBase<MERCATOR>>(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<MERCATOR>& val);
+
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<MERCATOR>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<MERCATOR>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<MERCATOR>>::value);

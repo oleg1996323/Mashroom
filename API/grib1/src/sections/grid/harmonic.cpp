@@ -33,7 +33,7 @@ const char* GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMO
 }
 
 template<>
-std::expected<grid::GridBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>,std::exception> from_json<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS> result;
         auto& obj = val.as_object();

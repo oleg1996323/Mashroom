@@ -86,5 +86,13 @@ namespace serialization{
     };
 }
 
+#include "boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<SPACE_VIEW>,std::exception> from_json<grid::GridBase<SPACE_VIEW>>(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<SPACE_VIEW>& val);
+
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<SPACE_VIEW>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<SPACE_VIEW>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<SPACE_VIEW>>::value);

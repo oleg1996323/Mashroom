@@ -13,7 +13,7 @@ const char* GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>::print_gr
 }
 
 template<>
-std::expected<grid::GridBase<POLAR_STEREOGRAPH_PROJ>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<POLAR_STEREOGRAPH_PROJ>,std::exception> from_json<grid::GridBase<POLAR_STEREOGRAPH_PROJ>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<POLAR_STEREOGRAPH_PROJ> result;
         return result;

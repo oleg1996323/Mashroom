@@ -112,7 +112,7 @@ namespace serialization{
 #include "boost_functional/json.h"
 
 template<>
-std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json(const boost::json::value& val);
+std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json<grid::GridBase<ALBERS_EQUAL_AREA>>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const grid::GridBase<ALBERS_EQUAL_AREA>& val);

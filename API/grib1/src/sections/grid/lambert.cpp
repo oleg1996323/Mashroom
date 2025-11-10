@@ -20,7 +20,7 @@ const char* GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>::print
 }
 
 template<>
-std::expected<grid::GridBase<RepresentationType::LAMBERT>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<RepresentationType::LAMBERT>,std::exception> from_json<grid::GridBase<RepresentationType::LAMBERT>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<RepresentationType::LAMBERT> result;
         auto& obj = val.as_object();

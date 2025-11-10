@@ -38,7 +38,7 @@ const char* GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>::p
 }
 
 template<>
-std::expected<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>,std::exception> from_json<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR> result;
         auto& obj = val.as_object();

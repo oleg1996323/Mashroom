@@ -76,7 +76,7 @@ namespace serialization{
 }
 
 template<>
-std::expected<grid::GridBase<SIMPLE_POLYCONIC>,std::exception> from_json(const boost::json::value& val);
+std::expected<grid::GridBase<SIMPLE_POLYCONIC>,std::exception> from_json<grid::GridBase<SIMPLE_POLYCONIC>>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const grid::GridBase<SIMPLE_POLYCONIC>& val);

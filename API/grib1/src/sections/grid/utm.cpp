@@ -12,7 +12,7 @@ const char* GridDefinition<RepresentationType::UTM>::print_grid_info() const{
 }
 
 template<>
-std::expected<grid::GridBase<UTM>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<UTM>,std::exception> from_json<grid::GridBase<UTM>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<UTM> result;
         return result;

@@ -211,6 +211,9 @@ std::string_view grid_to_abbr(RepresentationType rep_t) noexcept{
     }
 }
 
+#include "sections/grid/json/json_add.h"
+#include "sections/grid/json/json_base.h"
+
 template<>
 std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){
     if(val.is_object()){
@@ -224,7 +227,7 @@ std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){
                     if constexpr (std::is_same_v<std::monostate,std::decay_t<decltype(grid_data)>>)
                         return;
                     else{
-                        auto res_tmp = from_json_grid_definition<representation_type<std::decay_t<decltype(grid_data)>>::type>(json_data);
+                        auto res_tmp = from_json_grid_definition<grid_type<std::decay_t<decltype(grid_data)>>::type>(json_data);
                             if(res_tmp.has_value())
                                 grid_data = res_tmp.value();
                     }

@@ -11,7 +11,7 @@ const char* GridDefinition<RepresentationType::GNOMONIC>::print_grid_info() cons
 }
 
 template<>
-std::expected<grid::GridBase<GNOMONIC>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<GNOMONIC>,std::exception> from_json<grid::GridBase<GNOMONIC>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<GNOMONIC> result;
         return result;

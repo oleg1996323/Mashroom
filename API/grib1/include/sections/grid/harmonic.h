@@ -185,7 +185,7 @@ namespace serialization{
 #include "boost_functional/json.h"
 
 template<>
-std::expected<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>,std::exception> from_json(const boost::json::value& val);
+std::expected<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>,std::exception> from_json<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>& val);

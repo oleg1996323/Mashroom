@@ -91,7 +91,7 @@ namespace serialization{
 }
 
 template<>
-std::expected<grid::GridBase<MILLERS_CYLINDR>,std::exception> from_json(const boost::json::value& val);
+std::expected<grid::GridBase<MILLERS_CYLINDR>,std::exception> from_json<grid::GridBase<MILLERS_CYLINDR>>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const grid::GridBase<MILLERS_CYLINDR>& val);

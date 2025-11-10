@@ -13,7 +13,7 @@ const char* GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>::print_grid_in
 }
 
 template<>
-std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json<grid::GridBase<ALBERS_EQUAL_AREA>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<ALBERS_EQUAL_AREA> result;
         auto& obj = val.as_object();

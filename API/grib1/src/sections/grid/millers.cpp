@@ -11,7 +11,7 @@ const char* GridDefinition<RepresentationType::MILLERS_CYLINDR>::print_grid_info
 }
 
 template<>
-std::expected<grid::GridBase<MILLERS_CYLINDR>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<MILLERS_CYLINDR>,std::exception> from_json<grid::GridBase<MILLERS_CYLINDR>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<MILLERS_CYLINDR> result;
         return result;

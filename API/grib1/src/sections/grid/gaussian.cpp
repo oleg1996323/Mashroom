@@ -36,7 +36,7 @@ const char* GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LO
 }
 
 template<>
-std::expected<grid::GridBase<GAUSSIAN>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<GAUSSIAN>,std::exception> from_json<grid::GridBase<GAUSSIAN>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<GAUSSIAN> result;
         auto& obj = val.as_object();

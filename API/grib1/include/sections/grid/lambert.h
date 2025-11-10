@@ -107,7 +107,7 @@ namespace serialization{
 }
 
 template<>
-std::expected<grid::GridBase<RepresentationType::LAMBERT>,std::exception> from_json(const boost::json::value& val);
+std::expected<grid::GridBase<RepresentationType::LAMBERT>,std::exception> from_json<grid::GridBase<RepresentationType::LAMBERT>>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const grid::GridBase<RepresentationType::LAMBERT>& val);

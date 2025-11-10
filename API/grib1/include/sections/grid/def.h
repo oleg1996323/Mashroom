@@ -446,16 +446,35 @@ void GDS_winds(unsigned char *gds, int verbose);
 
 #include <code_tables/table_6.h>
 
+/// @brief Parameter specifying grid modifications (stretching,rotation)
+enum class GridModification{
+	NONE,
+	ROTATION,
+	STRETCHING,
+	ROTATION_STRETCHING
+};
+
 template<RepresentationType>
 struct GridDefinition;
 
+template<RepresentationType REP_T, GridModification MOD>
+struct GridAdditional;
+
 template<typename T>
-struct representation_type;
+struct grid_type;
 
 template<template<RepresentationType> typename GRIDDEF,RepresentationType T>
-struct representation_type<GRIDDEF<T>>{
+struct grid_type<GRIDDEF<T>>{
 	static_assert(std::is_same_v<GRIDDEF<T>,GridDefinition<T>>);
 	static constexpr RepresentationType type = T;
+	static constexpr grid::GridModification mod = GridDefinition<T>::modification();
+};
+
+template<template<RepresentationType,grid::GridModification> typename GRIDADD,RepresentationType T,grid::GridModification M>
+struct grid_type<GRIDADD<T,M>>{
+	static_assert(std::is_same_v<GRIDADD<T,M>,GridAdditional<T,M>>);
+	static constexpr RepresentationType type = T;
+	static constexpr grid::GridModification mod = GridDefinition<T>::modification();
 };
 
 }

@@ -13,7 +13,7 @@ const char* GridDefinition<RepresentationType::SIMPLE_POLYCONIC>::print_grid_inf
 }
 
 template<>
-std::expected<grid::GridBase<SIMPLE_POLYCONIC>,std::exception> from_json(const boost::json::value& val){
+std::expected<grid::GridBase<SIMPLE_POLYCONIC>,std::exception> from_json<grid::GridBase<SIMPLE_POLYCONIC>>(const boost::json::value& val){
     if(val.is_object()){
         grid::GridBase<SIMPLE_POLYCONIC> result;
         return result;
