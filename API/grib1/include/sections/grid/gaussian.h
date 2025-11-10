@@ -33,6 +33,20 @@ struct GridDefinition<RepresentationType::GAUSSIAN>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -57,6 +71,20 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::ROTATION>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -69,6 +97,20 @@ struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<RepresentationType::GAUSSIAN,GridModification::STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -81,6 +123,20 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>:
         GridDefinitionBase<GAUSSIAN,GridModification::ROTATION_STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -140,6 +196,14 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<GAUSSIAN>,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<GAUSSIAN>& val);
 
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<GAUSSIAN>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<GAUSSIAN>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<GAUSSIAN>>::value);

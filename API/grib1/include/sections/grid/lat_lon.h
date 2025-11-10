@@ -35,6 +35,20 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -78,6 +92,20 @@ struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -89,6 +117,20 @@ struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -100,6 +142,20 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
     GridDefinitionBase<LAT_LON_GRID_EQUIDIST_CYLINDR,GridModification::ROTATION_STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -157,6 +213,14 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>& val);
 
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>::value);

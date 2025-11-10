@@ -2,7 +2,7 @@
 #include <variant>
 #include <vector>
 #include "compressor.h"
-#include "proc/common/gen.h"
+#include "proc/extract/gen.h"
 #include "API/grib1/include/sections/grid/grid.h"
 #include "proc/common/fs.h"
 
@@ -55,7 +55,7 @@ ErrorCode write_txt_file(const std::stop_token& stop_token,
                 filename_format,
                 center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,current_time);
             {
-                ErrorCode err = make_file(out,out_f_name,result);
+                ErrorCode err = make_file(out,out_f_name);
                 if(err!=ErrorCode::NONE){
                     maked_files.clear();
                     return err;

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "sections/section_2.h"
 #include "common/error_data.h"
+#include "grib1/error_data.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX UCHAR_MAX*8

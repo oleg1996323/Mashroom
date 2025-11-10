@@ -1,0 +1,256 @@
+0 WMO WMO Secretariat
+1 Melbourne Melbourne
+2 Melbourne Melbourne
+3 Melbourne Melbourne
+4 Melbourne Melbourne
+5 Moscow Moscow
+6 Moscow Moscow
+7 NCEP US National Weather Service - National Centres for Environmental Prediction (NCEP)
+8 NWSTG US National Weather Service Telecommunications Gateway (NWSTG)
+9 USNWS US National Weather Service - Other
+10 Cairo Cairo (RSMC)
+11 Cairo Cairo (RSMC)
+12 Dakar Dakar (RSMC)
+13 Dakar Dakar (RSMC)
+14 Nairobi Nairobi (RSMC)
+15 Nairobi Nairobi (RSMC)
+16 Casablanca Casablanca (RSMC)
+17 Tunis Tunis (RSMC)
+18 TunisCasabl Tunis - Casablanca (RSMC)
+19 TunisCasabl Tunis - Casablanca (RSMC)
+20 LasPalmas Las Palmas
+21 Algiers Algiers (RSMC)
+22 ACMAD ACMAD
+23 Mozambique Mozambique (NMC)
+24 Pretoria Pretoria (RSMC)
+25 LaRéunion La Réunion (RSMC)
+26 Khabarovsk Khabarovsk (RSMC)
+27 Khabarovsk Khabarovsk (RSMC)
+28 NewDelhi New Delhi (RSMC)
+29 NewDelhi New Delhi (RSMC)
+30 Novosibirsk Novosibirsk (RSMC)
+31 Novosibirsk Novosibirsk (RSMC)
+32 Tashkent Tashkent (RSMC)
+33 Jeddah Jeddah (RSMC)
+34 JMA Tokyo (RSMC), Japan Meteorological Agency
+35 JMA Tokyo (RSMC), Japan Meteorological Agency
+36 Bangkok Bangkok
+37 Ulaanbaatar Ulaanbaatar
+38 Beijing Beijing (RSMC)
+39 Beijing Beijing (RSMC)
+40 Seoul Seoul
+41 BuenosAires Buenos Aires (RSMC)
+42 BuenosAires Buenos Aires (RSMC)
+43 Brasilia Brasilia (RSMC)
+44 Brasilia Brasilia (RSMC)
+45 Santiago Santiago
+46 BSA_INPE Brazilian Space Agency INPE
+47 Colombia Colombia (NMC)
+48 Ecuador Ecuador (NMC)
+49 Peru Peru (NMC)
+50 Venezuela Venezuela (Bolivarian Republic of) (NMC)
+51 Miami Miami (RSMC)
+52 Miami_NHC Miami (RSMC), National Hurricane Centre
+53 Montreal Montreal (RSMC)
+54 CMC Canadian Meteorological Centre
+55 SanFranc San Francisco
+56 ARINC ARINC Centre
+57 AFGWC US Air Force - Air Force Global Weather Central
+58 FNMOC Fleet Numerical Meteorology and Oceanography Center, Monterey, CA, United States
+59 NOAA The NOAA Forecast Systems Laboratory, Boulder, CO, United States
+60 NCAR United States National Center for Atmospheric Research (NCAR)
+61 ARGOS Service ARGOS - Landover
+62 NOO US Naval Oceanographic Office
+63 IRI International Research Institute for Climate and Society (IRI)
+64 Honolulu Honolulu (RSMC)
+65 Darwin Darwin (RSMC)
+66 Darwin Darwin (RSMC)
+67 Melbourne Melbourne (RSMC)
+68 Reserved Reserved
+69 Wellington Wellington (RSMC)
+70 Wellington Wellington (RSMC)
+71 Nadi Nadi (RSMC)
+72 Singapore Singapore
+73 Malaysia Malaysia (NMC)
+74 UK_MOE UK Meteorological Office  Exeter (RSMC)
+75 UK_MOE UK Meteorological Office  Exeter (RSMC)
+76 Moscow Moscow (RSMC)
+77 Reserved Reserved
+78 DWD Offenbach (RSMC)
+79 DWD Offenbach (RSMC)
+80 Rome Rome (RSMC)
+81 Rome Rome (RSMC)
+82 Norrköping Norrköping
+83 Norrköping Norrköping
+84 Toulouse Toulouse (RSMC)
+85 Toulouse Toulouse (RSMC)
+86 Helsinki Helsinki
+87 Belgrade Belgrade
+88 Oslo Oslo
+89 Prague Prague
+90 Episkopi Episkopi
+91 Ankara Ankara
+92 Frankfurt_Main Frankfurt/Main
+93 WAFC London (WAFC)
+94 Copenhagen Copenhagen
+95 Rota Rota
+96 Athens Athens
+97 ESA European Space Agency (ESA)
+98 ECMWF European Centre for Medium-Range Weather Forecasts (ECMWF) (RSMC)
+99 DeBilt De Bilt
+100 Brazzaville Brazzaville
+101 Abidjan Abidjan
+102 Libya Libya (NMC)
+103 Madagascar Madagascar (NMC)
+104 Mauritius Mauritius (NMC)
+105 Niger Niger (NMC)
+106 Seychelles Seychelles (NMC)
+107 Uganda Uganda (NMC)
+108 Tanzania United Republic of Tanzania (NMC)
+109 Zimbabwe Zimbabwe (NMC)
+110 Hong_Kong Hong-Kong, China
+111 Afghanistan Afghanistan (NMC)
+112 Bahrain Bahrain (NMC)
+113 Bangladesh Bangladesh (NMC)
+114 Bhutan Bhutan (NMC)
+115 Cambodia Cambodia (NMC)
+116 N_Korea Democratic People's Republic of Korea (NMC)
+117 Iran Islamic Republic of Iran (NMC)
+118 Iraq Iraq (NMC)
+119 Kazakhstan Kazakhstan (NMC)
+120 Kuwait Kuwait (NMC)
+121 Kyrgyzstan Kyrgyzstan (NMC)
+122 Laos Lao People's Democratic Republic (NMC)
+123 Macao Macao, China
+124 Maldives Maldives (NMC)
+125 Myanmar Myanmar (NMC)
+126 Nepal Nepal (NMC)
+127 Oman Oman (NMC)
+128 Pakistan Pakistan (NMC)
+129 Qatar Qatar (NMC)
+130 Yemen Yemen (NMC)
+131 SriLanka Sri Lanka (NMC)
+132 Tajikistan Tajikistan (NMC)
+133 Turkmenistan Turkmenistan (NMC)
+134 UAE United Arab Emirates (NMC)
+135 Uzbekistan Uzbekistan (NMC)
+136 VietNam Viet Nam (NMC)
+137 Reserved Reserved
+138 Reserved Reserved
+139 Reserved Reserved
+140 Bolivia Bolivia (Plurinational State of) (NMC)
+141 Guyana Guyana (NMC)
+142 Paraguay Paraguay (NMC)
+143 Suriname Suriname (NMC)
+144 Uruguay Uruguay (NMC)
+145 FrenchGuiana French Guiana
+146 BNHC Brazilian Navy Hydrographic Centre
+147 CONAE National Commission on Space Activities (CONAE) - Argentina
+148 Reserved Reserved
+149 Reserved Reserved
+150 Antigua_Barbuda Antigua and Barbuda (NMC)
+151 Bahamas Bahamas (NMC)
+152 Barbados Barbados (NMC)
+153 Belize Belize (NMC)
+154 BCT British Caribbean Territories Centre
+155 San José San José
+156 Cuba Cuba (NMC)
+157 Dominica Dominica (NMC)
+158 Dominicana Dominican Republic (NMC)
+159 Salvador El Salvador (NMC)
+160 NOAA_NESDIS US NOAA/NESDIS
+161 NOAA_OAR US NOAA Office of Oceanic and Atmospheric Research
+162 Guatemala Guatemala (NMC)
+163 Haiti Haiti (NMC)
+164 Honduras Honduras (NMC)
+165 Jamaica Jamaica (NMC)
+166 Mexico Mexico City
+167 Curaçao_SintMaarten Curaçao and Sint Maarten (NMC)
+168 Nicaragua Nicaragua (NMC)
+169 Panama Panama (NMC)
+170 SaintLucia Saint Lucia (NMC)
+171 Trinidad_Tobago Trinidad and Tobago (NMC)
+172 French_Departments_RA_IV French Departments in RA IV
+173 NASA US National Aeronautics and Space Administration (NASA)
+174 ISDM_MEDS Integrated Science Data Management/Marine Environmental Data Service (ISDM/MEDS) - Canada
+175 UCAR University Corporation for Atmospheric Research (UCAR) - United States
+176 CIMSS Cooperative Institute for Meteorological Satellite Studies (CIMSS) - United States
+177 NOAA_NOS NOAA National Ocean Service - United States
+178 Reserved Reserved
+179 Reserved Reserved
+180 Reserved Reserved
+181 Reserved Reserved
+182 Reserved Reserved
+183 Reserved Reserved
+184 Reserved Reserved
+185 Reserved Reserved
+186 Reserved Reserved
+187 Reserved Reserved
+188 Reserved Reserved
+189 Reserved Reserved
+190 CookIslands Cook Islands (NMC)
+191 FrenchPolynesia French Polynesia (NMC)
+192 Tonga Tonga (NMC)
+193 Vanuatu Vanuatu (NMC)
+194 BruneiDarussalam Brunei Darussalam (NMC)
+195 Indonesia Indonesia (NMC)
+196 Kiribati Kiribati (NMC)
+197 Micronesia Federated States of Micronesia (NMC)
+198 NewCaledonia New Caledonia (NMC)
+199 Niue Niue
+200 PapuaNewGuinea Papua New Guinea (NMC)
+201 Philippines Philippines (NMC)
+202 Samoa Samoa (NMC)
+203 SolomonIslands Solomon Islands (NMC)
+204 NIWA National Institute of Water and Atmospheric Research (NIWA - New Zealand)
+205 Reserved Reserved
+206 Reserved Reserved
+207 Reserved Reserved
+208 Reserved Reserved
+209 Reserved Reserved
+210 ESA_ESRIN Frascati (ESA/ESRIN)
+211 Lannion Lannion
+212 Lisbon Lisbon
+213 Reykjavik Reykjavik
+214 Madrid Madrid
+215 Zurich Zurich
+216 ARGOS_Toulouse Service ARGOS - Toulouse
+217 Bratislava Bratislava
+218 Budapest Budapest
+219 Ljubljana Ljubljana
+220 Warsaw Warsaw
+221 Zagreb Zagreb
+222 Albania Albania (NMC)
+223 Armenia Armenia (NMC)
+224 Austria Austria (NMC)
+225 Azerbaijan Azerbaijan (NMC)
+226 Belarus Belarus (NMC)
+227 Belgium Belgium (NMC)
+228 Bosnia_Herzegovina Bosnia and Herzegovina (NMC)
+229 Bulgaria Bulgaria (NMC)
+230 Cyprus Cyprus (NMC)
+231 Estonia Estonia (NMC)
+232 Georgia Georgia (NMC)
+233 Dublin Dublin
+234 Israel Israel (NMC)
+235 Jordan Jordan (NMC)
+236 Latvia Latvia (NMC)
+237 Lebanon Lebanon (NMC)
+238 Lithuania Lithuania (NMC)
+239 Luxembourg Luxembourg
+240 Malta Malta (NMC)
+241 Monaco Monaco
+242 Romania Romania (NMC)
+243 SAR Syrian Arab Republic (NMC)
+244 Macedonia The former Yugoslav Republic of Macedonia (NMC)
+245 Ukraine Ukraine (NMC)
+246 Moldova Republic of Moldova (NMC)
+247 OPERA_EUMETNET Operational Programme for the Exchange of weather RAdar information (OPERA) - EUMETNET
+248 Montenegro Montenegro (NMC)
+249 Reserved Reserved
+250 COSMO COnsortium for Small scale MOdelling (COSMO)
+251 MetCoOp Meteorological Cooperation on Operational NWP (MetCoOp)
+252 MPI_M Max Planck Institute for Meteorology (MPI-M)
+253 Reserved Reserved
+254 EUMETSAT EUMETSAT Operation Centre
+255 Missing Missing

@@ -1,17 +1,20 @@
 #pragma once
+#include "gen.h"
+#include <unordered_map>
+#include <vector>
+#include <string_view>
+#include <string>
+#include <unordered_set>
+#include "proc/common/fs.h"
+#include "data/msg.h"
 
-enum class TIME_UNIT_ENUM {
-    HOUR,
-    DAY,
-    MONTH,
-    YEAR,
-    LATITUDE,
-    LONGITUDE,
-    LATLON
-};
 
-const std::unordered_map<TIME_UNIT_ENUM,std::unordered_set<std::string>>& token_to_txt() noexcept;
-const std::unordered_map<std::string,TIME_UNIT_ENUM>& txt_to_token() noexcept;
-std::vector<TIME_UNIT_ENUM> input_to_token_sequence(const std::string&);
 bool check_format(std::string_view fmt);
-bool check_format(const std::vector<TIME_UNIT_ENUM>& tokens);
+bool check_format(const std::vector<DIR_TREE_TOKEN>& tokens);
+
+/**
+ * @return Return the names of created files with registered grib data
+ */ 
+std::vector<std::pair<fs::path, GribMsgDataInfo>> write_json_file(const fs::path& output_dir,
+																const std::vector<DIR_TREE_TOKEN>& hierarchy,
+																const std::vector<GribMsgDataInfo>& data_);

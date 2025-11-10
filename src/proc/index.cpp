@@ -14,71 +14,37 @@
 #include <format>
 #include "error_data_print.h"
 #include "types/time_interval.h"
-bool Index::check_format(std::string_view fmt){
-	return std::all_of(fmt.begin(),fmt.end(),[&fmt](char ch)
-	{
-		return std::count(fmt.begin(),fmt.end(),ch)<=1;
-	});
-}
+#include "proc/index/write.h"
+#include "proc/index/gen.h"
+#include "proc/index/indexdatafileformat.h"
+
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::vector<std::pair<fs::path, GribMsgDataInfo>> Index::__write__(const std::vector<GribMsgDataInfo>& data_){
-	std::vector<std::pair<fs::path, GribMsgDataInfo>> result;
+std::unordered_map<fs::path, std::vector<GribMsgDataInfo>> Index::__write__(const std::vector<GribMsgDataInfo>& data_){
+	std::unordered_map<fs::path, std::vector<GribMsgDataInfo>> result;
+	auto seq_order = input_to_token_sequence(std::string(output_order_));
 	for(const GribMsgDataInfo& msg_info:data_){
-		fs::path cur_path(dest_directory_);
-		FILE* dump_file = NULL;
-		for(char ch:output_order_){
-			switch (ch)
-			{
-			case 'd':
-			case 'D':
-				cur_path/=std::format("{:%d}",msg_info.date);		
+		fs::path filename;
+		if(output_format_!=IndexDataFileFormats::NATIVE)
+			filename = generate_filename(output_format_,seq_order);
+		//else @todo make define_native_format() function
+			//filename = generate_filename(define_native_format(),seq_order);
+		switch (output_format_)
+		{
+			case IndexDataFileFormats::JSON:
+				filename = generate_filename(output_format_,seq_order);
+				write_json_file(filename,seq_order,data_);
 				break;
-			case 'm':
-			case 'M':
-				cur_path/=std::format("{:%B}",msg_info.date);
-				break;
-			case 'h':
-			case 'H':
-				cur_path/=std::format("{:%H}",msg_info.date);
-				break;
-			case 'y':
-			case 'Y':
-				cur_path/=std::format("{:%Y}",msg_info.date);
-				break;
-			case 'g':
-			case 'G':
-				if(msg_info.grid_data.has_grid())
-					cur_path/=grid_to_abbr(msg_info.grid_data.type());
-				else
-					cur_path/="wogrid";
+			
 			default:
-				fprintf(stderr,"Error reading format");
-				exit(1);
+				//filename = generate_filename(define_native_format(),seq_order);
 				break;
-			}
 		}
-		if(!fs::exists(cur_path) && !fs::create_directories(cur_path))
-			// @todo
-			throw std::runtime_error("Unable to create path "s+cur_path.c_str());
-		const ParmTable* p_t = parameter_table(msg_info.center,msg_info.table_version,msg_info.parameter);
-		if(p_t)
-			cur_path/=p_t->name+".grib"s;
-		else cur_path/="woparam"+".grib"s;
-		dump_file = fopen(cur_path.c_str(),"a");
-		if(!dump_file)
-			// @todo
-			throw std::runtime_error("Unable to open file "s+cur_path.c_str());
-		//may be usefull to separate in a unique function for C++ use
-		//info can be lost if not added to binary (must be added time/date or coordinate (depend of fmt))
-		fwrite(&msg_info.buf_pos_,sizeof(msg_info.buf_pos_),msg_info.msg_sz_,dump_file);
-		fclose(dump_file);
-		result.push_back({cur_path,msg_info});
-		dump_file = NULL;
+		result[filename].push_back(msg_info);
 	}
 	return result;
 }
@@ -86,57 +52,39 @@ std::vector<std::pair<fs::path, GribMsgDataInfo>> Index::__write__(const std::ve
 
 namespace fs = std::filesystem;
 
-/**
- * @brief Execute message indexing of concrete file.
- */
-const GribProxyDataInfo& Index::__index_file__(const fs::path& file){
-	HGrib1 grib;
-	using namespace API::ErrorData;
-	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
-		return result;
-	}
-	if(!output_order_.empty()){
-		std::vector<std::pair<fs::path, GribMsgDataInfo>> write_res;
-		{
-			std::vector<GribMsgDataInfo> grib_msgs;
-			do{
-				auto msg = grib.message();
-				if(msg.has_value()){
-					GribMsgDataInfo& info = grib_msgs.emplace_back(	std::move(msg.value().get().section_2_.define_grid()),
-												std::move(msg.value().get().section_1_.date()),
-												grib.current_message_position(),
-												grib.current_message_length().value(),
-												msg.value().get().section_1_.IndicatorOfParameter(),
-												msg.value().get().section_1_.unit_time_range(),
-												msg.value().get().section_1_.center(),
-												msg.value().get().section_1_.table_version());
-				}
-			}while(grib.next_message());
-			write_res= std::move(__write__(grib_msgs));
-		}
-		for(const auto& [filename,msg]:write_res)
-			result.add_info(path::Storage<false>::file(filename),msg);
-		return result;
-	}
-	else{ //only refer (do not overwrite initial files)
-		do{
-			auto msg = grib.message();
-			if(msg.has_value()){
-				GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
+std::vector<GribMsgDataInfo> process_file(HGrib1& grib_file_handler){
+	std::vector<GribMsgDataInfo> grib_msgs;
+	do{
+		auto msg = grib_file_handler.message();
+		if(msg.has_value()){
+			GribMsgDataInfo& info = grib_msgs.emplace_back(	std::move(msg.value().get().section_2_.define_grid()),
 										std::move(msg.value().get().section_1_.date()),
-										grib.current_message_position(),
-										grib.current_message_length().value(),
+										grib_file_handler.current_message_position(),
+										grib_file_handler.current_message_length().value(),
 										msg.value().get().section_1_.IndicatorOfParameter(),
 										msg.value().get().section_1_.unit_time_range(),
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version());
+		}
+	}while(grib_file_handler.next_message());
+	return grib_msgs;
+}
 
-				result.add_info(path::Storage<false>::file(file),info);
-			}
-		}while(grib.next_message());
-		return result;
+/**
+ * @brief Execute message indexing of concrete file.
+ */
+std::vector<GribMsgDataInfo> Index::__index_file__(const fs::path& file){
+	HGrib1 grib;
+	std::vector<GribMsgDataInfo> res;
+	using namespace API::ErrorData;
+	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		return res;
 	}
+	res = std::move(process_file(grib));
+	if(!output_order_.empty())
+		__write__(res);
+	return res;
 }
 
 void Index::execute() noexcept{
@@ -148,13 +96,16 @@ void Index::execute() noexcept{
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 						std::cout<<entry.path()<<std::endl;
-						const GribProxyDataInfo& index_data = __index_file__(entry.path());
+						
+						for(auto&& msg_info :__index_file__(entry.path()))
+							result.add_info(path::Storage<false>::file(entry.path()),std::move(msg_info));
 					}
 					else continue;
 				}
 				break;
 			case path::TYPE::FILE:
-				__index_file__(path.path_);
+				for(auto&& msg_info :__index_file__(path.path_))
+					result.add_info(path::Storage<false>::file(path.path_),std::move(msg_info));
 				break;
 			case path::TYPE::HOST:
 				if(path.add_.is<path::TYPE::HOST>()){

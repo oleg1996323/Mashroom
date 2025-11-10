@@ -4,71 +4,19 @@
 #include <filesystem>
 #include <algorithm>
 #include <vector>
-#include "data/msg.h"
 #include "API/grib1/include/paramtablev.h"
-#include "proc/common/gen.h"
-#include <filesystem>
-#include "filesystem.h"
+#include "proc/index/gen.h"
+#include "proc/index/write/json.h"
 
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
-const std::unordered_map<TIME_UNIT_ENUM,std::unordered_set<std::string>> token_to_txt_ = {
-    {TIME_UNIT_ENUM::HOUR,{"hour"s,"hours"s}},
-    {TIME_UNIT_ENUM::DAY,{"day"s,"days"s}},
-    {TIME_UNIT_ENUM::MONTH,{"month"s,"months"s}},
-    {TIME_UNIT_ENUM::YEAR,{"year"s,"years"s}},
-    {TIME_UNIT_ENUM::LATITUDE,{"lat"s,"latitude"s}},
-    {TIME_UNIT_ENUM::LONGITUDE,{"lon"s,"longitude"s}},
-    {TIME_UNIT_ENUM::LATLON,{"latlon"s}}
-};
-
-const std::unordered_map<std::string,TIME_UNIT_ENUM> txt_to_token_ = {
-    {"hour"s,TIME_UNIT_ENUM::HOUR},
-    {"hours"s,TIME_UNIT_ENUM::HOUR},
-    {"day"s,TIME_UNIT_ENUM::DAY},
-    {"days"s,TIME_UNIT_ENUM::DAY},
-    {"month"s,TIME_UNIT_ENUM::MONTH},
-    {"months"s,TIME_UNIT_ENUM::MONTH},
-    {"year"s,TIME_UNIT_ENUM::YEAR},
-    {"years"s,TIME_UNIT_ENUM::YEAR},
-    {"lat"s,TIME_UNIT_ENUM::LATITUDE},
-    {"latitude"s,TIME_UNIT_ENUM::LATITUDE},
-    {"lon"s,TIME_UNIT_ENUM::LONGITUDE},
-    {"longitude"s,TIME_UNIT_ENUM::LONGITUDE},
-    {"latlon"s,TIME_UNIT_ENUM::LATLON}
-};
-
-const std::unordered_map<TIME_UNIT_ENUM,std::unordered_set<std::string>>& token_to_txt() noexcept{
-    return token_to_txt_;
-}
-const std::unordered_map<std::string,TIME_UNIT_ENUM>& txt_to_token() noexcept{
-    return txt_to_token_;
-}
-
-std::vector<TIME_UNIT_ENUM> input_to_token_sequence(const std::string& sequence){
-    std::vector<TIME_UNIT_ENUM> result;
-    std::size_t pos = 0;
-    size_t prev_pos = 0;
-    while(prev_pos<sequence.size()){
-        pos = sequence.find_first_of(fs::separator(),prev_pos);
-        if(auto found = txt_to_token_.find(sequence.substr(prev_pos,pos));found==txt_to_token_.end())
-            throw std::invalid_argument("invalid sequence input. Prompt: token \""s+sequence.substr(prev_pos,pos)+"\""s);
-        else{
-            result.push_back(found->second);
-            if(pos!=std::string::npos)
-                prev_pos = pos+1;
-            else return result;
-        }
-    }
-    return result;
-}
 
 bool check_format(std::string_view fmt){
-	check_format(input_to_token_sequence(std::string(fmt)));
+	return check_format(input_to_token_sequence(std::string(fmt)));
 }
-bool check_format(const std::vector<TIME_UNIT_ENUM>& tokens){
-    std::unordered_map<TIME_UNIT_ENUM,int> counter;
+bool check_format(const std::vector<DIR_TREE_TOKEN>& tokens){
+    std::unordered_map<DIR_TREE_TOKEN,int> counter;
     for(auto token:tokens){
         if(++counter[token]>1)
             return false;
@@ -79,42 +27,15 @@ bool check_format(const std::vector<TIME_UNIT_ENUM>& tokens){
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::vector<std::pair<fs::path, GribMsgDataInfo>> write_txt_file(const fs::path& output_dir,const std::vector<GribMsgDataInfo>& data_){
+std::vector<std::pair<fs::path, GribMsgDataInfo>> write_json_file(const fs::path& output_dir,
+																const std::vector<DIR_TREE_TOKEN>& hierarchy,
+																const std::vector<GribMsgDataInfo>& data_){
 	std::vector<std::pair<fs::path, GribMsgDataInfo>> result;
+	std::ofstream file;
 	for(const GribMsgDataInfo& msg_info:data_){
 		fs::path cur_path(output_dir);
 		FILE* dump_file = NULL;
-		for(char ch:output_order_){
-			switch (ch)
-			{
-			case 'd':
-			case 'D':
-				cur_path/=std::format("{:%d}",msg_info.date);		
-				break;
-			case 'm':
-			case 'M':
-				cur_path/=std::format("{:%B}",msg_info.date);
-				break;
-			case 'h':
-			case 'H':
-				cur_path/=std::format("{:%H}",msg_info.date);
-				break;
-			case 'y':
-			case 'Y':
-				cur_path/=std::format("{:%Y}",msg_info.date);
-				break;
-			case 'g':
-			case 'G':
-				if(msg_info.grid_data.has_grid())
-					cur_path/=grid_to_abbr(msg_info.grid_data.type());
-				else
-					cur_path/="wogrid";
-			default:
-				fprintf(stderr,"Error reading format");
-				exit(1);
-				break;
-			}
-		}
+		make_file(file,generate_filename(IndexDataFileFormats::JSON,hierarchy,msg_info.date));
 		if(!fs::exists(cur_path) && !fs::create_directories(cur_path))
 			// @todo
 			throw std::runtime_error("Unable to create path "s+cur_path.c_str());

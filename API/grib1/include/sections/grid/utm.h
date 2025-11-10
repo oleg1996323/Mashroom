@@ -12,6 +12,20 @@ struct GridDefinition<RepresentationType::UTM>:
     GridDefinitionBase<RepresentationType::UTM,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::UTM>& other) const{
         return GridDefinitionBase::operator==(other);
@@ -62,6 +76,12 @@ namespace serialization{
         }();
     };
 }
+
+template<>
+std::expected<grid::GridBase<UTM>,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<UTM>& val);
 
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<UTM>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<UTM>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<UTM>>::value);

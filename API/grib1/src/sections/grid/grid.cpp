@@ -210,3 +210,49 @@ std::string_view grid_to_abbr(RepresentationType rep_t) noexcept{
         }
     }
 }
+
+template<>
+std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){
+    if(val.is_object()){
+        auto& obj = val.as_object();
+        GridInfo result;
+        if(obj.contains("representation type") && obj.contains("grid data") && 
+                    obj.at("representation type").is_uint64() && obj.at("grid data").is_object()){
+            if(result.emplace_by_id(static_cast<RepresentationType>(obj.at("representation type").as_uint64()))){
+                auto init_grid_data = [&json_data = obj.at("grid data").as_object()](auto&& grid_data)
+                {   
+                    if constexpr (std::is_same_v<std::monostate,std::decay_t<decltype(grid_data)>>)
+                        return;
+                    else{
+                        auto res_tmp = from_json_grid_definition<representation_type<std::decay_t<decltype(grid_data)>>::type>(json_data);
+                            if(res_tmp.has_value())
+                                grid_data = res_tmp.value();
+                    }
+                };
+                try{
+                    std::visit(init_grid_data,result);
+                    return result;
+                }
+                catch(const std::exception& err){
+                    return std::unexpected(err);
+                }
+            }
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        }
+        else return std::unexpected(std::invalid_argument("invalid JSON input"));
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+}
+
+template<>
+boost::json::value to_json(const GridInfo& val){
+    boost::json::object obj;
+    obj["representation type"].emplace_uint64()=static_cast<uint64_t>(val.type());
+    auto to_json_variant = [&obj](auto&& grid_data){
+        if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(grid_data)>>)
+            obj["grid data"] = to_json(grid_data);
+        else obj["grid data"].emplace_object();
+    };
+    std::visit(to_json_variant,val);
+    return obj;
+}

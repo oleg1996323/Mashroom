@@ -25,6 +25,20 @@ struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>:
     GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -41,6 +55,20 @@ struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENT
     GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::ROTATION>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -57,6 +85,20 @@ struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIE
         GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -70,6 +112,20 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_C
     GridDefinitionBase<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS,GridModification::ROTATION_STRETCHING>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;
@@ -125,6 +181,14 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>& val);
 
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>>::value);

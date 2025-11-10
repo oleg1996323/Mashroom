@@ -4,56 +4,53 @@
 #include <type_traits>
 #include <boost/algorithm/string.hpp>
 
+using namespace std::string_literals;
+
 void boost::program_options::validate(boost::any& v,const std::vector<std::basic_string<char>>& values,
-                                    InternalDateFileFormats* target_type,int)
+                                    IndexDataFileFormats::token* target_type,int)
 {
     namespace po = boost::program_options;
     po::validators::check_first_occurrence(values);
     const std::string s = po::validators::get_single_string(values);
-    v = lexical_cast<InternalDateFileFormats>(s);
+    v = lexical_cast<IndexDataFileFormats::token>(s);
 }
 
 template<>
-std::string boost::lexical_cast(const InternalDateFileFormats& input){
-    switch(input){
-        case InternalDateFileFormats::NATIVE:
+std::string boost::lexical_cast(const IndexDataFileFormats::token& input){
+    try{
+        if(input == IndexDataFileFormats::NATIVE)
             return "native";
-        case InternalDateFileFormats::BINARY:
-            return "bin";
-        case InternalDateFileFormats::TEXT:
-            return "txt";
-        case InternalDateFileFormats::GRIB:
-            return "grib";
-        case InternalDateFileFormats::IEEE:
-            return "IEEE";
-        case InternalDateFileFormats::HGT:
-            return "hgt";
-        case InternalDateFileFormats::NETCDF:
-            return "netcdf";
-        default:
-            throw boost::bad_lexical_cast();
+        return token_to_extension(input);
     }
+    catch(const std::exception& err){
+        throw boost::bad_lexical_cast();
+    }    
 }
 
 template<>
-::InternalDateFileFormats boost::lexical_cast(const std::string& input){
-    auto r = regex("^(native|txt|bin|grib|IEEE|netcdf|hgt)$",boost::regex_constants::icase);
+::IndexDataFileFormats::token boost::lexical_cast(const std::string& input){
+    std::string regex_seq = std::views::values(token_extension()) | std::views::join_with('|') | std::ranges::to<std::string>();
+    auto r = regex("^("s+regex_seq+")$",boost::regex_constants::icase);
     smatch match;
     if(regex_match(input,match,r)){
-        InternalDateFileFormats fmt;
+        IndexDataFileFormats::token fmt;
         if(boost::ifind_first(match[2],"native"))
-            return InternalDateFileFormats::NATIVE;
-        else if(boost::ifind_first(match[2],"txt"))
-            return InternalDateFileFormats::TEXT;
-        else if(boost::ifind_first(match[2],"grib"))
-            return InternalDateFileFormats::GRIB;
-        else if(boost::ifind_first(match[2],"bin"))
-            return InternalDateFileFormats::BINARY;
-        else if(boost::ifind_first(match[2],"IEEE"))
-            return InternalDateFileFormats::IEEE;
-        else if(boost::ifind_first(match[2],"hgt"))
-            return InternalDateFileFormats::HGT;
-        else return InternalDateFileFormats::NETCDF;
+            return IndexDataFileFormats::token::NATIVE;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::JSON)))
+            return IndexDataFileFormats::token::JSON;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::XML)))
+            return IndexDataFileFormats::token::XML;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::GRIB)))
+            return IndexDataFileFormats::token::GRIB;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::BINARY)))
+            return IndexDataFileFormats::token::BINARY;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::IEEE)))
+            return IndexDataFileFormats::token::IEEE;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::HGT)))
+            return IndexDataFileFormats::token::HGT;
+        else if(boost::ifind_first(match[2],token_to_extension(IndexDataFileFormats::NETCDF)) || boost::ifind_first(match[2],"netcdf"))
+            return IndexDataFileFormats::token::NETCDF;
+        else assert(false); //code error (not added IndexDataFileFormats::token to switch-case)
     }
     else throw boost::bad_lexical_cast();
 }

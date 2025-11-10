@@ -71,6 +71,10 @@ struct GridBase<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>{
     dy(float(GDS_LatLon_dy(buffer))/1000),
     dx(float(GDS_LatLon_dx(buffer))/1000),
     scan_mode(ScanMode(GDS_LatLon_scan(buffer))){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -130,6 +134,10 @@ struct GridBase<RepresentationType::GAUSSIAN>{
     N(GDS_Gaussian_nlat(buffer)),
     scan_mode(ScanMode(GDS_LatLon_scan(buffer))),
     resolutionAndComponentFlags(ResolutionComponentFlags(GDS_LatLon_mode(buffer))){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -219,6 +227,10 @@ struct GridBase<RepresentationType::ALBERS_EQUAL_AREA>{
     latin2(float(GDS_Lambert_Latin2(buffer))/1000),
     latitude_south_pole(float(GDS_Lambert_LatSP(buffer))/1000),
     longitude_south_pole(float(GDS_Lambert_LonSP(buffer))/1000){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 #include "code_tables/table_10.h"
@@ -272,6 +284,10 @@ struct GridBase<SPHERICAL_HARMONIC_COEFFICIENTS>{
         M(GDS_Harmonic_nm(buffer)),
         representation_type(GDS_Harmonic_type(buffer)),
         rep_mode((Spectral)GDS_Harmonic_mode(buffer)){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -372,6 +388,10 @@ struct GridBase<LAMBERT>{
         latin2(GDS_Lambert_Latin2(buffer)),
         latitude_south_pole(GDS_Lambert_LatSP(buffer)),
         longitude_south_pole(GDS_Lambert_LonSP(buffer)){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -447,6 +467,10 @@ struct GridBase<POLAR_STEREOGRAPH_PROJ>{
     dy(GDS_Polar_Dy(buffer)),
     is_south_pole(GDS_Polar_pole(buffer)),
     scan_mode(ScanMode(GDS_Polar_mode(buffer))){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 /// @ref https://web.unbc.ca/~funnel0/fst2grib/resources/GRIB.html#data_rep
@@ -535,6 +559,10 @@ struct GridBase<SPACE_VIEW>{
     nr(read_bytes<3,false>(&buffer[31])),
     Xo(read_bytes<2,true>(&buffer[34])),
     Yo(read_bytes<2,true>(&buffer[36])){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -600,6 +628,10 @@ struct GridBase<MERCATOR>{
     scan_mode(GDS_Merc_scan(buffer)),
     dy(GDS_Merc_dy(buffer)),
     dx(GDS_Merc_dx(buffer)){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -617,6 +649,10 @@ struct GridBase<GNOMONIC>{
 
     GridBase() = default;
     GridBase(unsigned char* buffer){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -634,6 +670,10 @@ struct GridBase<MILLERS_CYLINDR>{
 
     GridBase() = default;
     GridBase(unsigned char* buffer){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -651,6 +691,10 @@ struct GridBase<SIMPLE_POLYCONIC>{
 
     GridBase() = default;
     GridBase(unsigned char* buffer){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<>
@@ -668,6 +712,10 @@ struct GridBase<RepresentationType::UTM>{
 
     GridBase() = default;
     GridBase(unsigned char* buffer){}
+    GridBase(const GridBase&) = default;
+    GridBase(GridBase&&) noexcept = default;
+    GridBase& operator=(const GridBase&) = default;
+    GridBase& operator=(GridBase&&) noexcept = default;
 };
 
 template<RepresentationType REP_T,GridModification MOD>
@@ -700,6 +748,10 @@ struct GridDefinitionBase{
     }
     GridDefinitionBase(unsigned char* buffer):
         base_(buffer),additional_(buffer){}
+    GridDefinitionBase(const GridDefinitionBase&) = default;
+    GridDefinitionBase(GridDefinitionBase&&) noexcept = default;
+    GridDefinitionBase& operator=(const GridDefinitionBase&) = default;
+    GridDefinitionBase& operator=(GridDefinitionBase&&) noexcept = default;
 };
 
 template<RepresentationType REP_T>
@@ -769,4 +821,39 @@ namespace serialization{
             return max_serial_size<decltype(type::base_),decltype(type::additional_)>();
         }();
     };
+}
+
+#include "boost_functional/json.h"
+
+template<template<RepresentationType> class GRIDDEF,RepresentationType REP>
+std::expected<GRIDDEF<REP>,std::exception> from_json(const boost::json::value& val){
+    static_assert(std::is_same_v<GRIDDEF<REP>,grid::GridDefinition<REP>>,"invalid function call");
+    if(val.is_object()){
+        grid::GridDefinition<REP> result;
+        if(val.as_object().contains("base"))
+            if(auto base_tmp = from_json<grid::GridBase<grid::GridDefinition<REP>::type()>>(val.as_object().at("base"));base_tmp.has_value())
+                result.base_ = std::move(base_tmp.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        if(val.as_object().contains("additional") && val.as_object().contains("mod") && val.as_object().at("mod").is_uint64()){
+            if(auto add_res = from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridDefinition<REP>::modification()>>(val.as_object().at("additional"));add_res.has_value())
+                result.additional_ = std::move(add_res.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        }
+        return result;
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+}
+
+template<RepresentationType REP>
+boost::json::value to_json(const grid::GridDefinition<REP>& val){
+    boost::json::value result;
+    auto& obj = result.as_object();
+    obj["base"] = to_json(val.base_);
+    obj["additional"] = to_json(val.additional_);
+    return result;
+}
+
+template<RepresentationType REP>
+std::expected<grid::GridDefinition<REP>,std::exception> from_json_grid_definition(const boost::json::value& val){
+    return from_json<grid::GridDefinition,REP>(val);
 }

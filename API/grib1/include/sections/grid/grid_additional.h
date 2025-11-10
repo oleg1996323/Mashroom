@@ -27,6 +27,10 @@ namespace grid{
         }
         GridAdditional() = default;
         GridAdditional(unsigned char*){}
+        GridAdditional(const GridAdditional&) = default;
+        GridAdditional(GridAdditional&&) = default;
+        GridAdditional& operator=(const GridAdditional&) = default;
+        GridAdditional& operator=(GridAdditional&&) noexcept = default;
     };
 
     template<RepresentationType REP_T>
@@ -38,6 +42,8 @@ namespace grid{
         /// @brief Angle of rotation (represented in the same way as the reference value) (ibmfloat)
         double ang;
         GridAdditional() = default;
+        GridAdditional(const GridAdditional& other):yp(other.yp),xp(other.xp),ang(other.ang){}
+        GridAdditional(GridAdditional&& other):yp(other.yp),xp(other.xp),ang(other.ang){}
         GridAdditional(unsigned char* buffer):
         yp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
         xp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
@@ -51,6 +57,8 @@ namespace grid{
         bool operator==(const GridAdditional<REP_T,GridModification::ROTATION>& other) const{
             return yp==other.yp && xp == other.xp && ang == other.ang;
         }
+        GridAdditional& operator=(const GridAdditional&) = default;
+        GridAdditional& operator=(GridAdditional&&) noexcept = default;
     };
 
     template<RepresentationType REP_T>
@@ -62,6 +70,8 @@ namespace grid{
         /// @brief Stretching factor (representation as for the reference value) (ibmfloat)
         double s_factor;
         GridAdditional() = default;
+        GridAdditional(const GridAdditional& other):ysp(other.ysp),xsp(other.xsp),s_factor(other.s_factor){}
+        GridAdditional(GridAdditional&& other):ysp(other.ysp),xsp(other.xsp),s_factor(other.s_factor){}
         GridAdditional(unsigned char* buffer):
         ysp(to_float(read_bytes<3,true>(&buffer[begin_byte()]))),
         xsp(to_float(read_bytes<3,true>(&buffer[begin_byte()+3]))),
@@ -75,6 +85,8 @@ namespace grid{
         bool operator==(const GridAdditional<REP_T,GridModification::STRETCHING>& other) const{
             return ysp==other.ysp && xsp == other.xsp && s_factor == other.s_factor;
         }
+        GridAdditional& operator=(const GridAdditional&) = default;
+        GridAdditional& operator=(GridAdditional&&) noexcept = default;
     };
 
     template<RepresentationType REP_T>
@@ -82,6 +94,8 @@ namespace grid{
         GridAdditional<REP_T,GridModification::ROTATION> rot_;
         GridAdditional<REP_T,GridModification::STRETCHING> stretch_;
         GridAdditional() = default;
+        GridAdditional(const GridAdditional& other):rot_(other.rot_),stretch_(other.stretch_){}
+        GridAdditional(GridAdditional&& other):rot_(std::move(other.rot_)),stretch_(std::move(other.stretch_)){}
         GridAdditional(unsigned char* buffer):
         rot_(buffer),stretch_(buffer){}
 
@@ -98,6 +112,8 @@ namespace grid{
                     rot_.xp == other.rot_.xp && 
                     rot_.ang == other.rot_.ang;
         }
+        GridAdditional& operator=(const GridAdditional&) = default;
+        GridAdditional& operator=(GridAdditional&&) noexcept = default;
     };
 }
 
@@ -270,4 +286,117 @@ namespace serialization{
             return max_serial_size<decltype(type::rot_),decltype(type::stretch_)>();
         }();
     };
+}
+
+#include "boost_functional/json.h"
+
+template<RepresentationType REP>
+boost::json::value to_json(const grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::NONE>& val){
+    boost::json::object result;
+    return result;
+}
+template<template<RepresentationType,grid::GridModification> class GRIDADDITION, RepresentationType REP>
+std::expected<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::NONE>,std::exception> from_json(const boost::json::value& val){
+    GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::NONE> result;
+    if(val.is_object() && !val.as_object().empty())
+        return result;
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+}
+
+template<template<RepresentationType,grid::GridModification> class GRIDADDITION, RepresentationType REP>
+std::expected<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION>,std::exception> from_json(const boost::json::value& val){
+    if(val.is_object()){
+        GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION> result;
+        auto& obj = val.as_object();
+        if(obj.contains("rotation") && obj.at("rotation").is_object()){
+            const boost::json::object& in_obj = val.at("rotation").as_object();
+            if(in_obj.contains("SP lat") && in_obj.at("SP lat").is_int64())
+                result.yp = in_obj.at("SP lat").as_int64();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            if(in_obj.contains("SP lon") && in_obj.at("SP lon").is_int64())
+                result.yp = in_obj.at("SP lon").as_int64();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            if(in_obj.contains("rot angle (ibmf)") && in_obj.at("rot angle (ibmf)").is_int64())
+                result.yp = in_obj.at("rot angle (ibmf)").as_int64();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            return result;
+        }
+        else return std::unexpected(std::invalid_argument("invalid JSON input"));
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+}
+
+template<RepresentationType REP>
+boost::json::value to_json(const grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION>& val){
+    boost::json::value result = boost::json::object();
+    auto& obj = result.as_object();
+    obj["SP lat"].emplace_int64() = val.yp;
+    obj["SP lat"].emplace_int64() = val.xp;
+    obj["rot angle (ibmf)"].emplace_double() = val.ang;
+    return result;
+}
+
+template<template<RepresentationType,grid::GridModification> class GRIDADDITION, RepresentationType REP>
+std::expected<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING>,std::exception> from_json(const boost::json::value& val){
+    if(val.is_object()){
+        GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING> result;
+            const boost::json::object& in_obj = val.at("stretching").as_object();
+            if(in_obj.contains("lat pole stretch, mm") && in_obj.at("lat pole stretch, mm").is_int64())
+                result.ysp = in_obj.at("SP lat").as_int64();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            if(in_obj.contains("lon pole stretch, mm") && in_obj.at("lon pole stretch, mm").is_int64())
+                result.xsp = in_obj.at("lon pole stretch, mm").as_int64();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            if(in_obj.contains("stretch factor (ibmf)") && in_obj.at("stretch factor (ibmf)").is_double())
+                result.s_factor = in_obj.at("stretch factor (ibmf)").as_double();
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            return result;
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+}
+
+template<RepresentationType REP>
+boost::json::value to_json(const grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING>& val){
+    boost::json::value result = boost::json::object();
+    auto& obj = result.as_object();
+    obj["lat pole stretch, mm"].emplace_int64() = val.ysp;
+    obj["lon pole stretch, mm"].emplace_int64() = val.xsp;
+    obj["stretch factor (ibmf)"].emplace_double() = val.s_factor;
+    return result;
+}
+
+template<template<RepresentationType,grid::GridModification> class GRIDADDITION, RepresentationType REP>
+std::expected<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION_STRETCHING>,std::exception> from_json(const boost::json::value& val){
+    GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING> result;
+    if(val.is_object()){
+        boost::json::object& obj = val.as_object();
+        if(obj.contains("rotation") && obj.at("rotation").is_structured()){
+            if(auto res_rot = from_json<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION>>(obj.at("rotation"));res_rot.has_value())
+                result.rot_ = std::move(res_rot.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        }
+        else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        if(obj.contains("stretching") && obj.at("stretching").is_structured()){
+            if(auto res_str = from_json<GRIDADDITION<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING>>(obj.at("stretching"));res_str.has_value())
+                result.stretch_ = std::move(res_str.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+        }
+        else return std::unexpected(std::invalid_argument("invalid JSON input"));
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+    return result;
+}
+
+template<RepresentationType REP>
+boost::json::value to_json(const grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION_STRETCHING>& val){
+    boost::json::value result = boost::json::object();
+    boost::json::object& obj = result.as_object();
+    obj.emplace("rotation",to_json(val.rot_));
+    obj.emplace("stretching",to_json(val.stretch_));
+    return result;
+}
+
+template<RepresentationType REP, grid::GridModification MOD>
+std::expected<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridDefinition<REP>::modification()>,std::exception> from_json_grid_additional(const boost::json::value& val){
+    return from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridDefinition<REP>::modification()>,grid::GridDefinition<REP>::type()>(val);
 }

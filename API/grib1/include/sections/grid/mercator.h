@@ -15,6 +15,20 @@ struct GridDefinition<RepresentationType::MERCATOR>:
     GridDefinitionBase<RepresentationType::MERCATOR,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     const char* print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::MERCATOR>& other) const{
         return GridDefinitionBase::operator==(other);

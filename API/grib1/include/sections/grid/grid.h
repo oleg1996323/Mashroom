@@ -254,3 +254,11 @@ static_assert(requires {requires serialization::serialize_concept<false,std::opt
 static_assert(serialization::Min_serial_size<std::optional<GridInfo>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<GridInfo>>::value==sizeof(bool)+serialization::Max_serial_size<GridInfo>::value);
 static_assert(IsStdVariant<GridInfo>);
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<GridInfo,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const GridInfo& val);

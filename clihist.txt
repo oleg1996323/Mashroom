@@ -97,3 +97,4 @@
 --extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip
 --extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip\
 --extract --outp /home/oster/new_test1 --pos lat50-lon50 --center=ECMWF --parameters="wind" --grid=Cylindr no mod --ext-out-format txt+zip
+--exit

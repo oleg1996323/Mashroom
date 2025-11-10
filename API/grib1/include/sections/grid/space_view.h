@@ -12,6 +12,20 @@ struct GridDefinition<RepresentationType::SPACE_VIEW>:
     GridDefinitionBase<RepresentationType::SPACE_VIEW,GridModification::NONE>{
     GridDefinition() = default;
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     bool operator==(const GridDefinition<RepresentationType::SPACE_VIEW>& other) const{
         return GridDefinitionBase::operator==(other);
     }

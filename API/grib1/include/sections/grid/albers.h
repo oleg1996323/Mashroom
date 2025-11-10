@@ -37,6 +37,20 @@ struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>:
         GridDefinitionBase<RepresentationType::ALBERS_EQUAL_AREA,GridModification::NONE>{  
     GridDefinition():GridDefinitionBase(){}
     GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
     /// @todo
     /// @return Printed by text parameters
     const char* print_grid_info() const;    
@@ -94,6 +108,14 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<ALBERS_EQUAL_AREA>& val);
 
 static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<ALBERS_EQUAL_AREA>>>::value==sizeof(bool));
 static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<ALBERS_EQUAL_AREA>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<ALBERS_EQUAL_AREA>>::value);

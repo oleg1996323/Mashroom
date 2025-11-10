@@ -39,18 +39,19 @@ namespace parse{
                 "invalid index directories order",AT_ERROR_ACTION::CONTINUE,order);
         }),("Specify the separation of indexd data by paths. Is ignored if \"index-overwrite\" option is not specified or set \"false\"."s+
         " Example: YMDH - {outp-value}/{data-year}/{data-month}/{data-day}/{data-hour}.").c_str())
-        ("index-format",po::value<InternalDateFileFormats>()->value_name("["+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::NATIVE)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::TEXT)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::BINARY)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::GRIB)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::HGT)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::IEEE)+"|"+
-            boost::lexical_cast<std::string>(InternalDateFileFormats::NETCDF)+"]"
-            )->default_value(InternalDateFileFormats::NATIVE)->notifier([this](InternalDateFileFormats order){
+        ("index-format",po::value<IndexDataFileFormats::token>()->value_name("["+
+            token_to_extension(IndexDataFileFormats::token::NATIVE)+"|"+
+            token_to_extension(IndexDataFileFormats::token::JSON)+"|"+
+            token_to_extension(IndexDataFileFormats::token::XML)+"|"+
+            token_to_extension(IndexDataFileFormats::token::BINARY)+"|"+
+            token_to_extension(IndexDataFileFormats::token::GRIB)+"|"+
+            token_to_extension(IndexDataFileFormats::token::HGT)+"|"+
+            token_to_extension(IndexDataFileFormats::token::IEEE)+"|"+
+            token_to_extension(IndexDataFileFormats::token::NETCDF)+"]"
+            )->default_value(IndexDataFileFormats::token::NATIVE)->notifier([this](IndexDataFileFormats::token order){
             hIndex->set_output_format(order);
         }),("Specify the output overwriting format if the \"index-overwrite\" option is set. If overwriting with selected format cannot be implemented the \""s+
-        boost::lexical_cast<std::string>(InternalDateFileFormats::NATIVE)+
+        boost::lexical_cast<std::string>(IndexDataFileFormats::token::NATIVE)+
         "\" format is set automatically. Ignored if \"index-overwrite\" is not set.").c_str())
         /*@todo*/("index-overwrite",po::bool_switch(),("Set overwrite mode at indexing. That mean all indexd data from read files will be structured in hierarchy depending of index-dir-order."s+
         "If index-dir-order is set to \"\" (empty) the indexd file will be simply copied to the defined by \"out-dirs\" option path.").c_str())

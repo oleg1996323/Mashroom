@@ -449,6 +449,15 @@ void GDS_winds(unsigned char *gds, int verbose);
 template<RepresentationType>
 struct GridDefinition;
 
+template<typename T>
+struct representation_type;
+
+template<template<RepresentationType> typename GRIDDEF,RepresentationType T>
+struct representation_type<GRIDDEF<T>>{
+	static_assert(std::is_same_v<GRIDDEF<T>,GridDefinition<T>>);
+	static constexpr RepresentationType type = T;
+};
+
 }
 
 #include "serialization.h"
@@ -533,3 +542,17 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+std::expected<ScanMode,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const ScanMode& val);
+
+template<>
+std::expected<ResolutionComponentFlags,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const ResolutionComponentFlags& val);

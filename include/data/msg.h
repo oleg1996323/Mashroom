@@ -11,6 +11,9 @@
 #include "def.h"
 #include "types/time_interval.h"
 #include "grib1_def.h"
+#include "boost_functional/json.h"
+#include <stdexcept>
+#include <expected>
 
 struct GribMsgDataInfo
 {
@@ -42,3 +45,9 @@ struct GribMsgDataInfo
         table_version(table_version_){}
     GribMsgDataInfo() = default;
 };
+
+template<>
+std::expected<GribMsgDataInfo,std::exception> from_json(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const GribMsgDataInfo& val);
