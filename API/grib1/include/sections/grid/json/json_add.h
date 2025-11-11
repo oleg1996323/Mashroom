@@ -65,12 +65,12 @@ std::expected<grid::GridAdditional<REP,MOD>,std::exception> from_json(const boos
             else return std::unexpected(std::invalid_argument("invalid JSON input"));
         }
         if constexpr(grid::GridDefinition<REP>::modification() == grid::GridModification::ROTATION_STRETCHING){
-            if(obj.contains("stretching") && obj.contains("rotation")){
-                if(auto res_rot = from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION>>(obj.at("rotation"));res_rot.has_value())
-                    result.rot_ = std::move(res_rot.value());
-                if(auto res_str = from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING>>(obj.at("stretching"));res_str.has_value())
-                    result.stretch_ = std::move(res_str.value());
-            }
+            if(auto res_rot = from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::ROTATION>>(obj);res_rot.has_value())
+                result.rot_ = std::move(res_rot.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
+            if(auto res_str = from_json<grid::GridAdditional<grid::GridDefinition<REP>::type(),grid::GridModification::STRETCHING>>(obj);res_str.has_value())
+                result.stretch_ = std::move(res_str.value());
+            else return std::unexpected(std::invalid_argument("invalid JSON input"));
         }
     }
     else return std::unexpected(std::invalid_argument("invalid JSON input"));
@@ -80,8 +80,18 @@ std::expected<grid::GridAdditional<REP,MOD>,std::exception> from_json(const boos
 template<RepresentationType REP>
 boost::json::value to_json(const grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>& val){
     boost::json::object obj;
-    obj.emplace("rotation",to_json(val.rot_));
-    obj.emplace("stretching",to_json(val.stretch_));
+    auto& obj_tmp = obj["rotation"].emplace_object();
+    {
+        obj_tmp["SP lat"].emplace_int64() = val.rot_.yp;
+        obj_tmp["SP lat"].emplace_int64() = val.rot_.xp;
+        obj_tmp["rot angle (ibmf)"].emplace_double() = val.rot_.ang;
+    }
+    obj_tmp = obj["stretching"].emplace_object();
+    {
+        obj_tmp["lat pole stretch, mm"].emplace_int64() = val.stretch_.ysp;
+        obj_tmp["lon pole stretch, mm"].emplace_int64() = val.stretch_.xsp;
+        obj_tmp["stretch factor (ibmf)"].emplace_double() = val.stretch_.s_factor;
+    }
     return obj;
 }
 
