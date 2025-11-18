@@ -106,7 +106,7 @@ public:
         t_off_ = t_off.value();
         return ErrorCode::NONE;
     }
-    ErrorCode set_by_request(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB> &form)
+    ErrorCode set_by_request(const ExtractRequestForm<Data::TYPE::METEO, Data::FORMAT::GRIB_v1> &form)
     {
         props_ = form.search_props_;
         if(form.file_fmt_.has_value())

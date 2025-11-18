@@ -7,14 +7,27 @@
 #include <unordered_set>
 #include "proc/common/fs.h"
 #include "data/msg.h"
-
-
-bool check_format(std::string_view fmt);
-bool check_format(const std::vector<DIR_TREE_TOKEN>& tokens);
+#include <filesystem>
+#include <algorithm>
+#include "API/grib1/include/paramtablev.h"
+#include "proc/index/gen.h"
+#include "proc/index/write/json.h"
+#include "sys/error_print.h"
 
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::vector<std::pair<fs::path, GribMsgDataInfo>> write_json_file(const fs::path& output_dir,
-																const std::vector<DIR_TREE_TOKEN>& hierarchy,
-																const std::vector<GribMsgDataInfo>& data_);
+bool write_json_file(const fs::path& path,
+					std::ranges::range auto&& data_){
+	std::ofstream file(path,std::ofstream::ate);
+	for(const auto& msg_info:data_){
+		if(!file.is_open()){
+			ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,path.c_str());
+			return false;
+		}
+		file<<to_json(msg_info);
+		file.flush();
+	}
+	file.close();
+	return true;
+}

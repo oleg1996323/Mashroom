@@ -116,7 +116,7 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
 }
 
 template<>
-ErrorCode Extract::__extract__<Data_t::METEO,Data_f::GRIB>(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB> &positions){
+ErrorCode Extract::__extract__<Data_t::METEO,Data_f::GRIB_v1>(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1> &positions){
     HGrib1 grib;
     try{
         grib.open_grib(file);
@@ -164,7 +164,7 @@ using namespace std::string_literals;
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
     if(in_path_.empty()){
-        auto matched = Mashroom::instance().data().match_data<Data_t::METEO,Data_f::GRIB>(props_.center_.value(),
+        auto matched = Mashroom::instance().data().match_data<Data_t::METEO,Data_f::GRIB_v1>(props_.center_.value(),
                                                 props_.fcst_unit_,
                                                 props_.parameters_,
                                                 TimeInterval(props_.from_date_,props_.to_date_),
@@ -191,7 +191,7 @@ ErrorCode Extract::execute() noexcept{
     }
     else{
         for(const auto& path:in_path_){
-            if(Mashroom::instance().data().paths<Data_t::METEO,Data_f::GRIB>().contains(path))
+            if(Mashroom::instance().data().paths<Data_t::METEO,Data_f::GRIB_v1>().contains(path))
                 Mashroom::instance().data().match(
                                                 path,
                                                 props_.center_.value(),

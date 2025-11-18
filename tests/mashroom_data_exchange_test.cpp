@@ -18,7 +18,7 @@ class DataTestClass:public Data,public testing::Test{
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
     DataTestClass():fn("data_file.gbd"),server_(network::server::Settings("127.0.0.1","",Protocol::TCP,30,32396,true)){
-        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB>>();
+        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
@@ -63,7 +63,7 @@ class DataTestClass:public Data,public testing::Test{
 TEST_F(DataTestClass,Index_DataExchangeTest){
     Client client("127.0.0.1",32396);
     auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
-    auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB>();
+    auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB_v1>();
     parameters_struct.forecast_preference_=TimeFrame::HOUR;
     parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
     parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
@@ -99,7 +99,7 @@ int main(int argc,char* argv[]){
     {
         Client client("127.0.0.1",32396);
         auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
-        auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB>();
+        auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::METEO,Data_f::GRIB_v1>();
         parameters_struct.forecast_preference_=TimeFrame::HOUR;
         parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
         parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));

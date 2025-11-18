@@ -19,21 +19,21 @@ namespace network::client::detail{
         };
 
         template<>
-        struct __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB>:
-        __MessageProxy__<Data::TYPE::METEO,Data::FORMAT::GRIB>
+        struct __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>:
+        __MessageProxy__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>
         {
             size_t buffer_size_;
             std::vector<char> buffer_;
 
-            static std::vector<char> serialize(const __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB>& msg, const Data& data){
+            static std::vector<char> serialize(const __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>& msg, const Data& data){
                 std::vector<char> buffer;
                 for(auto [nn_file,cmn_sublimed_d]:data.data()){
                     
                 }
                 return buffer;
             }
-            static __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB> deserialize(std::vector<char>::const_iterator buffer_iter){
-                __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB> result;
+            static __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1> deserialize(std::vector<char>::const_iterator buffer_iter){
+                __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1> result;
                 
                 return result;
             } 

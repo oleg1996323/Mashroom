@@ -8,9 +8,10 @@
 constexpr std::string_view bindata_filename = std::string_view("data");
 
 struct __Data__{
+    //@todo inherit from API enum
     enum class FORMAT{
         UNDEF,
-        GRIB
+        GRIB_v1
         /* HGT,
         NETCDF */
     };
@@ -33,7 +34,7 @@ using Data_f = __Data__::FORMAT;
 using Data_a = __Data__::ACCESS;
 
 constexpr std::array<__Data__::FORMAT,1> data_types = {
-    __Data__::FORMAT::GRIB,
+    __Data__::FORMAT::GRIB_v1,
     /* __Data__::FORMAT::HGT,
     __Data__::FORMAT::NETCDF */
 };
@@ -47,14 +48,14 @@ constexpr std::array<std::string_view,2> data_extensions ={
 
 static const std::unordered_map<const char*,Data_f> formats = {
                     {"undef",Data_f::UNDEF},
-                    {"grib",Data_f::GRIB}};
+                    {"grib_v1",Data_f::GRIB_v1}};
                     /* {"hgt",Data_f::HGT},
                     {"netCDF",Data_f::NETCDF} };*/
 
 __Data__::FORMAT extension_to_type(std::string_view extension) noexcept;
 constexpr const char* format_name(__Data__::FORMAT fmt) noexcept{
     switch(fmt){
-        case __Data__::FORMAT::GRIB:
+        case __Data__::FORMAT::GRIB_v1:
             return "Grib";
         // case __Data__::FORMAT::HGT:
         //     return "HGT";

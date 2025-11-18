@@ -41,7 +41,7 @@ std::string get_header(const ExtractedData& result, const SearchProperties& prop
     std::string user_header = std::vformat(user_hdr_format,std::make_format_args(user_hdr_format));
     stream<<(user_header.empty()?"":"\n");
     auto write_columns = [&stream](auto&& value){
-        if constexpr(std::is_same_v<ExtractedValues<Data_t::METEO,Data_f::GRIB>,std::decay_t<decltype(value)>>){
+        if constexpr(std::is_same_v<ExtractedValues<Data_t::METEO,Data_f::GRIB_v1>,std::decay_t<decltype(value)>>){
             stream<<std::left<<std::setw(18)<<"Time"<<"\t";
             for(auto& [cmn_data,values]:value){
                 stream<<std::left<<std::setw(10)<<parameter_table(

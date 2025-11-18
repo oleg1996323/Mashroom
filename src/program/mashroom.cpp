@@ -46,7 +46,7 @@ void Mashroom::__read_initial_data_file__(){
             __Data__::FORMAT type_data = __Data__::FORMAT(text_to_data_type(key.data()));
             if(val.is_array() && type_data!=__Data__::FORMAT::UNDEF){
                 for(const auto& filename:val.as_array())
-                    if(type_data==__Data__::FORMAT::GRIB && filename.is_string())
+                    if(type_data==__Data__::FORMAT::GRIB_v1 && filename.is_string())
                         data_files_.insert(filename.as_string().c_str());
             }
         }

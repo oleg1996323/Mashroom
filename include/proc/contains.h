@@ -14,17 +14,17 @@ template<Data_t T,Data_f F>
 struct FoundDataInfo;
 
 template<>
-struct FoundDataInfo<Data_t::METEO,Data_f::GRIB>{
+struct FoundDataInfo<Data_t::METEO,Data_f::GRIB_v1>{
     std::optional<GridInfo> grid_data;
     std::vector<ptrdiff_t> buf_pos_;
     std::chrono::system_clock::time_point from = std::chrono::system_clock::time_point::max();
     std::chrono::system_clock::time_point to = std::chrono::system_clock::time_point::min();
     std::chrono::system_clock::duration discret = std::chrono::system_clock::duration(0);
-    CommonDataProperties<Data_t::METEO,Data_f::GRIB>* common_props_;
+    CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1>* common_props_;
     std::optional<TimeFrame> fcst_time_;
 };
 
-using VariantFoundDataInfo = std::variant<FoundDataInfo<Data_t::METEO,Data_f::GRIB>>;
+using VariantFoundDataInfo = std::variant<FoundDataInfo<Data_t::METEO,Data_f::GRIB_v1>>;
 
 struct ContainOutputFilter{
     bool file = true;
@@ -57,14 +57,14 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
 };
 
 template<>
-inline ErrorCode Contains::__execute__<Data_t::METEO,Data_f::GRIB>() noexcept{
+inline ErrorCode Contains::__execute__<Data_t::METEO,Data_f::GRIB_v1>() noexcept{
     if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 
                 props_.from_date_==utc_tp() && 
                 time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
                 !props_.grid_type_.has_value() &&
                 !props_.parameters_.empty()){
-            for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::METEO,Data_f::GRIB>().data()){
+            for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::METEO,Data_f::GRIB_v1>().data()){
                 for(auto& [common,info_seq]:file_data)
                     for(auto& info:info_seq){
                         if(stop_token_.stop_requested())

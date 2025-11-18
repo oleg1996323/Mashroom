@@ -5,10 +5,7 @@
 
 struct IndexDataFileFormats{
     enum token:uint32_t{
-        NATIVE,
         BINARY,
-        JSON,
-        XML, 
         IEEE, 
         GRIB,
         HGT,
@@ -16,8 +13,8 @@ struct IndexDataFileFormats{
     };
 };
 
-std::string token_to_extension(IndexDataFileFormats::token token);
-const std::unordered_map<IndexDataFileFormats::token,std::string>& token_extension() noexcept;
+std::string index_file_token_to_extension(IndexDataFileFormats::token token);
+const std::unordered_map<IndexDataFileFormats::token,std::string>& index_file_token_extensions() noexcept;
 
 inline IndexDataFileFormats::token operator|(IndexDataFileFormats::token lhs,IndexDataFileFormats::token rhs){
     return static_cast<IndexDataFileFormats::token>(static_cast<std::underlying_type_t<IndexDataFileFormats::token>>(lhs)|

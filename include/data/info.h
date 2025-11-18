@@ -28,7 +28,7 @@ using namespace std::string_literals;
 template<Data_t TYPE,Data_f FORMAT>
 class SublimedFormatDataInfo;
 
-using SublimedGribDataInfo = SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>;
+using SublimedGribDataInfo = SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1>;
 
 #include <string_view>
 #include "definitions/path_process.h"
@@ -37,10 +37,10 @@ namespace fs = std::filesystem;
 template<Data_t TYPE,Data_f FORMAT>
 class ProxyDataInfo;
 
-using GribProxyDataInfo = ProxyDataInfo<Data_t::METEO,Data_f::GRIB>;
+using GribProxyDataInfo = ProxyDataInfo<Data_t::METEO,Data_f::GRIB_v1>;
 
 template<>
-class ProxyDataInfo<Data_t::METEO,Data_f::GRIB>{
+class ProxyDataInfo<Data_t::METEO,Data_f::GRIB_v1>{
     public:
     using data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<IndexDataInfo<API::GRIB1>>>>;
     using sublimed_data_t = std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::deque<GribSublimedDataInfoStruct>>>;
@@ -80,11 +80,11 @@ class ProxyDataInfo<Data_t::METEO,Data_f::GRIB>{
 #include "definitions/path_process.h"
 #include "gtest/gtest_prod.h"
 template<>
-class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>
+class SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1>
 {
     public:
     using sublimed_data_t = std::unordered_map<path::Storage<false>,
-    std::map<std::shared_ptr<Grib1CommonDataProperties>,std::deque<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>;
+    std::map<std::shared_ptr<Grib1CommonDataProperties>,std::deque<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>;
     template<bool,auto>
     friend struct serialization::Serialize;
     template<bool,auto>
@@ -227,12 +227,12 @@ namespace serialization{
 //@todo make possible serialization
 static_assert(requires{requires std::ranges::range<GribProxyDataInfo::sublimed_data_t>;});
 
-static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
-static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
+static_assert(serialization::serialize_concept<true,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>>);
+static_assert(serialization::serialize_concept<false,std::pair<std::shared_ptr<Grib1CommonDataProperties> const, std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>, std::allocator<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>>);
 static_assert(requires {requires serialization::serialize_concept<true,std::optional<GribProxyDataInfo::sublimed_data_t>>;});
 static_assert(requires {requires serialization::serialize_concept<false,std::optional<GribProxyDataInfo::sublimed_data_t>>;});
-static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
-static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>);
-static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
-static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>>);
-//std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB>>>>
+static_assert(serialization::deserialize_concept<true,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>);
+static_assert(serialization::deserialize_concept<false,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>);
+static_assert(serialization::serialize_concept<true,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>>);
+static_assert(serialization::serialize_concept<false,std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<Grib1CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>>);
+//std::unordered_map<path::Storage<false>,std::map<std::shared_ptr<CommonDataProperties>,std::vector<SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>>>>

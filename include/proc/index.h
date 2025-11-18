@@ -12,6 +12,7 @@
 #include <boost/units/systems/information/nat.hpp>
 #include "proc/index/indexdatafileformat.h"
 #include "proc/index/write.h"
+#include "proc/index/indexoutputfileformat.h"
 
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
@@ -22,32 +23,27 @@ class Index{
 private:
 GribProxyDataInfo result;
 std::unordered_set<path::Storage<false>> in_path_;
-fs::path dest_directory_;
-std::string_view output_order_;
+std::unordered_set<path::Storage<false>> written_;
+std::optional<fs::path> dest_directory_;
 info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{};
 int cpus = 1;
-IndexDataFileFormats::token output_format_ = IndexDataFileFormats::token::NATIVE;
+IndexOutputFileFormat::token output_format_ = IndexOutputFileFormat::token::BINARY;
 bool host_ref_only = false;
-std::unordered_map<fs::path, std::vector<GribMsgDataInfo>> __write__(const std::vector<GribMsgDataInfo>& data);
+std::pair<fs::path,std::vector<GribMsgDataInfo>> __write_file__(const std::vector<GribMsgDataInfo>& data);
 std::vector<GribMsgDataInfo> __index_file__(const fs::path& file);
+std::pair<fs::path,std::vector<GribMsgDataInfo>> __index_write_file__(const fs::path& file);
 public:
 void execute() noexcept;
 
 ErrorCode add_in_path(const path::Storage<false>& path);
 ErrorCode set_dest_dir(std::string_view dest_directory);
-ErrorCode set_output_order(std::string_view order){
-    if(!check_format(order))
-        return ErrorPrint::print_error(ErrorCode::INVALID_INDEX_ORDER,"",AT_ERROR_ACTION::CONTINUE,order);
-    output_order_ = order;
-    return ErrorCode::NONE;
-}
-void set_output_format(IndexDataFileFormats::token format){
+void set_output_format(IndexOutputFileFormat::token format){
     output_format_ = format;
 }
 const GribProxyDataInfo& get_result() const{
     return result;
 }
-IndexDataFileFormats::token output_format() const{
+IndexOutputFileFormat::token output_format() const{
     return output_format_;
 }
 void clear_result(){

@@ -24,31 +24,33 @@ using namespace std::string_literals;
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::unordered_map<fs::path, std::vector<GribMsgDataInfo>> Index::__write__(const std::vector<GribMsgDataInfo>& data_){
-	std::unordered_map<fs::path, std::vector<GribMsgDataInfo>> result;
-	auto seq_order = input_to_token_sequence(std::string(output_order_));
+std::pair<fs::path,std::vector<GribMsgDataInfo>> Index::__write_file__(const std::vector<GribMsgDataInfo>& data_){
+	std::pair<fs::path,std::vector<GribMsgDataInfo>> result;
+	if(!fs::exists(dest_directory_.value()))
+		throw std::runtime_error("Unavailable write directory"s + dest_directory_->c_str());
 	for(const GribMsgDataInfo& msg_info:data_){
 		fs::path filename;
-		if(output_format_!=IndexDataFileFormats::NATIVE)
-			filename = generate_filename(output_format_,seq_order);
-		//else @todo make define_native_format() function
-			//filename = generate_filename(define_native_format(),seq_order);
 		switch (output_format_)
 		{
-			case IndexDataFileFormats::JSON:
-				filename = generate_filename(output_format_,seq_order);
-				write_json_file(filename,seq_order,data_);
+			case IndexOutputFileFormat::JSON:{
+				if(result.first.empty()){
+					auto param = parameter_table(msg_info.center,msg_info.table_version,msg_info.parameter);
+					if(param)
+						filename = index_gen::generate_filename(output_format_,msg_info.date,center_to_abbr(msg_info.center),grid_to_abbr(msg_info.grid_data.type()),param->name,msg_info.table_version,system_clock::now());
+					else filename = index_gen::generate_filename(output_format_,msg_info.date,center_to_abbr(msg_info.center),grid_to_abbr(msg_info.grid_data.type()),msg_info.table_version,system_clock::now());
+				}
+				if(write_json_file(result.first,data_))
+					result.second.push_back(msg_info);
+			}
 				break;
 			
 			default:
 				//filename = generate_filename(define_native_format(),seq_order);
 				break;
 		}
-		result[filename].push_back(msg_info);
 	}
 	return result;
 }
-
 
 namespace fs = std::filesystem;
 
@@ -82,9 +84,18 @@ std::vector<GribMsgDataInfo> Index::__index_file__(const fs::path& file){
 		return res;
 	}
 	res = std::move(process_file(grib));
-	if(!output_order_.empty())
-		__write__(res);
 	return res;
+}
+
+std::pair<fs::path,std::vector<GribMsgDataInfo>> Index::__index_write_file__(const fs::path& file){
+	HGrib1 grib;
+	std::pair<fs::path,std::vector<GribMsgDataInfo>> res;
+	using namespace API::ErrorData;
+	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		return res;
+	}
+	return __write_file__(std::move(process_file(grib)));
 }
 
 void Index::execute() noexcept{
@@ -92,13 +103,23 @@ void Index::execute() noexcept{
 		try{
 		switch(path.type_){
 			case path::TYPE::DIRECTORY:
+				if(!fs::is_directory(path.path_))
+					return;
 				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(path.path_)){
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 						std::cout<<entry.path()<<std::endl;
 						
-						for(auto&& msg_info :__index_file__(entry.path()))
-							result.add_info(path::Storage<false>::file(entry.path()),std::move(msg_info));
+						if(!dest_directory_.has_value()){
+							for(auto&& msg_info :__index_file__(entry.path()))
+								result.add_info(path::Storage<false>::file(entry.path()),std::move(msg_info));
+						}
+						else{
+							auto write_index_result = __index_write_file__(entry.path());
+							written_.insert(path::Storage<false>::file(write_index_result.first));
+							for(auto&& msg_info :write_index_result.second)
+								result.add_info(path::Storage<false>::file(entry.path()),std::move(msg_info));
+						}
 					}
 					else continue;
 				}
@@ -111,7 +132,7 @@ void Index::execute() noexcept{
 				if(path.add_.is<path::TYPE::HOST>()){
 					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
 					auto add_msg = network::make_additional<network::Client_MsgT::INDEX_REF>();
-					add_msg.add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB>();
+					add_msg.add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB_v1>();
 					network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(add_msg));
 					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
 					if(!instance)
@@ -123,7 +144,7 @@ void Index::execute() noexcept{
 							if constexpr(std::is_same_v<decay,std::monostate>)
 								return;
 							else if constexpr (std::is_same_v<decay,std::variant_alternative_t<1,IndexResult>>){
-								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB>::sublimed_data_t d;
+								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1>::sublimed_data_t d;
 								auto& host_data = d[path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now())];
 								for(auto& [cmn,sublimed]:block.data_){
 									std::decay_t<decltype(host_data)>::iterator found = host_data.find(cmn);
@@ -131,7 +152,7 @@ void Index::execute() noexcept{
 										found->second=sublimed;
 									else host_data[std::make_shared<std::decay_t<decltype(host_data)>::key_type::element_type>(cmn)] = sublimed;
 								}
-								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB> msg_data;
+								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1> msg_data;
 								msg_data.add_data(std::move(d));
 								Mashroom::instance().data().add_data(std::move(msg_data));
 							}

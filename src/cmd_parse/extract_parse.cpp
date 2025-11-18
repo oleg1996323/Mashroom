@@ -51,7 +51,7 @@ namespace parse{
                 bool closed = true;
                 std::vector<std::string> current_string;
                 for(const std::string& inp_str:input){
-                    if(inp_str.starts_with('"') && inp_str.ends_with('"')){
+                    if(inp_str.starts_with('[') && inp_str.ends_with(']')){
                         if(closed==true){
                             if(inp_str.size()>2){
                                 processed_tokens.push_back(inp_str.substr(1,inp_str.size()-2));
@@ -64,13 +64,13 @@ namespace parse{
                         }
                     }
                     else if(closed==true){
-                        if(inp_str.starts_with('"')){
+                        if(inp_str.starts_with('[')){
                             closed = false;
-                            if(inp_str=="\"")
+                            if(inp_str=="]")
                                 continue;
                             else current_string.push_back(inp_str.substr(1));
                         }
-                        else if(inp_str.ends_with('"')){
+                        else if(inp_str.ends_with(']')){
                             err_=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
                             return;
                         }
@@ -80,9 +80,9 @@ namespace parse{
                         }
                     }
                     else{
-                        if(inp_str.ends_with('"')){
+                        if(inp_str.ends_with(']')){
                             closed = true;
-                            if(inp_str=="\""){
+                            if(inp_str=="]"){
                                 if(!current_string.empty()){
                                     processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
                                     current_string.clear();
@@ -95,7 +95,7 @@ namespace parse{
                                 current_string.clear();
                             }
                         }
-                        else if(inp_str.starts_with('"')){
+                        else if(inp_str.starts_with('[')){
                             err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
                             return;
                         }
@@ -104,7 +104,7 @@ namespace parse{
                 }
                 hExtract->add_set_of_parameters(parse::parameter_tv::param_by_tv_abbr(hExtract->get_center().value(),processed_tokens));
             }
-        }),"Specify the expected parameters to process")
+        }),"Specify the expected parameters to process. Use the '[...]' construction with escape words separation for matching the searched center by key words.")
         ("collection",po::value<std::vector<std::string>>()/** @todo*/,"Specify by name of collection")
         ("time_fcst",po::value<std::string>(),"Specify the forecast time of the released data")
         ("grid",po::value<std::vector<std::string>>()->multitoken()->required()->notifier([this](const std::vector<std::string>& input){
@@ -112,7 +112,7 @@ namespace parse{
                 if(auto res = grid_notifier(input);res.has_value())
                     hExtract->set_grid_respresentation(res.value());
                 else err_ = res.error();
-        }),"Specify the expected grid type")
+        }),"Specify the expected grid type. Use the '[...]' construction with escape words separation for matching the searched center by key words.")
         ("ext-out-format",po::value<::OutputDataFileFormats>()->notifier([this](const ::OutputDataFileFormats& input){
             if(err_==ErrorCode::NONE)
                 hExtract->set_output_format(input);
@@ -132,6 +132,10 @@ namespace parse{
 
     ErrorCode Extract::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         hExtract = std::make_unique<::Extract>();
+        if(!vm.contains("center")){
+            err_ = ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"missing --center parameter",AT_ERROR_ACTION::CONTINUE);
+            return err_;
+        }
         auto center_res = center_notifier(vm.at("center").as<std::vector<std::string>>());
         if(center_res.has_value())
             hExtract->set_center(center_res.value());

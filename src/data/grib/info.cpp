@@ -2,7 +2,7 @@
 
 namespace fs = std::filesystem;
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
-    CommonDataProperties<Data_t::METEO,Data_f::GRIB> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
     auto found = info_[path].find(cmn);
     auto index = IndexDataInfo<API::GRIB1>{
             msg_info.grid_data,
@@ -10,13 +10,13 @@ void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsg
             msg_info.date,
             API::ErrorData::Code<API::GRIB1>::NONE_ERR};
     if(found==info_[path].end())
-        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(std::move(cmn))]
+        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1>>(std::move(cmn))]
         .emplace_back(std::move(index));
     else found->second.emplace_back(std::move(index));
 }
 
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
-    CommonDataProperties<Data_t::METEO,Data_f::GRIB> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
     auto found = info_[path].find(cmn);
     auto index = IndexDataInfo<API::GRIB1>{
             .grid_data=std::move(msg_info.grid_data),
@@ -24,7 +24,7 @@ void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataIn
             .date_time = msg_info.date,
             .err = API::ErrorData::Code<API::GRIB1>::NONE_ERR};
     if(found==info_[path].end())
-        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB>>(std::move(cmn))]
+        info_[path][std::make_shared<CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1>>(std::move(cmn))]
         .emplace_back(std::move(index));
     else{
         found->second.emplace_back(std::move(index));

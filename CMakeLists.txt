@@ -103,7 +103,7 @@ target_link_libraries(Mashroom_lib PUBLIC GIAPI
                     OsterLib::utilities
                     OsterLib::compressor
                     OsterLib::types)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR)
+target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)

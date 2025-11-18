@@ -20,10 +20,10 @@ namespace parse{
         ("j",po::value<int>()->notifier([this](uint8_t threads){
             hIndex->set_using_processor_cores(threads);
         }),"Number of used threads. Number may be discarded to the maximal physical number threads")
-        ("out-dirs",po::value<std::string>()->value_name("DIR")->default_value("")->notifier([this](const std::string& out_path){
+        ("outp",po::value<std::string>()->value_name("[DIR]")->default_value("")->notifier([this](const std::string& out_path){
             if(!out_path.empty())
                 err_ = hIndex->set_dest_dir(out_path);
-        }),"Output path. Must be defined if index-overwrite is set true. If the path does not exist and can be created, it will be created. Else the indexing process will not begin.")
+        }),"Output directory where index files of format specified by 'index-format' will be written. If the path does not exist and can be created, it will be created. Else an error will be occured and the indexing process will not begin.")
         ("inp",po::value<std::vector<path::Storage<false>>>()->value_name("dir:DIR|file:FILE|host:HOST")->required()->notifier([this](const std::vector<path::Storage<false>>& paths){
             for(auto& path:paths){
                 hIndex->add_in_path(path);
@@ -31,27 +31,14 @@ namespace parse{
                     return;
             }
         }),"Specify the input paths. The paths must exists otherwise index process will not begin.")
-        ("index-dir-order",po::value<std::string>()->value_name("[year-Y, month-M, day-D, hour-H]")->notifier([this](const std::string& order)
-        {
-            if(hIndex)
-                err_ = hIndex->set_output_order(order);
-            else err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "invalid index directories order",AT_ERROR_ACTION::CONTINUE,order);
-        }),("Specify the separation of indexd data by paths. Is ignored if \"index-overwrite\" option is not specified or set \"false\"."s+
-        " Example: YMDH - {outp-value}/{data-year}/{data-month}/{data-day}/{data-hour}.").c_str())
-        ("index-format",po::value<IndexDataFileFormats::token>()->value_name("["+
-            token_to_extension(IndexDataFileFormats::token::NATIVE)+"|"+
-            token_to_extension(IndexDataFileFormats::token::JSON)+"|"+
-            token_to_extension(IndexDataFileFormats::token::XML)+"|"+
-            token_to_extension(IndexDataFileFormats::token::BINARY)+"|"+
-            token_to_extension(IndexDataFileFormats::token::GRIB)+"|"+
-            token_to_extension(IndexDataFileFormats::token::HGT)+"|"+
-            token_to_extension(IndexDataFileFormats::token::IEEE)+"|"+
-            token_to_extension(IndexDataFileFormats::token::NETCDF)+"]"
-            )->default_value(IndexDataFileFormats::token::NATIVE)->notifier([this](IndexDataFileFormats::token order){
+        ("index-format",po::value<IndexOutputFileFormat::token>()->value_name("["+
+            output_index_token_to_extension(IndexOutputFileFormat::token::JSON)+"|"+
+            output_index_token_to_extension(IndexOutputFileFormat::token::XML)+"|"+
+            output_index_token_to_extension(IndexOutputFileFormat::token::BINARY)+"]"
+            )->default_value(IndexOutputFileFormat::token::BINARY)->notifier([this](IndexOutputFileFormat::token order){
             hIndex->set_output_format(order);
         }),("Specify the output overwriting format if the \"index-overwrite\" option is set. If overwriting with selected format cannot be implemented the \""s+
-        boost::lexical_cast<std::string>(IndexDataFileFormats::token::NATIVE)+
+        boost::lexical_cast<std::string>(IndexOutputFileFormat::token::BINARY)+
         "\" format is set automatically. Ignored if \"index-overwrite\" is not set.").c_str())
         /*@todo*/("index-overwrite",po::bool_switch(),("Set overwrite mode at indexing. That mean all indexd data from read files will be structured in hierarchy depending of index-dir-order."s+
         "If index-dir-order is set to \"\" (empty) the indexd file will be simply copied to the defined by \"out-dirs\" option path.").c_str())

@@ -27,7 +27,7 @@ class DataTestClass:public Data,public testing::Test{
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
     DataTestClass():fn("data_file.gbd"){
-        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB>>();
+        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
@@ -72,7 +72,7 @@ class DataTestClass_1:public Data,public testing::Test{
                                                                             {Organization::WMO,{1,2,3}}};
     public:
     DataTestClass_1():fn("data_file.gbd"){
-        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB>>();
+        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
@@ -113,7 +113,7 @@ class DataTestClass_1:public Data,public testing::Test{
 
 TEST_F(DataTestClass,InitTest){
     read(fn);
-    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB>();
+    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB_v1>();
     ASSERT_TRUE(dstruct.sublimed_.paths().contains(path::Storage<false>::file("any_path.grib"sv,utc_tp())));
     ASSERT_TRUE(dstruct.sublimed_.data().contains(path::Storage<false>::file("any_path.grib"sv,utc_tp())));
     int count = 0;
@@ -121,7 +121,7 @@ TEST_F(DataTestClass,InitTest){
 
 TEST_F(DataTestClass,MatchTest){
     read(fn);
-    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB>();
+    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB_v1>();
     auto matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                         Organization::ECMWF,
                                         TimeFrame::HOUR,
@@ -193,7 +193,7 @@ TEST_F(DataTestClass,MatchTest){
 
 TEST_F(DataTestClass_1,MatchDataTest){
     read(fn);
-    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB>();
+    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB_v1>();
     auto matched_data = match_data(Organization::WMO,TimeFrame::HOUR,
                         {SearchParamTableVersion{.param_=18,.t_ver_ = 1},
                         SearchParamTableVersion{.param_=uint8_t(54),.t_ver_=3}},
@@ -211,7 +211,7 @@ TEST_F(DataTestClass_1,MatchDataTest){
 
 TEST_F(DataTestClass_1,FindAllTest){
     read(fn);
-    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB>();
+    auto& dstruct = data_struct<Data_t::METEO,Data_f::GRIB_v1>();
     auto matched_data = find_all(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
                         TimeSequence(utc_tp(),system_clock::now(),days(1)),
                         TimeFrame::HOUR,

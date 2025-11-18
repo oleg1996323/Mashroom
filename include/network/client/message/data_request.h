@@ -13,7 +13,7 @@ template <Data_t T, Data_f F>
 struct ExtractRequestForm;
 
 template <>
-struct ExtractRequestForm<Data_t::METEO, Data_f::GRIB>
+struct ExtractRequestForm<Data_t::METEO, Data_f::GRIB_v1>
 {
     SearchProperties search_props_;
     std::optional<TimePeriod> t_separation_;
@@ -42,7 +42,7 @@ struct ExtractRequestForm<Data_t::METEO, Data_f::GRIB>
     }
 };
 
-using ExtractMeteoGrib = ExtractRequestForm<Data_t::METEO, Data_f::GRIB>;
+using ExtractMeteoGrib = ExtractRequestForm<Data_t::METEO, Data_f::GRIB_v1>;
 
 namespace serialization
 {   

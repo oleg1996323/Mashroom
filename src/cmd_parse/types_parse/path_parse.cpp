@@ -47,8 +47,8 @@ path::Storage<false> boost::lexical_cast(const std::string& input){
                 path = match[3].str();
             else throw po::validation_error(po::validation_error::invalid_option_value,input);
             type = match[2].str();
-            if(path.starts_with("~"s+fs::separator()))
-                path = std::string(getenv("HOME"))+fs::separator()+path.substr(2);
+            if(path.starts_with("~"s+fs::path::preferred_separator))
+                path = std::string(getenv("HOME"))+fs::path::preferred_separator+path.substr(2);
             if(type=="dir")
                 return path::Storage<false>::directory(path,std::chrono::system_clock::now());
             else if(type=="file")

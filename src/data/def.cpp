@@ -15,7 +15,7 @@ std::string_view type_to_extension(__Data__::FORMAT type_extension) noexcept{
 __Data__::FORMAT text_to_data_type(std::string_view text) noexcept{
     std::string_view str(text);
     if(str == "Grib")
-        return __Data__::FORMAT::GRIB;
+        return __Data__::FORMAT::GRIB_v1;
     else return __Data__::FORMAT::UNDEF;
 }
 using namespace std::string_literals;

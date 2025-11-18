@@ -34,11 +34,11 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
             {
                 if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,std::monostate>)
                     return;
-                else if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,IndexParameters<Data_t::METEO,Data_f::GRIB>>){
-                    auto result = Mashroom::instance().data().find_all<Data_t::METEO,Data_f::GRIB>(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
+                else if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>){
+                    auto result = Mashroom::instance().data().find_all<Data_t::METEO,Data_f::GRIB_v1>(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
                     if(!result.empty())
                         //@todo add access mode
-                        rep_msg.additional().add_block<Data_t::METEO,Data_f::GRIB>(Data_a::PUBLIC,std::move(result));
+                        rep_msg.additional().add_block<Data_t::METEO,Data_f::GRIB_v1>(Data_a::PUBLIC,std::move(result));
                     else return;
                 }
                 else static_assert(false);
