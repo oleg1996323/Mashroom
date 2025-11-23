@@ -66,7 +66,7 @@ namespace parse{
                     else if(closed==true){
                         if(inp_str.starts_with('[')){
                             closed = false;
-                            if(inp_str=="]")
+                            if(inp_str=="[")
                                 continue;
                             else current_string.push_back(inp_str.substr(1));
                         }
@@ -95,7 +95,7 @@ namespace parse{
                                 current_string.clear();
                             }
                         }
-                        else if(inp_str.starts_with('[')){
+                        else if(inp_str.starts_with(']')){
                             err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
                             return;
                         }
@@ -126,7 +126,9 @@ namespace parse{
                                                                         if(err_==ErrorCode::NONE)
                                                                             err_=hExtract->set_offset_time_interval(input);
                                                                     }),
-        "Sets the time-period to be extracted in different files. E.g. you choose 1 day time-period, all extracted data will be separated by files");
+        "Sets the time-period to be extracted in different files. E.g. you choose 1 day time-period separation for period from 1990/01/01 20:25 to 1991/01/03 12:00, \
+        all extracted data will be separated by files in the period from 1990/01/01 00:00 to 1990/01/04 00:00, e.g. flooring the indicated time-period separation. If data is not represented as a time series \
+        this argument will be ignored for it.");
         define_uniques();
     }
 
