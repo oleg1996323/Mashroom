@@ -1,66 +1,82 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <expected>
+#include "sys/error_code.h"
+#include "sys/error_print.h"
+#include <ranges>
+#include <boost_functional/json.h>
+#include <boost/lexical_cast.hpp>
+
+namespace parse{
 
 template<typename ARRAY_T>
-struct Array{
+class Array{
     std::vector<ARRAY_T> values_;
 
-    static Array parse(const std::vector<std::string>& input){
-        std::vector<std::string> processed_tokens;
-            bool closed = true;
-            std::vector<std::string> current_string;
-            for(const std::string& inp_str:input){
-                if(inp_str.starts_with('[') && inp_str.ends_with(']')){
-                    if(closed==true){
-                        if(inp_str.size()>2){
-                            processed_tokens.push_back(inp_str.substr(1,inp_str.size()-2));
-                        }
-                        else continue;
+    public:
+
+    std::vector<ARRAY_T>::const_iterator begin() const{
+        return values_.cbegin();
+    }
+
+    std::vector<ARRAY_T>::const_iterator end() const{
+        return values_.cend();
+    }
+
+    const std::vector<ARRAY_T>& data() const{
+        return values_;
+    }
+
+    //@todo make universal function for multiple types
+    static std::expected<Array,ErrorCode> parse(const std::string& input){
+        Array processed_tokens;
+        auto parse_result = parse_json(input);
+        if(!parse_result.has_value() || !parse_result->is_array())
+            return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not array",AT_ERROR_ACTION::CONTINUE));
+        else {
+            processed_tokens.values_.reserve(parse_result.value().as_array().size());
+            for(auto& value:parse_result.value().as_array()){
+                if constexpr (std::is_floating_point_v<ARRAY_T>){
+                    if(value.is_double())
+                        processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_double()));
+                    else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid array type",AT_ERROR_ACTION::CONTINUE));
+                }
+                else if constexpr (std::is_integral_v<ARRAY_T>){
+                    if constexpr (std::is_signed_v<ARRAY_T>){
+                        if(value.is_int64())
+                            processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_int64()));
+                        else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not signed integer",AT_ERROR_ACTION::CONTINUE));
                     }
-                    else{
-                        err_=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"quoted values in composed text must be escaped",AT_ERROR_ACTION::CONTINUE,inp_str);
-                        return;
+                    else {
+                        if(value.is_uint64())
+                            processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_uint64()));
+                        else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not unsigned integer",AT_ERROR_ACTION::CONTINUE));
                     }
                 }
-                else if(closed==true){
-                    if(inp_str.starts_with('[')){
-                        closed = false;
-                        if(inp_str=="[")
-                            continue;
-                        else current_string.push_back(inp_str.substr(1));
-                    }
-                    else if(inp_str.ends_with(']')){
-                        err_=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
-                        return;
-                    }
-                    else{
-                        processed_tokens.push_back(inp_str);
-                        continue;
-                    }
+                else if constexpr (std::is_same_v<ARRAY_T,bool>){
+                    if(value.is_bool())
+                        processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_bool()));
+                    else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not bool",AT_ERROR_ACTION::CONTINUE));
                 }
-                else{
-                    if(inp_str.ends_with(']')){
-                        closed = true;
-                        if(inp_str=="]"){
-                            if(!current_string.empty()){
-                                processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
-                                current_string.clear();
-                            }
-                            else continue;
-                        }
-                        else{
-                            current_string.push_back(inp_str.substr(0,inp_str.size()-1));
-                            processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
-                            current_string.clear();
-                        }
+                else if constexpr (std::is_convertible_v<ARRAY_T,std::string_view>){
+                    if(value.is_string())
+                        processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_string()));
+                    else
+                        return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not string-type value",AT_ERROR_ACTION::CONTINUE));
+                }
+                else {
+                    try{
+                        processed_tokens.values_.push_back(boost::lexical_cast<ARRAY_T>(value.as_string()));
                     }
-                    else if(inp_str.starts_with(']')){
-                        err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
-                        return;
+                    catch(const std::exception& err){
+                        return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not correct type",AT_ERROR_ACTION::CONTINUE));
                     }
-                    else current_string.push_back(inp_str);
                 }
             }
+            return processed_tokens;
+        }
     }
 };
+
+}

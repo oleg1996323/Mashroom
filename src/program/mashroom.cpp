@@ -94,7 +94,11 @@ ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
 }
 
 bool Mashroom::read_command(){
-    read_command(std::ranges::split_view(CLIHandler::instance().input(std::string_view(">>")),' ')|std::ranges::to<std::vector<std::string>>());
+    #if  defined(__unix__) || defined(__unix)
+    read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
+    #elif defined(_WIN32)
+    read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
+    #endif
     return true;
 }
 void Mashroom::collapse_server(bool wait_processes, uint16_t timeout_sec){

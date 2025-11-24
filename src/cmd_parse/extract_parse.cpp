@@ -8,6 +8,7 @@
 #include "proc/extract.h"
 #include "code_tables/table_0.h"
 #include "out_format_parse.h"
+#include "types_parse/array_parse.h"
 
 namespace fs = std::filesystem;
 
@@ -47,62 +48,15 @@ namespace parse{
         ("center",po::value<std::vector<std::string>>()->required(),"Specify the center that released the data")
         ("parameters",po::value<std::vector<std::string>>()->multitoken()->required()->notifier([this](const std::vector<std::string>& input){
             if(err_==ErrorCode::NONE){
-                std::vector<std::string> processed_tokens;
-                bool closed = true;
-                std::vector<std::string> current_string;
-                for(const std::string& inp_str:input){
-                    if(inp_str.starts_with('[') && inp_str.ends_with(']')){
-                        if(closed==true){
-                            if(inp_str.size()>2){
-                                processed_tokens.push_back(inp_str.substr(1,inp_str.size()-2));
-                            }
-                            else continue;
-                        }
-                        else{
-                            err_=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"quoted values in composed text must be escaped",AT_ERROR_ACTION::CONTINUE,inp_str);
-                            return;
-                        }
-                    }
-                    else if(closed==true){
-                        if(inp_str.starts_with('[')){
-                            closed = false;
-                            if(inp_str=="[")
-                                continue;
-                            else current_string.push_back(inp_str.substr(1));
-                        }
-                        else if(inp_str.ends_with(']')){
-                            err_=ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
-                            return;
-                        }
-                        else{
-                            processed_tokens.push_back(inp_str);
-                            continue;
-                        }
-                    }
-                    else{
-                        if(inp_str.ends_with(']')){
-                            closed = true;
-                            if(inp_str=="]"){
-                                if(!current_string.empty()){
-                                    processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
-                                    current_string.clear();
-                                }
-                                else continue;
-                            }
-                            else{
-                                current_string.push_back(inp_str.substr(0,inp_str.size()-1));
-                                processed_tokens.push_back(std::ranges::join_with_view(current_string,' ')|std::ranges::to<std::string>());
-                                current_string.clear();
-                            }
-                        }
-                        else if(inp_str.starts_with(']')){
-                            err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"",AT_ERROR_ACTION::CONTINUE,inp_str);
-                            return;
-                        }
-                        else current_string.push_back(inp_str);
+                for(const std::string& input_part:input){
+                    auto arr_parse_result = Array<std::string>::parse(input_part);
+                    if(arr_parse_result.has_value())
+                        hExtract->add_set_of_parameters(parse::parameter_tv::param_by_tv_abbr(hExtract->get_center().value(),arr_parse_result->data()));
+                    else {
+                        err_ = arr_parse_result.error();
+                        return;
                     }
                 }
-                hExtract->add_set_of_parameters(parse::parameter_tv::param_by_tv_abbr(hExtract->get_center().value(),processed_tokens));
             }
         }),"Specify the expected parameters to process. Use the '[...]' construction with escape words separation for matching the searched center by key words.")
         ("collection",po::value<std::vector<std::string>>()/** @todo*/,"Specify by name of collection")

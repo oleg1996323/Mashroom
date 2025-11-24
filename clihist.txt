@@ -1,10 +1,3 @@
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
---server --launch
---index --inp host=127.0.0.1:32396 --index-ref
---server-config --add --name Test_LO --host 127.0.0.1 --port 32396
---server-config --set Test_LO
 --server --launch
 --index --inp host=127.0.0.1:32396 --index-ref
 --server-config --add --name Test_LO --host 127.0.0.1 --port 32396
@@ -97,4 +90,11 @@
 --exit
 --extract --outp /home/oster/new-test1 --center [wind speed] --grid "cylindr" 
 --extract --outp /home/oster/new-test1 --center=[wind speed] --grid "cylindr" 
+--exit
+--extract --outp /home/oster/new-test1 --center=[wind speed] --grid "cylindr" 
+--extract --outp /home/oster/new-test1 --center "wind 100" "wind 10" --grid "cylindr" 
+--extract --outp /home/oster/new-test1 --center "ECMWF" --parameters "wind 100" "wind 10" --grid "cylindr" --pos lat:45
+--help --extract
+--extract --outp /home/oster/new-test1 --center "ECMWF" --parameters "wind 100" "wind 10" --grid "cylindr" --pos lat45-lon45
+--extract --outp /home/oster/new-test1 --center "ECMWF" --parameters "wind 100" "wind 10" --grid "Cylindr no mod" --pos lat45-lon45
 --exit
