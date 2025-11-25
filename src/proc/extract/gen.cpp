@@ -33,12 +33,11 @@ std::string get_file_fmt(OutputDataFileFormats fmt) noexcept{
         case OutputDataFileFormats::TXT_F:
             return ".txt";
             break;
-        case OutputDataFileFormats::GRIB_F:
-            return ".grib";
-            break;
         case OutputDataFileFormats::BIN_F:
             return ".bin";
             break;
+        case OutputDataFileFormats::JSON_F:
+            return ".json";
         default:
             return ".txt";
             break;

@@ -1,0 +1,14 @@
+#pragma once
+#include <string>
+#include <filesystem>
+#include <thread>
+#include "extracted_value.h"
+
+namespace procedures::extract{
+namespace fs = std::filesystem;
+ExtractedData read_txt_file(const std::stop_token& stop_token,fs::path);
+
+ExtractedData read_json_file(const std::stop_token& stop_token,fs::path);
+
+ExtractedData read_bin_file(const std::stop_token& stop_token,fs::path);
+}

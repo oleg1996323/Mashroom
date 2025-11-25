@@ -21,6 +21,7 @@
 #include "proc/extract/gen.h"
 #include "proc/extract/write.h"
 #include "compressor.h"
+#include "sys/error_exception.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
@@ -28,37 +29,50 @@ using namespace std::chrono;
 ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
     ErrorCode err = ErrorCode::NONE;
     std::unordered_set<fs::path> paths;
-    switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
-        case OutputDataFileFormats::DEFAULT:
-        case OutputDataFileFormats::TXT_F:{
-            err = write_txt_file(stop_token_,result,props_,t_off_,out_path_,
-            generate_directory_format(t_off_),
-            generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_),
-            output_format_,paths);
-            break;
+    try{
+        switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
+            case OutputDataFileFormats::DEFAULT:
+            case OutputDataFileFormats::TXT_F:{
+                paths.merge(write_txt_file(stop_token_,result,props_,t_off_,out_path_,
+                generate_directory_format(t_off_),
+                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_),
+                output_format_));
+                break;
+            }
+            case OutputDataFileFormats::BIN_F:{
+                paths.merge(write_bin_file(stop_token_,result,props_,t_off_,out_path_,
+                generate_directory_format(t_off_),
+                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_),
+                output_format_));
+                break;
+            }
+            case OutputDataFileFormats::JSON_F:{
+                paths.merge(write_json_file(stop_token_,result,props_,t_off_,out_path_,
+                generate_directory_format(t_off_),
+                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_),
+                output_format_));
+                break;
+            }
+            default:{
+                paths.merge(write_txt_file(stop_token_,result,props_,t_off_,out_path_,std::string(),std::string(),output_format_));
+                break;
+            }
         }
-        case OutputDataFileFormats::BIN_F:{
-            break;
-        }
-        case OutputDataFileFormats::GRIB_F:{
-            break;
-        }
-        default:{
-            return write_txt_file(stop_token_,result,props_,t_off_,out_path_,std::string(),std::string(),output_format_,paths);
-            break;
-        }
+    }
+    catch(const ErrorException& err){
+        return err.error();
     }
     if((FORMAT&OutputDataFileFormats::ARCHIVED)!=0){
         try{
             auto cmprs = cpp::zip_ns::Compressor::create_archive(out_path_,std::to_string(utc_tp::clock::now().time_since_epoch().count()));
             for(auto& path:paths){
                 if(!cmprs.add_file(out_path_,path))
-                    err = ErrorCode::INTERNAL_ERROR;
+                    throw ErrorException(ErrorCode::INTERNAL_ERROR,std::string_view("archive creation failure"));
                 else continue;
             }
         }
-        catch(const std::exception& err){
-            return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"arhive creation failure",AT_ERROR_ACTION::CONTINUE);
+        catch(const ErrorException& err){
+            return err.error();
         }
     }
     return ErrorCode::NONE;

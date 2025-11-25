@@ -8,7 +8,7 @@ void boost::program_options::validate(boost::any& v,const std::vector<std::basic
                                     OutputDataFileFormats* target_type,int)
 {
     namespace po = boost::program_options;
-    auto r = regex("^((txt|bin|grib)(\\+zip)?|(zip\\+)?(txt|bin|grib))$");
+    auto r = regex("^((txt|bin|json)(\\+zip)?|(zip\\+)?(txt|bin|json))$");
     po::validators::check_first_occurrence(values);
     const std::string s = po::validators::get_single_string(values);
     v = lexical_cast<OutputDataFileFormats>(s);
@@ -25,9 +25,8 @@ std::string boost::lexical_cast(const OutputDataFileFormats& input){
         case OutputDataFileFormats::TXT_F:
             result+="txt";
         break;
-        case OutputDataFileFormats::GRIB_F:
-            result+="grib";
-        break;
+        case OutputDataFileFormats::JSON_F:
+            result+="json";
         default:
             throw std::invalid_argument("invalid input of output format");
     }
@@ -38,16 +37,15 @@ std::string boost::lexical_cast(const OutputDataFileFormats& input){
 
 template<>
 ::OutputDataFileFormats boost::lexical_cast(const std::string& input){
-    auto r = regex("^((txt|bin|grib)(\\+zip)?|(zip\\+)?(txt|bin|grib))$");
+    auto r = regex("^((txt|bin|json)(\\+zip)?|(zip\\+)?(txt|bin|json))$");
     smatch match;
     if(regex_match(input,match,r)){
         OutputDataFileFormats fmt;
         if((!match[2].str().empty() && match[2]=="txt")  || (!match[5].str().empty() && match[5]=="txt"))
             fmt|=OutputDataFileFormats::TXT_F;
-        else if((!match[2].str().empty() && match[2]=="grib")  || (!match[5].str().empty() && match[5]=="grib"))
-            fmt|=OutputDataFileFormats::GRIB_F;
-        else
+        else if((!match[2].str().empty() && match[2]=="bin")  || (!match[5].str().empty() && match[5]=="bin"))
             fmt|=OutputDataFileFormats::BIN_F;
+        else fmt|=OutputDataFileFormats::JSON_F;
         if(!match[3].str().empty() || !match[4].str().empty())
             fmt|=OutputDataFileFormats::ARCHIVED;
         return fmt;

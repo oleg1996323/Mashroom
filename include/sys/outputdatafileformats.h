@@ -5,10 +5,10 @@
 
 enum class OutputDataFileFormats : uint32_t{
     DEFAULT = 0,
-    TXT_F = 1,
-    BIN_F = (1 << 1),
-    GRIB_F = (1 << 2),
-    ARCHIVED = (1 << 3)
+    TXT_F = 0b1,
+    BIN_F = 0b10,
+    JSON_F = 0b100,
+    ARCHIVED = (1<<30)
 };
 
 inline OutputDataFileFormats operator|(OutputDataFileFormats lhs,OutputDataFileFormats rhs){

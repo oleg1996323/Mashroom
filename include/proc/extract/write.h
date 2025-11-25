@@ -9,6 +9,8 @@
 #include "sys/outputdatafileformats.h"
 #include "sys/application.h"
 
+namespace procedures::extract{
+
 inline auto get_columns(ExtractedData& result){
     auto define_cols_t = [](auto& ed) -> std::vector<const typename std::decay_t<decltype(ed)>::mapped_type*>
     {
@@ -37,7 +39,7 @@ inline const auto& get_result(const ExtractedData& result){
 template<typename... ARGS>
 std::string get_header(const ExtractedData& result, const SearchProperties& props, std::string_view user_hdr_format) noexcept{
     std::ostringstream stream;
-    stream<<"Mashroom extractor v=0.01\n";
+    stream<<"\\header\nMashroom\nversion=0.01\n";//@todo add version
     std::string user_header = std::vformat(user_hdr_format,std::make_format_args(user_hdr_format));
     stream<<(user_header.empty()?"":"\n");
     auto write_columns = [&stream](auto&& value){
@@ -53,7 +55,7 @@ std::string get_header(const ExtractedData& result, const SearchProperties& prop
                         0,cmn_data.parameter_.has_value()?
                         cmn_data.parameter_.value():0)->name<<'\t';
             }
-            stream<<std::endl;
+            stream<<"\n\\header"<<std::endl;
         }
         else static_assert(false,"Undefined text format header");
     };
@@ -61,12 +63,31 @@ std::string get_header(const ExtractedData& result, const SearchProperties& prop
     return stream.str();
 }
 
-ErrorCode write_txt_file(const std::stop_token& stop_token,
+std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
                         const std::string& filename_format,
-                        OutputDataFileFormats output_format,
-                        std::unordered_set<fs::path>& paths) noexcept;
+                        OutputDataFileFormats output_format);
+
+std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
+                        ExtractedData& result,
+                        const SearchProperties& props,
+                        const TimePeriod& t_off,
+                        const fs::path& out_path,
+                        const std::string& dirname_format,
+                        const std::string& filename_format,
+                        OutputDataFileFormats output_format);
+
+std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
+                        ExtractedData& result,
+                        const SearchProperties& props,
+                        const TimePeriod& t_off,
+                        const fs::path& out_path,
+                        const std::string& dirname_format,
+                        const std::string& filename_format,
+                        OutputDataFileFormats output_format);
+
+}

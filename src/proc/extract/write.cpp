@@ -5,6 +5,9 @@
 #include "proc/extract/gen.h"
 #include "API/grib1/include/sections/grid/grid.h"
 #include "proc/common/fs.h"
+#include "sys/error_exception.h"
+
+using namespace procedures::extract;
 
 bool extraction_empty(const ExtractedData& data) noexcept{
     auto is_empty = [](auto&& arg){
@@ -13,17 +16,17 @@ bool extraction_empty(const ExtractedData& data) noexcept{
     return std::visit(is_empty,data);
 }
 
-ErrorCode write_txt_file(const std::stop_token& stop_token,
+std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
                         const std::string& filename_format,
-                        OutputDataFileFormats output_format,
-                        std::unordered_set<fs::path>& maked_files) noexcept{
+                        OutputDataFileFormats output_format){
+    std::unordered_set<fs::path> paths;
     if(extraction_empty(result))
-        return ErrorCode::NONE;
+        return paths;
     utc_tp current_time = utc_tp::max();
     size_t max_length = 0;
     auto col_vals_ = get_columns(result);
@@ -43,7 +46,7 @@ ErrorCode write_txt_file(const std::stop_token& stop_token,
     fs::path out_f_name;
     for(int row=0;row<max_length;++row){
         if(stop_token.stop_requested())
-            return ErrorCode::INTERRUPTED;
+            throw ErrorException(ErrorCode::INTERRUPTED,std::string_view("writting txt files"));
         current_time = utc_tp::max();
         for(int col=0;col<col_vals_.size();++col)
             if(rows[col]<col_vals_[col]->size())
@@ -55,12 +58,8 @@ ErrorCode write_txt_file(const std::stop_token& stop_token,
                 filename_format,
                 center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,current_time);
             {
-                ErrorCode err = make_file(out,out_f_name);
-                if(err!=ErrorCode::NONE){
-                    maked_files.clear();
-                    return err;
-                }
-                maked_files.insert(out_f_name);
+                make_file(out,out_f_name);
+                paths.insert(out_f_name);
                 out<<get_header(result,props,"");//@todo add header format text
             }
             file_end_time = t_off.get_next_tp(current_time);
@@ -83,5 +82,28 @@ ErrorCode write_txt_file(const std::stop_token& stop_token,
     if(out.is_open()){
         out.close();
     }
-    return ErrorCode::NONE;
+    return paths;
+}
+
+std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
+                        ExtractedData& result,
+                        const SearchProperties& props,
+                        const TimePeriod& t_off,
+                        const fs::path& out_path,
+                        const std::string& dirname_format,
+                        const std::string& filename_format,
+                        OutputDataFileFormats output_format){
+    assert(false);
+}
+
+std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
+                        ExtractedData& result,
+                        const SearchProperties& props,
+                        const TimePeriod& t_off,
+                        const fs::path& out_path,
+                        const std::string& dirname_format,
+                        const std::string& filename_format,
+                        OutputDataFileFormats output_format){
+    
+    assert(false);
 }

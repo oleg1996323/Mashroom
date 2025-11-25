@@ -48,16 +48,11 @@ namespace parse{
         ("center",po::value<std::vector<std::string>>()->required(),"Specify the center that released the data")
         ("parameters",po::value<std::vector<std::string>>()->multitoken()->required()->notifier([this](const std::vector<std::string>& input){
             if(err_==ErrorCode::NONE){
-                for(const std::string& input_part:input){
-                    auto arr_parse_result = Array<std::string>::parse(input_part);
-                    if(arr_parse_result.has_value())
-                        hExtract->add_set_of_parameters(parse::parameter_tv::param_by_tv_abbr(hExtract->get_center().value(),arr_parse_result->data()));
-                    else {
-                        err_ = arr_parse_result.error();
-                        return;
-                    }
-                }
+                for(std::string_view input_part:input)
+                    hExtract->add_set_of_parameters(parse::parameter_tv::param_by_tv_abbr(hExtract->get_center().value(),std::ranges::split_view(input_part,' ')|std::ranges::to<std::vector<std::string>>()));
             }
+            if(hExtract->get_parameters().empty())
+                err_ = ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR, "parameter match tokens",AT_ERROR_ACTION::CONTINUE,std::ranges::join_with_view(input,' ')|std::ranges::to<std::string>());
         }),"Specify the expected parameters to process. Use the '[...]' construction with escape words separation for matching the searched center by key words.")
         ("collection",po::value<std::vector<std::string>>()/** @todo*/,"Specify by name of collection")
         ("time_fcst",po::value<std::string>(),"Specify the forecast time of the released data")
@@ -70,7 +65,7 @@ namespace parse{
         ("ext-out-format",po::value<::OutputDataFileFormats>()->notifier([this](const ::OutputDataFileFormats& input){
             if(err_==ErrorCode::NONE)
                 hExtract->set_output_format(input);
-        }),"Sets the format of the output file(s) containing the extracted data")
+        }),"Sets the format of the output file(s) containing the extracted data. \nPossible formats: json,bin,txt. Making \"zip+[choosen format]\" or \"[choosen format]+zip\" will archive the generated extraction files.")
         ("ext-time-period",po::value<TimePeriod>()->default_value(TimePeriod(years(0),
                                                                     months(1),
                                                                     days(0),

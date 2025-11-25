@@ -37,7 +37,12 @@ class Array{
         else {
             processed_tokens.values_.reserve(parse_result.value().as_array().size());
             for(auto& value:parse_result.value().as_array()){
-                if constexpr (std::is_floating_point_v<ARRAY_T>){
+                if constexpr (std::is_same_v<ARRAY_T,bool>){
+                    if(value.is_bool())
+                        processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_bool()));
+                    else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not bool",AT_ERROR_ACTION::CONTINUE));
+                }
+                else if constexpr (std::is_floating_point_v<ARRAY_T>){
                     if(value.is_double())
                         processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_double()));
                     else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid array type",AT_ERROR_ACTION::CONTINUE));
@@ -49,15 +54,10 @@ class Array{
                         else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not signed integer",AT_ERROR_ACTION::CONTINUE));
                     }
                     else {
-                        if(value.is_uint64())
+                        if((value.is_int64() && value.as_int64()>0) || value.is_uint64())
                             processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_uint64()));
                         else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not unsigned integer",AT_ERROR_ACTION::CONTINUE));
                     }
-                }
-                else if constexpr (std::is_same_v<ARRAY_T,bool>){
-                    if(value.is_bool())
-                        processed_tokens.values_.push_back(static_cast<ARRAY_T>(value.as_bool()));
-                    else return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not bool",AT_ERROR_ACTION::CONTINUE));
                 }
                 else if constexpr (std::is_convertible_v<ARRAY_T,std::string_view>){
                     if(value.is_string())

@@ -4,7 +4,7 @@
 TEST(ParseUserInput,ArrayParse){
     using namespace parse;
     {
-        std::string check_1 = {"[any,input,processed]"};
+        std::string check_1 = {"[\"any\",\"input\",\"processed\"]"};
         using type = Array<std::string>;
         type array;
         auto result = type::parse(check_1);
