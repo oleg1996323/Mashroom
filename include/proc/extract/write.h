@@ -41,6 +41,11 @@ std::string get_header(const ExtractedData& result, const SearchProperties& prop
     std::ostringstream stream;
     stream<<"\\header\nMashroom\nversion=0.01\n";//@todo add version
     std::string user_header = std::vformat(user_hdr_format,std::make_format_args(user_hdr_format));
+    switch(result.index()){
+        case 0:{
+            stream<<"type:"<<
+        }
+    }
     stream<<(user_header.empty()?"":"\n");
     auto write_columns = [&stream](auto&& value){
         if constexpr(std::is_same_v<ExtractedValues<Data_t::METEO,Data_f::GRIB_v1>,std::decay_t<decltype(value)>>){

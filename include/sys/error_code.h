@@ -65,7 +65,8 @@ enum class ErrorCode : uint8_t{
     SERVER_ERROR,
     DATA_NOT_FOUND,
     BUFFER_LOW_SIZE,
-    TIMEOUT
+    TIMEOUT,
+    FILE_X1_CORRUPTED_OR_INVALID_FORMAT
 };
 
 enum class AT_ERROR_ACTION{
