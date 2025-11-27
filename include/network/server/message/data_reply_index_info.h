@@ -34,7 +34,7 @@ struct BaseIndexResult{
 };
 
 using IndexResult = std::variant<std::monostate,
-        BaseIndexResult<Data_t::METEO, Data_f::GRIB_v1>>;
+        BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>;
 
 template<>
 struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>

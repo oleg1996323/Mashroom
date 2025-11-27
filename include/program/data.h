@@ -29,9 +29,9 @@ class Data:public __Data__{
     fs::path data_directory_;
 
     friend class DataTestClass;
-    template<Data::FORMAT>
+    template<Data_f>
     void __read__(const fs::path& filename);
-    template<Data::FORMAT>
+    template<Data_f>
     void __write__(const fs::path& filename){
         
     }
@@ -98,7 +98,7 @@ class Data:public __Data__{
         return data_struct<T,F>(std::forward<ARGS>(args)...);
     }
 
-    DataStruct<Data_t::METEO,Data_f::GRIB_v1>::match_data_t match_data(
+    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_data_t match_data(
         Organization center,
         std::optional<TimeFrame> time_fcst,
         const std::unordered_set<SearchParamTableVersion>& parameters,
@@ -106,10 +106,10 @@ class Data:public __Data__{
         RepresentationType rep_t,
         Coord pos
     ){
-        return data_struct<Data_t::METEO,Data_f::GRIB_v1>().match_data(center,time_fcst,parameters,time_interval,rep_t,pos);
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match_data(center,time_fcst,parameters,time_interval,rep_t,pos);
     }
 
-    DataStruct<Data_t::METEO,Data_f::GRIB_v1>::match_t match(
+    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_t match(
         path::Storage<true> path,
         Organization center,
         std::optional<TimeFrame> timeframe,
@@ -117,7 +117,7 @@ class Data:public __Data__{
         TimeInterval t_interval,
         RepresentationType grid_type,
         Coord pos) const{
-        return data_struct<Data_t::METEO,Data_f::GRIB_v1>().match(
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match(
             path,center,timeframe,param_tables,t_interval,grid_type,pos);
     }
 
@@ -128,11 +128,11 @@ class Data:public __Data__{
         return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
     }
 
-    DataStruct<Data_t::METEO,Data_f::GRIB_v1>::find_all_t find_all(std::optional<RepresentationType> grid_type_,
+    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t find_all(std::optional<RepresentationType> grid_type_,
     std::optional<TimeSequence> time_,
     std::optional<TimeFrame> forecast_preference_,
     utc_tp last_update_) const{
-        return data_struct<Data_t::METEO,Data_f::GRIB_v1>().find_all(grid_type_,time_,forecast_preference_,last_update_);
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().find_all(grid_type_,time_,forecast_preference_,last_update_);
     }
 
     template<Data_t T, Data_f F>

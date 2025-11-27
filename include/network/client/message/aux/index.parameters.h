@@ -8,7 +8,7 @@ template<Data_t T,Data_f F>
 struct IndexParameters;
 
 template<>
-struct IndexParameters<Data_t::METEO,Data_f::GRIB_v1>{
+struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     std::optional<RepresentationType> grid_type_;
     std::optional<TimeSequence> time_;
     std::optional<TimeFrame> forecast_preference_;
@@ -31,38 +31,38 @@ struct IndexParameters<Data_t::METEO,Data_f::GRIB_v1>{
         return *this;
     }
 };
-using IndexParameters_t = std::variant<std::monostate,IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>;
+using IndexParameters_t = std::variant<std::monostate,IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
 }
 
 namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Serialize<NETWORK_ORDER,network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.grid_type_,msg.time_,msg.forecast_preference_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Deserialize<NETWORK_ORDER,network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.grid_type_,msg.time_,msg.forecast_preference_);
         }
     };
 
     template<>
-    struct Serial_size<network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Serial_size<network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.grid_type_,msg.time_,msg.forecast_preference_);
         }
     };
 
     template<>
-    struct Min_serial_size<network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Min_serial_size<network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<decltype(type::grid_type_),decltype(type::time_),
@@ -71,8 +71,8 @@ namespace serialization{
     };
 
     template<>
-    struct Max_serial_size<network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = network::IndexParameters<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Max_serial_size<network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<decltype(type::grid_type_),decltype(type::time_),

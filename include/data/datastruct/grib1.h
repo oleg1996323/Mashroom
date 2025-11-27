@@ -1,10 +1,10 @@
 #pragma once
 #include "datastructdef.h"
 
-using Grib1Data = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+using Grib1Data = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
 template<>
-struct DataStruct<Data_t::METEO,Data_f::GRIB_v1>:public AbstractDataStruct{
+struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct{
     using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<Grib1CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
     using sublimed_data_by_date_time = std::map<TimeSequence,std::unordered_set<path::Storage<true>>>;
     using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<path::Storage<true>>>;
@@ -24,7 +24,7 @@ struct DataStruct<Data_t::METEO,Data_f::GRIB_v1>:public AbstractDataStruct{
         return Data_f::GRIB_v1;
     }
     constexpr virtual Data_t data_type() const noexcept override{
-        return Data_t::METEO;
+        return Data_t::TIME_SERIES;
     }
 
     const std::unordered_set<path::Storage<true>>& paths() const{
@@ -53,7 +53,7 @@ struct DataStruct<Data_t::METEO,Data_f::GRIB_v1>:public AbstractDataStruct{
         Coord pos
     ) const;
 
-    FoundSublimedDataInfo<Data_t::METEO,Data_f::GRIB_v1> find_all(std::optional<RepresentationType> grid_type_,
+    FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> find_all(std::optional<RepresentationType> grid_type_,
                         std::optional<TimeSequence> time_,
                         std::optional<TimeFrame> forecast_preference_,
                         utc_tp last_update_) const;
@@ -91,16 +91,16 @@ struct DataStruct<Data_t::METEO,Data_f::GRIB_v1>:public AbstractDataStruct{
 namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
-    struct Serialize<NETWORK_ORDER,DataStruct<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Serialize<NETWORK_ORDER,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,msg.sublimed_);
         }
     };
 
     template<bool NETWORK_ORDER>
-    struct Deserialize<NETWORK_ORDER,DataStruct<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Deserialize<NETWORK_ORDER,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
             if(auto err = deserialize<NETWORK_ORDER>(msg,buf,msg.sublimed_);err!=SerializationEC::NONE)
                 return err;
@@ -120,16 +120,16 @@ namespace serialization{
     };
 
     template<>
-    struct Serial_size<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Serial_size<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         size_t operator()(const type& msg) const noexcept{
             return serial_size(msg.sublimed_);
         }
     };
 
     template<>
-    struct Min_serial_size<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Min_serial_size<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<decltype(type::sublimed_)>();
@@ -137,8 +137,8 @@ namespace serialization{
     };
 
     template<>
-    struct Max_serial_size<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>{
-        using type = DataStruct<Data_t::METEO,Data_f::GRIB_v1>;
+    struct Max_serial_size<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<decltype(type::sublimed_)>();

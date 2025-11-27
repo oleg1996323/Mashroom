@@ -1,27 +1,27 @@
 #include "program/data.h"
 
 template<>
-void Data::__read__<Data::FORMAT::GRIB_v1>(const fs::path& fn){
+void Data::__read__<Data_f::GRIB_v1>(const fs::path& fn){
     using namespace serialization;
     std::ifstream file(fn,std::ios::binary);
     if(!file.is_open())
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
-    auto& ds = data_struct<Data_t::METEO,Data_f::GRIB_v1>();
+    auto& ds = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
     deserialize_from_file(ds,file);
     file.close();
 }
 
 template<>
-void Data::__write__<Data::FORMAT::GRIB_v1>(const fs::path& dir){
+void Data::__write__<Data_f::GRIB_v1>(const fs::path& dir){
     using namespace serialization;
     if(!fs::create_directories(dir) && !fs::is_directory(dir))
         ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());
-    fs::path save_file = dir/filename_by_type(Data::FORMAT::GRIB_v1);
+    fs::path save_file = dir/filename_by_type(Data_f::GRIB_v1);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
-    SerializationEC err = serialize_to_file(data_struct<Data_t::METEO,Data_f::GRIB_v1>(),file);
+    SerializationEC err = serialize_to_file(data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>(),file);
     if(err==SerializationEC::NONE)
-        files_[Data::FORMAT::GRIB_v1]=save_file;
+        files_[Data_f::GRIB_v1]=save_file;
     else ErrorPrint::print_error(ErrorCode::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
     file.close();
 }
@@ -34,8 +34,8 @@ void Data::read(const fs::path& filename){
         }
         switch ((FORMAT)fmt)
         {
-        case Data::FORMAT::GRIB_v1:{
-            __read__<Data::FORMAT::GRIB_v1>(filename);
+        case Data_f::GRIB_v1:{
+            __read__<Data_f::GRIB_v1>(filename);
             break;
         }
         default:

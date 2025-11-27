@@ -3,13 +3,13 @@
 
 namespace network::client::detail{
     namespace index{
-        template<Data::TYPE,Data::FORMAT>
+        template<Data_t,Data_f>
         struct __Message__;
 
-        template<Data::TYPE T,Data::FORMAT F>
+        template<Data_t T,Data_f F>
         struct __MessageProxy__{
-            static constexpr Data::TYPE data_type = T;
-            static constexpr Data::FORMAT data_format = F;
+            static constexpr Data_t data_type = T;
+            static constexpr Data_f data_format = F;
             static std::vector<char> serialize(const __Message__<T,F>& msg, const Data& data){
                 return __Message__<T,F>::serialize(msg);
             }
@@ -19,21 +19,21 @@ namespace network::client::detail{
         };
 
         template<>
-        struct __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>:
-        __MessageProxy__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>
+        struct __Message__<Data_t::TIME_SERIES,Data_f::GRIB_v1_v1>:
+        __MessageProxy__<Data_t::TIME_SERIES,Data_f::GRIB_v1_v1>
         {
             size_t buffer_size_;
             std::vector<char> buffer_;
 
-            static std::vector<char> serialize(const __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1>& msg, const Data& data){
+            static std::vector<char> serialize(const __Message__<Data_t::TIME_SERIES,Data_f::GRIB_v1_v1>& msg, const Data& data){
                 std::vector<char> buffer;
                 for(auto [nn_file,cmn_sublimed_d]:data.data()){
                     
                 }
                 return buffer;
             }
-            static __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1> deserialize(std::vector<char>::const_iterator buffer_iter){
-                __Message__<Data::TYPE::METEO,Data::FORMAT::GRIB_v1_v1> result;
+            static __Message__<Data_t::TIME_SERIES,Data_f::GRIB_v1_v1> deserialize(std::vector<char>::const_iterator buffer_iter){
+                __Message__<Data_t::TIME_SERIES,Data_f::GRIB_v1_v1> result;
                 
                 return result;
             } 

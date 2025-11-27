@@ -12,10 +12,10 @@
 template<Data_t TYPE,Data_f FORMAT>
 struct CommonDataProperties;
 
-using Grib1CommonDataProperties = CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1>;
+using Grib1CommonDataProperties = CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
 template<>
-struct CommonDataProperties<Data_t::METEO,Data_f::GRIB_v1>
+struct CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>
 {
     std::optional<TimeFrame> fcst_unit_;
     std::optional<Organization> center_;

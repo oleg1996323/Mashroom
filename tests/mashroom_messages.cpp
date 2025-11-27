@@ -48,7 +48,7 @@ class DataTestClass_1:public Data,public testing::Test{
                                                                             {Organization::WMO,{1,2,3}}};
     public:
     DataTestClass_1():fn("data_file.gbd"){
-        auto ds = std::make_unique<DataStruct<Data_t::METEO,Data_f::GRIB_v1>>();
+        auto ds = std::make_unique<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
@@ -88,7 +88,7 @@ class DataTestClass_1:public Data,public testing::Test{
 };
 
 TEST(BaseIndexResult,BaseIndexResultGrib1SerializationTest){
-    network::BaseIndexResult<Data_t::METEO,Data_f::GRIB_v1> index;
+    network::BaseIndexResult<Data_t::TIME_SERIES,Data_f::GRIB_v1> index;
     
 }
 

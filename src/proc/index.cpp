@@ -132,7 +132,7 @@ void Index::execute() noexcept{
 				if(path.add_.is<path::TYPE::HOST>()){
 					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
 					auto add_msg = network::make_additional<network::Client_MsgT::INDEX_REF>();
-					add_msg.add_indexation_parameters_structure<Data::TYPE::METEO,Data::FORMAT::GRIB_v1>();
+					add_msg.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
 					network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(add_msg));
 					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
 					if(!instance)
@@ -144,7 +144,7 @@ void Index::execute() noexcept{
 							if constexpr(std::is_same_v<decay,std::monostate>)
 								return;
 							else if constexpr (std::is_same_v<decay,std::variant_alternative_t<1,IndexResult>>){
-								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1>::sublimed_data_t d;
+								SublimedFormatDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>::sublimed_data_t d;
 								auto& host_data = d[path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now())];
 								for(auto& [cmn,sublimed]:block.data_){
 									std::decay_t<decltype(host_data)>::iterator found = host_data.find(cmn);
@@ -152,7 +152,7 @@ void Index::execute() noexcept{
 										found->second=sublimed;
 									else host_data[std::make_shared<std::decay_t<decltype(host_data)>::key_type::element_type>(cmn)] = sublimed;
 								}
-								SublimedFormatDataInfo<Data_t::METEO,Data_f::GRIB_v1> msg_data;
+								SublimedFormatDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_data;
 								msg_data.add_data(std::move(d));
 								Mashroom::instance().data().add_data(std::move(msg_data));
 							}

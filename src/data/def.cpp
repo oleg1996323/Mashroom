@@ -29,6 +29,22 @@ const std::unordered_map<std::string_view,Data_f> data_format_name = [](const st
     return result;
 }(data_format_token);
 
+const std::unordered_map<Data_t,std::string_view> data_type_token = {
+                    {Data_t::TIME_SERIES,{std::string_view("meteo")}},
+                    {Data_t::POLYGONE,{std::string_view("polygone")}},
+                    {Data_t::GRID,{std::string_view("grid")}},
+                    {Data_t::ISOLINES,{std::string_view("isolines")}}
+};
+                    /* {"hgt",Data_f::HGT},
+                    {"netCDF",Data_f::NETCDF} };*/
+
+const std::unordered_map<std::string_view,Data_t> data_type_name = [](const std::unordered_map<Data_t,std::string_view>& tokens){
+    std::unordered_map<std::string_view,Data_t> result;
+    for(auto& [token,txt]:tokens)
+        result[txt]=token;
+    return result;
+}(data_type_token);
+
 std::string_view preferred_extension(Data_f format){
     return token_to_extensions(format).front();
 }
@@ -39,17 +55,30 @@ std::optional<std::vector<Data_f>> extension_to_tokens(std::string_view extensio
     else return std::nullopt;
 }
 
-const std::vector<std::string_view>& token_to_extensions(__Data__::FORMAT type_extension) noexcept{
-    return extension_token.at(type_extension);
+const std::vector<std::string_view>& token_to_extensions(Data_f token) noexcept{
+    return extension_token.at(token);
 }
 
-std::optional<__Data__::FORMAT> text_to_data_format(std::string_view text) noexcept{
-    auto str = boost::algorithm::to_lower_copy(text);
-    if(auto found = data_format_name.find(str);found!=data_format_name.end())
+std::optional<Data_f> to_data_format_name(std::string_view text) noexcept{
+    if(auto found = data_format_name.find(text);found!=data_format_name.end())
         return found->second;
     else return std::nullopt;
 }
 using namespace std::string_literals;
-std::string filename_by_type(__Data__::FORMAT format){
+std::string filename_by_format(Data_f format){
     return ""s+bindata_filename.data()+preferred_extension(format).data();
+}
+
+std::optional<Data_f> to_data_format_token(std::string_view text) noexcept{
+    if(auto found = data_format_name.find(text);found!=data_format_name.end())
+        return found->second;
+    else return std::nullopt;
+}
+std::optional<Data_t> to_data_type_token(std::string_view text) noexcept{
+    if(auto found = data_type_name.find(text);found!=data_type_name.end())
+        return found->second;
+    else return std::nullopt;
+}
+std::optional<std::string_view> to_data_type_name(Data_t token) noexcept{
+    return data_type_token.at(token);
 }

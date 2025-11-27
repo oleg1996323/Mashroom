@@ -11,7 +11,7 @@ template<Data_t TYPE, Data_f FORMAT>
 struct SublimedDataInfoStruct;
 
 template<>
-struct SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>
+struct SublimedDataInfoStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>
 {
     std::optional<GridInfo> grid_data_;
     std::vector<ptrdiff_t> buf_pos_;
@@ -28,7 +28,7 @@ struct SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>
     }
 };
 
-using GribSublimedDataInfoStruct = SublimedDataInfoStruct<Data_t::METEO,Data_f::GRIB_v1>;
+using GribSublimedDataInfoStruct = SublimedDataInfoStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
 namespace serialization{
     template<bool NETWORK_ORDER>

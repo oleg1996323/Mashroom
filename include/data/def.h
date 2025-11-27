@@ -7,6 +7,7 @@
 #include <optional>
 #include "sys/error_code.h"
 #include <unordered_set>
+#include <vector>
 
 constexpr std::string_view bindata_filename = std::string_view("data");
 
@@ -29,9 +30,10 @@ struct __Data__{
     };
 
     enum class TYPE:uint8_t{
-        METEO,
-        TOPO,
-        KADASTR
+        TIME_SERIES = 1,
+        GRID = (1<<1),
+        POLYGONE = (1<<2),
+        ISOLINES = (1<<3)
     };
 };
 
@@ -39,17 +41,11 @@ using Data_t = __Data__::TYPE;
 using Data_f = __Data__::FORMAT;
 using Data_a = __Data__::ACCESS;
 
-constexpr std::array<__Data__::FORMAT,1> data_types = {
-    __Data__::FORMAT::GRIB_v1,
-    /* 
-    GRIB_v2
-    GRIB_v3
-    __Data__::FORMAT::HGT,
-    __Data__::FORMAT::NETCDF */
-};
-
 std::optional<std::vector<Data_f>> extension_to_tokens(std::string_view extension) noexcept;
-std::optional<__Data__::FORMAT> text_to_data_format(std::string_view text) noexcept;
-const std::vector<std::string_view>& token_to_extensions(__Data__::FORMAT type_extension) noexcept;
-std::string filename_by_type(__Data__::FORMAT type);
+const std::vector<std::string_view>& token_to_extensions(Data_f token) noexcept;
+std::string filename_by_format(Data_f token);
 std::string_view preferred_extension(Data_f format);
+std::optional<Data_f> to_data_format_token(std::string_view text) noexcept;
+std::optional<Data_t> to_data_type_token(std::string_view text) noexcept;
+std::optional<std::string_view> to_data_format_name(Data_f token) noexcept;
+std::optional<std::string_view> to_data_type_name(Data_t token) noexcept;

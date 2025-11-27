@@ -90,9 +90,9 @@ namespace serialization{
 
 static_assert(serialization::deserialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
 static_assert(serialization::deserialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
-static_assert(serialization::deserialize_concept<true,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB_v1>>);
-static_assert(serialization::deserialize_concept<false,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB_v1>>);
+static_assert(serialization::deserialize_concept<true,network::BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>);
+static_assert(serialization::deserialize_concept<false,network::BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>);
 static_assert(serialization::serialize_concept<true,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
 static_assert(serialization::serialize_concept<false,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>);
-static_assert(serialization::serialize_concept<true,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB_v1>>);
-static_assert(serialization::serialize_concept<false,network::BaseIndexResult<Data_t::METEO, Data_f::GRIB_v1>>);
+static_assert(serialization::serialize_concept<true,network::BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>);
+static_assert(serialization::serialize_concept<false,network::BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>);
