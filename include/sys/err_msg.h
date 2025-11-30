@@ -16,7 +16,7 @@ constexpr std::array<const char*,12> err_msg_log = {
     "Error at indexing: file {0}, position {1}"
 };
 
-constexpr std::array<const char*,48> err_msg={
+constexpr std::array<const char*,50> err_msg={
     "Process successed",
     "Internal error",
     "Incorrect argument: date interval",
@@ -64,5 +64,7 @@ constexpr std::array<const char*,48> err_msg={
     "Requested data not found",
     "Not enough buffer size",
     "Timeout of operation",
-    "The file {0} is corrupted or has invalid format"
+    "The file {0} is corrupted or has invalid format",
+    "Data version {0} is unreachable for this Mashroom version",
+    "File {0} reading error"
 };
