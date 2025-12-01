@@ -8,6 +8,7 @@
 #include "types/time_period.h"
 #include "sys/outputdatafileformats.h"
 #include "sys/application.h"
+#include "serialization.h"
 
 namespace procedures::extract{
 
@@ -43,7 +44,7 @@ std::string get_header(const ExtractedData& result, const SearchProperties& prop
     std::string user_header = std::vformat(user_hdr_format,std::make_format_args(user_hdr_format));
     switch(result.index()){
         case 0:{
-            stream<<"type:"<<
+            //stream<<"type:"<<
         }
     }
     stream<<(user_header.empty()?"":"\n");
@@ -74,8 +75,7 @@ std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format);
+                        const std::string& filename_format);
 
 std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
@@ -83,8 +83,7 @@ std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format);
+                        const std::string& filename_format);
 
 std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
@@ -92,7 +91,5 @@ std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format);
-
+                        const std::string& filename_format);
 }

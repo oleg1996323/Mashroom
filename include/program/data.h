@@ -30,13 +30,11 @@ class Data:public __Data__{
 
     friend class DataTestClass;
     template<Data_f>
-    void __read__(const fs::path& filename);
+    ErrorCode __read__(const fs::path& filename);
     template<Data_f>
-    void __write__(const fs::path& filename){
-        
-    }
+    ErrorCode __write__(const fs::path& filename);
 
-    template <size_t I>
+    template <Data_f I>
     void __write_all__();
     //@todo make private
     public:
@@ -60,8 +58,8 @@ class Data:public __Data__{
     ~Data(){
         save();
     }
-    void read(const fs::path& filename);
-    bool write(const fs::path& filename);
+    ErrorCode read(const fs::path& filename) noexcept;
+    ErrorCode write(const fs::path& filename) noexcept;
     bool unsaved() const{
         return !unsaved_.empty();
     }

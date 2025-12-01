@@ -49,7 +49,7 @@ struct GridDefinition<RepresentationType::GAUSSIAN>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::GAUSSIAN>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -87,7 +87,7 @@ struct GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -113,7 +113,7 @@ struct GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -139,7 +139,7 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }

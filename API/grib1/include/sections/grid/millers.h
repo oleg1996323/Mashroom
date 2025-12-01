@@ -39,7 +39,7 @@ struct GridDefinition<RepresentationType::MILLERS_CYLINDR>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::MILLERS_CYLINDR>& other) const{
         return true;
     }

@@ -26,7 +26,7 @@ struct GridDefinition<RepresentationType::UTM>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::UTM>& other) const{
         return GridDefinitionBase::operator==(other);
     }

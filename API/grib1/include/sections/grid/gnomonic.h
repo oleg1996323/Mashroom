@@ -29,7 +29,7 @@ struct GridDefinition<RepresentationType::GNOMONIC>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 }
 

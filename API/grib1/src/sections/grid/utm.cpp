@@ -7,8 +7,8 @@
 GridDefinition<RepresentationType::UTM>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::UTM>::print_grid_info() const{
-    assert(false);
+std::string GridDefinition<RepresentationType::UTM>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

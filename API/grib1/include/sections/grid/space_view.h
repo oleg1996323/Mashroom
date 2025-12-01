@@ -29,7 +29,7 @@ struct GridDefinition<RepresentationType::SPACE_VIEW>:
     bool operator==(const GridDefinition<RepresentationType::SPACE_VIEW>& other) const{
         return GridDefinitionBase::operator==(other);
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 }
 

@@ -7,32 +7,32 @@ GridDefinition<RepresentationType::GAUSSIAN>::GridDefinition(unsigned char* buff
     GridDefinitionBase(buffer){}
 /// @todo
 /// @return Printed by text parameters
-const char* GridDefinition<RepresentationType::GAUSSIAN>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::GAUSSIAN>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
 
 /// @todo
 /// @return Printed by text parameters
-const char* GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
 
 /// @todo
 /// @return Printed by text parameters
-const char* GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::STRETCHED_GAUSSIAN_LAT_LON>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
 
 /// @todo
 /// @return Printed by text parameters
-const char* GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::STRETCHED_ROTATED_GAUSSIAN_LAT_LON>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

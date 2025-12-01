@@ -43,10 +43,12 @@ void Mashroom::__read_initial_data_file__(){
     json::value root = parser.release();
     if(root.is_object())
         for(const auto& [key,val]:root.as_object()){
-            __Data__::FORMAT type_data = __Data__::FORMAT(text_to_data_type(key.data()));
-            if(val.is_array() && type_data!=__Data__::FORMAT::UNDEF){
+            Data_f fmt_data;
+            if(auto fmt_tmp = to_data_format_token(key);fmt_tmp.has_value())
+                fmt_data = fmt_tmp.value();
+            if(val.is_array()){
                 for(const auto& filename:val.as_array())
-                    if(type_data==__Data__::FORMAT::GRIB_v1 && filename.is_string())
+                    if(fmt_data==Data_f::GRIB_v1 && filename.is_string())
                         data_files_.insert(filename.as_string().c_str());
             }
         }
@@ -77,7 +79,7 @@ void Mashroom::__write_initial_data_file__(){
     json::value val;
     auto& obj = val.emplace_object();
     for(const auto& [format,filename]:data_.written_files()){
-        auto& files_seq = obj[format_name(format)].emplace_array();
+        auto& files_seq = obj[to_data_format_name(format)].emplace_array();
         files_seq.emplace_back(filename.c_str());
     }
     assert(dat_file.is_open());

@@ -130,11 +130,11 @@ std::vector<ptrdiff_t> Grib1Data::match(
     return result;
 }
 
-FoundSublimedDataInfo<Data_t::METEO,Data_f::GRIB_v1> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
+FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
                 std::optional<TimeSequence> time_,
                 std::optional<TimeFrame> forecast_preference_,
                 utc_tp last_update_) const{
-    FoundSublimedDataInfo<Data_t::METEO,Data_f::GRIB_v1> result;
+    FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> result;
     for(const auto& [path,dat]:this->sublimed_.data()){
         if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>=last_update_){
             Grib1CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt);

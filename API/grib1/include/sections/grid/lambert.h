@@ -21,7 +21,7 @@ namespace grid{
             }
             return *this;
         }
-        const char* print_grid_info() const;
+        std::string print_grid_info() const;
         bool operator==(const GridDefinition<RepresentationType::LAMBERT>& other) const{
             return GridDefinitionBase::operator==(other);
         }
@@ -46,7 +46,7 @@ namespace grid{
             }
             return *this;
         }
-        const char* print_grid_info() const;
+        std::string print_grid_info() const;
         bool operator==(const GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>& other) const{
             return GridDefinitionBase::operator==(other);
         }

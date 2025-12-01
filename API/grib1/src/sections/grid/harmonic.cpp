@@ -7,29 +7,29 @@
 GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

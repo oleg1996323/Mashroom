@@ -53,7 +53,7 @@ struct GridDefinition<RepresentationType::ALBERS_EQUAL_AREA>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;    
+    std::string print_grid_info() const;    
 };
 #endif
 }

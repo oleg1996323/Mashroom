@@ -8,8 +8,8 @@ using namespace grid;
 GridDefinition<RepresentationType::MERCATOR>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::MERCATOR>::print_grid_info() const{
-    assert(false);
+std::string GridDefinition<RepresentationType::MERCATOR>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

@@ -9,6 +9,8 @@
 #include "API/grib1/include/sections/grid/grid.h"
 #include "API/grib1/include/paramtablev.h"
 #include "boost/algorithm/string.hpp"
+#include "serialization.h"
+#include "boost_functional/json.h"
 
 namespace procedures::extract{
 namespace fs = std::filesystem;
@@ -86,94 +88,85 @@ namespace txt::details{
         }   
     }
 
-    std::expected<int,ErrorCode> define_version(std::string_view buffer) noexcept{
-        if(!buffer.starts_with("version:") || buffer.substr(std::string_view("version:").size()).empty())
+    template<typename T>
+    std::expected<T,ErrorCode> define_value_by_token(std::istream& file, std::string& buffer,const char* token) noexcept{
+        if(!std::getline(file,buffer) || !buffer.starts_with(token) || buffer.substr(std::string_view(token).size()).empty())
             return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
         else {
-            auto value_str = buffer.substr(std::string_view("version:").size());
-            int result;
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),result).ec == std::error_code{})
-                return result;
-            else return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+            if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>){
+                auto value_str = std::string_view(buffer).substr(std::strlen(token));
+                T result;
+                if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),result).ec == std::error_code{})
+                    return result;
+                else return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+            }
+            else if constexpr (std::is_enum_v<T>){
+                if(auto res = define_value_by_token<std::underlying_type_t<T>>(file,buffer,token);!res.has_value())
+                    return std::unexpected(res.error());
+                else return static_cast<T>(res.value());
+            }
+            else static_assert(false,"Not implemented");
         }
+    }
+
+    std::expected<int,ErrorCode> define_version(std::istream& file,std::string& buffer) noexcept{
+        return define_value_by_token<int>(file,buffer,"version:");
     }
 
     std::expected<Coord,ErrorCode> define_position(std::istream& file, std::string& buffer) noexcept{
         Coord pos;
-        if(!std::getline(file,buffer) || !buffer.starts_with("latitude:") || buffer.substr(std::string_view("latitude:").size()).empty())
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            auto value_str = buffer.substr(std::string_view("latitude:").size());
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),pos.lat_).ec != std::error_code{})
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        }
-        if(!std::getline(file,buffer) || !buffer.starts_with("longitude:") || buffer.substr(std::string_view("longitude:").size()).empty())
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            auto value_str = buffer.substr(std::string_view("longitude:").size());
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),pos.lon_).ec != std::error_code{})
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-            else return pos;
-        }
+        if(auto lat = define_value_by_token<decltype(Coord::lat_)>(file,buffer,"latitude:");!lat.has_value())
+            return std::unexpected(lat.error());
+        else pos.lat_ = lat.value();
+        if(auto lon = define_value_by_token<decltype(Coord::lon_)>(file,buffer,"longitude:");!lon.has_value())
+            return std::unexpected(lon.error());
+        else pos.lon_ = lon.value();
+        return pos;
     }
 
     std::expected<RepresentationType,ErrorCode> define_grid_type(std::istream& file, std::string& buffer) noexcept{
-        RepresentationType grid_t;
-        if(!std::getline(file,buffer) || !buffer.starts_with("grid:") || buffer.substr(std::string_view("grid:").size()).empty())
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            auto value_str = buffer.substr(std::string_view("grid:").size());
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),reinterpret_cast<std::underlying_type_t<RepresentationType>&>(grid_t)).ec != std::error_code{})
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-            else return grid_t;
-        }
+        return define_value_by_token<RepresentationType>(file,buffer,"grid:");
     }
 
     std::expected<Organization,ErrorCode> define_center(std::istream& file, std::string& buffer) noexcept{
-        Organization center;
-        if(!std::getline(file,buffer) || !buffer.starts_with("center:") || buffer.substr(std::string_view("center:").size()).empty())
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            auto value_str = buffer.substr(std::string_view("center:").size());
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),reinterpret_cast<std::underlying_type_t<Organization>&>(center)).ec != std::error_code{})
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-            else return center;
-        }
+        return define_value_by_token<Organization>(file,buffer,"center:");
     }
 
     std::expected<TimeFrame,ErrorCode> define_fcst_unit(std::istream& file, std::string& buffer) noexcept{
-        TimeFrame fcst_unit;
-        if(!std::getline(file,buffer) || !buffer.starts_with("fcst time unit:") || buffer.substr(std::string_view("fcst time unit:").size()).empty())
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            auto value_str = buffer.substr(std::string_view("fcst time unit:").size());
-            if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),reinterpret_cast<std::underlying_type_t<TimeFrame>&>(fcst_unit)).ec != std::error_code{})
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-            else return fcst_unit;
-        }
+        return define_value_by_token<TimeFrame>(file,buffer,"fcst time unit:");
     }
 
+    //table versions and parameters are written as [[*tv*,*param*],...,[*tv*,*param*]]
     std::expected<std::vector<SearchParamTableVersion>,ErrorCode> define_parameters(std::istream& file, std::string& buffer) noexcept{
         std::vector<SearchParamTableVersion> result;
         if(!std::getline(file,buffer) || !buffer.starts_with("parameters:") || buffer.substr(std::string_view("parameters:").size()).empty())
             return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
         else {
-            auto value_str = buffer.substr(std::string_view("parameters:").size());
+            auto value_str = std::string_view(buffer).substr(std::string_view("parameters:").size());
             try{
-                boost::split(result,value_str,[](std::string_view splitted){
-                    if(auto pos = splitted.find_first_of(','); pos==std::string_view::npos)
-                        throw std::exception();
-                    else {
-                        uint8_t tv = 0;
-                        uint8_t param = 0;
-                        if(std::from_chars(splitted.substr(0,pos).data(),splitted.substr(0,pos).data()+pos,tv).ec != std::error_code{})
-                            throw std::exception();
-                        if(std::from_chars(splitted.substr(pos+1,std::string_view::npos).data(),
-                                splitted.substr(pos+1,std::string_view::npos).data()+splitted.substr(pos+1,std::string_view::npos).size(),param).ec != std::error_code{})
-                            throw std::exception();
-                        else return SearchParamTableVersion{.param_=param,.t_ver_ = tv};
+                if(auto json_parse_result = parse_json_from_buffer(value_str);!json_parse_result.has_value())
+                    return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                else{
+                    const auto& json = json_parse_result.value();
+                    if(!json.is_array())
+                        return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                    for(auto& item:json.as_array()){
+                        if(!item.is_array() && item.as_array().size()!=2)
+                            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                        if(!item.as_array().at(0).is_uint64() || !item.as_array().at(1).is_uint64())
+                            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                        else {
+                            boost::system::error_code err;
+                            uint8_t param = item.as_array().at(1).to_number<uint8_t>(err);
+                            if(err!=boost::system::error_code{})
+                                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                            uint8_t tv = item.as_array().at(0).to_number<uint8_t>(err);
+                            if(err!=boost::system::error_code{})
+                                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                            result.push_back(SearchParamTableVersion{.param_=param,.t_ver_=tv});
+                        }
                     }
-                });
+                }
             }
             catch(...){
                 return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
@@ -185,15 +178,18 @@ namespace txt::details{
 
     template<Data_f FORMAT,Data_t TYPE>
     bool valid_version_by_format_type(int version){
-        if constexpr (FORMAT == Data_f::GRIB_v1 && TYPE == Data_t::TIME_SERIES) noexcept{
+        if constexpr (FORMAT == Data_f::GRIB_v1 && TYPE == Data_t::TIME_SERIES){
             return version<=1; //@todo add acceptable versions to file
         }
         else static_assert("Not implemented version check by format and type");
     }
 
     template<Data_f FORMAT, Data_t TYPE>
-    struct HeaderInfo{
-        std::vector<CommonDataProperties<TYPE,FORMAT>> commons_;
+    struct HeaderInfo;
+
+    template<>
+    struct HeaderInfo<Data_f::GRIB_v1,Data_t::TIME_SERIES>{
+        std::vector<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> commons_;
         TimeSequence time_seq_;
         Coord pos_;
         RepresentationType grid_t_;
@@ -201,7 +197,7 @@ namespace txt::details{
     
     template<Data_f FORMAT, Data_t TYPE>
     std::expected<HeaderInfo<FORMAT,TYPE>,ErrorCode> header_by_version_read(std::ifstream& file,std::string& buffer,int version) noexcept{
-        if constexpr(TYPE&Data_t::TIME_SERIES){
+        if constexpr(TYPE == Data_t::TIME_SERIES){
             HeaderInfo<FORMAT,TYPE> result;
             if(auto time_info = txt::details::ts::parse_header_time_info(file);!time_info.has_value())
                 return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
@@ -223,27 +219,23 @@ namespace txt::details{
                 if(auto parameters_res = define_parameters(file,buffer);!parameters_res.has_value())
                     return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
                 else parameters.swap(parameters_res.value());
-                CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
             }
+            else static_assert(false,"Not implemented");
         }
-        
+        else static_assert(false,"Not implemented");
     }
 
     template<Data_f FORMAT, Data_t TYPE>
-    std::expected<int,ErrorCode> data_by_version_read(std::ifstream& stream,std::string& buffer,int version) noexcept{
+    std::expected<ExtractedValues<TYPE,FORMAT>,ErrorCode> data_by_version_read(std::ifstream& stream,std::string& buffer,int version) noexcept{
 
     }
 
     template<Data_f FORMAT, Data_t TYPE>
     std::expected<ExtractedData,ErrorCode> format_type_specified_data_read(std::ifstream& file,std::string& buffer) noexcept{
         int version = 0;
-        if(!getline(file,buffer))
-            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-        else {
-            if(auto version_res = define_version(buffer);!version_res.has_value())
-                return std::unexpected(version_res.error());
-            else version = version_res.value();
-        }
+        if(auto version_res = define_version(file,buffer);!version_res.has_value())
+            return std::unexpected(version_res.error());
+        else version = version_res.value();
         if(!valid_version_by_format_type<FORMAT,TYPE>(version))
             return std::unexpected(ErrorCode::VERSION_ERROR_X1);
         ExtractedData data;
@@ -253,8 +245,8 @@ namespace txt::details{
             if(!std::getline(file,buffer) || buffer!="\\header")
                 return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
             if(auto data_result = data_by_version_read<FORMAT,TYPE>(file,buffer,version);!data_result.has_value())
-                return std::unexpected(header_result.error());
-            else data.emplace(data_result.value());
+                return std::unexpected(data_result.error());
+            else data = data_result.value();
         }
         else static_assert("Not implemented reading data");
     }
@@ -322,11 +314,52 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,fs::path filename)
 }
 
 ExtractedData read_json_file(const std::stop_token& stop_token,fs::path filename){
-    static_assert(false,"implementation needed");
+    //static_assert(false,"implementation needed");
 }
 
 ExtractedData read_bin_file(const std::stop_token& stop_token,fs::path filename){
-    static_assert(false,"implementation needed");
+    using namespace serialization;
+    using namespace std::string_view_literals;
+    Data_f fmt;
+    Data_t type;
+    RepresentationType grid_t;
+    Coord pos;
+    std::ifstream file(filename,std::ifstream::in);
+    if(!file.is_open()){
+        if(!fs::exists(filename))
+            throw ErrorException(ErrorCode::FILE_X1_DONT_EXISTS,""sv,filename.c_str());
+        else if(!fs::is_regular_file(filename))
+            throw ErrorException(ErrorCode::X1_IS_NOT_FILE,""sv,filename.c_str());
+        else throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,""sv,filename.c_str());
+    }
+    if(auto ser_err = deserialize_from_file(type,file);ser_err!=SerializationEC::NONE)
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    if(auto ser_err = deserialize_from_file(fmt,file);ser_err!=SerializationEC::NONE)
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    if(auto ser_err = deserialize_from_file(grid_t,file);ser_err!=SerializationEC::NONE)
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    if(auto ser_err = deserialize_from_file(pos,file);ser_err!=SerializationEC::NONE)
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    ExtractedData result;
+    switch(fmt){
+        case Data_f::GRIB_v1:{
+            switch(type){
+                case Data_t::TIME_SERIES:{
+                    ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
+                    if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
+                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+                    else result = std::move(values);
+                    return result;
+                }
+                default:{
+                    throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
+                }
+            }
+        }
+        default:{
+            throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data format"sv,filename.c_str());
+        }
+    }
+    // deserialize_from_file()
 }
-
 }

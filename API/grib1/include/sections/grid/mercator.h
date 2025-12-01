@@ -29,7 +29,7 @@ struct GridDefinition<RepresentationType::MERCATOR>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::MERCATOR>& other) const{
         return GridDefinitionBase::operator==(other);
     }

@@ -30,10 +30,10 @@ struct __Data__{
     };
 
     enum class TYPE:uint8_t{
-        TIME_SERIES = 1,
-        GRID = (1<<1),
-        POLYGONE = (1<<2),
-        ISOLINES = (1<<3)
+        TIME_SERIES = 0,
+        GRID,
+        POLYGONE,
+        ISOLINES
     };
 };
 
@@ -41,11 +41,13 @@ using Data_t = __Data__::TYPE;
 using Data_f = __Data__::FORMAT;
 using Data_a = __Data__::ACCESS;
 
+std::size_t number_of_formats() noexcept;
+std::size_t number_of_types() noexcept;
 std::optional<std::vector<Data_f>> extension_to_tokens(std::string_view extension) noexcept;
 const std::vector<std::string_view>& token_to_extensions(Data_f token) noexcept;
 std::string filename_by_format(Data_f token);
 std::string_view preferred_extension(Data_f format);
 std::optional<Data_f> to_data_format_token(std::string_view text) noexcept;
 std::optional<Data_t> to_data_type_token(std::string_view text) noexcept;
-std::optional<std::string_view> to_data_format_name(Data_f token) noexcept;
-std::optional<std::string_view> to_data_type_name(Data_t token) noexcept;
+std::string_view to_data_format_name(Data_f token) noexcept;
+std::string_view to_data_type_name(Data_t token) noexcept;

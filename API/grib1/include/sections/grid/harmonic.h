@@ -41,7 +41,7 @@ struct GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>:
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::SPHERICAL_HARMONIC_COEFFICIENTS>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -71,7 +71,7 @@ struct GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENT
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -101,7 +101,7 @@ struct GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIE
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS>& other) const{
         return GridDefinitionBase::operator==(other);
     }
@@ -128,7 +128,7 @@ struct GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_C
     }
     /// @todo
     /// @return Printed by text parameters
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS>& other) const{
         return GridDefinitionBase::operator==(other);
     }

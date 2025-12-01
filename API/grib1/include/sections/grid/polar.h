@@ -25,7 +25,7 @@ struct GridDefinition<RepresentationType::POLAR_STEREOGRAPH_PROJ>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 }
 

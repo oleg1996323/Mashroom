@@ -31,7 +31,7 @@ class Array{
     //@todo make universal function for multiple types
     static std::expected<Array,ErrorCode> parse(const std::string& input){
         Array processed_tokens;
-        auto parse_result = parse_json(input);
+        auto parse_result = parse_json_from_buffer(input);
         if(!parse_result.has_value() || !parse_result->is_array())
             return std::unexpected(ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"not array",AT_ERROR_ACTION::CONTINUE));
         else {

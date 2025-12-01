@@ -6,8 +6,8 @@
 GridDefinition<RepresentationType::MILLERS_CYLINDR>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::MILLERS_CYLINDR>::print_grid_info() const{
-    assert(false);
+std::string GridDefinition<RepresentationType::MILLERS_CYLINDR>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

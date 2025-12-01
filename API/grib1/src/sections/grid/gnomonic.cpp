@@ -6,8 +6,8 @@
 
 GridDefinition<RepresentationType::GNOMONIC>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}
-const char* GridDefinition<RepresentationType::GNOMONIC>::print_grid_info() const{
-    return "Gnomonic grid. Information unable";
+std::string GridDefinition<RepresentationType::GNOMONIC>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

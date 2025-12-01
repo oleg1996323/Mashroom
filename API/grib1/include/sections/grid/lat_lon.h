@@ -52,7 +52,7 @@ struct GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>:
     bool operator==(const GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const{
         return GridDefinitionBase::operator==(other);
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
     bool extendable(const GridDefinition<LAT_LON_GRID_EQUIDIST_CYLINDR>& other) const noexcept{
         if(base_.dx!=other.base_.dx ||
             base_.dy!=other.base_.dy)
@@ -109,7 +109,7 @@ struct GridDefinition<RepresentationType::ROTATED_LAT_LON>:
     bool operator==(const GridDefinition<RepresentationType::ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 
 template<>
@@ -134,7 +134,7 @@ struct GridDefinition<RepresentationType::STRETCHED_LAT_LON>:
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 
 template<>
@@ -159,7 +159,7 @@ struct GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>:
     bool operator==(const GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>& other) const{
         return GridDefinitionBase::operator==(other);
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 }
 

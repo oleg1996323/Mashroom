@@ -9,14 +9,14 @@ using namespace grid;
 GridDefinition<RepresentationType::LAMBERT>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::LAMBERT>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::LAMBERT>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>::GridDefinition(unsigned char* buffer):
 GridDefinitionBase(buffer){}
 
-const char* GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>::print_grid_info() const{
-    assert(false);//still not available
+std::string GridDefinition<RepresentationType::OBLIQUE_LAMBERT_CONFORMAL>::print_grid_info() const{
+    return boost::json::serialize(to_json(*this));
 }
 
 template<>

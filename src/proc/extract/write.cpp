@@ -16,14 +16,13 @@ bool extraction_empty(const ExtractedData& data) noexcept{
     return std::visit(is_empty,data);
 }
 
-std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
+std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format){
+                        const std::string& filename_format){
     std::unordered_set<fs::path> paths;
     if(extraction_empty(result))
         return paths;
@@ -54,7 +53,7 @@ std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
         if(current_time>=file_end_time || row==0){
             out.close();
             out_f_name/=generate_directory(out_path,dirname_format,current_time);
-            out_f_name/=generate_filename(output_format,
+            out_f_name/=generate_filename(OutputDataFileFormats::TXT_F,
                 filename_format,
                 center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,current_time);
             {
@@ -85,25 +84,79 @@ std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
     return paths;
 }
 
-std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
+std::unordered_set<fs::path> procedures::extract::write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format){
-    assert(false);
+                        const std::string& filename_format){
+
 }
 
-std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
+std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
                         const fs::path& out_path,
                         const std::string& dirname_format,
-                        const std::string& filename_format,
-                        OutputDataFileFormats output_format){
-    
-    assert(false);
+                        const std::string& filename_format){
+    using namespace serialization;
+    using namespace std::string_view_literals;
+    std::unordered_set<fs::path> paths;
+    if(extraction_empty(result))
+        return paths;
+    utc_tp min_time = utc_tp::max();
+    utc_tp max_time = utc_tp::min();
+    for(auto& [cmn_data,values]:get_result(result)){
+        std::sort(values.begin(),values.end(),std::less());
+        if(!values.empty()){
+            min_time = std::min(values.front().time_date,min_time);
+            max_time = std::max(values.front().time_date,max_time);
+        }
+    }
+    utc_tp lower_bound_time = min_time;
+    utc_tp upper_bound_time = t_off.get_next_tp(min_time);
+    std::ofstream out;
+    fs::path out_f_name;
+    while(true){
+        if(lower_bound_time>max_time)
+            break;
+        out.close();
+        out_f_name.clear();
+        out_f_name/=generate_directory(out_path,dirname_format,lower_bound_time);
+        out_f_name/=generate_filename(OutputDataFileFormats::BIN_F,
+            filename_format,
+            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,lower_bound_time);
+        make_file(out,out_f_name);
+        out.open(out_f_name,std::ofstream::out);
+        try{
+            for(const auto& [cmn_data,values]:get_result(result)){
+                if(auto ser_err = serialize_to_file(Data_t::TIME_SERIES,out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(Data_f::GRIB_v1,out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(props.grid_type_,out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(props.position_,out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(get_result(result).size(),out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(cmn_data,out);ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                if(auto ser_err = serialize_to_file(std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
+                                                                std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f))),
+                                                                out);
+                                                                ser_err!=SerializationEC::NONE)
+                    throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+            }
+            paths.insert(out_f_name);
+            out.close();
+        }
+        catch(const ErrorException& exc_err){
+            out.close();
+            fs::remove(out_f_name);
+        }
+    }
+    return paths;
 }

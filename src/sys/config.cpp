@@ -37,7 +37,7 @@ namespace network::server{
 #include "boost_functional/json.h"
 void Config::read_user_config() noexcept{
     using namespace boost;
-    std::expected<json::value,std::error_code> root = parse_json(
+    std::expected<json::value,std::error_code> root = parse_json_from_file(
         sys_settings_.config_dir/uc_filename);
     if(!root.has_value()){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,root.error().message(),AT_ERROR_ACTION::CONTINUE);
@@ -64,7 +64,7 @@ void Config::read_user_config() noexcept{
 
 void Config::read_server_config() noexcept{
     using namespace boost;
-    std::expected<json::value,std::error_code> root = parse_json(
+    std::expected<json::value,std::error_code> root = parse_json_from_file(
                     sys_settings_.server_config_dir/sc_filename);
     if(!root.has_value()){
         ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,root.error().message(),AT_ERROR_ACTION::CONTINUE);

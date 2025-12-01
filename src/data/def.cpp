@@ -45,6 +45,13 @@ const std::unordered_map<std::string_view,Data_t> data_type_name = [](const std:
     return result;
 }(data_type_token);
 
+std::size_t number_of_formats() noexcept{
+    return data_format_token.size();
+}
+std::size_t number_of_types() noexcept{
+    return data_type_token.size();
+}
+
 std::string_view preferred_extension(Data_f format){
     return token_to_extensions(format).front();
 }
@@ -59,10 +66,8 @@ const std::vector<std::string_view>& token_to_extensions(Data_f token) noexcept{
     return extension_token.at(token);
 }
 
-std::optional<Data_f> to_data_format_name(std::string_view text) noexcept{
-    if(auto found = data_format_name.find(text);found!=data_format_name.end())
-        return found->second;
-    else return std::nullopt;
+std::string_view to_data_format_name(Data_f token) noexcept{
+    return data_format_token.at(token);
 }
 using namespace std::string_literals;
 std::string filename_by_format(Data_f format){
@@ -79,6 +84,6 @@ std::optional<Data_t> to_data_type_token(std::string_view text) noexcept{
         return found->second;
     else return std::nullopt;
 }
-std::optional<std::string_view> to_data_type_name(Data_t token) noexcept{
+std::string_view to_data_type_name(Data_t token) noexcept{
     return data_type_token.at(token);
 }

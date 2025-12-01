@@ -3,6 +3,7 @@
 #include "byte_order.h"
 #include "types/time_interval.h"
 #include <variant>
+#include "serialization.h"
 
 template<Data_t T,Data_f F>
 struct ExtractedValue;
@@ -94,3 +95,43 @@ using ExtractedData = VariantExtractedData;
 
 static_assert(std::is_default_constructible_v<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>);
 static_assert(std::is_default_constructible_v<VariantExtractedData>);
+
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        auto operator()(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val,std::vector<char>& buf) const noexcept{
+            return serialize<NETWORK_ORDER>(val,buf,val.time_date,val.value);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        auto operator()(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val,std::span<const char> buf) const noexcept{
+            return deserialize<NETWORK_ORDER>(val,buf,val.time_date,val.value);
+        }
+    };
+
+    template<>
+    struct Serial_size<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        auto operator()(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val) const noexcept{
+            return serial_size(val.time_date,val.value);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::time_date),decltype(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value)>();
+        }();
+    };
+
+    template<>
+    struct Max_serial_size<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::time_date),decltype(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value)>();
+        }();
+    };
+}

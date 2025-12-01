@@ -27,7 +27,7 @@ struct GridDefinition<RepresentationType::SIMPLE_POLYCONIC>:
         }
         return *this;
     }
-    const char* print_grid_info() const;
+    std::string print_grid_info() const;
 };
 }
 
