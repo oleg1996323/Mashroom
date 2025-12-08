@@ -8,14 +8,16 @@
 template<Data_t T,Data_f F>
 struct ExtractedValue;
 
-template<>
-struct ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>
+template<Data_f FORMAT>
+struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
 {
+    using value_t = float;
     std::chrono::system_clock::time_point time_date;
-    float value = UNDEFINED;
+    value_t value = UNDEFINED;
+    using time_type = decltype(time_date);
 
     ExtractedValue() = default;
-    ExtractedValue(utc_tp time, float val) : time_date(time), value(val) {}
+    ExtractedValue(utc_tp time, value_t val) : time_date(time), value(val) {}
     ExtractedValue(const ExtractedValue &other)
     {
         if (this != &other)

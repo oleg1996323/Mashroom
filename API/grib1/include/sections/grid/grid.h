@@ -12,6 +12,7 @@
 #include "polyconic.h"
 #include "lambert.h"
 #include "grid_base.h"
+#include "sections/grid/json/json_base.h"
 #include <variant>
 
 using namespace grid;
