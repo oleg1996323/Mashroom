@@ -137,41 +137,41 @@ namespace txt::details{
     }
 
     //table versions and parameters are written as [[*tv*,*param*],...,[*tv*,*param*]]
-    std::expected<std::vector<SearchParamTableVersion>,ErrorCode> define_parameters(std::istream& file, std::string& buffer) noexcept{
-        std::vector<SearchParamTableVersion> result;
-        if(!std::getline(file,buffer) || !buffer.starts_with("parameters:") || buffer.substr(std::string_view("parameters:").size()).empty())
+    template<Data_t TYPE,Data_f FORMAT>
+    std::expected<std::vector<CommonDataProperties<TYPE,FORMAT>>,ErrorCode> define_data_parameters(std::istream& file, std::string& buffer) noexcept{
+        
+        if(!std::getline(file,buffer) || buffer!="parameters:")
             return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
         else {
-            auto value_str = std::string_view(buffer).substr(std::string_view("parameters:").size());
-            try{
-                if(auto json_parse_result = parse_json_from_buffer(value_str);!json_parse_result.has_value())
-                    return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                else{
-                    const auto& json = json_parse_result.value();
-                    if(!json.is_array())
-                        return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                    for(auto& item:json.as_array()){
-                        if(!item.is_array() && item.as_array().size()!=2)
-                            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                        if(!item.as_array().at(0).is_uint64() || !item.as_array().at(1).is_uint64())
-                            return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                        else {
-                            boost::system::error_code err;
-                            uint8_t param = item.as_array().at(1).to_number<uint8_t>(err);
-                            if(err!=boost::system::error_code{})
-                                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                            uint8_t tv = item.as_array().at(0).to_number<uint8_t>(err);
-                            if(err!=boost::system::error_code{})
-                                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                            result.push_back(SearchParamTableVersion{.param_=param,.t_ver_=tv});
-                        }
+            if constexpr(FORMAT == Data_f::GRIB_v1 && TYPE == Data_t::TIME_SERIES){
+                    std::vector<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
+                    for(;;){
+                        CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> tmp;
+                        std::streampos old_pos = file.tellg();
+                        if(auto center = define_center(file,buffer);!center.has_value())
+                            if(result.empty())
+                                return std::unexpected(center.error());
+                            else{
+                                file.seekg(old_pos);
+                                if(file.fail())
+                                    return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
+                                else
+                                return result;
+                            }
+                        else tmp.center_ = center.value();
+                        if(auto t_fcst = define_value_by_token<TimeFrame>(file,buffer,"forecast unit:");!t_fcst.has_value())
+                            return std::unexpected(t_fcst.error());
+                        else tmp.fcst_unit_ = t_fcst.value();
+                        if(auto tv = define_value_by_token<uint8_t>(file,buffer,"table version:");!tv.has_value())
+                            return std::unexpected(tv.error());
+                        else tmp.table_version_ = tv.value();
+                        if(auto param = define_value_by_token<uint8_t>(file,buffer,"parameter:");!param.has_value())
+                            return std::unexpected(param.error());
+                        else tmp.parameter_= param.value();
+                        result.push_back(tmp);
                     }
                 }
-            }
-            catch(...){
-                return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-            }
-            return result;
+            else static_assert(false,"Not implemented");
         }
     }
 
@@ -203,10 +203,6 @@ namespace txt::details{
                 return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
             else result.time_seq_ = time_info.value();
             if constexpr(FORMAT==Data_f::GRIB_v1){
-                Organization center;
-                if(auto center_res = define_center(file,buffer);!center_res.has_value())
-                    return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
-                else center = center_res.value();
                 RepresentationType grid_type;
                 if (auto grid_res = define_grid_type(file,buffer);!grid_res.has_value())
                     return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
@@ -216,10 +212,10 @@ namespace txt::details{
                     return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
                 else result.pos_ = std::move(pos_res.value());
                 std::vector<SearchParamTableVersion> parameters;
-                if(auto parameters_res = define_parameters(file,buffer);!parameters_res.has_value())
+                if(auto parameters_res = define_data_parameters<TYPE,FORMAT>(file,buffer);!parameters_res.has_value())
                     return std::unexpected(ErrorCode::FILE_X1_READING_ERROR);
                 else{
-                    parameters.swap(parameters_res.value());
+                    result.commons_.swap(parameters_res.value());
                     return result;
                 }
             }
@@ -390,17 +386,67 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,const fs::path& fi
     }
 }
 
+template<typename T>
+T get_json_token(boost::json::value json,const char* token){
+    boost::json::error_code err;
+    using namespace std::string_literals;
+    using namespace std::string_view_literals;
+    if(auto ptr = json.find_pointer(token,err);ptr==nullptr)
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"json file doesn't contains token "s+token,filename.c_str());
+    else {
+        if(auto data_from_json = from_json<T>(*ptr);!data_from_json.has_value())
+            throw ErrorException(data_from_json.error(),"invalid value in json file"s+token);
+        else return data_from_json.value();
+    }
+}
+
 ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& filename){
-    //static_assert(false,"implementation needed");
+
+    std::ifstream file(filename,std::ifstream::in);
+    using namespace std::string_view_literals;
+    boost::json::value json;
+    if(auto json_tmp = parse_json_from_file(filename);  !json_tmp.has_value() ||
+                                                    !json_tmp->is_object() || 
+                                                    !json_tmp->as_object().contains("header") || 
+                                                    !json_tmp->as_object().contains("data"))
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    else json = json_tmp.value();
+    
+    try{
+        Data_f fmt = get_json_token<Data_f>(json,"/header/format");
+        Data_t type = get_json_token<Data_t>(json,"/header/type");
+        switch(fmt){
+        case Data_f::GRIB_v1:{
+            switch(type){
+                case Data_t::TIME_SERIES:{
+                    TimeSequence time_seq(get_json_token<utc_tp>(json,"/header/time/start"),get_json_token<utc_tp>(json,"/header/time/from"),get_json_token<utc_diff>(json,"/header/time/dtime"));
+                    RepresentationType grid_t = get_json_token<RepresentationType>(json,"/header/grid");
+                    Coord pos = get_json_token<Coord>(json,"/header/grid");
+                    ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
+                    if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
+                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+                    else return values;
+                }
+                default:{
+                    throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
+                }
+            }
+        }
+        default:{
+            throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data format"sv,filename.c_str());
+        }
+    }
+    }
+    catch(const ErrorException& err){
+        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    }
+    
+
 }
 
 ExtractedData read_bin_file(const std::stop_token& stop_token,const fs::path& filename){
     using namespace serialization;
     using namespace std::string_view_literals;
-    Data_f fmt;
-    Data_t type;
-    RepresentationType grid_t;
-    Coord pos;
     std::ifstream file(filename,std::ifstream::in);
     if(!file.is_open()){
         if(!fs::exists(filename))
@@ -409,24 +455,26 @@ ExtractedData read_bin_file(const std::stop_token& stop_token,const fs::path& fi
             throw ErrorException(ErrorCode::X1_IS_NOT_FILE,""sv,filename.c_str());
         else throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,""sv,filename.c_str());
     }
+    Data_f fmt;
+    Data_t type;
     if(auto ser_err = deserialize_from_file(type,file);ser_err!=SerializationEC::NONE)
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
     if(auto ser_err = deserialize_from_file(fmt,file);ser_err!=SerializationEC::NONE)
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-    if(auto ser_err = deserialize_from_file(grid_t,file);ser_err!=SerializationEC::NONE)
-        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-    if(auto ser_err = deserialize_from_file(pos,file);ser_err!=SerializationEC::NONE)
-        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-    ExtractedData result;
     switch(fmt){
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
+                    RepresentationType grid_t;
+                    if(auto ser_err = deserialize_from_file(grid_t,file);ser_err!=SerializationEC::NONE)
+                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
+                    Coord pos;
+                    if(auto ser_err = deserialize_from_file(pos,file);ser_err!=SerializationEC::NONE)
+                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
                     ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
                     if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
                         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-                    else result = std::move(values);
-                    return result;
+                    else return values;
                 }
                 default:{
                     throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
