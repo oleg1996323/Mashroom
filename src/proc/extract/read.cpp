@@ -387,7 +387,7 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,const fs::path& fi
 }
 
 template<typename T>
-T get_json_token(boost::json::value json,const char* token){
+T get_json_token(boost::json::value json,const char* token,const fs::path& filename){
     boost::json::error_code err;
     using namespace std::string_literals;
     using namespace std::string_view_literals;
@@ -395,7 +395,7 @@ T get_json_token(boost::json::value json,const char* token){
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"json file doesn't contains token "s+token,filename.c_str());
     else {
         if(auto data_from_json = from_json<T>(*ptr);!data_from_json.has_value())
-            throw ErrorException(data_from_json.error(),"invalid value in json file"s+token);
+            throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"invalid value in json file"s+token,filename.c_str());
         else return data_from_json.value();
     }
 }
@@ -413,19 +413,17 @@ ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& f
     else json = json_tmp.value();
     
     try{
-        Data_f fmt = get_json_token<Data_f>(json,"/header/format");
-        Data_t type = get_json_token<Data_t>(json,"/header/type");
+        Data_f fmt = get_json_token<Data_f>(json,"/header/format",filename);
+        Data_t type = get_json_token<Data_t>(json,"/header/type",filename);
         switch(fmt){
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
-                    TimeSequence time_seq(get_json_token<utc_tp>(json,"/header/time/start"),get_json_token<utc_tp>(json,"/header/time/from"),get_json_token<utc_diff>(json,"/header/time/dtime"));
-                    RepresentationType grid_t = get_json_token<RepresentationType>(json,"/header/grid");
-                    Coord pos = get_json_token<Coord>(json,"/header/grid");
-                    ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
-                    if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
-                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-                    else return values;
+                    TimeSequence time_seq(get_json_token<utc_tp>(json,"/header/time/start",filename),get_json_token<utc_tp>(json,"/header/time/from",filename),get_json_token<utc_diff>(json,"/header/time/dtime",filename));
+                    RepresentationType grid_t = get_json_token<RepresentationType>(json,"/header/grid",filename);
+                    Coord pos{.lat_=get_json_token<Lat>(json,"/header/latitude",filename),.lon_=get_json_token<Lon>(json,"/header/longitude",filename)};
+                    ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values = get_json_token<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(json,"/data",filename);
+                    return values;
                 }
                 default:{
                     throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
@@ -440,8 +438,6 @@ ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& f
     catch(const ErrorException& err){
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
     }
-    
-
 }
 
 ExtractedData read_bin_file(const std::stop_token& stop_token,const fs::path& filename){
