@@ -16,6 +16,8 @@ target_link_libraries(Mashroom_data_exchange_test PUBLIC GIAPI PUBLIC GTest::gte
 target_link_libraries(Mashroom_index_test PUBLIC GTest::gtest Mashroom_lib)
 target_link_libraries(Mashroom_parse_test PUBLIC GTest::gtest Mashroom_lib)
 
+add_subdirectory(extract_test)
+
 message(STATUS "Current bin: ${CMAKE_CURRENT_BINARY_DIR}")
 gtest_discover_tests(Mashroom_serialize_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 gtest_discover_tests(Mashroom_messages_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

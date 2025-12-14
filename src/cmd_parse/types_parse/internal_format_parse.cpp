@@ -39,7 +39,10 @@ template<>
             return IndexOutputFileFormat::token::XML;
         else if(boost::ifind_first(match[2],output_index_token_to_extension(IndexOutputFileFormat::BINARY)))
             return IndexOutputFileFormat::token::BINARY;
-        else assert(false); //code error (not added IndexOutputFileFormat::token to switch-case)
+        else{
+            assert(false); //code error (not added IndexOutputFileFormat::token to switch-case)
+            return static_cast<IndexOutputFileFormat::token>(0);
+        }
     }
     else throw boost::bad_lexical_cast();
 }

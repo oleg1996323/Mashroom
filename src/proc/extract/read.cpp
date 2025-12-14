@@ -12,6 +12,15 @@
 #include "serialization.h"
 #include "boost_functional/json.h"
 
+template<>
+std::expected<utc_diff,std::exception> from_json<utc_diff>(const boost::json::value& value){
+
+}
+template<>
+std::expected<utc_tp,std::exception> from_json<utc_tp>(const boost::json::value& value){
+
+}
+
 namespace procedures::extract{
 namespace fs = std::filesystem;
 
@@ -391,6 +400,7 @@ T get_json_token(boost::json::value json,const char* token,const fs::path& filen
     boost::json::error_code err;
     using namespace std::string_literals;
     using namespace std::string_view_literals;
+    //ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_type
     if(auto ptr = json.find_pointer(token,err);ptr==nullptr)
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"json file doesn't contains token "s+token,filename.c_str());
     else {
