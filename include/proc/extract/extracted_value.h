@@ -137,3 +137,17 @@ namespace serialization{
         }();
     };
 }
+
+#include "boost_functional/json.h"
+
+template<>
+boost::json::value to_json(const ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>& vals);
+
+template<>
+std::expected<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& vals);
+
+template<>
+boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);
+
+template<>
+std::expected<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& vals);
