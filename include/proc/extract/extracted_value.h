@@ -45,6 +45,10 @@ struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
         return time_date > other.time_date;
     }
 
+    bool operator==(const ExtractedValue& other) const noexcept{
+        return value==other.value && time_date == other.time_date;
+    }
+
     ExtractedValue &operator=(const ExtractedValue &extracted_val)
     {
         if (this != &extracted_val)

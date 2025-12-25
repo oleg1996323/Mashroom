@@ -5,7 +5,7 @@ boost::json::value to_json(const ExtractedValues<Data_t::TIME_SERIES,Data_f::GRI
     boost::json::array result;
     int count = 0;
     for(auto& [common,values]:data){
-        result.push_back(boost::json::object());
+        result.emplace_back(boost::json::object());
         auto& data_series = result.back().as_object();
         data_series["info"]=to_json(common);
         for(auto& value:values)
@@ -77,9 +77,4 @@ boost::json::value to_json(const ExtractedData& vals){
         }
     };
     return std::visit(conv_lambda_visitor,vals);
-}
-
-template<>
-std::expected<ExtractedData,std::exception> from_json<ExtractedData>(const boost::json::value& vals){
-
 }
