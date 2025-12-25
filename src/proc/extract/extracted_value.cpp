@@ -29,12 +29,15 @@ std::expected<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exceptio
                     }
                     else return std::unexpected(std::exception());
                 }
+                else return std::unexpected(std::exception());
             }
             else if(vals.is_null())
                 continue;
             else return std::unexpected(std::exception());
         }
+        return result;
     }
+    else return std::unexpected(std::exception());
 }
 
 template<>
@@ -42,6 +45,7 @@ boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB
     boost::json::object result;
     result["time"] = to_json(val.time_date);
     result["value"] = to_json(val.value);
+    return result;
 }
 
 template<>
@@ -56,5 +60,26 @@ std::expected<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception
                 return std::unexpected(std::exception());
             return result;
         }
+        else return std::unexpected(std::exception());
     }
+    else return std::unexpected(std::exception());
+}
+
+template<>
+boost::json::value to_json(const ExtractedData& vals){
+    auto conv_lambda_visitor = [](const auto& val){
+        boost::json::value result;
+        if constexpr (std::is_same_v<std::decay_t<decltype(val)>,std::monostate>)
+            return result;
+        else{
+            result = to_json(val);
+            return result;
+        }
+    };
+    return std::visit(conv_lambda_visitor,vals);
+}
+
+template<>
+std::expected<ExtractedData,std::exception> from_json<ExtractedData>(const boost::json::value& vals){
+
 }

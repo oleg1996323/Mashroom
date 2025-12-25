@@ -5,7 +5,7 @@ enable_testing()
 
 add_executable(bin_test bin_test.cpp)
 add_executable(txt_test txt_test.cpp)
-add_executable(json_test txt_test.cpp)
+add_executable(json_test json_test.cpp)
 
 target_link_libraries(bin_test PUBLIC GTest::gtest Mashroom_lib)
 target_link_libraries(txt_test PUBLIC GTest::gtest Mashroom_lib)

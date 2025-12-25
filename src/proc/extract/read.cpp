@@ -12,15 +12,6 @@
 #include "serialization.h"
 #include "boost_functional/json.h"
 
-template<>
-std::expected<utc_diff,std::exception> from_json<utc_diff>(const boost::json::value& value){
-
-}
-template<>
-std::expected<utc_tp,std::exception> from_json<utc_tp>(const boost::json::value& value){
-
-}
-
 namespace procedures::extract{
 namespace fs = std::filesystem;
 

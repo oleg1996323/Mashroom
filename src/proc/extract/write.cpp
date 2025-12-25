@@ -91,7 +91,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
                         const fs::path& out_path,
                         const std::string& dirname_format,
                         const std::string& filename_format){
-
+    
 }
 
 std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop_token& stop_token,

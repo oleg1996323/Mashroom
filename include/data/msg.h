@@ -47,7 +47,7 @@ struct GribMsgDataInfo
 };
 
 template<>
-std::expected<GribMsgDataInfo,std::exception> from_json(const boost::json::value& val);
+std::expected<GribMsgDataInfo,std::exception> from_json<GribMsgDataInfo>(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const GribMsgDataInfo& val);

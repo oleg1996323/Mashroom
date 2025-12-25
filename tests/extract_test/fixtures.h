@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include "proc/extract/extracted_value.h"
+#include "types/time_interval.h"
+#include "types/time_period.h"
+#include "properties.h"
 #include <random>
 
 class Grib1Fixture: public testing::Test{

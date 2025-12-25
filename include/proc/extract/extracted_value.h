@@ -12,7 +12,7 @@ template<Data_f FORMAT>
 struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
 {
     using value_t = float;
-    std::chrono::system_clock::time_point time_date;
+    utc_tp time_date;
     value_t value = UNDEFINED;
     using time_type = decltype(time_date);
 
@@ -151,3 +151,9 @@ boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB
 
 template<>
 std::expected<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& vals);
+
+template<>
+boost::json::value to_json(const ExtractedData& vals);
+
+template<>
+std::expected<ExtractedData,std::exception> from_json<ExtractedData>(const boost::json::value& vals);

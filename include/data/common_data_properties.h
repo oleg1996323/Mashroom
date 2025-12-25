@@ -313,4 +313,4 @@ template<>
 boost::json::value to_json(const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props);
 
 template<>
-std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json(const boost::json::value& value);
+std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& value);
