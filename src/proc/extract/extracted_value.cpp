@@ -5,11 +5,15 @@ boost::json::value to_json(const ExtractedValues<Data_t::TIME_SERIES,Data_f::GRI
     boost::json::array result;
     int count = 0;
     for(auto& [common,values]:data){
+        if(values.empty())
+            continue;
         result.emplace_back(boost::json::object());
         auto& data_series = result.back().as_object();
         data_series["info"]=to_json(common);
+        data_series["data"] = boost::json::array();
+        auto& data = data_series["data"].as_array();
         for(auto& value:values)
-            data_series["values"]=to_json(value);
+            data.push_back(to_json(value));
     }
     return result;
 }
@@ -22,8 +26,8 @@ std::expected<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exceptio
             if(vals.is_object()){
                 auto& vals_obj = vals.as_object();
                 if(vals_obj.contains("info") && vals_obj.contains("data")){
-                    if(auto info_res = from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::key_type>(vals_obj.at("info"));!info_res.has_value()){
-                        if(auto values_res = from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::mapped_type>(vals_obj.at("data"));!values_res.has_value())
+                    if(auto info_res = from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::key_type>(vals_obj.at("info"));info_res.has_value()){
+                        if(auto values_res = from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::mapped_type>(vals_obj.at("data"));values_res.has_value())
                             result[info_res.value()] = std::move(*values_res);
                         else return std::unexpected(std::exception());
                     }

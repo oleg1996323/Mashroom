@@ -26,20 +26,24 @@ class Grib1Fixture: public testing::Test{
         common1.fcst_unit_ = TimeFrame::HOUR;
         common1.table_version_ = 228;
         common1.parameter_ = 246;
-        auto& val_collection = values[common1];
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t> dist(2.f,7.f);
-        for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
-            val_collection.emplace_back(time,dist(gen));
+        {
+            auto& val_collection = values[common1];
+            for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
+                val_collection.emplace_back(time,dist(gen));
+        }
         Grib1CommonDataProperties common2;
         common2.center_ = Organization::ECMWF;
         common2.fcst_unit_ = TimeFrame::HOUR;
         common2.table_version_ = 228;
         common2.parameter_ = 247;
-        val_collection = values[common2];
-        for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
-            val_collection.emplace_back(time,dist(gen));
+        {
+            auto& val_collection = values[common2];
+            for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
+                val_collection.emplace_back(time,dist(gen));
+        }
         data_ = values;
     }
 
