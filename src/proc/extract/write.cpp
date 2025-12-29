@@ -91,7 +91,54 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
                         const fs::path& out_path,
                         const std::string& dirname_format,
                         const std::string& filename_format){
-    
+    std::unordered_set<fs::path> paths;
+    utc_tp min_time = utc_tp::max();
+    utc_tp max_time = utc_tp::min();
+    for(auto& [cmn_data,values]:get_result(result)){
+        std::sort(values.begin(),values.end(),std::less());
+        if(!values.empty()){
+            min_time = std::min(values.front().time_date,min_time);
+            max_time = std::max(values.front().time_date,max_time);
+        }
+    }
+    utc_tp lower_bound_time = min_time;
+    utc_tp upper_bound_time = t_off.get_next_tp(min_time);
+    std::ofstream out;
+    fs::path out_f_name;
+    while(true){
+        if(lower_bound_time>max_time)
+            break;
+        out.close();
+        out_f_name.clear();
+        out_f_name/=generate_directory(out_path,dirname_format,lower_bound_time);
+        out_f_name/=generate_filename(OutputDataFileFormats::BIN_F,
+            filename_format,
+            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,lower_bound_time);
+        make_file(out,out_f_name);
+        out.open(out_f_name,std::ofstream::out);
+        try{
+            boost::json::object json;
+            json["type"] = to_json(Data_t::TIME_SERIES);
+            json["format"] = to_json(Data_f::GRIB_v1);
+            json["grid"] = to_json(props.grid_type_);
+            json["position"] = to_json(props.position_);
+            json["data"] = boost::json::array();
+            boost::json::array& json_data = json["data"].as_array();
+            for(const auto& [cmn_data,values]:get_result(result)){
+                boost::json::object& current_data = json_data.emplace_back(boost::json::object()).as_object();
+                current_data["info"]=to_json(cmn_data);
+                current_data["values"]=to_json(std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
+                                                std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f))));
+            }
+            paths.insert(out_f_name);
+            out.close();
+        }
+        catch(const ErrorException& exc_err){
+            out.close();
+            fs::remove(out_f_name);
+        }
+    }
+    return paths;
 }
 
 std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop_token& stop_token,

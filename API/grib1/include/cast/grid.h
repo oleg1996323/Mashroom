@@ -30,7 +30,6 @@ std::vector<RepresentationType> multitoken_approx_match_grid(const RangeOfString
     for(std::string_view token:tokens)
         for(auto token_splitted:std::ranges::split_view(token,' ')){
             std::string_view token_string(token_splitted);
-            std::cout<<token_string<<std::endl;
             if(first_check){
                 if(found.empty())
                     return found;
