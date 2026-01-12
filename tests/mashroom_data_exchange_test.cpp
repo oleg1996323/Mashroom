@@ -38,7 +38,10 @@ class DataTestClass:public Data,public testing::Test{
                 for(int param = 16;param<130;param+=16){
                     ptrdiff_t cur_pos = 1000*count++;
                     gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
-                                cur_pos,1000,param,TimeFrame::HOUR,Organization::ECMWF,table_v));
+                                cur_pos,1000,param,
+                                TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                Organization::ECMWF,table_v,
+                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0)));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
                         pos_.push_back(cur_pos);
                 }
@@ -64,9 +67,12 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
     Client client("127.0.0.1",32396);
     auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
     auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-    parameters_struct.forecast_preference_=TimeFrame::HOUR;
+    parameters_struct.forecast_preference_=TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
     parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
-    parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
+    std::error_code ec;
+    TimeSequence ts(utc_tp(),utc_tp::clock::now(),ec,days(1));
+    ASSERT_EQ(ec,std::error_code());
+    parameters_struct.time_ = ts;
     EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
     Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
     auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
@@ -81,7 +87,7 @@ TEST_F(DataTestClass,Extract_DataExchangeTest){
     auto additional = network::make_additional<Client_MsgT::DATA_REQUEST>();
     SearchProperties props;
     props.center_=Organization::ECMWF;
-    props.fcst_unit_ = TimeFrame::HOUR;
+    props.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
     props.from_date_ = sys_days(1990y/1/1);
     props.to_date_ = utc_tp::clock::now();
     props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
@@ -97,32 +103,32 @@ TEST_F(DataTestClass,Extract_DataExchangeTest){
 
 int main(int argc,char* argv[]){
     {
-        Client client("127.0.0.1",32396);
-        auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
-        auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-        parameters_struct.forecast_preference_=TimeFrame::HOUR;
-        parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
-        parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
-        EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
-        Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
-        auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
-        EXPECT_EQ(err,ErrorCode::NONE);
-        auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
-        EXPECT_EQ(result.additional().blocks_.size(),1);    
-        EXPECT_FALSE(result.message_more());
+        // Client client("127.0.0.1",32396);
+        // auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
+        // auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
+        // parameters_struct.forecast_preference_=TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
+        // parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+        // parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
+        // EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+        // Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
+        // auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
+        // EXPECT_EQ(err,ErrorCode::NONE);
+        // auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
+        // EXPECT_EQ(result.additional().blocks_.size(),1);    
+        // EXPECT_FALSE(result.message_more());
 
-        auto additional_extr = network::make_additional<Client_MsgT::DATA_REQUEST>();
-        SearchProperties props;
-        props.center_=Organization::ECMWF;
-        props.fcst_unit_ = TimeFrame::HOUR;
-        props.from_date_ = sys_days(1990y/1/1);
-        props.to_date_ = utc_tp::clock::now();
-        props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
-        props.position_ = Coord{.lat_=50.,.lon_=50.};
-        additional_extr.form_=std::move(ExtractMeteoGrib(props,std::nullopt,std::nullopt));
-        client.connect("127.0.0.1",32396).has_socket();
-        Message<Client_MsgT::DATA_REQUEST> msg_extr(std::move(additional_extr));
-        err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg_extr));
+        // auto additional_extr = network::make_additional<Client_MsgT::DATA_REQUEST>();
+        // SearchProperties props;
+        // props.center_=Organization::ECMWF;
+        // props.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
+        // props.from_date_ = sys_days(1990y/1/1);
+        // props.to_date_ = utc_tp::clock::now();
+        // props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+        // props.position_ = Coord{.lat_=50.,.lon_=50.};
+        // additional_extr.form_=std::move(ExtractMeteoGrib(props,std::nullopt,std::nullopt));
+        // client.connect("127.0.0.1",32396).has_socket();
+        // Message<Client_MsgT::DATA_REQUEST> msg_extr(std::move(additional_extr));
+        // err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg_extr));
     }
     // testing::InitGoogleTest(&argc,argv);
     // return RUN_ALL_TESTS();

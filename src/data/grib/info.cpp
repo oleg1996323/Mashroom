@@ -2,7 +2,9 @@
 
 namespace fs = std::filesystem;
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
-    CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,
+        msg_info.table_version,msg_info.t_unit,msg_info.parameter,
+        msg_info.level_);
     auto found = info_[path].find(cmn);
     auto index = IndexDataInfo<API::GRIB1>{
             msg_info.grid_data,
@@ -16,7 +18,9 @@ void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsg
 }
 
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
-    CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter);
+    CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,
+        msg_info.table_version,msg_info.t_unit,msg_info.parameter,
+        msg_info.level_);
     auto found = info_[path].find(cmn);
     auto index = IndexDataInfo<API::GRIB1>{
             .grid_data=std::move(msg_info.grid_data),
@@ -77,7 +81,8 @@ SublimedGribDataInfo GribProxyDataInfo::sublime(){
                     continue;
                 }
                 else{
-                    if(data_seq_tmp.back().sequence_time_.push_time_after(data_seq.at(i).date_time))
+                    std::error_code err;
+                    if(data_seq_tmp.back().sequence_time_.push_time_after(data_seq.at(i).date_time,err) && err==std::error_code())
                         data_seq_tmp.back().buf_pos_.push_back(data_seq.at(i).buf_pos_);
                     else{
                         data_seq_tmp.emplace_back(GribSublimedDataInfoStruct{.grid_data_ = data_seq.at(i).grid_data,

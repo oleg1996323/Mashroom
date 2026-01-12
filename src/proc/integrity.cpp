@@ -82,8 +82,9 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
             for(const auto& sublimed_data:sublimed_data_seq){
                 utc_tp beg_period = t_off_.get_null_aligned_tp(sublimed_data.sequence_time_.get_interval().from(),props_.from_date_);
                 utc_tp end_period;
-                decltype(sublimed_data.sequence_time_.discret()) discretion =    duration_cast<std::chrono::seconds>(sublimed_data.sequence_time_.discret())>utc_diff(0)?
-                                                                duration_cast<std::chrono::seconds>(sublimed_data.sequence_time_.discret()):std::chrono::seconds(1);
+                std::error_code err;
+                DateTimeDiff discretion =    sublimed_data.sequence_time_.time_duration()!=DateTimeDiff()?
+                                                                sublimed_data.sequence_time_.time_duration():DateTimeDiff(err,std::chrono::seconds(1));
                 end_period = t_off_.get_next_tp(sublimed_data.sequence_time_.get_interval().from())-discretion;
                 auto from = sublimed_data.sequence_time_.get_interval().from();
                 auto to = sublimed_data.sequence_time_.get_interval().to();
@@ -146,13 +147,14 @@ ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& en
                     continue;
                 }
                 GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
-                                            std::move(msg.value().get().section_1_.date()),
+                                            std::move(msg.value().get().section_1_.reference_time()),
                                             grib.current_message_position(),
                                             grib.current_message_length().value(),
-                                            msg.value().get().section_1_.IndicatorOfParameter(),
-                                            msg.value().get().section_1_.unit_time_range(),
+                                            msg.value().get().section_1_.parameter_number(),
+                                            msg.value().get().section_1_.time_forecast(),
                                             msg.value().get().section_1_.center(),
-                                            msg.value().get().section_1_.table_version());
+                                            msg.value().get().section_1_.table_version(),
+                                            msg.value().get().section_1_.level_data());
                 if(props_.center_.has_value() && props_.center_!=info.center)
                     continue;
                 if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=info.parameter,.t_ver_=info.table_version}))

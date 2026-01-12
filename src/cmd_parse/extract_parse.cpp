@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 #include <format>
 #include <numeric>
 #include <time_separation_parse.h>
+#include "types/time_interval.h"
 
 namespace parse{
     void Extract::init() noexcept{
@@ -33,13 +34,13 @@ namespace parse{
                         return;
                 }
         }),"Specify the input paths from where the data could be potentially extracted")
-        ("dtfrom",po::value<utc_tp>()->default_value(utc_tp())->notifier([this](const utc_tp& input){
+        ("dtfrom",po::value<std::string>()->default_value(std::format("\"{:%y/%m/%d %H:%M:%S}\"",utc_tp_t<std::chrono::seconds>()))->notifier([this](const std::string& input){
             if(err_==ErrorCode::NONE)
-                hExtract->set_from_date(input);
+                hExtract->set_from_date(boost::lexical_cast<utc_tp_t<std::chrono::seconds>>(input));
         }),"The date and time (in UTC) from which the data is extracted. Shall be not bigger than value of \"dtto\"")
-        ("dtto",po::value<utc_tp>()->default_value(std::chrono::system_clock::now())->notifier([this](const utc_tp& input){
+        ("dtto",po::value<std::string>()->default_value(std::format("\"{:%y/%m/%d %H:%M:%S}\"",std::chrono::system_clock::now()))->notifier([this](const std::string& input){
             if(err_==ErrorCode::NONE)
-                hExtract->set_to_date(input);
+                hExtract->set_to_date(boost::lexical_cast<utc_tp_t<std::chrono::seconds>>(input));
         }),"The date and time (in UTC) up to which the data is extracted. Shall be not less than value of \"dtfrom\"")
         ("pos",po::value<Coord>()->value_name("example: "+boost::lexical_cast<std::string>(Coord{.lat_=0,.lon_=0}))->required()->notifier([this](const Coord& input){
             if(err_==ErrorCode::NONE)

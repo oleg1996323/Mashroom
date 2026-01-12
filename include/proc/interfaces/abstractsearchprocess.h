@@ -90,7 +90,7 @@ class AbstractSearchProcess{
     std::optional<Organization> get_center() const{
         return props_.center_;
     }
-    void set_time_fcst(TimeFrame time_fcst){
+    void set_time_fcst(TimeForecast time_fcst){
         props_.fcst_unit_=time_fcst;
     }
     void add_parameter(const SearchParamTableVersion& value){

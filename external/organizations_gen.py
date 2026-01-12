@@ -6,9 +6,9 @@ from pathlib import Path
 def define_table_0(output_dir):
     head:str = "#pragma once\n\
 #include <string_view>\n\
-#include <optional>\n\n"
-    enumeration = "enum class Organization:int{\n\
-    Undefined=-1,\n"
+#include <optional>\n\
+#include <cstdint> \n\n"
+    enumeration = "enum class Organization:uint8_t{\n"
     switcher_abbr:str = "inline const char* center_to_abbr(Organization center){\n\
     switch (center)\n\
     {\n"
@@ -46,12 +46,12 @@ def define_table_0(output_dir):
     enumeration.removesuffix(",")
     enumeration+="};\n"
     switcher_text+=f"default:\n \
-return \"Undefined\";\n \
+return \"Missing\";\n \
 break; \
 }}\n \
 }}\n"
     switcher_abbr+=f"default:\n \
-return \"Undefined\";\n \
+return \"Missing\";\n \
 break;\n \
 }}\n \
 }}\n"

@@ -9,7 +9,7 @@ enum TimeFrame:uint8_t{
     MONTH = 3,
     YEAR = 4,
     DECADE = 5,
-    NORMAL = 6, //30 years
+    NORMAL = 6,
     CENTURY = 7,
     HOURS_3 = 10,
     HOURS_6 = 11,

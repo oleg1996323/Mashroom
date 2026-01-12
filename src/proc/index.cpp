@@ -60,13 +60,14 @@ std::vector<GribMsgDataInfo> process_file(HGrib1& grib_file_handler){
 		auto msg = grib_file_handler.message();
 		if(msg.has_value()){
 			GribMsgDataInfo& info = grib_msgs.emplace_back(	std::move(msg.value().get().section_2_.define_grid()),
-										std::move(msg.value().get().section_1_.date()),
+										std::move(msg.value().get().section_1_.reference_time()),
 										grib_file_handler.current_message_position(),
 										grib_file_handler.current_message_length().value(),
-										msg.value().get().section_1_.IndicatorOfParameter(),
-										msg.value().get().section_1_.unit_time_range(),
+										msg.value().get().section_1_.parameter_number(),
+										msg.value().get().section_1_.time_forecast(),
 										msg.value().get().section_1_.center(),
-										msg.value().get().section_1_.table_version());
+										msg.value().get().section_1_.table_version(),
+										msg.value().get().section_1_.level_data());
 		}
 	}while(grib_file_handler.next_message());
 	return grib_msgs;

@@ -1,9 +1,8 @@
 #pragma once
-#include <cstdint>
 
 //https://codes.ecmwf.int/grib/format/grib1/level/3/
 
-enum LevelsTags:uint8_t{
+enum LevelsTags{
     GROUND_OR_WATER_SURFACE = 1,
     CLOUD_BASE_LEVEL = 2,
     LEVEL_OF_CLOUD_TOPS = 3,
@@ -338,7 +337,8 @@ static_assert(levels_12_octets[ISOBARIC_SURFACE_HP]==0);
 using namespace boost::units;
 using namespace boost::units::si;
 
-using vorticity_t = quantity<decltype(kelvin/second*meter*meter/kilogram)>::unit_type;
+using vorticity_t = decltype(kelvin/second*meter*meter/kilogram);
+
 
 BOOST_UNITS_STATIC_CONSTANT(vorticity,vorticity_t);
 
@@ -351,10 +351,9 @@ using level_value_t = std::variant<std::monostate,
                                     quantity<vorticity_t>>;
 
 inline std::ostream& operator<<(std::ostream& stream,const level_value_t& val){
-    auto print = [&stream](const auto& item)->std::ostream&
+    auto print = [&stream](auto&& item)->std::ostream&
     {
-        using type = std::decay_t<decltype(item)>;
-        if constexpr (!std::is_same_v<type,std::monostate>)
+        if constexpr (!std::is_same_v<decltype(item),std::monostate>)
             stream<<item;
         else stream<<"NaN";
         return stream;
@@ -642,3 +641,9 @@ inline level_value_t convert_level<12>(LevelsTags octet_10,int16_t octet_value){
         }
     }
 }
+
+struct Level{
+    level_value_t octet_11;
+    level_value_t octet_12;
+    LevelsTags level_type_;
+};

@@ -6,7 +6,10 @@
 #include <chrono>
 #include "byte_order.h"
 #include "code_tables/table_0.h"
+#include "code_tables/table_2.h"
+#include "API/grib1/include/sections/product/levels.h"
 #include "code_tables/table_4.h"
+#include "code_tables/table_5.h"
 #include "sections/grid/grid.h"
 #include "def.h"
 #include "types/time_interval.h"
@@ -14,6 +17,7 @@
 #include "boost_functional/json.h"
 #include <stdexcept>
 #include <expected>
+#include "API/grib1/include/sections/product/time_forecast.h"
 
 struct GribMsgDataInfo
 {
@@ -22,8 +26,11 @@ struct GribMsgDataInfo
     ptrdiff_t buf_pos_;
     uint32_t msg_sz_;
     uint8_t parameter;
-    TimeFrame t_unit;
+    TimeForecast t_unit;
     Organization center;
+    TimeRangeIndicator t_range_indicator_;
+    Level level_;
+
     uint8_t table_version;
     API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
 
@@ -32,9 +39,10 @@ struct GribMsgDataInfo
         ptrdiff_t msg_buf_pos,
         uint32_t msg_size,
         uint8_t parameter_,
-        TimeFrame t_unit_,
+        TimeForecast t_unit_,
         Organization center_,
-        uint8_t table_version_):
+        uint8_t table_version_,
+        Level level):
         grid_data(std::move(grid_data_)),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
@@ -42,6 +50,7 @@ struct GribMsgDataInfo
         parameter(parameter_),
         t_unit(t_unit_),
         center(center_),
+        level_(level),
         table_version(table_version_){}
     GribMsgDataInfo() = default;
 };

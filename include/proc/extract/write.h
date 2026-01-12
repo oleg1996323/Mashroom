@@ -29,67 +29,28 @@ inline auto& get_result(ExtractedData& result){
 }
 
 inline const auto& get_result(const ExtractedData& result){
-    auto get = [](auto&& ed) -> const std::decay_t<decltype(ed)>&
+    auto get = [](const auto& ed) -> const std::decay_t<decltype(ed)>&
     {
         return ed;
     };
     return std::visit(get,result);
 }
 
-//"Data formats: "s+center_to_abbr(props.center_.value())+"\nSource: https://cds.climate.copernicus.eu/\nDistributor: Oster Industries LLC\n"
-template<typename... ARGS>
-std::string get_header(const ExtractedData& result, const SearchProperties& props, std::string_view user_hdr_format) noexcept{
-    std::ostringstream stream;
-    stream<<"\\header\nMashroom\nversion=0.01\n";//@todo add version
-    std::string user_header = std::vformat(user_hdr_format,std::make_format_args(user_hdr_format));
-    switch(result.index()){
-        case 0:{
-            //stream<<"type:"<<
-        }
-    }
-    stream<<(user_header.empty()?"":"\n");
-    auto write_columns = [&stream](auto&& value){
-        if constexpr(std::is_same_v<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::decay_t<decltype(value)>>){
-            stream<<std::left<<std::setw(18)<<"Time"<<"\t";
-            for(auto& [cmn_data,values]:value){
-                stream<<std::left<<std::setw(10)<<parameter_table(
-                        cmn_data.center_.has_value()?
-                        cmn_data.center_.value():
-                        Organization::Undefined,
-                        cmn_data.table_version_.has_value()?
-                        cmn_data.table_version_.value():
-                        0,cmn_data.parameter_.has_value()?
-                        cmn_data.parameter_.value():0)->name<<'\t';
-            }
-            stream<<"\n\\header"<<std::endl;
-        }
-        else static_assert(false,"Undefined text format header");
-    };
-    std::visit(write_columns,result);
-    return stream.str();
-}
-
 std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
-                        const fs::path& out_path,
-                        const std::string& dirname_format,
-                        const std::string& filename_format);
+                        const fs::path& out_path);
 
 std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
-                        const fs::path& out_path,
-                        const std::string& dirname_format,
-                        const std::string& filename_format);
+                        const fs::path& out_path);
 
 std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const TimePeriod& t_off,
-                        const fs::path& out_path,
-                        const std::string& dirname_format,
-                        const std::string& filename_format);
+                        const fs::path& out_path);
 }

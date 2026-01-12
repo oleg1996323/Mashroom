@@ -53,8 +53,8 @@ inline auto PDS_P1(unsigned char* ptr){
 inline auto PDS_P2(unsigned char* ptr){
 	return read_bytes<1,false>(&ptr[19]);
 }
-//#define PDS_TimeRange(pds)	(pds[20])
-inline auto PDS_TimeRange(unsigned char* ptr){
+//#define PDS_TimeRangeIndicator(pds)	(pds[20])
+inline auto PDS_TimeRangeIndicator(unsigned char* ptr){
 	return read_bytes<1,false>(&ptr[20]);
 }
 //#define PDS_NumAve(pds)		((int) ((pds[21]<<8)+pds[22]))

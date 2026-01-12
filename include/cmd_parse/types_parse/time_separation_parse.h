@@ -18,8 +18,8 @@ void validate(boost::any& v,
               const std::vector<std::string>& values,
               utc_tp* target_type, int);
 }
-template<>
-utc_tp lexical_cast(const std::string& input);
-template<>
-TimePeriod lexical_cast(const std::string& input);
+// template<>
+// utc_tp lexical_cast(const std::string& input);
+// template<>
+// TimePeriod lexical_cast(const std::string& input);
 }

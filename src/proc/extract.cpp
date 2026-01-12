@@ -33,25 +33,19 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
         switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
             case OutputDataFileFormats::DEFAULT:
             case OutputDataFileFormats::TXT_F:{
-                paths.merge(procedures::extract::write_txt_file(stop_token_,result,props_,t_off_,out_path_,
-                generate_directory_format(t_off_),
-                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_)));
+                paths.merge(procedures::extract::write_txt_file(stop_token_,result,props_,t_off_,out_path_));
                 break;
             }
             case OutputDataFileFormats::BIN_F:{
-                paths.merge(procedures::extract::write_bin_file(stop_token_,result,props_,t_off_,out_path_,
-                generate_directory_format(t_off_),
-                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_)));
+                paths.merge(procedures::extract::write_bin_file(stop_token_,result,props_,t_off_,out_path_));
                 break;
             }
             case OutputDataFileFormats::JSON_F:{
-                paths.merge(procedures::extract::write_json_file(stop_token_,result,props_,t_off_,out_path_,
-                generate_directory_format(t_off_),
-                generate_filename_format(center_to_abbr(props_.center_.value()),grid_to_abbr(props_.grid_type_.value()),props_.position_.value().lat_,props_.position_.value().lon_,t_off_)));
+                paths.merge(procedures::extract::write_json_file(stop_token_,result,props_,t_off_,out_path_));
                 break;
             }
             default:{
-                paths.merge(procedures::extract::write_txt_file(stop_token_,result,props_,t_off_,out_path_,std::string(),std::string()));
+                paths.merge(procedures::extract::write_txt_file(stop_token_,result,props_,t_off_,out_path_));
                 break;
             }
         }
@@ -94,13 +88,14 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
         if(stop_token_.stop_requested())
             return ErrorCode::NONE;
         GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
-                                    msg.value().get().section_1_.date(),
+                                    msg.value().get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
-                                    msg.value().get().section_1_.IndicatorOfParameter(),
-                                    msg.value().get().section_1_.unit_time_range(),
+                                    msg.value().get().section_1_.parameter_number(),
+                                    msg.value().get().section_1_.time_forecast(),
                                     msg.value().get().section_1_.center(),
-                                    msg.value().get().section_1_.table_version());
+                                    msg.value().get().section_1_.table_version(),
+                                    msg.value().get().section_1_.level_data());
         if(props_.center_.has_value() && msg_info.center!=props_.center_)
             continue;
         if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
@@ -119,7 +114,13 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
                 continue;
         }
         if(msg_info.grid_data.has_grid())
-            procedures::extract::get_result(ref_data)[Grib1CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
+            procedures::extract::get_result(ref_data)[
+                Grib1CommonDataProperties(msg_info.center,
+                    msg_info.table_version,
+                    msg_info.t_unit,
+                    msg_info.parameter,
+                    msg_info.level_)]
+                    .emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }while(grib.next_message());
@@ -152,15 +153,22 @@ ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::pa
         if(stop_token_.stop_requested())
             return ErrorCode::INTERRUPTED;
         GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
-                                    msg.value().get().section_1_.date(),
+                                    msg.value().get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
-                                    msg.value().get().section_1_.IndicatorOfParameter(),
-                                    msg.value().get().section_1_.unit_time_range(),
+                                    msg.value().get().section_1_.parameter_number(),
+                                    msg.value().get().section_1_.time_forecast(),
                                     msg.value().get().section_1_.center(),
-                                    msg.value().get().section_1_.table_version());
+                                    msg.value().get().section_1_.table_version(),
+                                    msg.value().get().section_1_.level_data());
         if(msg_info.grid_data.has_grid())
-            procedures::extract::get_result(ref_data)[Grib1CommonDataProperties(msg_info.center,msg_info.table_version,msg_info.t_unit,msg_info.parameter)].emplace_back(
+            procedures::extract::get_result(ref_data)[
+                Grib1CommonDataProperties(
+                    msg_info.center,
+                    msg_info.table_version,
+                    msg_info.t_unit,
+                    msg_info.parameter,
+                    msg_info.level_)].emplace_back(
                 msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }
@@ -177,6 +185,7 @@ ErrorCode Extract::execute() noexcept{
     if(in_path_.empty()){
         auto matched = Mashroom::instance().data().match_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(props_.center_.value(),
                                                 props_.fcst_unit_,
+                                                props_.level_,
                                                 props_.parameters_,
                                                 TimeInterval(props_.from_date_,props_.to_date_),
                                                 props_.grid_type_.value(),
@@ -207,6 +216,7 @@ ErrorCode Extract::execute() noexcept{
                                                 path,
                                                 props_.center_.value(),
                                                 props_.fcst_unit_,
+                                                props_.level_,
                                                 props_.parameters_,
                                                 TimeInterval(props_.from_date_,props_.to_date_),
                                                 props_.grid_type_.value(),

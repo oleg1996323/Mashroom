@@ -1,4 +1,5 @@
 #pragma once
+
 enum TimeRangeIndicator{
     UNINIT_REF_TIME = 0,                                    //Forecast product valid for reference time + P1 (P1 > 0), or Uninitialized analysis product for reference time (P1 = 0), or Image product for reference time (P1 = 0)
     INIT_REF_TIME = 1,                                      //Initialized analysis product for reference time (P1 = 0)
@@ -27,7 +28,7 @@ enum TimeRangeIndicator{
                                                             the first has a forecast period of P1, the remaining forecasts follow at intervals of P2*/
     ACCUM_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2 = 116,     /*Accumulation of N forecasts, all with the same reference time;
                                                             the first has a forecast period of P1, the remaining forecasts follow at intervals of P2*/
-    AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_REDUCED_P2 = 117,        /*Average of N forecasts; the first has a forecast period of P1, the subsequent ones have forecast periods reduced from the previous one by an interval of P2;
+    AVG_N_FORECAST_FIRST_PERIOD_P1_REDUCED_P2 = 117,        /*Average of N forecasts; the first has a forecast period of P1, the subsequent ones have forecast periods reduced from the previous one by an interval of P2;
                                                             the reference time for the first is given in octets 13 to 17, the subsequent ones have reference times increased from the previous one by an interval of P2.
                                                             Thus all the forecasts have the same valid time, given by the initial reference time + P1*/
     TEMP_VAR_COVAR_N_REFS_AT_P2 = 118,                      /*Temporal variance, or covariance, of N initialized analyses; each product has forecast period of P1 = 0;

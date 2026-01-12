@@ -11,7 +11,7 @@ void make_dir(const fs::path& filepath){
             throw ErrorException(ErrorCode::CANNOT_ACCESS_PATH_X1,std::string_view(),filepath.relative_path().c_str());
 }
 
-void make_file(std::ofstream& file,const std::filesystem::path& out_f_name){
+void make_and_open_file(std::ofstream& file,const std::filesystem::path& out_f_name){
     make_dir(out_f_name);
     file.open(out_f_name,std::ios::trunc|std::ios::out);
     if(!file.is_open()){

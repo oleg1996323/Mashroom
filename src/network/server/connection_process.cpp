@@ -30,21 +30,29 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
         case Client_MsgT::INDEX:{
             decltype(auto) msg = mprocess_.get_received_message<Client_MsgT::INDEX_REF>();
             Message<Server_MsgT::DATA_REPLY_INDEX_REF> rep_msg;
-            auto find_data = [&msg,&rep_msg](const auto& index_param) mutable ->void
+
+            auto find_data = [&msg,&rep_msg]<Data_t TYPE,Data_f FORMAT>(const IndexParameters<TYPE,FORMAT>& index_param) mutable ->void
             {
                 if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,std::monostate>)
                     return;
-                else if constexpr (std::is_same_v<std::decay_t<decltype(index_param)>,IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>){
-                    auto result = Mashroom::instance().data().find_all<Data_t::TIME_SERIES,Data_f::GRIB_v1>(index_param.grid_type_,index_param.time_,index_param.forecast_preference_,msg.additional().last_update_);
+                else if constexpr (TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
+                    auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(index_param.grid_type_,
+                        index_param.time_,index_param.forecast_preference_,
+                        index_param.level_,msg.additional().last_update_);
                     if(!result.empty())
                         //@todo add access mode
-                        rep_msg.additional().add_block<Data_t::TIME_SERIES,Data_f::GRIB_v1>(Data_a::PUBLIC,std::move(result));
+                        rep_msg.additional().add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result));
                     else return;
                 }
                 else static_assert(false);
             };
+            auto find_data_proxy = [&find_data](const auto& val){
+                if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(val)>>)
+                    find_data(val);
+                else return;
+            };
             for(auto& param : msg.additional().parameters_) 
-                std::visit (find_data,param);
+                std::visit(find_data_proxy,param);
             mprocess_.send_message<Server_MsgT::DATA_REPLY_INDEX_REF>(socket,std::move(rep_msg));
             //if(msg_type.value()==Client_MsgT::INDEX)
                 //sendfile

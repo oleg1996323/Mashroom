@@ -8,7 +8,7 @@
 #include "code_tables/table_0.h"
 #include "code_tables/table_1.h"
 #include "code_tables/table_2.h"
-#include "code_tables/table_3.h"
+#include "sections/product/levels.h"
 #include "code_tables/table_4.h"
 #include "code_tables/table_5.h"
 #include "sections/product/def.h"
@@ -17,10 +17,14 @@
 #include <span>
 #include "types/time_interval.h"
 #include "types/time_period.h"
+#include "product/time_forecast.h"
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)
 using namespace std::chrono;
+using parameter_t = uint8_t;
+using table_version_t = uint8_t;
+
 struct ProductDefinitionSection
 {
 	unsigned char* buffer_;
@@ -32,29 +36,29 @@ struct ProductDefinitionSection
 	unsigned char generatingProcessIdentifier() const noexcept;
 	unsigned char grid_definition() const noexcept;
 	Section2_3_flag section1Flags() const noexcept;
-	unsigned char IndicatorOfParameter() const noexcept;
+	parameter_t parameter_number() const noexcept;
 	LevelsTags level() const noexcept;
-	int16_t level1_data() const noexcept;
-	int16_t level2_data() const noexcept;
-	std::optional<Level> level_data() const noexcept;
+	uint8_t level1_data() const noexcept;
+	uint8_t level2_data() const noexcept;
+	Level level_data() const noexcept;
 	unsigned char subcenter() const noexcept;
 	unsigned char month() const noexcept;
 	unsigned char day() const noexcept;
 	unsigned char hour() const noexcept;
 	unsigned char minute() const noexcept;
-	std::chrono::system_clock::time_point date() const noexcept{
-		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration()+time_forecast();
+	std::chrono::system_clock::time_point reference_time() const noexcept{
+		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration();
 	}
 	TimeFrame unit_time_range() const noexcept;
-	TimePeriod time_forecast() const noexcept;
+	TimeForecast time_forecast() const noexcept;
 	unsigned char year_of_century() const noexcept;
 	unsigned char century() const noexcept;
 	unsigned short year() const noexcept;
 	unsigned short decimal_scale_factor() const noexcept;
 	unsigned char period1() const noexcept;
 	unsigned char period2() const noexcept;
-	TimeRange time_range() const noexcept;
-	unsigned numberMissingFromAveragesOrAccumulations() const noexcept;
+	TimeRangeIndicator time_range_indicator() const noexcept;
+	unsigned short numberMissingFromAveragesOrAccumulations() const noexcept;
 	unsigned char numberIncludedInAverage() const noexcept;
 	std::string_view parameter_name() const noexcept;
 	std::string_view param_comment() const noexcept;

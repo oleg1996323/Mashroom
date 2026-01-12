@@ -30,8 +30,7 @@ TEST(Serialization, SublimedInfo){
     scan.points_sub_i_dir = true;
     scan.points_sub_j_dir = false;
     grid_def.base_.scan_mode = scan;
-    GribSublimedDataInfoStruct data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = TimeSequence(utc_tp(sys_days(1991y/1/1d)),system_clock::now(),
-                        system_clock::duration((data.sequence_time_.get_interval().to()-data.sequence_time_.get_interval().from())/data.buf_pos_.size()))};
+    GribSublimedDataInfoStruct data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = TimeSequence(utc_tp())};
 
     {
         GribSublimedDataInfoStruct to_check;
@@ -67,7 +66,7 @@ TEST(Serialization, PathStorage){
     auto path_view = path::Storage<true>::file(path_tmp);
     std::vector<char> buf;
     ASSERT_EQ(serialize<true>(path_view,buf),SerializationEC::NONE);
-    ASSERT_EQ(serial_size(path_view),serial_size(path_view.add_)+path_view.path_.size()+sizeof(path_view.type_));
+    ASSERT_EQ(serial_size(path_view),serial_size(path_view.add_)+serial_size(path_view.path_)+sizeof(path_view.type_));
     {
         path::Storage<false> path;
         ASSERT_EQ(deserialize<true>(path,std::span<const char>(buf)),SerializationEC::NONE);
@@ -115,10 +114,18 @@ TEST(Serialization,SublimedGribDataInfo){
         str.resize(10);
         std::generate(str.begin(),str.end(),getRandomChar);
         for(int j=0;j<10;++j){
-            auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeFrame::HOUR,i+j*2+5*2)];
+            auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                                                                    i+j*2+5*2,
+                                                                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0))];
+            std::error_code err;
             for(int m=0;m<10;++m){
-                GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = TimeSequence(utc_tp(sys_days(1991y/1/1d)),system_clock::now(),
-                        system_clock::duration((sub_data.sequence_time_.get_interval().to()-sub_data.sequence_time_.get_interval().from())/sub_data.buf_pos_.size()))};
+                GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = 
+                TimeSequence(
+                    utc_tp(sys_days(1991y/1/1d)),
+                    sub_data.sequence_time_.get_interval().from(),
+                    sub_data.buf_pos_.size(),err
+                )};
+                ASSERT_EQ(err,std::error_code());
                 vector_seq.push_back(std::move(sub_data));
             }
         }

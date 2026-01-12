@@ -97,11 +97,13 @@ void Data::__write_all__(){
             __write__<I>(data_directory_);
             unsaved_.erase(I);
         }
-        __write_all__<I>();
     }
     else assert(false);
 }
 
 void Data::save(){
-    __write_all__<(static_cast<Data_f>(0))>();
+    auto save_proxy = [this]<size_t... Is>(std::index_sequence<Is...>){
+        (__write_all__<static_cast<Data_f>(Is)>(),...);
+    };
+    save_proxy(std::make_index_sequence<static_cast<size_t>(Data_f::GRIB_v1)+1>());
 }

@@ -12,12 +12,13 @@ template<Data_f FORMAT>
 struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
 {
     using value_t = float;
-    utc_tp time_date;
+    using time_type = utc_tp_t<nanoseconds>;
+    using fcst_type = uint32_t;
+    time_type time_date;
     value_t value = UNDEFINED;
-    using time_type = decltype(time_date);
 
     ExtractedValue() = default;
-    ExtractedValue(utc_tp time, value_t val) : time_date(time), value(val) {}
+    ExtractedValue(utc_tp time, value_t val) : time_date(time), value(val){}
     ExtractedValue(const ExtractedValue &other)
     {
         if (this != &other)
@@ -32,6 +33,7 @@ struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
         {
             time_date = other.time_date;
             value = other.value;
+
         }
     }
 
@@ -93,7 +95,7 @@ class std::hash<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>
 
 #include "data/common_data_properties.h"
 template<Data_t T,Data_f F>
-using ExtractedValues = std::unordered_map<CommonDataProperties<T,F>, std::vector<ExtractedValue<T,F>>>;
+using ExtractedValues = std::map<CommonDataProperties<T,F>, std::vector<ExtractedValue<T,F>>>;
 
 using VariantExtractedValue = std::variant<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
 using VariantExtractedData = std::variant<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;

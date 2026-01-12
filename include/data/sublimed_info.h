@@ -17,7 +17,7 @@ struct SublimedDataInfoStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>
     std::vector<ptrdiff_t> buf_pos_;
     //TODO: make sorted by date-time vector with buf_pos and date-time
     //erase discret and to. Make representation_type instead of GridInfo (very hard)
-    TimeSequence sequence_time_ = TimeSequence(utc_tp::max(),utc_tp::min(),std::chrono::system_clock::duration(0));
+    TimeSequence sequence_time_;
     bool operator==(const SublimedDataInfoStruct& other) const noexcept{
         if(this==&other)
             return true;

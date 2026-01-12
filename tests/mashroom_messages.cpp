@@ -70,7 +70,8 @@ class DataTestClass_1:public Data,public testing::Test{
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
                         gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(id)/day(1))+days(d),
-                                    cur_pos,1000+2000*id,param,TimeFrame::HOUR,tables_by_id_[id-1].first,table));
+                                    cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0)));
                     }
             }
         }

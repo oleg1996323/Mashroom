@@ -98,25 +98,29 @@ class Data:public __Data__{
 
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_data_t match_data(
         Organization center,
-        std::optional<TimeFrame> time_fcst,
+        std::optional<TimeForecast> forecast_preferences,
+        std::optional<Level> level_,
         const std::unordered_set<SearchParamTableVersion>& parameters,
         TimeInterval time_interval,
         RepresentationType rep_t,
         Coord pos
     ){
-        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match_data(center,time_fcst,parameters,time_interval,rep_t,pos);
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match_data(center,forecast_preferences,
+                    level_,parameters,time_interval,rep_t,pos);
     }
 
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_t match(
         path::Storage<true> path,
         Organization center,
-        std::optional<TimeFrame> timeframe,
+        std::optional<TimeForecast> forecast_preferences,
+        std::optional<Level> level_,
         const std::unordered_set<SearchParamTableVersion>& param_tables,
         TimeInterval t_interval,
         RepresentationType grid_type,
         Coord pos) const{
         return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match(
-            path,center,timeframe,param_tables,t_interval,grid_type,pos);
+            path,center,forecast_preferences,
+            level_,param_tables,t_interval,grid_type,pos);
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
@@ -128,9 +132,10 @@ class Data:public __Data__{
 
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t find_all(std::optional<RepresentationType> grid_type_,
     std::optional<TimeSequence> time_,
-    std::optional<TimeFrame> forecast_preference_,
+    std::optional<TimeForecast> forecast_preference_,
+    std::optional<Level> level_,
     utc_tp last_update_) const{
-        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().find_all(grid_type_,time_,forecast_preference_,last_update_);
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().find_all(grid_type_,time_,forecast_preference_,level_,last_update_);
     }
 
     template<Data_t T, Data_f F>

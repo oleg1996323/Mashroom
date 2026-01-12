@@ -8,10 +8,19 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
     using sublimed_data_by_common_data = std::unordered_map<std::weak_ptr<Grib1CommonDataProperties>,std::unordered_set<path::Storage<true>>>;
     using sublimed_data_by_date_time = std::map<TimeSequence,std::unordered_set<path::Storage<true>>>;
     using sublimed_data_by_grid = std::unordered_map<std::optional<GridInfo>,std::unordered_set<path::Storage<true>>>;
+    using sublimed_data_by_forecast = std::unordered_map<std::weak_ptr<Grib1CommonDataProperties>,std::unordered_set<path::Storage<true>>,
+                                                        HashOption<Data_f::GRIB_v1,Data_t::TIME_SERIES,Grib1CommonDataProperties::FORECAST>,
+                                                        EqualOption<Data_f::GRIB_v1,Data_t::TIME_SERIES,Grib1CommonDataProperties::FORECAST>>;
+    using sublimed_data_by_level = std::unordered_map<std::weak_ptr<Grib1CommonDataProperties>,std::unordered_set<path::Storage<true>>,
+                                                        HashOption<Data_f::GRIB_v1,Data_t::TIME_SERIES,Grib1CommonDataProperties::LEVEL>,
+                                                        EqualOption<Data_f::GRIB_v1,Data_t::TIME_SERIES,Grib1CommonDataProperties::LEVEL>>;
     SublimedGribDataInfo sublimed_;
     sublimed_data_by_common_data by_common_data_;
     sublimed_data_by_date_time by_date_;
     sublimed_data_by_grid by_grid_;
+    sublimed_data_by_forecast by_forecast_;
+    sublimed_data_by_level by_level_;
+
     DataStruct() = default;
     DataStruct(const DataStruct&) = delete;
     DataStruct(DataStruct&& other):
@@ -36,7 +45,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
 
     std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> match_data(
         Organization center,
-        std::optional<TimeFrame> time_fcst,
+        std::optional<TimeForecast> time_fcst,
+        std::optional<Level> level_,
         const std::unordered_set<SearchParamTableVersion>& parameters,
         TimeInterval time_interval,
         RepresentationType rep_t,
@@ -46,7 +56,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
     std::vector<ptrdiff_t> match(
         path::Storage<true> path,
         Organization center,
-        std::optional<TimeFrame> time_fcst,
+        std::optional<TimeForecast> time_fcst,
+        std::optional<Level> level_,
         const std::unordered_set<SearchParamTableVersion>& parameters,
         TimeInterval time_interval,
         RepresentationType rep_t,
@@ -55,17 +66,20 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
 
     FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> find_all(std::optional<RepresentationType> grid_type_,
                         std::optional<TimeSequence> time_,
-                        std::optional<TimeFrame> forecast_preference_,
+                        std::optional<TimeForecast> forecast_preference_,
+                        std::optional<Level> level_,
                         utc_tp last_update_) const;
 
     static std::unordered_set<Grib1CommonDataProperties> get_parameter_variations(Organization center,
-    std::optional<TimeFrame> time_fcst,
+    std::optional<TimeForecast> time_fcst,
+    std::optional<Level> level_,
     const std::unordered_set<SearchParamTableVersion>& parameters) noexcept;
 
     using match_data_t = std::invoke_result_t<  decltype(&DataStruct::match_data),
                                                     DataStruct*,
                                                     Organization,
-                                                    std::optional<TimeFrame>,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
                                                     const std::unordered_set<SearchParamTableVersion>&,
                                                     TimeInterval,
                                                     RepresentationType,
@@ -74,7 +88,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
                                                     DataStruct*,
                                                     path::Storage<true>,
                                                     Organization,
-                                                    std::optional<TimeFrame>,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
                                                     const std::unordered_set<SearchParamTableVersion>&,
                                                     TimeInterval,
                                                     RepresentationType,
@@ -83,7 +98,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
                                                     DataStruct*,
                                                     std::optional<RepresentationType>,
                                                     std::optional<TimeSequence>,
-                                                    std::optional<TimeFrame>,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
                                                     utc_tp>;
 };
 
@@ -108,6 +124,8 @@ namespace serialization{
                 for(auto& [filename,file_data]:msg.sublimed_.data()){
                     for(auto& [common,grib_data]:file_data){
                         msg.by_common_data_[common].insert(filename);
+                        msg.by_forecast_[common].insert(filename);
+                        msg.by_level_[common].insert(filename);
                         for(const auto& sub_data:grib_data){
                             msg.by_date_[sub_data.sequence_time_].insert(filename);
                             msg.by_grid_[sub_data.grid_data_].insert(filename);

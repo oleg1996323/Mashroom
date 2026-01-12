@@ -10,6 +10,8 @@ void Grib1Data::add_data(SublimedGribDataInfo& grib_data){
         const auto& tmp_view = sublimed_.data().find(filename)->first;
         for(auto& [common,grib_data]:sublimed_.data().find(filename)->second){
             by_common_data_[common].insert(tmp_view);
+            by_forecast_[common].insert(tmp_view);
+            by_level_[common].insert(tmp_view);
             for(const auto& sub_data:grib_data){
                 by_date_[sub_data.sequence_time_].insert(tmp_view);
                 by_grid_[sub_data.grid_data_].insert(tmp_view);
@@ -27,6 +29,8 @@ void Grib1Data::add_data(SublimedGribDataInfo&& grib_data){
         const auto& tmp_view = sublimed_.data().find(filename)->first;
         for(auto& [common,grib_data]:sublimed_.data().find(filename)->second){
             by_common_data_[common].insert(tmp_view);
+            by_forecast_[common].insert(tmp_view);
+            by_level_[common].insert(tmp_view);
             for(const auto& sub_data:grib_data){
                 by_date_[sub_data.sequence_time_].insert(tmp_view);
                 by_grid_[sub_data.grid_data_].insert(tmp_view);
@@ -38,14 +42,16 @@ void Grib1Data::add_data(SublimedGribDataInfo&& grib_data){
 //match data and return files and corresponding sublimed data
 std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::match_data(
     Organization center,
-    std::optional<TimeFrame> time_fcst,
+    std::optional<TimeForecast> time_fcst,
+    std::optional<Level> level_,
     const std::unordered_set<SearchParamTableVersion>& parameters,
     TimeInterval time_interval,
     RepresentationType rep_t,
     Coord pos
 ) const{
     std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> result;
-    std::unordered_set<Grib1CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
+    std::unordered_set<Grib1CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,
+                                            level_,parameters);
     for(const auto& common:param_variations){
         auto found = by_common_data_.find(common);
         if(found!=by_common_data_.end() && !found->first.expired()){
@@ -80,12 +86,15 @@ std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::ma
                         pos_in_grid(pos,d.grid_data_.value()))
                     {
                         std::cout<<" "<<std::string_view(parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name)<<std::flush;
-                        auto beg_end = interval_intersection_pos(time_interval,TimeSequence(d.sequence_time_.get_interval().from(),d.sequence_time_.get_interval().to(),d.sequence_time_.discret()));
+                        std::error_code err;
+                        auto beg_end = interval_intersection_pos(time_interval,TimeSequence(d.sequence_time_.get_interval().from(),d.sequence_time_.get_interval().to(),d.sequence_time_.time_duration(),err),err);
+                        if(err!=std::error_code())
+                            continue;//@todo
                         if(beg_end.has_value())
                             ptrs.buf_pos_.append_range(d.buf_pos_|std::views::drop(beg_end->first)|std::views::take(beg_end->second-beg_end->first+1));
                         auto interseq_interval = interval_intersection(d.sequence_time_.get_interval(),time_interval);
                         assert(interseq_interval.has_value());
-                        ptrs.sequence_time_ = std::move(TimeSequence(interseq_interval->from(),interseq_interval->to(),d.sequence_time_.discret()));
+                        ptrs.sequence_time_ = std::move(TimeSequence(interseq_interval->from(),interseq_interval->to(),d.sequence_time_.time_duration(),err));
                         ptrs.grid_data_ = d.grid_data_;
                     }
                 }
@@ -98,7 +107,8 @@ std::unordered_map<path::Storage<true>,GribSublimedDataInfoStruct> Grib1Data::ma
 std::vector<ptrdiff_t> Grib1Data::match(
         path::Storage<true> path,
         Organization center,
-        std::optional<TimeFrame> time_fcst,
+        std::optional<TimeForecast> time_fcst,
+        std::optional<Level> level_,
         const std::unordered_set<SearchParamTableVersion>& parameters,
         TimeInterval time_interval,
         RepresentationType rep_t,
@@ -106,7 +116,8 @@ std::vector<ptrdiff_t> Grib1Data::match(
     ) const
 {
     std::vector<ptrdiff_t> result;
-    std::unordered_set<Grib1CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,parameters);
+    std::unordered_set<Grib1CommonDataProperties> param_variations=get_parameter_variations(center,time_fcst,
+                                            level_,parameters);
     if(!sublimed_.data().contains(path))
         return result;
     auto& file_data = sublimed_.data().at(path);
@@ -119,8 +130,9 @@ std::vector<ptrdiff_t> Grib1Data::match(
                     pos_in_grid(pos,info.grid_data_.value()) &&
                     intervals_intersect(info.sequence_time_.get_interval(),time_interval))
                 {
-                    auto beg_end = interval_intersection_pos(time_interval,TimeSequence(info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to(),info.sequence_time_.discret()));
-                    if(beg_end.has_value())
+                    std::error_code err;
+                    auto beg_end = interval_intersection_pos(time_interval,TimeSequence(info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to(),info.sequence_time_.time_duration(),err),err);
+                    if(beg_end.has_value() && err==std::error_code())
                         result.append_range(std::move(info.buf_pos_|std::views::drop(beg_end->first)|std::views::take(beg_end->second-beg_end->first+1)));
                 }
             }
@@ -132,12 +144,13 @@ std::vector<ptrdiff_t> Grib1Data::match(
 
 FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
                 std::optional<TimeSequence> time_,
-                std::optional<TimeFrame> forecast_preference_,
+                std::optional<TimeForecast> forecast_preference_,
+                std::optional<Level> level_,
                 utc_tp last_update_) const{
     FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> result;
     for(const auto& [path,dat]:this->sublimed_.data()){
         if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>=last_update_){
-            Grib1CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt);
+            Grib1CommonDataProperties searched(std::nullopt,std::nullopt,forecast_preference_,std::nullopt,level_);
             auto filtered = std::views::filter(dat,[&](const std::decay_t<decltype(dat)>::value_type& cmn){
                 return cmn.first && forecast_preference_?cmn.first->fcst_unit_==forecast_preference_:true;
             });
@@ -163,8 +176,10 @@ FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> Grib1Data::find_all(s
     return result;
 }
 
+//@todo make search by forecast, levels etc
 std::unordered_set<Grib1CommonDataProperties> Grib1Data::get_parameter_variations(Organization center,
-    std::optional<TimeFrame> time_fcst,
+    std::optional<TimeForecast> time_fcst,
+    std::optional<Level> level_,
     const std::unordered_set<SearchParamTableVersion>& parameters) noexcept
 {
     std::unordered_set<Grib1CommonDataProperties> result;
@@ -175,29 +190,22 @@ std::unordered_set<Grib1CommonDataProperties> Grib1Data::get_parameter_variation
                 if(parameters.empty()){
                     for(int param=0;param<256;++param){
                         for(int table_version=0;table_version<256;++table_version)
-                            result.insert(Grib1CommonDataProperties(center,table_version,(TimeFrame)time,param));
+                            result.insert(Grib1CommonDataProperties(center,table_version,std::nullopt,param,level_));
                     }
                 }
                 else{
                     int param_counter = 0;
                     for(const auto& [param,table_version]:parameters)
-                        result.insert(Grib1CommonDataProperties(center,table_version,(TimeFrame)time,param));
+                        result.insert(Grib1CommonDataProperties(center,table_version,std::nullopt,param,level_));
                 }
                 ++time_counter;
             }
             else continue;
     }
     else{
-            if(is_time[time_fcst.value()] && parameters.empty()){
-                for(uint8_t param=0;param<256;++param)
-                    for(int table_version=0;table_version<256;++table_version)
-                        result.insert(Grib1CommonDataProperties(center,table_version,time_fcst.value(),param));
-            }
-            else{
-                uint8_t param_counter = 0;
-                for(const auto& [param,table_version]:parameters)
-                    result.insert(Grib1CommonDataProperties(center,table_version,time_fcst.value(),param));
-            }
+        uint8_t param_counter = 0;
+        for(const auto& [param,table_version]:parameters)
+            result.insert(Grib1CommonDataProperties(center,table_version,time_fcst.value(),param,level_));
     }
     return result;
 }

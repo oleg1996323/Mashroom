@@ -1,7 +1,7 @@
 #pragma once
-#include <cstdint>
+#include <stdint.h>
 
-enum RepresentationType:uint8_t{
+enum RepresentationType{
     LAT_LON_GRID_EQUIDIST_CYLINDR = 0,
     MERCATOR = 1,
     GNOMONIC = 2,

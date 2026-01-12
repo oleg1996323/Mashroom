@@ -13,9 +13,12 @@ TEST_F(Grib1Fixture,TestSimpleJson){
 }
 
 TEST_F(Grib1Fixture,TestExtractFileJson){
-    auto paths = procedures::extract::write_json_file(std::stop_token(),data(),props(),time_period(),"",generate_directory_format(time_period()),
-    generate_filename_format(props().center_,props().position_));
-    ASSERT_TRUE(paths.empty());
+    auto paths = procedures::extract::write_json_file(std::stop_token(),data(),props(),time_period(),"test_generated_files");
+    ASSERT_TRUE(paths.size()==1);
+    ASSERT_NO_THROW(procedures::extract::read_json_file(std::stop_token(),*paths.begin()));
+    auto read_data = procedures::extract::read_json_file(std::stop_token(),*paths.begin());
+    ASSERT_EQ(read_data,data());
+    fs::remove_all("test_generated_files");
 }
 
 int main(int argc, char* argv[]){

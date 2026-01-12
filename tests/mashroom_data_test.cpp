@@ -5,17 +5,22 @@ using namespace std::string_view_literals;
 
 TEST(CommonDataProperties,HashTest){
     Grib1CommonDataProperties cmn;
-    ASSERT_EQ(cmn.hash(),(static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<24|
-                static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeFrame>>::max())<<16|
+    ASSERT_EQ(cmn.hash(),(static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<56|
+                static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeFrame>>::max())<<48|
+                static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeRangeIndicator>>::max())<<40|
+                static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<32|
+                static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<24|
+                static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<16|
                 static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<8|
                 std::numeric_limits<uint8_t>::max()));
     
 }
 
 TEST(VariationParameters,get_parameter_variations_test){
-    auto vars = Grib1Data::get_parameter_variations(Organization::ECMWF,TimeFrame::HOUR,{{128,128},{228,128}});
+    auto vars = Grib1Data::get_parameter_variations(Organization::ECMWF,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),{{128,128},{228,128}});
     ASSERT_EQ(vars.size(),2);
-    vars = Grib1Data::get_parameter_variations(Organization::ECMWF,std::nullopt,{{128,128},{228,128}});
+    vars = Grib1Data::get_parameter_variations(Organization::ECMWF,std::nullopt,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),{{128,128},{228,128}});
     ASSERT_EQ(vars.size(),2*std::count(is_time.begin(),is_time.end(),1));
 }
 
@@ -47,7 +52,9 @@ class DataTestClass:public Data,public testing::Test{
                 for(int param = 16;param<130;param+=16){
                     ptrdiff_t cur_pos = 1000*count++;
                     gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
-                                cur_pos,1000,param,TimeFrame::HOUR,Organization::ECMWF,table_v));
+                                cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                Organization::ECMWF,table_v,
+                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0)));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
                         pos_.push_back(cur_pos);
                 }
@@ -94,7 +101,7 @@ class DataTestClass_1:public Data,public testing::Test{
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
                         gribdata.add_info(any,GribMsgDataInfo(GridInfo(grid),sys_days(year(1990)/month(id)/day(1))+days(d),
-                                    cur_pos,1000+2000*id,param,TimeFrame::HOUR,tables_by_id_[id-1].first,table));
+                                    cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0)));
                     }
             }
         }
@@ -124,7 +131,8 @@ TEST_F(DataTestClass,MatchTest){
     auto& dstruct = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
     auto matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                         Organization::ECMWF,
-                                        TimeFrame::HOUR,
+                                        TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                         params,
                                         TimeInterval(sys_days(year(1990)/month(1)/day(1)),
                                             sys_days(year(1990)/month(1)/day(31))),
@@ -135,7 +143,8 @@ TEST_F(DataTestClass,MatchTest){
     EXPECT_EQ(pos_.size(),matched_grib1.size());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                         Organization::ECMWF,
-                                        TimeFrame::DAY,
+                                        TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                         params,
                                         TimeInterval(sys_days(year(1990)/month(1)/day(1)),
                                             sys_days(year(1990)/month(2)/day(1))),
@@ -144,7 +153,8 @@ TEST_F(DataTestClass,MatchTest){
     EXPECT_TRUE(matched_grib1.empty());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                     Organization::ECMWF,
-                                    TimeFrame::HOUR,
+                                    TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     params,
                                     TimeInterval(sys_days(year(1990)/month(1)/day(1)),
                                         sys_days(year(1990)/month(2)/day(1))),
@@ -153,7 +163,8 @@ TEST_F(DataTestClass,MatchTest){
     EXPECT_TRUE(matched_grib1.empty());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                     Organization::ECMWF,
-                                    TimeFrame::HOUR,
+                                    TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     params,
                                     TimeInterval(sys_days(year(1989)/month(1)/day(1)),
                                         sys_days(year(1989)/month(12)/day(31))),
@@ -162,7 +173,8 @@ TEST_F(DataTestClass,MatchTest){
     EXPECT_TRUE(matched_grib1.empty());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                     Organization::ECMWF,
-                                    TimeFrame::HOUR,
+                                    TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     params,
                                     TimeInterval(sys_days(year(1989)/month(1)/day(1)),
                                         sys_days(year(1990)/month(1)/day(2))),
@@ -173,7 +185,8 @@ TEST_F(DataTestClass,MatchTest){
                                     /days(1)+1)*params.size());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                     Organization::ECMWF,
-                                    TimeFrame::HOUR,
+                                    TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     params,
                                     TimeInterval(sys_days(year(1989)/month(1)/day(1)),
                                         sys_days(year(1990)/month(1)/day(2))),
@@ -182,7 +195,8 @@ TEST_F(DataTestClass,MatchTest){
     EXPECT_TRUE(matched_grib1.empty());
     matched_grib1 = match(path::Storage<false>::file("any_path.grib"sv,utc_tp()),
                                     Organization::WMO,
-                                    TimeFrame::HOUR,
+                                    TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                                    Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     params,
                                     TimeInterval(sys_days(year(1989)/month(1)/day(1)),
                                         sys_days(year(1990)/month(1)/day(2))),
@@ -194,7 +208,8 @@ TEST_F(DataTestClass,MatchTest){
 TEST_F(DataTestClass_1,MatchDataTest){
     read(fn);
     auto& dstruct = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-    auto matched_data = match_data(Organization::WMO,TimeFrame::HOUR,
+    auto matched_data = match_data(Organization::WMO,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                         {SearchParamTableVersion{.param_=18,.t_ver_ = 1},
                         SearchParamTableVersion{.param_=uint8_t(54),.t_ver_=3}},
                         TimeInterval(sys_days(1990y/2/1),sys_days(1990y/2/2)),
@@ -206,20 +221,30 @@ TEST_F(DataTestClass_1,MatchDataTest){
     EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).grid_data_->index(),1);
     auto sequence = matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_;
     // std::cout<<"Stored: from "<<sequence.get_interval().from()<<" to "<<sequence.get_interval().to()<<std::endl;
-    EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_,TimeSequence(sys_days(1990y/2/1),sys_days(1990y/2/2),days(1)));
+    std::error_code err;
+    TimeSequence ts(sys_days(1990y/2/1),sys_days(1990y/2/2),err,days(1));
+    ASSERT_EQ(err,std::error_code());
+    EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_,ts);
 }
 
 TEST_F(DataTestClass_1,FindAllTest){
     read(fn);
     auto& dstruct = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
+    std::error_code err;
+    TimeSequence ts(utc_tp(),system_clock::now(),err,days(1));
+    ASSERT_EQ(err,std::error_code());
     auto matched_data = find_all(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
-                        TimeSequence(utc_tp(),system_clock::now(),days(1)),
-                        TimeFrame::HOUR,
+                        ts,
+                        TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                         utc_tp());
     EXPECT_EQ(matched_data.size(),cmn_sz);
+    ts = TimeSequence(utc_tp(),system_clock::now(),err,days(1));
+    ASSERT_EQ(err,std::error_code());
     matched_data = find_all(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
-                        TimeSequence(utc_tp(),system_clock::now(),days(1)),
-                        std::nullopt,
+                        ts,
+                        TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                         utc_tp());
     EXPECT_EQ(matched_data.size(),cmn_sz);
     // EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).buf_pos_.size(),((sys_days(1990y/2/2)-sys_days(1990y/2/1))/days(1)+1)*2);

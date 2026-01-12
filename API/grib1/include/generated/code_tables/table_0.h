@@ -1,11 +1,11 @@
 #pragma once
 #include <string_view>
 #include <optional>
+#include <cstdint> 
 
 
 
-enum class Organization:int{
-    Undefined=-1,
+enum class Organization:uint8_t{
   WMO=0,
   Melbourne=1,
   Melbourne_1=2,
@@ -1037,7 +1037,7 @@ case Organization::Missing:
      return "Missing";
      break;
 default:
- return "Undefined";
+ return "Missing";
  break;
  }
  }
@@ -1815,7 +1815,7 @@ case Organization::Missing:
      return "Missing";
      break;
 default:
- return "Undefined";
+ return "Missing";
  break; }
  }
 

@@ -10,10 +10,10 @@ class Grib1Fixture: public testing::Test{
     SearchProperties props_;
     TimePeriod time_p;
     protected:
-    Grib1Fixture():time_p(years(0),months(1),days(0),hours(0),minutes(0),seconds(0)){}
+    Grib1Fixture():time_p(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0)){}
     virtual void SetUp() override{
         props_.center_ = Organization::ECMWF;
-        props_.fcst_unit_ = TimeFrame::HOUR;
+        props_.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
         props_.from_date_ = sys_days(1990y/1/1d);
         props_.to_date_ = sys_days(1990y/1/2d);
         props_.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
@@ -23,9 +23,10 @@ class Grib1Fixture: public testing::Test{
         ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
         Grib1CommonDataProperties common1;
         common1.center_ = Organization::ECMWF;
-        common1.fcst_unit_ = TimeFrame::HOUR;
+        common1.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
         common1.table_version_ = 228;
         common1.parameter_ = 246;
+        common1.level_=Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t> dist(2.f,7.f);
@@ -36,9 +37,10 @@ class Grib1Fixture: public testing::Test{
         }
         Grib1CommonDataProperties common2;
         common2.center_ = Organization::ECMWF;
-        common2.fcst_unit_ = TimeFrame::HOUR;
+        common2.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
         common2.table_version_ = 228;
         common2.parameter_ = 247;
+        common2.level_=Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
         {
             auto& val_collection = values[common2];
             for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))

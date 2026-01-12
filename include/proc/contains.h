@@ -79,7 +79,7 @@ inline ErrorCode Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>() no
                             std::cout<<"parameter "<<(int)common->parameter_.value()<<"("<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name
                             <<") "<<std::flush;
                         if(filter_.forecast_time)
-                            std::cout<<"forecast-time "<<(int)common->fcst_unit_.value()<<std::endl;
+                            std::cout<<"forecast data "<<to_json(common->fcst_unit_.value())<<std::endl;
                         if(filter_.grid_info)
                             std::cout<<info.grid_data_->print_grid_info()<<std::endl;
                         if(filter_.time_interval)

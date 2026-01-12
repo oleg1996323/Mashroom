@@ -1,3 +1,71 @@
+#include "code_tables/table_3.h"
+#include "sections/product/levels.h"
+
+template<>
+std::expected<Level,std::exception> from_json(const boost::json::value& val){
+    Level result;
+    if(auto obj = val.if_object();obj){
+        if(obj->contains("11") && obj->contains("12") && obj->contains("tag"))
+            if(auto tmp_11 = from_json<uint8_t>(obj->at("11"));tmp_11.has_value())
+                result.set_first_octet(tmp_11.value());
+            if(auto tmp_12 = from_json<uint8_t>(obj->at("12"));tmp_12.has_value())
+                result.set_first_octet(tmp_12.value());
+            if(auto tmp_tag = from_json<LevelsTags>(obj->at("tag"));tmp_tag.has_value())
+                result.set_first_octet(tmp_tag.value());
+    }
+    else return std::unexpected(std::invalid_argument("invalid JSON input"));
+    return result;
+}
+
+template<>
+boost::json::value to_json(const Level& val){
+    boost::json::object result;
+    result["11"]=to_json(val.get_first_octet());
+    result["12"]=to_json(val.get_second_octet());
+    result["tag"]=to_json(val.type());
+    auto serialize_height = [&result](const auto& value){
+        using type = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<type,std::monostate>)
+            result["height"] = std::string("0");
+        else if constexpr (std::is_floating_point_v<type>)
+            result["height"] = std::to_string(value);
+        else if constexpr (std::is_integral_v<type>)
+            result["height"] = std::to_string(value);
+        else
+            result["height"] = std::to_string(value.value())+symbol_string(typename type::unit_type());
+    };
+    auto serialize_top = [&result](const auto& value){
+        using type = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<type,std::monostate>)
+            result["top"] = std::string("0");
+        else if constexpr (std::is_floating_point_v<type>)
+            result["top"] = std::to_string(value);
+        else if constexpr (std::is_integral_v<type>)
+            result["top"] = std::to_string(value);
+        else
+            result["top"] = std::to_string(value.value())+symbol_string(typename type::unit_type());
+            
+    };
+    auto serialize_bottom = [&result](const auto& value){
+        using type = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<type,std::monostate>)
+            result["bottom"] = std::string("0");
+        else if constexpr (std::is_floating_point_v<type>)
+            result["bottom"] = std::to_string(value);
+        else if constexpr (std::is_integral_v<type>)
+            result["bottom"] = std::to_string(value);
+        else
+            result["bottom"] = std::to_string(value.value())+symbol_string(typename type::unit_type());
+    };
+    if(!val.is_bounded())
+        std::visit(serialize_height,val.get_level_height());
+    else{
+        std::visit(serialize_top,val.get_top_bound());
+        std::visit(serialize_bottom,val.get_bottom_bound());
+    }
+    return result;
+}
+
 // #include <stdio.h>
 // #include "sections/section_1.h"
 //@todo check and remove if necessary

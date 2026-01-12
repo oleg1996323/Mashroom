@@ -1,3 +1,4 @@
+#pragma once
 #include "error_code.h"
 #include "error_print.h"
 #include <stdexcept>
@@ -9,7 +10,7 @@ class ErrorException:public std::exception{
     ErrorCode error_ = ErrorCode::NONE;
     public:
     template<typename... ARGS>
-    ErrorException(ErrorCode err,const String auto& prompt,ARGS&&... args):what_(ErrorPrint::message(err,std::string(prompt),std::forward<ARGS>(args)...)){}
+    ErrorException(ErrorCode err,String auto&& prompt,ARGS&&... args):what_(ErrorPrint::message(err,std::forward<std::decay_t<decltype(prompt)>>(prompt),std::forward<ARGS>(args)...)){}
 
     ErrorCode error() const{
         return error_;

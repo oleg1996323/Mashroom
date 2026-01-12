@@ -336,7 +336,7 @@ int verf_time(unsigned char *pds, int *year, int *month, int *day, int *hour) {
     /* find time increment */
 
     dtime = PDS_P1(pds);
-    tr = PDS_TimeRange(pds);
+    tr = PDS_TimeRangeIndicator(pds);
     unit = PDS_ForecastTimeUnit(pds);
 
     if (tr == 10) dtime = PDS_P1(pds) * 256 + PDS_P2(pds);
@@ -372,42 +372,20 @@ unsigned char ProductDefinitionSection::grid_definition() const noexcept{
 Section2_3_flag ProductDefinitionSection::section1Flags() const noexcept{
 	return {PDS_HAS_GDS(buffer_),PDS_HAS_BMS(buffer_)};
 }
-unsigned char ProductDefinitionSection::IndicatorOfParameter() const noexcept{
-	return PDS_PARAM(buffer_);
+parameter_t ProductDefinitionSection::parameter_number() const noexcept{
+	return (parameter_t)PDS_PARAM(buffer_);
 }
 LevelsTags ProductDefinitionSection::level() const noexcept{
 	return (LevelsTags)PDS_L_TYPE(buffer_);
 }
-int16_t ProductDefinitionSection::level1_data() const noexcept{
+uint8_t ProductDefinitionSection::level1_data() const noexcept{
 	return PDS_LEVEL1(buffer_);
 }
-int16_t ProductDefinitionSection::level2_data() const noexcept{
+uint8_t ProductDefinitionSection::level2_data() const noexcept{
 	return PDS_LEVEL2(buffer_);
 }
-std::optional<Level> ProductDefinitionSection::level_data() const noexcept{
-	Level result{.octet_11=std::monostate(),.octet_12=std::monostate(),.level_type_=level()};
-	switch(levels_11_octets[result.level_type_]){
-		case 0:
-			return result;
-			break;
-		case 1:
-			if(levels_12_octets[result.level_type_]==1){
-				result.octet_11=convert_level<11>(result.level_type_,level1_data());
-				result.octet_12=convert_level<12>(result.level_type_,level2_data());
-			}
-			else{
-				result.octet_11=convert_level<11>(result.level_type_,level1_data());
-			}
-			return result;
-			break;
-		case 2:
-			result.octet_11 = convert_level<11>(result.level_type_,read_bytes<2,true>(&buffer_[10]));
-			return result;
-			break;
-		default:
-			return std::nullopt;
-	}
-	return std::nullopt;
+Level ProductDefinitionSection::level_data() const noexcept{
+	return Level(level(),level1_data(),level2_data());
 }
 unsigned char ProductDefinitionSection::subcenter() const noexcept{
 	return PDS_Subcenter(buffer_);
@@ -433,70 +411,14 @@ unsigned char ProductDefinitionSection::period1() const noexcept{
 unsigned char ProductDefinitionSection::period2() const noexcept{
 	return PDS_P2(buffer_);
 }
-TimeRange ProductDefinitionSection::time_range() const noexcept{
-	return static_cast<TimeRange>(PDS_TimeRange(buffer_));
+TimeRangeIndicator ProductDefinitionSection::time_range_indicator() const noexcept{
+	return static_cast<TimeRangeIndicator>(PDS_TimeRangeIndicator(buffer_));
 }
 /**
  * @todo Expand to all TimeRanges
 */
-TimePeriod ProductDefinitionSection::time_forecast() const noexcept{
-	TimeFrame tf = unit_time_range();
-	TimeRange tr = time_range();
-	unsigned char period = 0;
-	{
-		unsigned char P1 = period1();
-		unsigned char P2 = period2();
-		period = P2>0?P2:P1+P2;
-	}
-	using namespace std::chrono;
-	switch(tf){
-	case TimeFrame::CENTURY:
-		return TimePeriod(years(100*period),months(),days(),hours(),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::DAY:
-		return TimePeriod(years(),months(),days((period)),hours(),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::DECADE:
-		return TimePeriod(years(10*period),months(),days(),hours(),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::HALF_HOUR:
-		return TimePeriod(years(),months(),days(),hours(),minutes(30*period),std::chrono::seconds());
-		break;
-	case TimeFrame::HOUR:
-		return TimePeriod(years(),months(),days(),hours(period),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::HOURS_12:
-		return TimePeriod(years(),months(),days(),hours(12*period),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::HOURS_3:
-		return TimePeriod(years(),months(),days(),hours(3*period),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::HOURS_6:
-		return TimePeriod(years(),months(),days(),hours(6*period),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::MINUTE:
-		return TimePeriod(years(),months(),days(),hours(),minutes(period),std::chrono::seconds());
-		break;
-	case TimeFrame::MONTH:
-		return TimePeriod(years(),months(period),days(),hours(),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::QUARTER_HOUR:
-		return TimePeriod(years(),months(),days(),hours(),minutes(15*period),std::chrono::seconds());
-		break;
-	case TimeFrame::SECOND:
-		return TimePeriod(years(),months(),days(),hours(),minutes(),std::chrono::seconds(period));
-		break;
-	case TimeFrame::YEAR:
-		return TimePeriod(years(period),months(),days(),hours(),minutes(),std::chrono::seconds());
-		break;
-	case TimeFrame::NORMAL:
-		return TimePeriod(years(30*period),months(),days(),hours(),minutes(),std::chrono::seconds());
-		break;
-	default:
-		return TimePeriod();
-		break;
-	}	
-	return TimePeriod();
+TimeForecast ProductDefinitionSection::time_forecast() const noexcept{
+	return TimeForecast(unit_time_range(),time_range_indicator(),{period1()},{period2()});
 }
 unsigned char ProductDefinitionSection::year_of_century() const noexcept{
 	return PDS_Year(buffer_);
@@ -511,16 +433,16 @@ unsigned short ProductDefinitionSection::year() const noexcept{
 unsigned short ProductDefinitionSection::decimal_scale_factor() const noexcept{
 	return INT2(buffer_[26],buffer_[27]);
 }
-unsigned ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() const noexcept{
+unsigned short ProductDefinitionSection::numberMissingFromAveragesOrAccumulations() const noexcept{
 	return PDS_NumMissing(buffer_);
 }
 unsigned char ProductDefinitionSection::numberIncludedInAverage() const noexcept{
 	return PDS_NumAve(buffer_);
 }
 std::string_view ProductDefinitionSection::parameter_name() const noexcept{
-	return parameter_table(center(),table_version(),IndicatorOfParameter())->name;
+	return parameter_table(center(),table_version(),parameter_number())->name;
 }
 std::string_view ProductDefinitionSection::param_comment() const noexcept{
-	return parameter_table(center(),table_version(),IndicatorOfParameter())->comment;
+	return parameter_table(center(),table_version(),parameter_number())->comment;
 }
 #endif
