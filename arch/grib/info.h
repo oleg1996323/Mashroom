@@ -58,15 +58,6 @@ class ProxyDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     info_(info){}
     ProxyDataInfo(data_t&& info):
     info_(std::move(info)){}
-    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,std::ranges::random_access_range auto&& index_info){
-        info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].append_range(std::forward<decltype(index_info)>(index_info));
-    }
-    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,IndexDataInfo<API::GRIB1>&& index_info){
-        info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(std::move(index_info));
-    }
-    void add_info(const path::Storage<false>& path,Grib1CommonDataProperties&& cmn,const IndexDataInfo<API::GRIB1>& index_info){
-        info_[path][std::make_shared<Grib1CommonDataProperties>(std::move(cmn))].push_back(index_info);
-    }
     void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
     void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
     API::ErrorData::Code<API::GRIB1>::value error() const;

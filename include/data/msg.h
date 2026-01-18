@@ -24,15 +24,13 @@ struct GribMsgDataInfo
     GridInfo grid_data;
     utc_tp date;
     ptrdiff_t buf_pos_;
-    uint32_t msg_sz_;
-    uint8_t parameter;
     TimeForecast t_unit;
     Organization center;
-    TimeRangeIndicator t_range_indicator_;
     Level level_;
-
-    uint8_t table_version;
-    API::ErrorData::Code<API::GRIB1>::value err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
+    uint32_t msg_sz_ = 0;
+    uint8_t parameter = 0;
+    uint8_t table_version = 0;
+    API::ErrorData::Code<API::GRIB1>::value err_ = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
 
     GribMsgDataInfo(GridInfo&& grid_data_,
         utc_tp&& date_,
@@ -42,7 +40,8 @@ struct GribMsgDataInfo
         TimeForecast t_unit_,
         Organization center_,
         uint8_t table_version_,
-        Level level):
+        Level level,
+        API::ErrorData::Code<API::GRIB1>::value err):
         grid_data(std::move(grid_data_)),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
@@ -51,7 +50,8 @@ struct GribMsgDataInfo
         t_unit(t_unit_),
         center(center_),
         level_(level),
-        table_version(table_version_){}
+        table_version(table_version_),
+        err_(err){}
     GribMsgDataInfo() = default;
 };
 

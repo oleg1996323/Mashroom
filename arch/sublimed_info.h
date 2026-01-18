@@ -4,7 +4,6 @@
 #include "serialization.h"
 #include "sections/grid/grid.h"
 #include "byte_read.h"
-#include "types/time_interval.h"
 #include "data/def.h"
 
 template<Data_t TYPE, Data_f FORMAT>

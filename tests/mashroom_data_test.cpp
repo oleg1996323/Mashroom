@@ -31,7 +31,7 @@ class DataTestClass:public Data,public testing::Test{
     std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
-    DataTestClass():fn("data_file.gbd"){
+    DataTestClass():fn("data_file.g1bd"){
         auto ds = std::make_unique<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;
@@ -78,7 +78,7 @@ class DataTestClass_1:public Data,public testing::Test{
     std::vector<std::pair<Organization,std::vector<uint8_t>>> tables_by_id_ = {{Organization::ECMWF,{228,180,210,130,211,162}},
                                                                             {Organization::WMO,{1,2,3}}};
     public:
-    DataTestClass_1():fn("data_file.gbd"){
+    DataTestClass_1():fn("data_file.g1bd"){
         auto ds = std::make_unique<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;

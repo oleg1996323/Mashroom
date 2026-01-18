@@ -43,7 +43,7 @@ data/
 *.bin
 *.omdb
 *.omdt
-*.gbd
+*.g1bd
 
 # other
 

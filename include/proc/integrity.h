@@ -4,10 +4,9 @@
 #include <vector>
 #include <thread>
 #include "sys/error_print.h"
-#include "data/sublimed_info.h"
-#include "data/info.h"
 #include "message.h"
 #include "types/time_period.h"
+#include "data/datastruct.h"
 
 using namespace std::chrono_literals;
 namespace fs = std::filesystem;
@@ -37,7 +36,7 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 #include "proc/interfaces/abstractsearchprocess.h"
 class Integrity:public AbstractSearchProcess{
     private:
-    GribProxyDataInfo data_;
+    std::unique_ptr<AbstractDataStruct> data_;
     TimePeriod t_off_;
     std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>::value>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
@@ -78,11 +77,9 @@ class Integrity:public AbstractSearchProcess{
     }
 
     void clear_result(){
-        data_.info_.clear();
-        data_.err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
+        data_.reset(nullptr);
     }
-    GribProxyDataInfo release_result() noexcept{
-        GribProxyDataInfo res(std::move(data_));
-        return res;
+    std::unique_ptr<AbstractDataStruct>&& release_result() noexcept{
+        return std::move(data_);
     }
 };

@@ -7,12 +7,11 @@
 #include <filesystem>
 #include <format>
 #include "sys/application.h"
-#include "data//common_data_properties.h"
-#include "data//info.h"
+#include "data/common_data_properties.h"
 #include "serialization.h"
 #include "network/client.h"
 #include "network/server.h"
-#include "extract/extracted_value.h"
+#include "extract/extracted_data.h"
 
 using namespace std::string_literals;
 namespace fs = std::filesystem;
@@ -34,7 +33,7 @@ private:
     mutable std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     template<Data_t T,Data_f F>
-    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<T,F>&);
+    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>&);
 
     ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
     ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const;

@@ -14,7 +14,6 @@
 #include "proc/extract.h"
 #include "message.h"
 #include "int_pow.h"
-#include "data/info.h"
 #include "generated/code_tables/eccodes_tables.h"
 #include "API/common/error_data.h"
 #include "API/common/error_data_print.h"
@@ -81,21 +80,22 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
         const auto& msg = grib.message();
         if(!msg.has_value())
             return ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
-        if(msg.value().get().message_length()==0)
+        if(msg->get().message_length()==0)
             grib.next_message();
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested())
             return ErrorCode::NONE;
-        GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
-                                    msg.value().get().section_1_.reference_time(),
+        GribMsgDataInfo msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
+                                    msg->get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
-                                    msg.value().get().section_1_.parameter_number(),
-                                    msg.value().get().section_1_.time_forecast(),
-                                    msg.value().get().section_1_.center(),
-                                    msg.value().get().section_1_.table_version(),
-                                    msg.value().get().section_1_.level_data());
+                                    msg->get().section_1_.parameter_number(),
+                                    msg->get().section_1_.time_forecast(),
+                                    msg->get().section_1_.center(),
+                                    msg->get().section_1_.table_version(),
+                                    msg->get().section_1_.level_data(),
+                                    msg->get().err_);
         if(props_.center_.has_value() && msg_info.center!=props_.center_)
             continue;
         if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
@@ -117,18 +117,16 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
             procedures::extract::get_result(ref_data)[
                 Grib1CommonDataProperties(msg_info.center,
                     msg_info.table_version,
-                    msg_info.t_unit,
-                    msg_info.parameter,
-                    msg_info.level_)]
+                    msg_info.parameter)]
                     .emplace_back(
-                msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+                msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }while(grib.next_message());
     return ErrorCode::NONE;
 }
 
 template<>
-ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, ExtractedData &ref_data, const SublimedDataInfoStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> &positions){
+ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>& positions){
     HGrib1 grib;
     try{
         grib.open_grib(file);
@@ -140,36 +138,35 @@ ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::pa
     
     if(grib.file_size()==0)
         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
-    for(const auto& pos:positions.buf_pos_){
-        if(!grib.set_message(pos))
+    for(const auto& pos:positions){
+        if(pos<0 || !grib.set_message(pos))
             continue;
         const auto& msg = grib.message();
         if(!msg.has_value())
             throw std::runtime_error("Message undefined");
-        if(msg.value().get().message_length()==0)
+        if(msg->get().message_length()==0)
             grib.next_message();
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested())
             return ErrorCode::INTERRUPTED;
-        GribMsgDataInfo msg_info(msg.value().get().section2().has_value()?msg.value().get().section2().value().get().define_grid():GridInfo{},
-                                    msg.value().get().section_1_.reference_time(),
+        GribMsgDataInfo msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
+                                    msg->get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
-                                    msg.value().get().section_1_.parameter_number(),
-                                    msg.value().get().section_1_.time_forecast(),
-                                    msg.value().get().section_1_.center(),
-                                    msg.value().get().section_1_.table_version(),
-                                    msg.value().get().section_1_.level_data());
+                                    msg->get().section_1_.parameter_number(),
+                                    msg->get().section_1_.time_forecast(),
+                                    msg->get().section_1_.center(),
+                                    msg->get().section_1_.table_version(),
+                                    msg->get().section_1_.level_data(),
+                                    msg->get().err_);
         if(msg_info.grid_data.has_grid())
             procedures::extract::get_result(ref_data)[
                 Grib1CommonDataProperties(
                     msg_info.center,
                     msg_info.table_version,
-                    msg_info.t_unit,
-                    msg_info.parameter,
-                    msg_info.level_)].emplace_back(
-                msg_info.date,msg.value().get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+                    msg_info.parameter)].emplace_back(
+                msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }
     return ErrorCode::NONE;
@@ -201,7 +198,7 @@ ErrorCode Extract::execute() noexcept{
                 continue;
             }
             std::cout<<"Extracting from "<<path<<std::endl;
-            std::sort(positions.buf_pos_.begin(),positions.buf_pos_.end());
+            std::sort(positions.begin(),positions.end());
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
             __extract__(path.path_,result,positions);

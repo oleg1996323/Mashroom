@@ -39,9 +39,9 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
                     auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(index_param.grid_type_,
                         index_param.time_,index_param.forecast_preference_,
                         index_param.level_,msg.additional().last_update_);
-                    if(!result.empty())
+                    if(result.has_value())
                         //@todo add access mode
-                        rep_msg.additional().add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result));
+                        rep_msg.additional().add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result.value()));
                     else return;
                 }
                 else static_assert(false);

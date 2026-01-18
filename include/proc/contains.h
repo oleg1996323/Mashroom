@@ -3,9 +3,7 @@
 #include "sections/section_1.h"
 #include "code_tables/table_6.h"
 #include "types/time_interval.h"
-#include "data/info.h"
 #include <filesystem>
-#include "data/sublimed_info.h"
 #include "proc/interfaces/abstractsearchprocess.h"
 #include "program/mashroom.h"
 namespace fs = std::filesystem;
@@ -64,28 +62,28 @@ inline ErrorCode Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>() no
                 time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
                 !props_.grid_type_.has_value() &&
                 !props_.parameters_.empty()){
-            for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>().data()){
-                for(auto& [common,info_seq]:file_data)
-                    for(auto& info:info_seq){
-                        if(stop_token_.stop_requested())
-                            return ErrorCode::INTERRUPTED;
-                        if(filter_.file)
-                            std::cout<<file<<std::endl;
-                        if(filter_.center)
-                            std::cout<<"center "<<(int)common->center_.value()<<"("<<center_to_abbr(common->center_.value())<<") "<<std::flush;
-                        if(filter_.table_version)
-                            std::cout<<"table version "<<(int)common->table_version_.value()<<" "<<std::flush;
-                        if(filter_.parameter)
-                            std::cout<<"parameter "<<(int)common->parameter_.value()<<"("<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name
-                            <<") "<<std::flush;
-                        if(filter_.forecast_time)
-                            std::cout<<"forecast data "<<to_json(common->fcst_unit_.value())<<std::endl;
-                        if(filter_.grid_info)
-                            std::cout<<info.grid_data_->print_grid_info()<<std::endl;
-                        if(filter_.time_interval)
-                            std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to())<<std::endl;
-                    }
-            }
+            // for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>().data()){
+            //     for(auto& [common,info_seq]:file_data)
+            //         for(auto& info:info_seq){
+            //             if(stop_token_.stop_requested())
+            //                 return ErrorCode::INTERRUPTED;
+            //             if(filter_.file)
+            //                 std::cout<<file<<std::endl;
+            //             if(filter_.center)
+            //                 std::cout<<"center "<<(int)common->center_.value()<<"("<<center_to_abbr(common->center_.value())<<") "<<std::flush;
+            //             if(filter_.table_version)
+            //                 std::cout<<"table version "<<(int)common->table_version_.value()<<" "<<std::flush;
+            //             if(filter_.parameter)
+            //                 std::cout<<"parameter "<<(int)common->parameter_.value()<<"("<<parameter_table(common->center_.value(),common->table_version_.value(),common->parameter_.value())->name
+            //                 <<") "<<std::flush;
+            //             // if(filter_.forecast_time)
+            //             //     std::cout<<"forecast data "<<to_json(common->fcst_unit_.value())<<std::endl;
+            //             if(filter_.grid_info)
+            //                 std::cout<<info.grid_data_->print_grid_info()<<std::endl;
+            //             if(filter_.time_interval)
+            //                 std::cout<<std::format("from {:%Y/%m%d %H%M%S} to {:%Y/%m%d %H%M%S}",info.sequence_time_.get_interval().from(),info.sequence_time_.get_interval().to())<<std::endl;
+            //         }
+            // }
         }
         else{
             assert(false);

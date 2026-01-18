@@ -31,24 +31,19 @@ ErrorCode Data::__write__<Data_f::GRIB_v1>(const fs::path& dir){
 ErrorCode Data::read(const fs::path& filename) noexcept{
     ErrorCode err = ErrorCode::NONE;
     if(fs::exists(filename)){
-        if(auto fmts = extension_to_tokens(filename.extension().string());!fmts.has_value())
+        if(auto fmts = utility_token(filename.extension().string());!fmts.has_value())
             return ErrorPrint::print_error(ErrorCode::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
         else{
-            for(Data_f fmt:fmts.value()){
-                switch (fmt)
-                {
-                case Data_f::GRIB_v1:{
-                    if(err = __read__<Data_f::GRIB_v1>(filename);err==ErrorCode::NONE)
-                        return err;
-                    else continue;
-                    break;
-                }
-                default:
-                    return ErrorPrint::print_error(ErrorCode::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
-                    break;
-                }
+            switch (fmts.value())
+            {
+            case Data_f::GRIB_v1:{
+                return __read__<Data_f::GRIB_v1>(filename);err==ErrorCode::NONE;
+                break;
             }
-            return ErrorCode::NONE;
+            default:
+                return ErrorPrint::print_error(ErrorCode::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
+                break;
+            }
         }
     }
     else return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());

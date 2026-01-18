@@ -2,6 +2,9 @@
 #include <variant>
 #include <utility>
 #include "message.h"
+#include "sys/error_code.h"
+#include "sys/error_print.h"
+#include <gtest/gtest.h>
 
 namespace network{
     //check if enum-ed message-structures are listed sequentially (std::monostate,struct{ENUM::0},struct{ENUM::1},...)

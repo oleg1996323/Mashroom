@@ -16,6 +16,17 @@ const std::unordered_map<std::string_view,std::vector<Data_f>> extension_name = 
     return result;
 }(extension_token);
 
+const std::unordered_map<Data_f,std::string_view> utility_extension_token = {
+                    {Data_f::GRIB_v1,std::string_view(".g1bd")}
+};
+
+const std::unordered_map<std::string_view,Data_f> utility_extension_name = [](const std::unordered_map<Data_f,std::string_view>& tokens){
+    std::unordered_map<std::string_view,Data_f> result;
+    for(auto& [token,txt]:tokens)
+        result[txt]=token;
+    return result;
+}(utility_extension_token);
+
 const std::unordered_map<Data_f,std::string_view> data_format_token = {
                     {Data_f::GRIB_v1,{std::string_view("Grib1")}}
 };
@@ -86,4 +97,13 @@ std::optional<Data_t> to_data_type_token(std::string_view text) noexcept{
 }
 std::string_view to_data_type_name(Data_t token) noexcept{
     return data_type_token.at(token);
+}
+
+std::string_view utility_extension(Data_f format) noexcept{
+    return utility_extension_token.at(format);
+}
+std::optional<Data_f> utility_token(std::string_view extension) noexcept{
+    if(auto found = utility_extension_name.find(extension);found!=utility_extension_name.end())
+        return found->second;
+    else return std::nullopt;
 }

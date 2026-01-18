@@ -8,6 +8,16 @@
 template<Data_t T,Data_f F>
 struct ExtractedValue;
 
+namespace procedures::extract::details{
+    template<Data_t,Data_f>
+    struct ExtractedValueAdditional:std::monostate{};
+
+    template<>
+    struct ExtractedValueAdditional<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
+        uint16_t T = 0;
+    };
+}
+
 template<Data_f FORMAT>
 struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
 {
@@ -93,16 +103,7 @@ class std::hash<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>
     }
 };
 
-#include "data/common_data_properties.h"
-template<Data_t T,Data_f F>
-using ExtractedValues = std::map<CommonDataProperties<T,F>, std::vector<ExtractedValue<T,F>>>;
 
-using VariantExtractedValue = std::variant<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
-using VariantExtractedData = std::variant<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
-using ExtractedData = VariantExtractedData;
-
-static_assert(std::is_default_constructible_v<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>);
-static_assert(std::is_default_constructible_v<VariantExtractedData>);
 
 
 namespace serialization{
@@ -147,19 +148,7 @@ namespace serialization{
 #include "boost_functional/json.h"
 
 template<>
-boost::json::value to_json(const ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>& vals);
-
-template<>
-std::expected<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& vals);
-
-template<>
 boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);
 
 template<>
 std::expected<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& vals);
-
-template<>
-boost::json::value to_json(const ExtractedData& vals);
-
-template<>
-std::expected<ExtractedData,std::exception> from_json<ExtractedData>(const boost::json::value& vals);

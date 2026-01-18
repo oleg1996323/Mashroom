@@ -2,6 +2,8 @@
 
 namespace fs = std::filesystem;
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info)  noexcept{
+    if(msg_info.err_!=API::ErrorData::ErrorCode<API::GRIB1>::NONE_ERR)
+        return;
     CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,
         msg_info.table_version,msg_info.t_unit,msg_info.parameter,
         msg_info.level_);
@@ -18,6 +20,8 @@ void GribProxyDataInfo::add_info(const path::Storage<false>& path, const GribMsg
 }
 
 void GribProxyDataInfo::add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept{
+    if(msg_info.err_!=API::ErrorData::ErrorCode<API::GRIB1>::NONE_ERR)
+        return;
     CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn(msg_info.center,
         msg_info.table_version,msg_info.t_unit,msg_info.parameter,
         msg_info.level_);

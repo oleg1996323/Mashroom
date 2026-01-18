@@ -27,60 +27,40 @@ struct CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         LEVEL
     };
     std::optional<Organization> center_;
-    std::optional<TimeForecast> fcst_unit_;
     std::optional<uint8_t> table_version_;
     std::optional<uint8_t> parameter_;
-    std::optional<Level> level_;
 
     CommonDataProperties(   std::optional<Organization> center,
                             std::optional<uint8_t> table_version,
-                            std::optional<TimeForecast> fcst_unit,
-                            std::optional<uint8_t> parameter,
-                            std::optional<Level> level):
-    center_(center),table_version_(table_version),fcst_unit_(fcst_unit),parameter_(parameter),level_(level){}
+                            std::optional<uint8_t> parameter):
+    center_(center),table_version_(table_version),parameter_(parameter){}
     CommonDataProperties() = default;
     bool operator==(const CommonDataProperties& other) const{
         return  center_==other.center_ && 
                 table_version_==other.table_version_ &&
-                fcst_unit_==other.fcst_unit_ &&
-                parameter_==other.parameter_ &&
-                level_ == other.level_;
+                parameter_==other.parameter_;
     }
 
 static size_t hash(  const std::optional<Organization>& center,
-                                        const std::optional<TimeForecast>& fcst_unit,
                                         const std::optional<uint8_t>& table_version,
-                                        const std::optional<uint8_t>& parameter,
-                                        const std::optional<Level> level)
+                                        const std::optional<uint8_t>& parameter)
     {
         size_t hash = 0;
         if(center.has_value())
             hash|=static_cast<uint64_t>(center.value())<<56;
         else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<56;
-        if(fcst_unit.has_value()){
-            hash|=static_cast<uint64_t>(fcst_unit.value().get_time_frame())<<48;
-            hash|=static_cast<uint64_t>(fcst_unit.value().get_time_range_indicator())<<40;
-        }
-        else {
-            hash|=(static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeFrame>>::max())<<48);
-            hash|=(static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<TimeRangeIndicator>>::max())<<40);
-        }
         if(table_version.has_value())
-            hash|=(static_cast<uint64_t>(table_version.value())<<32);
-        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<32);
+            hash|=(static_cast<uint64_t>(table_version.value())<<48);
+        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<48);
         if(parameter.has_value())
-            hash|=(static_cast<uint64_t>(parameter.value())<<24);
-        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<24);
-        if(level.has_value())
-            hash|=std::hash<Level>{}(level.value());
-        else hash|=(static_cast<uint64_t>(std::numeric_limits<oster::detail::to_integer_type<sizeof(Level)>>::max())>>(
-            sizeof(oster::detail::to_integer_type<sizeof(Level)>)-sizeof(Level)));
+            hash|=(static_cast<uint64_t>(parameter.value())<<40);
+        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<40);
         return hash;
     }
 
     size_t hash() const
     {
-        return  hash(center_,fcst_unit_,table_version_,parameter_,level_);
+        return  hash(center_,table_version_,parameter_);
     }
 
     bool operator<(const std::shared_ptr<CommonDataProperties>& other) const{
@@ -127,7 +107,7 @@ struct std::hash<CommonDataProperties<TYPE,FORMAT>>{
         return cs.hash();
     }
 };
-#include <memory>
+
 template<Data_t TYPE,Data_f FORMAT>
 struct std::hash<std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>>
 {
@@ -268,7 +248,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,Grib1CommonDataProperties>{
         using type = Grib1CommonDataProperties;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_,msg.level_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
@@ -276,7 +256,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,Grib1CommonDataProperties>{
         using type = Grib1CommonDataProperties;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_,msg.level_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
@@ -284,7 +264,7 @@ namespace serialization{
     struct Serial_size<Grib1CommonDataProperties>{
         using type = Grib1CommonDataProperties;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.fcst_unit_,msg.center_,msg.table_version_,msg.parameter_,msg.level_);
+            return serial_size(msg.center_,msg.table_version_,msg.parameter_);
         }
     };
 
@@ -293,8 +273,7 @@ namespace serialization{
         using type = Grib1CommonDataProperties;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<decltype(type::fcst_unit_),decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_),
-            decltype(type::level_)>();
+            return min_serial_size<decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_)>();
         }();
     };
 
@@ -303,8 +282,7 @@ namespace serialization{
         using type = Grib1CommonDataProperties;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<decltype(type::fcst_unit_),decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_),
-            decltype(type::level_)>();
+            return max_serial_size<decltype(type::center_),decltype(type::table_version_),decltype(type::parameter_)>();
         }();
     };
 }
@@ -317,143 +295,143 @@ boost::json::value to_json(const CommonDataProperties<Data_t::TIME_SERIES,Data_f
 template<>
 std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& value);
 
-template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
-struct HashOption{
-    size_t operator()(const CommonDataProperties<TYPE,FORMAT>& cs) const{
-        if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
-            if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::SEARCH_MODE::FORECAST){
-                if(cs.fcst_unit_.has_value())
-                    return std::hash<TimeForecast>()(cs.fcst_unit_.value());
-                else return std::numeric_limits<size_t>::max();
-            }
-            else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::SEARCH_MODE::LEVEL){
-                if(cs.level_.has_value())
-                    return std::hash<Level>()(cs.level_.value());
-                else return std::numeric_limits<size_t>::max();
-            }
-            else
-                return cs.hash();
-        }
-        else static_assert(false,"Not implemented HashOption");
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs.expired())
-            return std::numeric_limits<size_t>::max();
-        else{
-            return operator()(*rhs.lock());
-        }
-    }
-    bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(!rhs)
-            return std::numeric_limits<size_t>::max();
-        else return operator()(*rhs);
-    }
-};
+// template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
+// struct HashOption{
+//     size_t operator()(const CommonDataProperties<TYPE,FORMAT>& cs) const{
+//         if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
+//             if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::SEARCH_MODE::FORECAST){
+//                 if(cs.fcst_unit_.has_value())
+//                     return std::hash<TimeForecast>()(cs.fcst_unit_.value());
+//                 else return std::numeric_limits<size_t>::max();
+//             }
+//             else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::SEARCH_MODE::LEVEL){
+//                 if(cs.level_.has_value())
+//                     return std::hash<Level>()(cs.level_.value());
+//                 else return std::numeric_limits<size_t>::max();
+//             }
+//             else
+//                 return cs.hash();
+//         }
+//         else static_assert(false,"Not implemented HashOption");
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs.expired())
+//             return std::numeric_limits<size_t>::max();
+//         else{
+//             return operator()(*rhs.lock());
+//         }
+//     }
+//     bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(!rhs)
+//             return std::numeric_limits<size_t>::max();
+//         else return operator()(*rhs);
+//     }
+// };
 
-#include "concepts.h"
+// #include "concepts.h"
 
-template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
-struct EqualOption{
-    using is_transparent = std::true_type;
+// template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
+// struct EqualOption{
+//     using is_transparent = std::true_type;
 
-    size_t operator()(const CommonDataProperties<TYPE,FORMAT>& lhs,const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
-            if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::FORECAST){
-                return lhs.fcst_unit_==rhs.fcst_unit_;
-            }
-            else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::LEVEL){
-                return lhs.level_==rhs.level_;
-            }
-            else
-                return lhs == rhs;
-        }
-        else static_assert(false,"Not implemented EqualOption");
-    }
+//     size_t operator()(const CommonDataProperties<TYPE,FORMAT>& lhs,const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
+//             if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::FORECAST){
+//                 return lhs.fcst_unit_==rhs.fcst_unit_;
+//             }
+//             else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::LEVEL){
+//                 return lhs.level_==rhs.level_;
+//             }
+//             else
+//                 return lhs == rhs;
+//         }
+//         else static_assert(false,"Not implemented EqualOption");
+//     }
 
-    bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs.expired())
-            return false;
-        else{
-            return operator()(lhs,*rhs.lock());
-        }
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs)
-            return operator()(lhs,*rhs);
-        else return false;
-    }
-    bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(lhs.expired() || rhs)
-            return false;
-        else
-            return operator()(*lhs.lock(),*rhs);
-    }
-    bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs.expired() || lhs.expired())
-            return false;
-        else
-            return operator()(*lhs.lock(),*rhs.lock());
-    }
-};
+//     bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs.expired())
+//             return false;
+//         else{
+//             return operator()(lhs,*rhs.lock());
+//         }
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs)
+//             return operator()(lhs,*rhs);
+//         else return false;
+//     }
+//     bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(lhs.expired() || rhs)
+//             return false;
+//         else
+//             return operator()(*lhs.lock(),*rhs);
+//     }
+//     bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs.expired() || lhs.expired())
+//             return false;
+//         else
+//             return operator()(*lhs.lock(),*rhs.lock());
+//     }
+// };
 
-template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
-struct LessOption{
-    using is_transparent = std::true_type;
+// template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
+// struct LessOption{
+//     using is_transparent = std::true_type;
 
-    size_t operator()(const CommonDataProperties<TYPE,FORMAT>& lhs,const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
-            if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::FORECAST){
-                return std::hash<TimeForecast>()(lhs.fcst_unit_)<std::hash<TimeForecast>()(rhs.fcst_unit_);
-            }
-            else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::LEVEL){
-                return std::hash<Level>()(lhs.level_)<std::hash<Level>()(rhs.level_);
-            }
-            else
-                return std::hash<CommonDataProperties<TYPE,FORMAT>>()(lhs) < std::hash<CommonDataProperties<TYPE,FORMAT>>()(rhs);
-        }
-        else static_assert(false,"Not implemented EqualOption");
-    }
+//     size_t operator()(const CommonDataProperties<TYPE,FORMAT>& lhs,const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         if constexpr(FORMAT==Data_f::GRIB_v1 && TYPE==Data_t::TIME_SERIES){
+//             if constexpr(MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::FORECAST){
+//                 return std::hash<TimeForecast>()(lhs.fcst_unit_)<std::hash<TimeForecast>()(rhs.fcst_unit_);
+//             }
+//             else if constexpr (MODE==CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>::LEVEL){
+//                 return std::hash<Level>()(lhs.level_)<std::hash<Level>()(rhs.level_);
+//             }
+//             else
+//                 return std::hash<CommonDataProperties<TYPE,FORMAT>>()(lhs) < std::hash<CommonDataProperties<TYPE,FORMAT>>()(rhs);
+//         }
+//         else static_assert(false,"Not implemented EqualOption");
+//     }
 
-    bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs.expired())
-            return false;
-        else{
-            return operator()(lhs,*rhs.lock());
-        }
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs)
-            return operator()(lhs,*rhs);
-        else return false;
-    }
-    bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(lhs.expired() || rhs)
-            return false;
-        else
-            return operator()(*lhs.lock(),*rhs);
-    }
-    bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        return operator()(rhs,lhs);
-    }
-    bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
-        if(rhs.expired() || lhs.expired())
-            return false;
-        else
-            return operator()(*lhs.lock(),*rhs.lock());
-    }
-};
+//     bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs.expired())
+//             return false;
+//         else{
+//             return operator()(lhs,*rhs.lock());
+//         }
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const CommonDataProperties<TYPE,FORMAT>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs)
+//             return operator()(lhs,*rhs);
+//         else return false;
+//     }
+//     bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const CommonDataProperties<TYPE,FORMAT>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(lhs.expired() || rhs)
+//             return false;
+//         else
+//             return operator()(*lhs.lock(),*rhs);
+//     }
+//     bool operator()(const std::shared_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         return operator()(rhs,lhs);
+//     }
+//     bool operator()(const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& lhs, const std::weak_ptr<CommonDataProperties<TYPE,FORMAT>>& rhs) const{
+//         if(rhs.expired() || lhs.expired())
+//             return false;
+//         else
+//             return operator()(*lhs.lock(),*rhs.lock());
+//     }
+// };

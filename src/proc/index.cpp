@@ -4,7 +4,6 @@
 #include <vector>
 #include "cmd_parse/functions.h"
 #include "sys/application.h"
-#include "data/info.h"
 #include "filesystem.h"
 #include "definitions/def.h"
 #include "message.h"
@@ -67,7 +66,8 @@ std::vector<GribMsgDataInfo> process_file(HGrib1& grib_file_handler){
 										msg.value().get().section_1_.time_forecast(),
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version(),
-										msg.value().get().section_1_.level_data());
+										msg.value().get().section_1_.level_data(),
+										msg->get().err_);
 		}
 	}while(grib_file_handler.next_message());
 	return grib_msgs;
@@ -96,7 +96,7 @@ std::pair<fs::path,std::vector<GribMsgDataInfo>> Index::__index_write_file__(con
 		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		return res;
 	}
-	return __write_file__(std::move(process_file(grib)));
+	return __write_file__(process_file(grib));
 }
 
 void Index::execute() noexcept{

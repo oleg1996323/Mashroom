@@ -2,7 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <thread>
-#include "extracted_value.h"
+#include "extracted_data.h"
 
 namespace procedures::extract{
 namespace fs = std::filesystem;

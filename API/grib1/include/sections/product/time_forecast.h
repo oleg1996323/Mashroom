@@ -257,3 +257,7 @@ std::expected<TimeForecast,std::exception> from_json<TimeForecast>(const boost::
 
 template<>
 boost::json::value to_json(const TimeForecast& val);
+
+#include "macros.h"
+
+DEFINE_SMART_POINTER_HASH_METHODS(TimeForecast)

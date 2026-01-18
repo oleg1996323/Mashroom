@@ -92,48 +92,48 @@ std::string get_file_header(const ExtractedData& result, const SearchProperties&
             write_parameter(stream,"longitude",props.position_->lon_)<<"\n";
             write_parameter(stream,"grid",props.grid_type_.value())<<"\n";
             write_parameter(stream,"parameters",get_result(result).size())<<"\n";
-            for(auto& [common,value]:get_result(result)){
-                if(auto param_ptr = parameter_table(*common.center_,*common.table_version_,*common.parameter_);param_ptr==nullptr)
+            for(auto& [props_values,value]:get_result(result)){
+                if(auto param_ptr = parameter_table(*props_values.cmn_.center_,*props_values.cmn_.table_version_,*props_values.cmn_.parameter_);param_ptr==nullptr)
                     throw ErrorException(ErrorCode::INTERNAL_ERROR,
-                        "undefined parameter table (center="s+std::to_string(static_cast<std::underlying_type_t<Organization>>(*common.center_))+
-                        ";table version="s+std::to_string(*common.table_version_)+";parameter="+
-                        std::to_string(*common.parameter_)+")");
+                        "undefined parameter table (center="s+std::to_string(static_cast<std::underlying_type_t<Organization>>(*props_values.cmn_.center_))+
+                        ";table version="s+std::to_string(*props_values.cmn_.table_version_)+";parameter="+
+                        std::to_string(*props_values.cmn_.parameter_)+")");
                 else
                     write_parameter(stream,"name",param_ptr->name)<<"\n";
-                write_parameter(stream,"indicator",*common.parameter_)<<"\n";
-                write_parameter(stream,"table version",*common.table_version_)<<"\n";
+                write_parameter(stream,"indicator",*props_values.cmn_.parameter_)<<"\n";
+                write_parameter(stream,"table version",*props_values.cmn_.table_version_)<<"\n";
                 write_parameter(stream,"center",props.center_.value())<<"\n";
                 write_parameter(stream,"forecast data")<<"\n";
-                write_parameter<1>(stream,"time frame",common.fcst_unit_->get_time_frame())<<"\n";
-                write_parameter<1>(stream,"time range indicator",common.fcst_unit_->get_time_range_indicator())<<"\n";
-                if(common.fcst_unit_->is_intervaled()){
-                    write_parameter<1>(stream,"N avg/acc",common.fcst_unit_->get_n())<<"\n";
-                    write_parameter<1>(stream,"N missed",common.fcst_unit_->get_avg_acc_miss_N_vals())<<"\n";
+                write_parameter<1>(stream,"time frame",props_values.add_.fcst_.get_time_frame())<<"\n";
+                write_parameter<1>(stream,"time range indicator",props_values.add_.fcst_.get_time_range_indicator())<<"\n";
+                if(props_values.add_.fcst_.is_intervaled()){
+                    write_parameter<1>(stream,"N avg/acc",props_values.add_.fcst_.get_n())<<"\n";
+                    write_parameter<1>(stream,"N missed",props_values.add_.fcst_.get_avg_acc_miss_N_vals())<<"\n";
                 }
-                if(common.fcst_unit_->octet_doubled())
-                    write_parameter<1>(stream,"P1",static_cast<uint16_t>((static_cast<uint16_t>(common.fcst_unit_->get_P1().val)<<8)|common.fcst_unit_->get_P2().val))<<"\n";
-                else if(common.fcst_unit_->is_unique_value())
-                    write_parameter<1>(stream,"P1",common.fcst_unit_->get_P1().val)<<"\n";
+                if(props_values.add_.fcst_.octet_doubled())
+                    write_parameter<1>(stream,"P1",static_cast<uint16_t>((static_cast<uint16_t>(props_values.add_.fcst_.get_P1().val)<<8)|props_values.add_.fcst_.get_P2().val))<<"\n";
+                else if(props_values.add_.fcst_.is_unique_value())
+                    write_parameter<1>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
                 else {
-                    write_parameter<1>(stream,"P1",common.fcst_unit_->get_P1().val)<<"\n";
-                    write_parameter<1>(stream,"P2",common.fcst_unit_->get_P2().val)<<"\n";
+                    write_parameter<1>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
+                    write_parameter<1>(stream,"P2",props_values.add_.fcst_.get_P2().val)<<"\n";
                 }
-                if(common.level_->is_bounded()){
+                if(props_values.add_.level_.is_bounded()){
                     write_structure<1>(std::make_tuple("tag"s,"o11"s,"o12"s,"top bound"s,"bottom bound"s),stream,
                         "level",
-                        common.level_->type(),
-                        common.level_->get_first_octet(),
-                        common.level_->get_second_octet(),
-                        common.level_->get_top_bound(),
-                        common.level_->get_bottom_bound());
+                        props_values.add_.level_.type(),
+                        props_values.add_.level_.get_first_octet(),
+                        props_values.add_.level_.get_second_octet(),
+                        props_values.add_.level_.get_top_bound(),
+                        props_values.add_.level_.get_bottom_bound());
                 }
                 else {
                     write_structure<1>(std::make_tuple("tag"s,"o11"s,"o12"s,"height"s),stream,
                         "level",
-                        common.level_->type(),
-                        common.level_->get_first_octet(),
-                        common.level_->get_second_octet(),
-                        common.level_->get_level_height());
+                        props_values.add_.level_.type(),
+                        props_values.add_.level_.get_first_octet(),
+                        props_values.add_.level_.get_second_octet(),
+                        props_values.add_.level_.get_level_height());
                 }
             }
         }
@@ -151,13 +151,13 @@ std::string get_data_header(const ExtractedData& result, const SearchProperties&
             stream<<std::left<<std::setw(18)<<"Time"<<"\t";
             for(auto& [cmn_data,values]:value){
                 stream<<std::left<<std::setw(10)<<parameter_table(
-                        cmn_data.center_.has_value()?
-                        cmn_data.center_.value():
+                        cmn_data.cmn_.center_.has_value()?
+                        cmn_data.cmn_.center_.value():
                         Organization::Missing,
-                        cmn_data.table_version_.has_value()?
-                        cmn_data.table_version_.value():
-                        0,cmn_data.parameter_.has_value()?
-                        cmn_data.parameter_.value():0)->name<<'\t';
+                        cmn_data.cmn_.table_version_.has_value()?
+                        cmn_data.cmn_.table_version_.value():
+                        0,cmn_data.cmn_.parameter_.has_value()?
+                        cmn_data.cmn_.parameter_.value():0)->name<<'\t';
             }
             stream<<"\n";
         }

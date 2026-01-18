@@ -263,3 +263,7 @@ std::expected<GridInfo,std::exception> from_json(const boost::json::value& val);
 
 template<>
 boost::json::value to_json(const GridInfo& val);
+
+#include "macros.h"
+
+DEFINE_SMART_POINTER_HASH_METHODS(GridInfo)

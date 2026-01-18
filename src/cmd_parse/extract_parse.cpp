@@ -4,7 +4,6 @@
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
 #include "functions.h"
-#include "data/info.h"
 #include "proc/extract.h"
 #include "code_tables/table_0.h"
 #include "out_format_parse.h"

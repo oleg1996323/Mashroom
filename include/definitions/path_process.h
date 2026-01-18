@@ -224,6 +224,20 @@ struct std::equal_to<path::Storage<VIEW>>{
     }
 };
 
+template<bool VIEW>
+struct std::less<path::Storage<VIEW>>{
+    using is_transparent = std::true_type;
+    bool operator()(const path::Storage<VIEW>& lhs,const path::Storage<VIEW>& rhs) const{
+        return std::hash<path::Storage<VIEW>>()(lhs)<std::hash<path::Storage<VIEW>>()(lhs);
+    }
+    bool operator()(const path::Storage<!VIEW>& lhs,const path::Storage<VIEW>& rhs) const{
+        return std::hash<path::Storage<!VIEW>>()(lhs)<std::hash<path::Storage<VIEW>>()(lhs);
+    }
+    bool operator()(const path::Storage<VIEW>& lhs,const path::Storage<!VIEW>& rhs) const{
+        return std::hash<path::Storage<VIEW>>()(lhs)<std::hash<path::Storage<!VIEW>>()(lhs);
+    }
+};
+
 template<bool VIEW1,bool VIEW2>
 bool operator==(const path::Storage<VIEW1>& lhs, const path::Storage<VIEW2>& rhs) noexcept{
     return lhs.path_==rhs.path_ && lhs.type_==rhs.type_;

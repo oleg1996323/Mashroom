@@ -5,7 +5,7 @@
 #include "data/def.h"
 #include "types/coord.h"
 #include <expected>
-#include "proc/extract/extracted_value.h"
+#include "proc/extract/extracted_data.h"
 #include "API/grib1/include/sections/grid/grid.h"
 #include "API/grib1/include/paramtablev.h"
 #include "boost/algorithm/string.hpp"
@@ -216,7 +216,7 @@ namespace txt::details{
         constexpr Data_t type() const{
             return Data_t::TIME_SERIES;
         }
-        std::vector<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> param_info_;
+        std::vector<procedures::extract::details::ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> param_info_;
         Coord pos_;
         RepresentationType grid_t_;
         int version_ = 0;
@@ -231,6 +231,14 @@ namespace txt::details{
         result.table_version_ = get_txt_token<uint8_t>(file,"table version",filename);
         result.center_ = get_txt_token<Organization>(file,"center",filename);
         result.fcst_unit_ = get_txt_structure<TimeForecast>(file,filename);
+        result.level_ = get_txt_structure<Level>(file,filename);
+        return result;
+    }
+
+    template<Data_f FORMAT,Data_t TYPE>
+    procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> get_additional_data_properties(std::istream& file,const fs::path& filename){
+        procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> result;
+        result.fcst_ = get_txt_structure<TimeForecast>(file,filename);
         result.level_ = get_txt_structure<Level>(file,filename);
         return result;
     }
@@ -272,7 +280,7 @@ namespace txt::details{
                     if(header_info.param_info_.size()!=data_head_names.size()-1) //because data_head_names includes "Time"
                         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"invalid parameters number",filename.c_str());
                     for(size_t i=0;i<header_info.param_info_.size();++i){
-                        const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props = header_info.param_info_.at(i);
+                        const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props = header_info.param_info_.at(i).cmn_;
                         if(auto p_ptr = parameter_table(props.center_.value(),props.table_version_.value(),props.parameter_.value());p_ptr==nullptr)
                             continue;
                             // throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,

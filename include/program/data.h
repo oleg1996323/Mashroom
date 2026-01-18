@@ -1,5 +1,4 @@
 #pragma once
-#include "data/sublimed_info.h"
 #include <filesystem>
 #include <chrono>
 #include <algorithm>
@@ -8,7 +7,6 @@
 #include <unordered_set>
 #include <map>
 #include <set>
-#include "data/info.h"
 #include "data/def.h"
 #include "sys/error_print.h"
 #include "types/time_interval.h"
@@ -79,10 +77,6 @@ class Data:public __Data__{
     const std::unordered_map<Data_f,fs::path>& written_files() const{
         return files_;
     }
-    template<Data_t TYPE,Data_f FORMAT>
-    const SublimedFormatDataInfo<TYPE,FORMAT>& sublimed_data() const{
-        return data_struct<TYPE,FORMAT>().sublimed_;
-    }
 
     template<Data_t T,Data_f F,typename... ARGS>
     typename DataStruct<T,F>::match_data_t match_data(
@@ -124,7 +118,7 @@ class Data:public __Data__{
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
-    FoundSublimedDataInfo<T,F> find_all(
+    std::optional<FoundSublimedDataInfo<T,F>> find_all(
         ARGS&&... args
     ) const{
         return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
@@ -139,13 +133,13 @@ class Data:public __Data__{
     }
 
     template<Data_t T, Data_f F>
-    void add_data(SublimedFormatDataInfo<T,F>& data){
+    void add_data(const DataStruct<T,F>& data){
         data_struct<T,F>().add_data(data);
         unsaved_.insert(F);
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }
     template<Data_t T, Data_f F>
-    void add_data(SublimedFormatDataInfo<T,F>&& data){
+    void add_data(DataStruct<T,F>&& data){
         data_struct<T,F>().add_data(std::move(data));
         unsaved_.insert(F);
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;

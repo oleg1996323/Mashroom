@@ -3,7 +3,7 @@
 #include "sys/error_print.h"
 #include "sys/log_err.h"
 #include "API/grib1/include/properties.h"
-#include "proc/extract/extracted_value.h"
+#include "proc/extract/extracted_data.h"
 #include <thread>
 #include "types/time_period.h"
 #include "sys/outputdatafileformats.h"

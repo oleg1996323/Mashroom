@@ -158,6 +158,10 @@ namespace serialization{
     };
 }
 
+#include "macros.h"
+
+DEFINE_SMART_POINTER_HASH_METHODS(Level)
+
 /* wesley ebisuzaki v1.0
  *
  * levels.c

@@ -122,8 +122,8 @@ TEST(Serialization,SublimedGribDataInfo){
                 GribSublimedDataInfoStruct sub_data{.grid_data_=grid_def,.buf_pos_ = buf_pos,.sequence_time_ = 
                 TimeSequence(
                     utc_tp(sys_days(1991y/1/1d)),
-                    sub_data.sequence_time_.get_interval().from(),
-                    sub_data.buf_pos_.size(),err
+                    DateTimeDiff(err,std::chrono::years(1)),
+                    sub_data.buf_pos_.size()
                 )};
                 ASSERT_EQ(err,std::error_code());
                 vector_seq.push_back(std::move(sub_data));

@@ -12,5 +12,13 @@
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "displayName": "Build-Debug",
+            "configurePreset": "default",
+            "cleanFirst": true
+        }
     ]
 }

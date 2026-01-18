@@ -8,7 +8,6 @@
 #include "cmd_parse/functions.h"
 #include "sys/error_print.h"
 #include "functions.h"
-#include "data/sublimed_info.h"
 #include "code_tables/table_0.h"
 #include "proc/interfaces/abstractsearchprocess.h"
 #include "types/time_interval.h"

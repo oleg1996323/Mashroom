@@ -17,7 +17,7 @@ class DataTestClass:public Data,public testing::Test{
     std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
-    DataTestClass():fn("data_file.gbd"),server_(network::server::Settings("127.0.0.1","",Protocol::TCP,30,32396,true)){
+    DataTestClass():fn("data_file.g1bd"),server_(network::server::Settings("127.0.0.1","",Protocol::TCP,30,32396,true)){
         auto ds = std::make_unique<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
         SublimedGribDataInfo sublimed;
         GribProxyDataInfo gribdata;

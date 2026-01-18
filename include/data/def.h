@@ -51,3 +51,5 @@ std::optional<Data_f> to_data_format_token(std::string_view text) noexcept;
 std::optional<Data_t> to_data_type_token(std::string_view text) noexcept;
 std::string_view to_data_format_name(Data_f token) noexcept;
 std::string_view to_data_type_name(Data_t token) noexcept;
+std::string_view utility_extension(Data_f format) noexcept;
+std::optional<Data_f> utility_token(std::string_view extension) noexcept;

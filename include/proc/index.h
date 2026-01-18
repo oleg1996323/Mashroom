@@ -4,9 +4,8 @@
 #include <thread>
 #include "definitions/def.h"
 #include "sys/error_code.h"
-#include "data/sublimed_info.h"
-#include "data/info.h"
 #include "message.h"
+#include "data/datastruct/datastructdef.h"
 #include "definitions/path_process.h"
 #include <boost/units/systems/information/byte.hpp>
 #include <boost/units/systems/information/nat.hpp>
@@ -21,7 +20,7 @@ namespace fs = std::filesystem;
 using namespace std::string_literals;
 class Index{
 private:
-GribProxyDataInfo result;
+std::unique_ptr<AbstractDataStruct> result;
 std::unordered_set<path::Storage<false>> in_path_;
 std::unordered_set<path::Storage<false>> written_;
 std::optional<fs::path> dest_directory_;
@@ -40,24 +39,22 @@ ErrorCode set_dest_dir(std::string_view dest_directory);
 void set_output_format(IndexOutputFileFormat::token format){
     output_format_ = format;
 }
-const GribProxyDataInfo& get_result() const{
-    return result;
+const AbstractDataStruct* get_result() const{
+    return result.get();
 }
 IndexOutputFileFormat::token output_format() const{
     return output_format_;
 }
 void clear_result(){
-    result.info_.clear();
-    result.err = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
+    result.reset(nullptr);
 }
 void set_using_processor_cores(int cores){
     if(cores>0 && cores<std::thread::hardware_concurrency())
         cpus=cores;
     else cpus = 1;
 }
-GribProxyDataInfo release_result() noexcept{
-    GribProxyDataInfo res(std::move(result));
-    return res;
+std::unique_ptr<AbstractDataStruct>&& release_result() noexcept{
+    return std::move(result);
 }
 void set_host_ref_only(){
     host_ref_only = true;
