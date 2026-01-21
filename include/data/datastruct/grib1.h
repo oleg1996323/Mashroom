@@ -16,7 +16,7 @@ using Grib1Data = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 template<>
 struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct{
     using sublimed_data_by_common_data = std::unordered_map<std::shared_ptr<Grib1CommonDataProperties>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
-    using sublimed_data_by_date_time = std::map<TimeSequence,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
+    using sublimed_data_by_date_time = std::map<std::shared_ptr<TimeSequence>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
     using sublimed_data_by_grid = std::unordered_map<std::shared_ptr<GridInfo>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
     using sublimed_data_by_forecast = std::unordered_map<std::shared_ptr<TimeForecast>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
     using sublimed_data_by_level = std::unordered_map<std::shared_ptr<Level>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
@@ -157,6 +157,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
                         std::optional<TimeSequence> time_,
                         std::optional<TimeForecast> forecast_preference_,
                         std::optional<Level> level_,
+                        std::optional<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> common_,
                         utc_tp last_update_) const;
 
     static std::unordered_set<Grib1CommonDataProperties> get_parameter_variations(Organization center,
@@ -189,6 +190,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
                                                     std::optional<TimeSequence>,
                                                     std::optional<TimeForecast>,
                                                     std::optional<Level>,
+                                                    std::optional<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>,
                                                     utc_tp>;
 };
 

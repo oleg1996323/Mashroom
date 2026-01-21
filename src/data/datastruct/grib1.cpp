@@ -146,15 +146,41 @@ std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Dat
                 std::optional<TimeSequence> time_,
                 std::optional<TimeForecast> forecast_preference_,
                 std::optional<Level> level_,
-                utc_tp last_update_) const{
-    std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
-    if(grid_type_.has_value()){
-        for(auto& grid_tmp:by_grid_){
-            if(grid_tmp.first->type()==grid_type_.value())
-                result.add_.grid_;
+                std::optional<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> common_,
+                utc_tp last_update_) const
+{
+
+    using paths_type = std::unordered_map<path::Storage<true>,std::vector<const ptrdiff_t>>;
+    std::vector<std::pair<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>,paths_type>> result;
+    if(common_.has_value()){
+        for(auto& [cmn,paths]:by_common_data_){
+            if(*cmn==common_.value())
+                auto& paths_found = result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.cmn_=*cmn},paths)).second;
         }
+        if(result.empty())
+            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     }
-    if()
+    else{
+        for(auto& [cmn,paths]:by_common_data_)
+            result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.cmn_=*cmn},paths));
+        if(result.empty())
+            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+    }
+    if(grid_type_.has_value()){
+        for(auto& [grid_tmp,paths]:by_grid_){
+            if(grid_tmp->type()==grid_type_.value()){
+                if(!common_.has_value()){
+                    auto& paths_found = result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.add_={.grid_=grid_tmp}},paths)).second;
+                    for(auto& [path,pos]:paths)
+                        paths_found[path] = std::span(pos);
+                }
+            }
+            
+        }
+        if(result.empty())
+            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+    }
+    
 
 
     for(const auto& [path,dat]:this->sublimed_.data()){
