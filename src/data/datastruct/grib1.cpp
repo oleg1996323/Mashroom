@@ -143,72 +143,50 @@ std::vector<ptrdiff_t> Grib1Data::match(
 }
 
 std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
-                std::optional<TimeSequence> time_,
+                std::optional<TimeInterval> tinterval_,
+                std::optional<DateTimeDiff> tdiff_,
                 std::optional<TimeForecast> forecast_preference_,
                 std::optional<Level> level_,
                 std::optional<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> common_,
                 utc_tp last_update_) const
 {
 
-    using paths_type = std::unordered_map<path::Storage<true>,std::vector<const ptrdiff_t>>;
-    std::vector<std::pair<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>,paths_type>> result;
-    if(common_.has_value()){
-        for(auto& [cmn,paths]:by_common_data_){
-            if(*cmn==common_.value())
-                auto& paths_found = result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.cmn_=*cmn},paths)).second;
-        }
-        if(result.empty())
-            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
-    }
-    else{
-        for(auto& [cmn,paths]:by_common_data_)
-            result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.cmn_=*cmn},paths));
-        if(result.empty())
-            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
-    }
-    if(grid_type_.has_value()){
-        for(auto& [grid_tmp,paths]:by_grid_){
-            if(grid_tmp->type()==grid_type_.value()){
-                if(!common_.has_value()){
-                    auto& paths_found = result.emplace_back(std::make_pair(FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{.add_={.grid_=grid_tmp}},paths)).second;
-                    for(auto& [path,pos]:paths)
-                        paths_found[path] = std::span(pos);
-                }
-            }
-            
-        }
-        if(result.empty())
-            return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
-    }
-    
+    std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
+    auto check_update = [last_update_](const auto& add_path){
+        using type = std::decay_t<decltype(add_path)>;
+        if constexpr(std::is_same_v<type,std::monostate>)
+            return false;
+        else return add_path.last_check_<last_update_;
+    }; 
+    for(auto& index_val:index_){
+        if(!std::visit(check_update,index_val.path_.add_))
+            continue;
+        if(grid_type_.has_value() && grid_type_.value()!=index_val.grid_->type())
+            continue;
+        if(tdiff_.has_value() && tdiff_.value()!=index_val.ts_.time_duration())
+            continue;
+        if(common_.has_value() && common_.value()!=index_val.cmn_)
+            continue;
+        if(forecast_preference_.has_value() && forecast_preference_.value()!=index_val.tf_)
+            continue;
+        if(level_.has_value() && level_.value()!=index_val.lvl_)
+            continue;
+        TimeInterval tinterval_to_add;
+        if(tinterval_.has_value() && !intervals_intersect(tinterval_.value(),index_val.ts_.get_interval()))
+            continue;
+        else tinterval_to_add = interval_intersection(tinterval_.value(),index_val.ts_.get_interval()).value();
 
-
-    for(const auto& [path,dat]:this->sublimed_.data()){
-        if(path.type_==path::TYPE::FILE && path.add_.get<path::TYPE::FILE>().last_check_>=last_update_){
-            Grib1CommonDataProperties searched(std::nullopt,std::nullopt,std::nullopt);
-            auto filtered = std::views::filter(dat,[&](const std::decay_t<decltype(dat)>::value_type& cmn){
-                return cmn.first && forecast_preference_?cmn.first->fcst_unit_==forecast_preference_:true;
-            });
-            for(const auto& [cmn,sublimed_deque]:filtered){
-                if(time_){
-                    for(auto& sub:sublimed_deque){
-                        if( auto intersection = interval_intersection(time_->get_interval(),sub.sequence_time_.get_interval());
-                            intersection.has_value())
-                            result[*cmn].push_back(sub);
-                        else continue;
-                    }
-                }
-                else {
-                    auto& sub_deq_res = result[*cmn];
-                    sub_deq_res.resize(sub_deq_res.size()+sublimed_deque.size());
-                    for(int id = 0;id<sublimed_deque.size();++id)
-                        sub_deq_res[sub_deq_res.size()-sublimed_deque.size()+id]=sublimed_deque[id];
-                }
-            }
-        }
-        else continue;
+        FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_add;
+        to_add.cmn_=index_val.cmn_;
+        to_add.add_.fcst_=index_val.tf_;
+        to_add.add_.lvl_=index_val.lvl_;
+        to_add.add_.grid_=index_val.grid_;
+        std::error_code err;
+        to_add.add_.ts_=TimeSequence(tinterval_to_add.from(),tinterval_to_add.to(),index_val.ts_.time_duration(),err);
+        if(err!=std::error_code())
+            continue;
+        else result.push_back(to_add);
     }
-    return result;
 }
 
 //@todo make search by forecast, levels etc

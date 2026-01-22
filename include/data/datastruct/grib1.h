@@ -10,6 +10,7 @@
 #include "API/grib1/include/sections/product/time_forecast.h"
 #include "API/grib1/include/sections/grid/grid.h"
 #include "types/time_interval.h"
+#include <boost/functional/hash.hpp>
 
 using Grib1Data = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
@@ -28,23 +29,48 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
     //     std::shared_ptr<TimeForecast> fcst_;
     //     std::shared_ptr<Level> lvl_;
     // };
+    struct IndexStruct{
+        std::shared_ptr<GridInfo> grid_;
+        path::Storage<false> path_;
+        std::vector<ptrdiff_t> pos_;
+        TimeForecast tf_;
+        TimeSequence ts_;
+        Grib1CommonDataProperties cmn_;
+        Level lvl_;
 
-    std::unordered_map<path::Storage<false>,std::vector<ptrdiff_t>> positions_;
-    sublimed_data_by_common_data by_common_data_;
-    sublimed_data_by_date_time by_date_;
-    sublimed_data_by_grid by_grid_;
-    sublimed_data_by_forecast by_forecast_;
-    sublimed_data_by_level by_level_;
+        struct Hash{
+            size_t operator()(const IndexStruct& val) const{
+                size_t hash = 0;
+            using namespace boost;
+                hash_combine(hash,std::hash<std::shared_ptr<GridInfo>>()(val.grid_));
+                hash_combine(hash,std::hash<path::Storage<false>>()(val.path_));
+                hash_combine(hash,std::hash<TimeForecast>()(val.tf_));
+                hash_combine(hash,std::hash<TimeSequence>()(val.ts_));
+                hash_combine(hash,std::hash<Grib1CommonDataProperties>()(val.cmn_));
+                hash_combine(hash,std::hash<Level>()(val.lvl_));
+                return hash;
+            }
+        };
+
+        IndexStruct() = default;
+        IndexStruct(const IndexStruct& other):
+        grid_(other.grid_),path_(other.path_),pos_(other.pos_),tf_(other.tf_),ts_(other.ts_),cmn_(other.cmn_),lvl_(other.lvl_){}
+        IndexStruct(IndexStruct&& other):
+        grid_(std::move(other.grid_)),path_(std::move(other.path_)),pos_(std::move(other.pos_)),tf_(other.tf_),ts_(other.ts_),cmn_(other.cmn_),lvl_(other.lvl_){}
+    };
+    // std::unordered_map<path::Storage<false>,std::vector<ptrdiff_t>> positions_;
+    // sublimed_data_by_common_data by_common_data_;
+    // sublimed_data_by_date_time by_date_;
+    // sublimed_data_by_grid by_grid_;
+    // sublimed_data_by_forecast by_forecast_;
+    // sublimed_data_by_level by_level_;
+
+    std::unordered_set<IndexStruct> index_;
 
     DataStruct() = default;
     DataStruct(const DataStruct&) = delete;
     DataStruct(DataStruct&& other):
-    positions_(std::move(other.positions_)),
-    by_common_data_(std::move(other.by_common_data_)),
-    by_date_(std::move(other.by_date_)),
-    by_grid_(std::move(other.by_grid_)),
-    by_forecast_(std::move(other.by_forecast_)),
-    by_level_(std::move(other.by_level_)){}
+    index_(std::move(other.index_)){}
 
     constexpr virtual Data_f format_type() const noexcept override{
         return Data_f::GRIB_v1;
@@ -54,57 +80,35 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
     }
 
     void add_data(const DataStruct& other){
-        std::set<path::Storage<true>> paths_added; 
-        for(auto& [path,positions]:other.positions_){
-            positions_[path]=positions;
-            paths_added.insert(positions_.find(path)->first);
-        }
-        auto add_data_and_paths = [this,&paths_added](auto& this_data,auto& data){
-            for(auto& [key,path_pos]:data){
-                auto& path_pos_tmp = this_data[key];
-                for(auto& [path,positions]:path_pos){
-                    path_pos_tmp[path]=positions;
-                    paths_added.insert(positions_.find(path)->first);
-                }
+        for(auto& data:other.index_){
+            if(auto found = index_.find(data);found!=index_.end()){
+                IndexStruct idx_tmp;
+                idx_tmp.cmn_=found->cmn_;
+                idx_tmp.grid_=found->grid_;
+                idx_tmp.lvl_=found->lvl_;
+                idx_tmp.path_=found->path_;
+                idx_tmp.tf_=found->tf_;
+                idx_tmp.ts_=found->ts_;
+                std::set_union(found->pos_.begin(),found->pos_.end(),data.pos_.begin(),data.pos_.end(),std::back_inserter(idx_tmp.pos_));
+                index_.insert(std::move(idx_tmp));
             }
-        };
-        add_data_and_paths(by_common_data_,other.by_common_data_);
-        add_data_and_paths(by_date_,other.by_date_);
-        add_data_and_paths(by_grid_,other.by_grid_);
-        add_data_and_paths(by_forecast_,other.by_forecast_);
-        add_data_and_paths(by_level_,other.by_level_);
+            else
+                index_.insert(data);
+        }
     }
     
     void add_data(const std::string& path,/* std::ranges::range  auto*/ const std::vector<GribMsgDataInfo>& grib_msg)
     // requires(std::is_same_v<typename std::decay_t<decltype(grib_msg)>::value_type,GribMsgDataInfo>)
     {
-        const auto file = path::Storage<false>::file(path,std::chrono::system_clock::now());
-        auto& pos_tmp = positions_[file];
-        pos_tmp.clear();
-        pos_tmp.reserve(grib_msg.size());
-        std::vector<std::pair<ptrdiff_t,utc_tp>> times_pos;
-        times_pos.reserve(grib_msg.size());
         for(auto& msg:grib_msg){
             if(msg.err_==API::ErrorData::ErrorCode<API::GRIB1>::NONE_ERR){
-                pos_tmp.push_back(msg.buf_pos_);
-                auto add_data_lambda = [&file,&msg](const auto& param,auto& container_search_add){
-                    using CONT_T = std::decay_t<decltype(container_search_add)>;
-                    if(auto found = container_search_add.find(param);found!=container_search_add.end())
-                        found->second[file].push_back(msg.buf_pos_);
-                    else{
-                        std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>> new_path_container;
-                        new_path_container.insert(std::make_pair(file,std::vector<ptrdiff_t>{msg.buf_pos_}));
-                        if constexpr (is_associative_container_v<CONT_T> && smart_pointer_concept<typename CONT_T::key_type>)
-                            container_search_add.insert(std::make_pair(std::make_shared<std::decay_t<decltype(param)>>(param),std::move(new_path_container)));
-                        else container_search_add.insert(std::make_pair(param,std::move(new_path_container)));
-                    }
-                };
-
-                add_data_lambda(Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter),by_common_data_);
-                add_data_lambda(msg.t_unit,by_forecast_);
-                add_data_lambda(msg.grid_data,by_grid_);
-                add_data_lambda(msg.level_,by_level_);
-                times_pos.push_back(std::make_pair(msg.buf_pos_,msg.date));
+                IndexStruct idx_tmp;
+                idx_tmp.cmn_=Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter);
+                idx_tmp.grid_=std::make_shared<GridInfo>(msg.grid_data);
+                idx_tmp.lvl_=msg.level_;
+                idx_tmp.path_=path::Storage<false>::file(path,std::chrono::system_clock::now());;
+                idx_tmp.tf_=msg.t_unit;
+                idx_tmp.ts_=msg.date;
             }
             else continue;
         }
