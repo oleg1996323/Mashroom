@@ -209,6 +209,13 @@ struct GridInfo:GridVariant{
     const char* print_grid_info() const;
     bool operator==(const GridInfo& other) const;
     bool operator!=(const GridInfo& other) const;
+
+    std::optional<Lat> top() const;
+    std::optional<Lat> bottom() const;
+    std::optional<Lon> left() const;
+    std::optional<Lon> right() const;
+    bool is_stretched() const;
+    bool is_rotated() const;
 };
 ENABLE_DERIVED_VARIANT(GridInfo,GridVariant);
 #endif

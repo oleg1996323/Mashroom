@@ -16,16 +16,16 @@ template <>
 struct ExtractRequestForm<Data_t::TIME_SERIES, Data_f::GRIB_v1>
 {
     SearchProperties search_props_;
-    std::optional<TimePeriod> t_separation_;
+    std::optional<DateTimeDiff> t_separation_;
     std::optional<OutputDataFileFormats> file_fmt_;
     ExtractRequestForm() = default;
     explicit ExtractRequestForm(const SearchProperties& search_props,
-        std::optional<TimePeriod> t_sep,
+        std::optional<DateTimeDiff> t_sep,
         std::optional<OutputDataFileFormats> file_fmt):
         search_props_(search_props),t_separation_(t_sep),
         file_fmt_(file_fmt){}
     explicit ExtractRequestForm(SearchProperties&& search_props,
-        std::optional<TimePeriod>&& t_sep,
+        std::optional<DateTimeDiff>&& t_sep,
         std::optional<OutputDataFileFormats> file_fmt):
         search_props_(std::move(search_props)),
         t_separation_(std::move(t_sep)),

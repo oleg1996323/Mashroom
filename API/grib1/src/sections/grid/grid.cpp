@@ -64,6 +64,131 @@ const char* GridInfo::print_grid_info() const{
     return std::visit(visitor,*this);
 }
 
+std::optional<Lat> GridInfo::top() const{
+    auto get_top = [](const auto& grid_def)
+    ->std::optional<Lat>
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
+            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
+                return !grid_def.base_.scan_mode.points_sub_j_dir?grid_def.base_.y2:grid_def.base_.y1;
+            }
+        else if constexpr(std::is_same_v<std::monostate,T>)
+            return std::nullopt;
+        else return std::nullopt;//@todo
+    };
+    return std::visit(get_top,*this);
+}
+std::optional<Lat> GridInfo::bottom() const{
+    auto get_bottom = [](const auto& grid_def)
+    ->std::optional<Lat>
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
+            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
+                return grid_def.base_.scan_mode.points_sub_j_dir?grid_def.base_.y2:grid_def.base_.y1;
+            }
+        else if constexpr(std::is_same_v<std::monostate,T>)
+            return std::nullopt;
+        else return std::nullopt;//@todo
+    };
+    return std::visit(get_bottom,*this);
+}
+std::optional<Lon> GridInfo::left() const{
+    auto get_left = [](const auto& grid_def)
+    ->std::optional<Lat>
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
+            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
+                return !grid_def.base_.scan_mode.points_sub_i_dir?grid_def.base_.y1:grid_def.base_.y2;
+            }
+        else if constexpr(std::is_same_v<std::monostate,T>)
+            return std::nullopt;
+        else return std::nullopt;//@todo
+    };
+    return std::visit(get_left,*this);
+}
+std::optional<Lon> GridInfo::right() const{
+    auto get_right = [](const auto& grid_def)
+    ->std::optional<Lat>
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
+            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
+                return grid_def.base_.scan_mode.points_sub_i_dir?grid_def.base_.y1:grid_def.base_.y2;
+            }
+        else if constexpr(std::is_same_v<std::monostate,T>)
+            return std::nullopt;
+        else return std::nullopt;//@todo
+    };
+    return std::visit(get_right,*this);
+}
+bool GridInfo::is_stretched() const{
+    auto is_stretched = [](const auto& grid_def)->bool
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,std::monostate>)
+            return false;
+        else{
+            auto is = []<RepresentationType T>(const GridDefinition<T>& gd)->bool
+            {
+                using add_t = std::decay_t<decltype(gd.additional_)>;
+                if constexpr(std::is_same_v<add_t,GridAdditional<T,grid::GridModification::STRETCHING>> ||
+                    std::is_same_v<add_t,GridAdditional<T,grid::GridModification::ROTATION_STRETCHING>>)
+                    return true;
+                else return false;
+            };
+            return is(grid_def);
+        }
+    };
+    return std::visit(is_stretched,*this);
+}
+bool GridInfo::is_rotated() const{
+    auto is_rotated = [](const auto& grid_def)->bool
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,std::monostate>)
+            return false;
+        else{
+            auto is = []<RepresentationType T>(const GridDefinition<T>& gd)->bool
+            {
+                using add_t = std::decay_t<decltype(gd.additional_)>;
+                if constexpr(std::is_same_v<add_t,GridAdditional<T,grid::GridModification::ROTATION>> ||
+                    std::is_same_v<add_t,GridAdditional<T,grid::GridModification::ROTATION_STRETCHING>>)
+                    return true;
+                else return false;
+            };
+            return is(grid_def);
+        }
+    };
+    return std::visit(is_rotated,*this);
+}
+
 std::string_view grid_to_text(RepresentationType rep_t) noexcept{
     switch(rep_t){
         case RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR:

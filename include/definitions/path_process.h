@@ -77,7 +77,9 @@ class Additional_t:public ADDITIONAL{
     }
 };
 }
+#include "macros.h"
 ENABLE_DERIVED_VARIANT(path::Additional_t,path::ADDITIONAL);
+
 namespace path{
 template<bool VIEW>
 struct Storage{
@@ -242,6 +244,8 @@ template<bool VIEW1,bool VIEW2>
 bool operator==(const path::Storage<VIEW1>& lhs, const path::Storage<VIEW2>& rhs) noexcept{
     return lhs.path_==rhs.path_ && lhs.type_==rhs.type_;
 }
+
+DEFINE_SMART_POINTER_HASH_METHODS(path::Storage<false>);
 
 #include "serialization.h"
 

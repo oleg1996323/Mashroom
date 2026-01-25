@@ -118,18 +118,25 @@ class Data:public __Data__{
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
-    std::optional<FoundSublimedDataInfo<T,F>> find_all(
+    std::vector<FoundSublimedDataInfo<T,F>> find_all(
         ARGS&&... args
     ) const{
         return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
     }
 
-    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t find_all(std::optional<RepresentationType> grid_type_,
-    std::optional<TimeSequence> time_,
-    std::optional<TimeForecast> forecast_preference_,
-    std::optional<Level> level_,
+    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t find_all(std::optional<RepresentationType> grid_type,
+    std::optional<TimeInterval> tinterval,
+    std::optional<DateTimeDiff> tdiff,
+    std::optional<TimeForecast> forecast_preference,
+    std::optional<Level> level,
+    std::optional<Lat> top,
+    std::optional<Lat> bottom,
+    std::optional<Lon> left,
+    std::optional<Lon> right,
+    const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& cmn,
     utc_tp last_update_) const{
-        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().find_all(grid_type_,time_,forecast_preference_,level_,last_update_);
+        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
+        find_all(grid_type,tinterval,tdiff,forecast_preference,level,top,bottom,left,right,cmn,last_update_);
     }
 
     template<Data_t T, Data_f F>

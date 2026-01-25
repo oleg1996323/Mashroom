@@ -34,12 +34,12 @@ struct BaseIndexResult{
 };
 
 using IndexResult = std::variant<std::monostate,
-        BaseIndexResult<Data_t::TIME_SERIES, Data_f::GRIB_v1>>;
+        DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>;
 
 template<>
 struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>
 {
-    std::vector<IndexResult> blocks_;
+    IndexResult blocks_;
     server::Status status_;
 
     public:
@@ -58,7 +58,7 @@ struct MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>
     MessageAdditional() = default;
     template<Data_t T,Data_f F,typename Type>
     bool add_block(Data_a A, Type&& block){
-        blocks_.emplace_back(BaseIndexResult<T,F>(std::move(block)));
+        blocks_=std::move(block);
         return true;
     }
 };

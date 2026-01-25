@@ -31,8 +31,8 @@ namespace find_data_info::details{
     struct Additional<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         std::shared_ptr<GridInfo> grid_;
         TimeSequence ts_;
-        std::shared_ptr<Level> lvl_;
-        std::shared_ptr<TimeForecast> fcst_;
+        Level lvl_;
+        TimeForecast fcst_;
     };
 }
 

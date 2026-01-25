@@ -143,50 +143,109 @@ std::vector<ptrdiff_t> Grib1Data::match(
 }
 
 std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
-                std::optional<TimeInterval> tinterval_,
-                std::optional<DateTimeDiff> tdiff_,
-                std::optional<TimeForecast> forecast_preference_,
-                std::optional<Level> level_,
-                std::optional<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> common_,
-                utc_tp last_update_) const
+                        std::optional<TimeInterval> tinterval,
+                        std::optional<DateTimeDiff> tdiff,
+                        std::optional<TimeForecast> forecast_preference,
+                        std::optional<Level> level,
+                        std::optional<Lat> top,
+                        std::optional<Lat> bottom,
+                        std::optional<Lon> left,
+                        std::optional<Lon> right,
+                        const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& common,
+                        utc_tp last_update_) const
 {
-
     std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
+    std::unordered_set<std::weak_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> idx_tmp;
+    std::unordered_set<std::weak_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> current;
     auto check_update = [last_update_](const auto& add_path){
         using type = std::decay_t<decltype(add_path)>;
         if constexpr(std::is_same_v<type,std::monostate>)
             return false;
         else return add_path.last_check_<last_update_;
     }; 
-    for(auto& index_val:index_){
-        if(!std::visit(check_update,index_val.path_.add_))
-            continue;
-        if(grid_type_.has_value() && grid_type_.value()!=index_val.grid_->type())
-            continue;
-        if(tdiff_.has_value() && tdiff_.value()!=index_val.ts_.time_duration())
-            continue;
-        if(common_.has_value() && common_.value()!=index_val.cmn_)
-            continue;
-        if(forecast_preference_.has_value() && forecast_preference_.value()!=index_val.tf_)
-            continue;
-        if(level_.has_value() && level_.value()!=index_val.lvl_)
-            continue;
-        TimeInterval tinterval_to_add;
-        if(tinterval_.has_value() && !intervals_intersect(tinterval_.value(),index_val.ts_.get_interval()))
-            continue;
-        else tinterval_to_add = interval_intersection(tinterval_.value(),index_val.ts_.get_interval()).value();
-
-        FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_add;
-        to_add.cmn_=index_val.cmn_;
-        to_add.add_.fcst_=index_val.tf_;
-        to_add.add_.lvl_=index_val.lvl_;
-        to_add.add_.grid_=index_val.grid_;
-        std::error_code err;
-        to_add.add_.ts_=TimeSequence(tinterval_to_add.from(),tinterval_to_add.to(),index_val.ts_.time_duration(),err);
-        if(err!=std::error_code())
-            continue;
-        else result.push_back(to_add);
+    for(auto& [path,idx]:paths_){
+        if(path){
+            if(!std::visit(check_update,path->add_))
+                continue;
+            for(auto& id:idx)
+                if(!id.expired())
+                    idx_tmp.insert(id);
+        }
+        else continue;
     }
+    if(idx_tmp.empty())
+        return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+    if(!common.empty()){
+        for(auto& cmn_tmp:common){
+            for(auto& idx:idx_tmp){
+                auto idx_lock = idx.lock();
+                if(cmn_tmp.center_.has_value() && idx_lock->cmn_.center_.value()!=cmn_tmp.center_.value())
+                    continue;
+                if(cmn_tmp.parameter_.has_value() && idx_lock->cmn_.parameter_.value()!=cmn_tmp.parameter_.value())
+                    continue;
+                if(cmn_tmp.table_version_.has_value() && idx_lock->cmn_.table_version_.value()!=cmn_tmp.table_version_.value())
+                    continue;
+                current.insert(idx);
+            }
+            current.swap(idx_tmp);
+            current.clear();
+        }
+    }
+    else for(auto& [cmn,idx]:common_){
+        for(auto& id:idx)
+            if(!id.expired())
+                idx_tmp.insert(id);
+    }
+    if(idx_tmp.empty())
+        return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+    for(auto& idx:idx_tmp){
+        auto idx_lock = idx.lock();
+        if(idx_lock->grid_.expired())
+            continue;
+        auto grid_lock = idx_lock->grid_.lock();
+        if(grid_type_.has_value() && grid_lock->type()!=*grid_type_)
+            continue;
+        if(top.has_value())
+            if(auto top_tmp = grid_lock->top();top_tmp.has_value() && top.value()>top_tmp.value())
+                continue;
+        if(bottom.has_value())
+            if(auto bottom_tmp = grid_lock->bottom();bottom_tmp.has_value() && bottom.value()<bottom_tmp.value())
+                continue;
+        if(left.has_value())
+            if(auto left_tmp = grid_lock->left();left_tmp.has_value() && left.value()<left_tmp.value())
+                continue;
+        if(right.has_value())
+            if(auto right_tmp = grid_lock->bottom();right_tmp.has_value() && right.value()>right_tmp.value())
+                continue;
+        for(auto& id:idx_tmp)
+            if(!id.expired())
+                current.insert(id);
+        current.swap(idx_tmp);
+        current.clear();
+    }
+    for(auto& [lvl,idx]:levels_){
+
+    }
+    for(auto& [tf,idx]:tf_){
+
+    }
+    for(auto& idx:idx_tmp){
+        auto idx_lock = idx.lock();
+        for(auto& [ts,pos]:idx_lock->ts_pos_){
+            FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_add;
+            to_add.cmn_=idx_lock->cmn_;
+            to_add.add_.fcst_=idx_lock->tf_;
+            to_add.add_.lvl_=idx_lock->lvl_;
+            to_add.add_.grid_=idx_lock->grid_.lock();
+            if(tinterval.has_value() && !ts.get_interval().contains(*tinterval))
+                continue;
+            if(tdiff.has_value() && ts.time_duration()>*tdiff)
+                continue;
+            to_add.add_.ts_=ts;
+            result.push_back(to_add);
+        }
+    }
+    return result;
 }
 
 //@todo make search by forecast, levels etc

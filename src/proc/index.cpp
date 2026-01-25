@@ -20,6 +20,13 @@
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
+ErrorCode add_data(const std::unique_ptr<AbstractDataStruct>& data){
+	if(!data)
+		return ErrorCode::INTERNAL_ERROR;
+	if(data->data_type()==Data_t::TIME_SERIES && data->format_type()==Data_f::GRIB_v1)
+		Mashroom::instance().data().add_data(*dynamic_cast<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>*>(data.get()));
+}
+
 /**
  * @return Return the names of created files with registered grib data
  */ 
@@ -81,7 +88,7 @@ std::vector<GribMsgDataInfo> Index::__index_file__(const fs::path& file){
 	std::vector<GribMsgDataInfo> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		res.emplace_back().err_ = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		return res;
 	}
 	res = std::move(process_file(grib));
@@ -93,7 +100,7 @@ std::pair<fs::path,std::vector<GribMsgDataInfo>> Index::__index_write_file__(con
 	std::pair<fs::path,std::vector<GribMsgDataInfo>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		result.err = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		res.second.emplace_back().err_ = API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		return res;
 	}
 	return __write_file__(process_file(grib));
@@ -176,7 +183,7 @@ void Index::execute() noexcept{
 			std::cout<<err.what()<<std::endl;
 		}
 	}
-	Mashroom::instance().data().add_data(std::move(result.sublime()));
+	Mashroom::instance().data().add_data(std::move(*result.release()));
 }
 
 ErrorCode Index::add_in_path(const path::Storage<false>& path){

@@ -28,7 +28,9 @@ class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
 public:
 
 private:
-    TimePeriod t_off_ = TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0));
+    DateTimeDiff t_off_ = [](){
+        std::error_code err;
+        return DateTimeDiff(err,std::chrono::months(1));}();
     mutable std::string path_format;
     mutable std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
@@ -99,7 +101,7 @@ public:
     {
         return output_format_;
     }
-    ErrorCode set_offset_time_interval(const std::optional<TimePeriod>& t_off) noexcept{
+    ErrorCode set_offset_time_interval(const std::optional<DateTimeDiff>& t_off) noexcept{
         if(!t_off.has_value())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE,"time offset",AT_ERROR_ACTION::CONTINUE);
         t_off_ = t_off.value();
@@ -113,6 +115,9 @@ public:
         else set_output_format(OutputDataFileFormats::DEFAULT|OutputDataFileFormats::ARCHIVED);
         if(form.t_separation_.has_value())
             return set_offset_time_interval(*form.t_separation_);
-        else return set_offset_time_interval(TimePeriod(years(0),months(1),days(0),hours(0),minutes(0),std::chrono::seconds(0)));
+        else{
+            std::error_code err;
+            return set_offset_time_interval(DateTimeDiff(err,std::chrono::months(1)));
+        }
     }
 };

@@ -170,7 +170,7 @@ std::string get_data_header(const ExtractedData& result, const SearchProperties&
 std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path){
     std::unordered_set<fs::path> paths;
     if(extraction_empty(result))
@@ -189,7 +189,7 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
 
     std::vector<int> rows;
     rows.resize(col_vals_.size());
-    utc_tp file_end_time = t_off.get_next_tp(current_time);
+    utc_tp file_end_time = t_off+current_time;
     std::ofstream out;
     fs::path out_f_name;
     using printable_values_t = ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t;
@@ -202,16 +202,16 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
                 current_time = std::min((*col_vals_.at(col))[rows.at(col)].time_date,current_time);
         if(current_time>=file_end_time || row==0){
             out.close();
-            out_f_name/=generate_directory(out_path,round_by_time_period(t_off,current_time));
+            out_f_name/=generate_directory(out_path,round_by_time_diff(t_off,current_time));
             out_f_name/=generate_filename(OutputDataFileFormats::TXT_F,
-                center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_period(t_off,current_time));
+                center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,current_time));
             {
                 make_and_open_file(out,out_f_name);
                 paths.insert(out_f_name);
                 out<<get_file_header(result,props,"");
                 out<<get_data_header(result,props);//@todo add header format text
             }
-            file_end_time = t_off.get_next_tp(current_time);
+            file_end_time = t_off+current_time;
         }
         out<<std::format("{:%Y/%m/%d %H:%M:%S}",time_point_cast<std::chrono::seconds>(current_time))<<'\t';
         for(int col=0;col<col_vals_.size();++col){
@@ -239,7 +239,7 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
 std::unordered_set<fs::path> procedures::extract::write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path){
     std::unordered_set<fs::path> paths;
     utc_tp min_time = utc_tp::max();
@@ -252,7 +252,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
         }
     }
     utc_tp lower_bound_time = min_time;
-    utc_tp upper_bound_time = t_off.get_next_tp(min_time);
+    utc_tp upper_bound_time = t_off+min_time;
     std::ofstream out;
     fs::path out_f_name;
     while(true){
@@ -260,9 +260,9 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             break;
         out.close();
         out_f_name.clear();
-        out_f_name/=generate_directory(out_path,round_by_time_period(t_off,lower_bound_time));
+        out_f_name/=generate_directory(out_path,round_by_time_diff(t_off,lower_bound_time));
         out_f_name/=generate_filename(OutputDataFileFormats::JSON_F,
-            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_period(t_off,lower_bound_time));
+            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
         if(!out.is_open())
             throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
@@ -296,7 +296,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             fs::remove(out_f_name);
         }
         lower_bound_time = upper_bound_time;
-        upper_bound_time = t_off.get_next_tp(upper_bound_time);
+        upper_bound_time = t_off+upper_bound_time;
     }
     return paths;
 }
@@ -304,7 +304,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
 std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path){
     using namespace serialization;
     using namespace std::string_view_literals;
@@ -321,7 +321,7 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
         }
     }
     utc_tp lower_bound_time = min_time;
-    utc_tp upper_bound_time = t_off.get_next_tp(min_time);
+    utc_tp upper_bound_time = t_off+min_time;
     std::ofstream out;
     fs::path out_f_name;
     while(true){
@@ -329,9 +329,9 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
             break;
         out.close();
         out_f_name.clear();
-        out_f_name/=generate_directory(out_path,round_by_time_period(t_off,lower_bound_time));
+        out_f_name/=generate_directory(out_path,round_by_time_diff(t_off,lower_bound_time));
         out_f_name/=generate_filename(OutputDataFileFormats::BIN_F,
-            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_period(t_off,lower_bound_time));
+            center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
         if(!out.is_open())
             throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
@@ -365,7 +365,7 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
             fs::remove(out_f_name);
         }
         lower_bound_time = upper_bound_time;
-        upper_bound_time = t_off.get_next_tp(upper_bound_time);
+        upper_bound_time = t_off+upper_bound_time;
     }
     return paths;
 }

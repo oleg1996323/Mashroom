@@ -66,12 +66,14 @@ namespace parse{
             if(err_==ErrorCode::NONE)
                 hExtract->set_output_format(input);
         }),"Sets the format of the output file(s) containing the extracted data. \nPossible formats: json,bin,txt. Making \"zip+[choosen format]\" or \"[choosen format]+zip\" will archive the generated extraction files.")
-        ("ext-time-period",po::value<TimePeriod>()->default_value(TimePeriod(years(0),
+        ("ext-time-period",po::value<DateTimeDiff>()->default_value([](){
+                                                                    std::error_code err;
+                                                                    return DateTimeDiff(err,years(0),
                                                                     months(1),
                                                                     days(0),
                                                                     hours(0),
                                                                     minutes(0),
-                                                                    std::chrono::seconds(0)))->notifier([this](const TimePeriod& input){
+                                                                    std::chrono::seconds(0));}())->notifier([this](const DateTimeDiff& input){
                                                                         if(err_==ErrorCode::NONE)
                                                                             err_=hExtract->set_offset_time_interval(input);
                                                                     }),

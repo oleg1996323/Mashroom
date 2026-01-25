@@ -37,11 +37,12 @@ void Process<Server>::reply(std::stop_token stop,const Socket& socket){
                     return;
                 else if constexpr (TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
                     auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(index_param.grid_type_,
-                        index_param.time_,index_param.forecast_preference_,
-                        index_param.level_,msg.additional().last_update_);
-                    if(result.has_value())
+                        index_param.tinterval_,index_param.tdiff_,index_param.forecast_preference_,
+                        index_param.level_,index_param.top_,index_param.bottom_,
+                        index_param.left_,index_param.right_,index_param.common_,msg.additional().last_update_);
+                    if(!result.empty())
                         //@todo add access mode
-                        rep_msg.additional().add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result.value()));
+                        rep_msg.additional().add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result));
                     else return;
                 }
                 else static_assert(false);

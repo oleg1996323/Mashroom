@@ -15,13 +15,13 @@ using namespace std::chrono;
 #include "types/time_interval.h"
 struct SearchProperties{
     std::unordered_set<SearchParamTableVersion> parameters_;
-    utc_tp from_date_ = utc_tp(sys_days(1970y/1/1));
-    utc_tp to_date_ = system_clock::now();
+    utc_tp_t<std::chrono::seconds> from_date_ = std::chrono::floor<std::chrono::seconds>(utc_tp(sys_days(1970y/1/1)));
+    utc_tp_t<std::chrono::seconds> to_date_ = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
     std::optional<Coord> position_;
-    std::optional<RepresentationType> grid_type_;
     std::optional<Organization> center_;
     std::optional<TimeForecast> fcst_unit_;
     std::optional<Level> level_;
+    std::optional<RepresentationType> grid_type_;
 };
 
 namespace serialization{
