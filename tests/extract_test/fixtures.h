@@ -32,7 +32,7 @@ class Grib1Fixture: public testing::Test{
         std::weibull_distribution<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t> dist(2.f,7.f);
         {
             auto& val_collection = values[common1];
-            for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
+            for(utc_tp_t<std::chrono::seconds> time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
                 val_collection.emplace_back(time,dist(gen));
         }
         Grib1CommonDataProperties common2;
@@ -43,7 +43,7 @@ class Grib1Fixture: public testing::Test{
         common2.level_=Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
         {
             auto& val_collection = values[common2];
-            for(utc_tp time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
+            for(utc_tp_t<std::chrono::seconds> time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))
                 val_collection.emplace_back(time,dist(gen));
         }
         data_ = values;

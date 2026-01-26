@@ -14,7 +14,7 @@ constexpr std::string_view bindata_filename = std::string_view("data");
 struct __Data__{
     //@todo inherit from API enum
     enum class FORMAT{
-        GRIB_v1
+        GRIB_v1=1
         
         /* 
         GRIB_v2
@@ -30,7 +30,7 @@ struct __Data__{
     };
 
     enum class TYPE:uint8_t{
-        TIME_SERIES = 0,
+        TIME_SERIES = 1,
         GRID,
         POLYGONE,
         ISOLINES

@@ -39,18 +39,18 @@ inline const auto& get_result(const ExtractedData& result){
 std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path);
 
 std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path);
 
 std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
-                        const TimePeriod& t_off,
+                        const DateTimeDiff& t_off,
                         const fs::path& out_path);
 }

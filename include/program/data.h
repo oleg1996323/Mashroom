@@ -14,6 +14,7 @@
 #include "definitions/path_process.h"
 #include <cstdint>
 #include "data/datastruct.h"
+#include "proc/index/index_result.h"
 
 using namespace std::chrono;
 using namespace std::string_literals;
@@ -21,7 +22,7 @@ using namespace std::string_literals;
 namespace fs = std::filesystem;
 class Data:public __Data__{
     protected:
-    mutable std::unordered_set<std::unique_ptr<AbstractDataStruct>> datas_;
+    mutable std::unordered_set<DataStructVariation> datas_;
     std::set<Data_f> unsaved_;
     std::unordered_map<__Data__::FORMAT,fs::path> files_;
     fs::path data_directory_;
@@ -39,9 +40,13 @@ class Data:public __Data__{
     template<Data_t T,Data_f F>
     DataStruct<T,F>& data_struct(){
         decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
-        if(found==datas_.end())
-            found = datas_.insert(std::move(std::make_unique<DataStruct<T,F>>())).first;
-        return *dynamic_cast<DataStruct<T,F>*>(found->get());
+        if(found!=datas_.end() && std::holds_alternative<DataStruct<T,F>>(*found))
+            return const_cast<DataStruct<T,F>&>(std::get<DataStruct<T,F>>(*found));
+        else{
+            DataStructVariation var;
+            var.emplace<DataStruct<T,F>>();
+            return const_cast<DataStruct<T,F>&>(std::get<DataStruct<T,F>>(*datas_.insert(std::move(var)).first));
+        }
     }
     public:    
     void save();
@@ -69,10 +74,13 @@ class Data:public __Data__{
     template<Data_t T,Data_f F>
     const DataStruct<T,F>& data_struct() const{
         decltype(datas_)::const_iterator found = datas_.find(std::make_pair<Data_f,Data_t>(F,T));
-        if(found!=datas_.end())
-            return *dynamic_cast<const DataStruct<T,F>*>(found->get());
-        else
-            return *dynamic_cast<const DataStruct<T,F>*>(datas_.insert(std::make_unique<DataStruct<T,F>>()).first->get());
+        if(found!=datas_.end() && std::holds_alternative<DataStruct<T,F>>(*found))
+            return std::get<DataStruct<T,F>>(*found);
+        else{
+            DataStructVariation var;
+            var.emplace<DataStruct<T,F>>();
+            return std::get<DataStruct<T,F>>(*datas_.insert(std::move(var)).first);
+        }
     }
     const std::unordered_map<Data_f,fs::path>& written_files() const{
         return files_;
@@ -118,7 +126,7 @@ class Data:public __Data__{
     }
 
     template<Data_t T,Data_f F,typename... ARGS>
-    std::vector<FoundSublimedDataInfo<T,F>> find_all(
+    std::vector<SearchDataResult<T,F>> find_all(
         ARGS&&... args
     ) const{
         return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
@@ -148,6 +156,12 @@ class Data:public __Data__{
     template<Data_t T, Data_f F>
     void add_data(DataStruct<T,F>&& data){
         data_struct<T,F>().add_data(std::move(data));
+        unsaved_.insert(F);
+        std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+    }
+    template<Data_t T, Data_f F>
+    void add_data(const path::Storage<false>& path,const std::vector<IndexResultVariant>& data){
+        data_struct<T,F>().add_data(data);
         unsaved_.insert(F);
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }

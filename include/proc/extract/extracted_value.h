@@ -22,13 +22,13 @@ template<Data_f FORMAT>
 struct ExtractedValue<Data_t::TIME_SERIES,FORMAT>
 {
     using value_t = float;
-    using time_type = utc_tp_t<nanoseconds>;
+    using time_type = utc_tp_t<std::chrono::seconds>;
     using fcst_type = uint32_t;
     time_type time_date;
     value_t value = UNDEFINED;
 
     ExtractedValue() = default;
-    ExtractedValue(utc_tp time, value_t val) : time_date(time), value(val){}
+    ExtractedValue(utc_tp_t<std::chrono::seconds> time, value_t val) : time_date(time), value(val){}
     ExtractedValue(const ExtractedValue &other)
     {
         if (this != &other)

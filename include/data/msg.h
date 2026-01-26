@@ -22,7 +22,7 @@
 struct GribMsgDataInfo
 {
     GridInfo grid_data;
-    utc_tp date;
+    utc_tp_t<std::chrono::seconds> date;
     ptrdiff_t buf_pos_;
     TimeForecast t_unit;
     Organization center;
@@ -33,7 +33,7 @@ struct GribMsgDataInfo
     API::ErrorData::Code<API::GRIB1>::value err_ = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
 
     GribMsgDataInfo(GridInfo&& grid_data_,
-        utc_tp&& date_,
+        utc_tp_t<std::chrono::seconds>&& date_,
         ptrdiff_t msg_buf_pos,
         uint32_t msg_size,
         uint8_t parameter_,

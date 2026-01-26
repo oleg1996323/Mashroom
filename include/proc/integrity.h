@@ -36,7 +36,6 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 #include "proc/interfaces/abstractsearchprocess.h"
 class Integrity:public AbstractSearchProcess{
     private:
-    std::unique_ptr<AbstractDataStruct> data_;
     TimePeriod t_off_;
     std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>::value>> file_errors_;
     std::string time_result_format = "{:%Y/%m}";
@@ -74,12 +73,5 @@ class Integrity:public AbstractSearchProcess{
         time_format_tmp+="Y%";
         std::reverse(time_format_tmp.begin(),time_format_tmp.end());
         time_format_tmp="{:"+time_format_tmp+"}";
-    }
-
-    void clear_result(){
-        data_.reset(nullptr);
-    }
-    std::unique_ptr<AbstractDataStruct>&& release_result() noexcept{
-        return std::move(data_);
     }
 };

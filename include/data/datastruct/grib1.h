@@ -1,5 +1,5 @@
 #pragma once
-#include "datastructdef.h"
+#include "searchdataresult.h"
 #include "data/msg.h"
 #include <string>
 #include <unordered_map>
@@ -11,11 +11,12 @@
 #include "API/grib1/include/sections/grid/grid.h"
 #include "types/time_interval.h"
 #include <boost/functional/hash.hpp>
+#include "proc/index/index_result.h"
 
 using Grib1Data = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
 template<>
-struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct{
+struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     using sublimed_data_by_common_data = std::unordered_map<std::shared_ptr<Grib1CommonDataProperties>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
     using sublimed_data_by_date_time = std::map<std::shared_ptr<TimeSequence>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
     using sublimed_data_by_grid = std::unordered_map<std::shared_ptr<GridInfo>,std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>>>;
@@ -36,7 +37,12 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
         TimeForecast tf_;
         Grib1CommonDataProperties cmn_;
         Level lvl_;
-
+        constexpr Data_t type() const noexcept{
+            return Data_t::TIME_SERIES;
+        }
+        constexpr Data_f format() const noexcept{
+            return Data_f::GRIB_v1;
+        }
         struct Hash{
             using is_transparent = std::true_type;
             size_t operator()(const IndexStruct& val) const{
@@ -136,12 +142,77 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
     DataStruct(DataStruct&& other):
     index_(std::move(other.index_)){}
 
-    constexpr virtual Data_f format_type() const noexcept override{
-        return Data_f::GRIB_v1;
-    }
-    constexpr virtual Data_t data_type() const noexcept override{
-        return Data_t::TIME_SERIES;
-    }
+    std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>> match_data(
+        Organization center,
+        std::optional<TimeForecast> time_fcst,
+        std::optional<Level> level_,
+        const std::unordered_set<SearchParamTableVersion>& parameters,
+        TimeInterval time_interval,
+        RepresentationType rep_t,
+        Coord pos
+    ) const;
+
+    std::vector<ptrdiff_t> match(
+        path::Storage<true> path,
+        Organization center,
+        std::optional<TimeForecast> time_fcst,
+        std::optional<Level> level_,
+        const std::unordered_set<SearchParamTableVersion>& parameters,
+        TimeInterval time_interval,
+        RepresentationType rep_t,
+        Coord pos
+    ) const;
+
+    std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>> find_all(std::optional<RepresentationType> grid_type_,
+                        std::optional<TimeInterval> tinterval,
+                        std::optional<DateTimeDiff> tdiff,
+                        std::optional<TimeForecast> forecast_preference_,
+                        std::optional<Level> level_,
+                        std::optional<Lat> top,
+                        std::optional<Lat> bottom,
+                        std::optional<Lon> left,
+                        std::optional<Lon> right,
+                        const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& common_,
+                        utc_tp last_update_) const;
+
+    static std::unordered_set<Grib1CommonDataProperties> get_parameter_variations(Organization center,
+    std::optional<TimeForecast> time_fcst,
+    std::optional<Level> level_,
+    const std::unordered_set<SearchParamTableVersion>& parameters) noexcept;
+
+    using match_data_t = std::invoke_result_t<  decltype(&DataStruct::match_data),
+                                                    DataStruct*,
+                                                    Organization,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
+                                                    const std::unordered_set<SearchParamTableVersion>&,
+                                                    TimeInterval,
+                                                    RepresentationType,
+                                                    Coord>;
+    using match_t = std::invoke_result_t<           decltype(&DataStruct::match),
+                                                    DataStruct*,
+                                                    path::Storage<true>,
+                                                    Organization,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
+                                                    const std::unordered_set<SearchParamTableVersion>&,
+                                                    TimeInterval,
+                                                    RepresentationType,
+                                                    Coord>;
+    using find_all_t = std::invoke_result_t<      decltype(&DataStruct::find_all),
+                                                    DataStruct*,
+                                                    std::optional<RepresentationType>,
+                                                    std::optional<TimeInterval>,
+                                                    std::optional<DateTimeDiff>,
+                                                    std::optional<TimeForecast>,
+                                                    std::optional<Level>,
+                                                    std::optional<Lat>,
+                                                    std::optional<Lat>,
+                                                    std::optional<Lon>,
+                                                    std::optional<Lon>,
+                                                    const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>&,
+                                                    utc_tp>;
+
     void delete_index(const path::Storage<false>& path){
         if(auto found = paths_.find(path);found!=paths_.end()){
             std::unordered_set<std::shared_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> removed;
@@ -170,8 +241,12 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
             else{
                 if(!data->grid_.expired() && !data->path_.expired()){
                     std::shared_ptr<IndexStruct> index = std::make_shared<IndexStruct>(*data);
-                    if(auto found_path = paths_.find(*index->path_.lock());found_path!=paths_.end())
-                        delete_index(*found_path->first); //rewrite file indexation
+                    std::shared_ptr<path::Storage<false>> path;
+                    if(auto found_path = paths_.find(*index->path_.lock());found_path!=paths_.end()){
+                        *path=*index->path_.lock();
+                        index->path_=path;
+                    }
+                    else
                     {
                         auto iter = paths_.insert(std::make_pair(std::make_shared<path::Storage<false>>(*index->path_.lock()),
                                 std::unordered_set<std::weak_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal>())).first;
@@ -225,119 +300,87 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>:public AbstractDataStruct
         add_data(other.index_);
     }
     
-    void add_data(const std::string& path,/* std::ranges::range  auto*/ const std::vector<GribMsgDataInfo>& grib_msg, std::error_code& err)
+    void add_data(const std::string& path,/* std::ranges::range  auto*/ const std::vector<IndexResultVariant>& grib_msg, std::error_code& err)
     // requires(std::is_same_v<typename std::decay_t<decltype(grib_msg)>::value_type,GribMsgDataInfo>)
     {   
-        auto file = path::Storage<false>::file(path,std::chrono::system_clock::now());
-        if(paths_.contains(file))
-            delete_index(file);
-        if(!std::is_sorted(grib_msg.begin(),grib_msg.end(),[](const GribMsgDataInfo& lhs,const GribMsgDataInfo& rhs){return lhs.date<rhs.date;})){
-            err = std::make_error_code(std::errc::invalid_argument);
-            return;
+        {
+            utc_tp_t<std::chrono::seconds> last;
+            bool contains_need_type = false;
+            if(!std::is_sorted(grib_msg.begin(),grib_msg.end(),[&last,&contains_need_type](const IndexResultVariant& lhs,const IndexResultVariant& rhs)
+                {
+                    if(std::holds_alternative<GribMsgDataInfo>(lhs)){
+                        last = std::get<GribMsgDataInfo>(lhs).date;
+                        contains_need_type = true;
+                    }
+                    if(std::holds_alternative<GribMsgDataInfo>(rhs)){
+                        contains_need_type = true;
+                        return last<std::get<GribMsgDataInfo>(rhs).date;
+                    }
+                    else
+                        return true;
+                }))
+            {
+                err = std::make_error_code(std::errc::invalid_argument);
+                return;
+            }
+            if(!contains_need_type)
+                return;
         }
+        auto file = std::make_shared<path::Storage<false>>(path::Storage<false>::file(path,std::chrono::system_clock::now()));
         std::unordered_set<std::shared_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> idxs_tmp;
-        for(auto& msg:grib_msg){
-            if(msg.err_==API::ErrorData::ErrorCode<API::GRIB1>::NONE_ERR){
-                std::shared_ptr<IndexStruct> idx_tmp = std::make_shared<IndexStruct>();
-                idx_tmp->cmn_=Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter);
-                idx_tmp->lvl_=msg.level_;
-                idx_tmp->tf_=msg.t_unit;
-                if(auto found_grid =grids_.find(msg.grid_data);found_grid!=grids_.end())
-                    idx_tmp->grid_=found_grid->first;
-                else idx_tmp->grid_ = std::make_shared<GridInfo>(msg.grid_data);
-                if(auto found_path = paths_.find(file);found_path!=paths_.end())
-                    idx_tmp->path_=found_path->first;
-                else idx_tmp->path_ = std::make_shared<path::Storage<false>>(path::Storage<false>::file(path,std::chrono::system_clock::now()));
-                if(auto found = idxs_tmp.find(idx_tmp);found!=idxs_tmp.end()){
-                    std::error_code err_tmp;
-                    if((*found)->ts_pos_.back().first.push_time(msg.date,err) && err==std::error_code())
-                        continue;
-                    else 
-                        (*found)->ts_pos_.push_back(std::make_pair<TimeSequence,std::vector<ptrdiff_t>>(TimeSequence(msg.date),{msg.buf_pos_}));
+        auto lambda = [this,&file,&idxs_tmp,&err](const auto& msg)
+        {
+            using T = std::decay_t<decltype(msg)>;
+            if constexpr(std::is_same_v<T,GribMsgDataInfo>){
+                if(msg.err_==API::ErrorData::ErrorCode<API::GRIB1>::NONE_ERR){
+                    std::shared_ptr<IndexStruct> idx_tmp = std::make_shared<IndexStruct>();
+                    idx_tmp->cmn_=Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter);
+                    idx_tmp->lvl_=msg.level_;
+                    idx_tmp->tf_=msg.t_unit;
+                    if(auto found_grid =grids_.find(msg.grid_data);found_grid!=grids_.end())
+                        idx_tmp->grid_=found_grid->first;
+                    else idx_tmp->grid_ = std::make_shared<GridInfo>(msg.grid_data);
+                    if(auto found_path = paths_.find(file);found_path!=paths_.end())
+                        idx_tmp->path_=found_path->first;
+                    else idx_tmp->path_ = file;
+                    if(auto found = idxs_tmp.find(idx_tmp);found!=idxs_tmp.end()){
+                        std::error_code err_tmp;
+                        if((*found)->ts_pos_.back().first.push_time(msg.date,err) && err==std::error_code())
+                            return;
+                        else 
+                            (*found)->ts_pos_.push_back(std::make_pair<TimeSequence,std::vector<ptrdiff_t>>(TimeSequence(msg.date),{msg.buf_pos_}));
+                    }
+                    else{
+                        auto iter = *idxs_tmp.insert(idx_tmp).first;
+                        iter->ts_pos_.push_back(std::make_pair<TimeSequence,std::vector<ptrdiff_t>>(TimeSequence(msg.date),{msg.buf_pos_}));
+                    }
                 }
                 else{
-                    auto iter = *idxs_tmp.insert(idx_tmp).first;
-                    iter->ts_pos_.push_back(std::make_pair<TimeSequence,std::vector<ptrdiff_t>>(TimeSequence(msg.date),{msg.buf_pos_}));
+                    err=std::make_error_code(std::errc::bad_message);
+                    return;
                 }
-            }
-            else{
-                err=std::make_error_code(std::errc::bad_message);
-                continue;
-            }
+                return;
+            }  
+        };
+        for(auto& msg:grib_msg){
+            std::visit(lambda,msg);
         }
-        add_data(idxs_tmp);            
+        add_data(idxs_tmp);
     }
 
-    std::unordered_map<path::Storage<true>,std::vector<ptrdiff_t>> match_data(
-        Organization center,
-        std::optional<TimeForecast> time_fcst,
-        std::optional<Level> level_,
-        const std::unordered_set<SearchParamTableVersion>& parameters,
-        TimeInterval time_interval,
-        RepresentationType rep_t,
-        Coord pos
-    ) const;
-
-    std::vector<ptrdiff_t> match(
-        path::Storage<true> path,
-        Organization center,
-        std::optional<TimeForecast> time_fcst,
-        std::optional<Level> level_,
-        const std::unordered_set<SearchParamTableVersion>& parameters,
-        TimeInterval time_interval,
-        RepresentationType rep_t,
-        Coord pos
-    ) const;
-
-    std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> find_all(std::optional<RepresentationType> grid_type_,
-                        std::optional<TimeInterval> tinterval,
-                        std::optional<DateTimeDiff> tdiff,
-                        std::optional<TimeForecast> forecast_preference_,
-                        std::optional<Level> level_,
-                        std::optional<Lat> top,
-                        std::optional<Lat> bottom,
-                        std::optional<Lon> left,
-                        std::optional<Lon> right,
-                        const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& common_,
-                        utc_tp last_update_) const;
-
-    static std::unordered_set<Grib1CommonDataProperties> get_parameter_variations(Organization center,
-    std::optional<TimeForecast> time_fcst,
-    std::optional<Level> level_,
-    const std::unordered_set<SearchParamTableVersion>& parameters) noexcept;
-
-    using match_data_t = std::invoke_result_t<  decltype(&DataStruct::match_data),
-                                                    DataStruct*,
-                                                    Organization,
-                                                    std::optional<TimeForecast>,
-                                                    std::optional<Level>,
-                                                    const std::unordered_set<SearchParamTableVersion>&,
-                                                    TimeInterval,
-                                                    RepresentationType,
-                                                    Coord>;
-    using match_t = std::invoke_result_t<           decltype(&DataStruct::match),
-                                                    DataStruct*,
-                                                    path::Storage<true>,
-                                                    Organization,
-                                                    std::optional<TimeForecast>,
-                                                    std::optional<Level>,
-                                                    const std::unordered_set<SearchParamTableVersion>&,
-                                                    TimeInterval,
-                                                    RepresentationType,
-                                                    Coord>;
-    using find_all_t = std::invoke_result_t<      decltype(&DataStruct::find_all),
-                                                    DataStruct*,
-                                                    std::optional<RepresentationType>,
-                                                    std::optional<TimeInterval>,
-                                                    std::optional<DateTimeDiff>,
-                                                    std::optional<TimeForecast>,
-                                                    std::optional<Level>,
-                                                    std::optional<Lat>,
-                                                    std::optional<Lat>,
-                                                    std::optional<Lon>,
-                                                    std::optional<Lon>,
-                                                    const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>&,
-                                                    utc_tp>;
+    void add_data(const path::Storage<false>& path,const DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t& data){
+        auto file = std::make_shared<path::Storage<false>>(path);
+        for(const auto& found_data:data){
+            std::shared_ptr<IndexStruct> id = std::make_shared<IndexStruct>();
+            id->cmn_=found_data.cmn_;
+            id->grid_=found_data.add_.grid_;
+            id->lvl_=found_data.add_.lvl_;
+            id->path_=file;
+            id->tf_=found_data.add_.fcst_;
+            id->ts_pos_.push_back(std::make_pair(found_data.add_.ts_,std::vector<ptrdiff_t>()));
+            add_data(id);
+        }
+    }
 };
 
 

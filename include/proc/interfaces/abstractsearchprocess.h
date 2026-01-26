@@ -112,14 +112,14 @@ class AbstractSearchProcess{
     void set_from_date(ARG&& from){
         props_.from_date_ = std::forward<ARG>(from);
     }
-    utc_tp date_from() const{
+    utc_tp_t<std::chrono::seconds> date_from() const{
         return props_.from_date_;
     }
     template<typename ARG>
     void set_to_date(ARG&& to){
         props_.to_date_ = std::forward<ARG>(to);
     }
-    utc_tp date_to() const{
+    utc_tp_t<std::chrono::seconds> date_to() const{
         return props_.to_date_;
     }
     void set_grid_respresentation(RepresentationType grid_type){

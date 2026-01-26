@@ -46,7 +46,7 @@ struct ProductDefinitionSection
 	unsigned char day() const noexcept;
 	unsigned char hour() const noexcept;
 	unsigned char minute() const noexcept;
-	std::chrono::system_clock::time_point reference_time() const noexcept{
+	utc_tp_t<std::chrono::seconds> reference_time() const noexcept{
 		return sys_days(year_month_day(std::chrono::year(year())/month()/day())) + hh_mm_ss(hours(hour())+minutes(minute())).to_duration();
 	}
 	TimeFrame unit_time_range() const noexcept;

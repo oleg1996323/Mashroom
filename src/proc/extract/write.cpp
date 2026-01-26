@@ -175,7 +175,7 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
     std::unordered_set<fs::path> paths;
     if(extraction_empty(result))
         return paths;
-    utc_tp current_time = utc_tp::max();
+    utc_tp_t<std::chrono::seconds> current_time = utc_tp_t<std::chrono::seconds>::max();
     size_t max_length = 0;
     auto col_vals_ = get_columns(result);
     for(auto& [cmn_data,values]:get_result(result)){
@@ -189,14 +189,14 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
 
     std::vector<int> rows;
     rows.resize(col_vals_.size());
-    utc_tp file_end_time = t_off+current_time;
+    utc_tp_t<std::chrono::seconds> file_end_time = t_off+current_time;
     std::ofstream out;
     fs::path out_f_name;
     using printable_values_t = ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t;
     for(int row=0;row<max_length;++row){
         if(stop_token.stop_requested())
             throw ErrorException(ErrorCode::INTERRUPTED,std::string_view("writting txt files"));
-        current_time = utc_tp::max();
+        current_time = utc_tp_t<std::chrono::seconds>::max();
         for(int col=0;col<col_vals_.size();++col)
             if(rows[col]<col_vals_[col]->size())
                 current_time = std::min((*col_vals_.at(col))[rows.at(col)].time_date,current_time);
@@ -242,8 +242,8 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
                         const DateTimeDiff& t_off,
                         const fs::path& out_path){
     std::unordered_set<fs::path> paths;
-    utc_tp min_time = utc_tp::max();
-    utc_tp max_time = utc_tp::min();
+    utc_tp_t<std::chrono::seconds> min_time = utc_tp_t<std::chrono::seconds>::max();
+    utc_tp_t<std::chrono::seconds> max_time = utc_tp_t<std::chrono::seconds>::min();
     for(auto& [cmn_data,values]:get_result(result)){
         std::sort(values.begin(),values.end(),std::less());
         if(!values.empty()){
@@ -251,8 +251,8 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             max_time = std::max(values.front().time_date,max_time);
         }
     }
-    utc_tp lower_bound_time = min_time;
-    utc_tp upper_bound_time = t_off+min_time;
+    utc_tp_t<std::chrono::seconds> lower_bound_time = min_time;
+    utc_tp_t<std::chrono::seconds> upper_bound_time = t_off+min_time;
     std::ofstream out;
     fs::path out_f_name;
     while(true){
@@ -311,8 +311,8 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
     std::unordered_set<fs::path> paths;
     if(extraction_empty(result))
         return paths;
-    utc_tp min_time = utc_tp::max();
-    utc_tp max_time = utc_tp::min();
+    utc_tp_t<std::chrono::seconds> min_time = utc_tp_t<std::chrono::seconds>::max();
+    utc_tp_t<std::chrono::seconds> max_time = utc_tp_t<std::chrono::seconds>::min();
     for(auto& [cmn_data,values]:get_result(result)){
         std::sort(values.begin(),values.end(),std::less());
         if(!values.empty()){
@@ -320,8 +320,8 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
             max_time = std::max(values.front().time_date,max_time);
         }
     }
-    utc_tp lower_bound_time = min_time;
-    utc_tp upper_bound_time = t_off+min_time;
+    utc_tp_t<std::chrono::seconds> lower_bound_time = min_time;
+    utc_tp_t<std::chrono::seconds> upper_bound_time = t_off+min_time;
     std::ofstream out;
     fs::path out_f_name;
     while(true){

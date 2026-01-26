@@ -80,8 +80,8 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
     for(const auto& [filename,file_data]:sublimed_grib_data.data()){
         for(const auto& [cmn,sublimed_data_seq]:file_data){
             for(const auto& sublimed_data:sublimed_data_seq){
-                utc_tp beg_period = t_off_.get_null_aligned_tp(sublimed_data.sequence_time_.get_interval().from(),props_.from_date_);
-                utc_tp end_period;
+                utc_tp_t<std::chrono::seconds> beg_period = t_off_.get_null_aligned_tp(sublimed_data.sequence_time_.get_interval().from(),props_.from_date_);
+                utc_tp_t<std::chrono::seconds> end_period;
                 std::error_code err;
                 DateTimeDiff discretion =    sublimed_data.sequence_time_.time_duration()!=DateTimeDiff()?
                                                                 sublimed_data.sequence_time_.time_duration():DateTimeDiff(err,std::chrono::seconds(1));
