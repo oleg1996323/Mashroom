@@ -30,17 +30,6 @@ ErrorCode add_data(const DataStructVariation& data){
 	std::visit(lambda,data);
 }
 
-ErrorCode add_data(path::Storage<false> file,IndexResultVariant&& data){
-	auto lambda = [](auto&& d){
-		using T = std::decay_t<decltype(d)>;
-		if constexpr(std::is_same_v<T,std::monostate>)
-			return;
-		else if constexpr(std::is_same_v<GribMsgDataInfo,T>)
-			Mashroom::instance().data().add_data()
-	};
-
-}
-
 /**
  * @return Return the names of created files with registered grib data
  */ 
@@ -48,12 +37,12 @@ std::pair<fs::path,std::vector<IndexResultVariant>> Index::__write_file__(const 
 	std::pair<fs::path,std::vector<IndexResultVariant>> result;
 	if(!fs::exists(dest_directory_.value()))
 		throw std::runtime_error("Unavailable write directory"s + dest_directory_->c_str());
-	for(const IndexResultVariant& msg_info:data_){
+	for(const IndexResultVariant& msg:data_){
 		fs::path filename;
 		switch (output_format_)
 		{
 			case IndexOutputFileFormat::JSON:{
-				auto write_json_loc = [&result](const auto& msg_info){
+				auto write_json_loc = [this,&result,&filename,&data_](const auto& msg_info){
 					using T = std::decay_t<decltype(msg_info)>;
 					if constexpr(std::is_same_v<T,std::monostate>)
 						return;
@@ -69,6 +58,7 @@ std::pair<fs::path,std::vector<IndexResultVariant>> Index::__write_file__(const 
 					}
 					else static_assert(false,"Not implemented");
 				};
+				std::visit(write_json_loc,msg);
 			}
 				break;
 			

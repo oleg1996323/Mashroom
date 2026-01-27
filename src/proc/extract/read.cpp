@@ -217,8 +217,6 @@ namespace txt::details{
             return Data_t::TIME_SERIES;
         }
         std::vector<procedures::extract::details::ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> param_info_;
-        Coord pos_;
-        RepresentationType grid_t_;
         int version_ = 0;
     };
 
@@ -230,8 +228,6 @@ namespace txt::details{
         result.parameter_ = get_txt_token<uint8_t>(file,"indicator",filename);
         result.table_version_ = get_txt_token<uint8_t>(file,"table version",filename);
         result.center_ = get_txt_token<Organization>(file,"center",filename);
-        result.fcst_unit_ = get_txt_structure<TimeForecast>(file,filename);
-        result.level_ = get_txt_structure<Level>(file,filename);
         return result;
     }
 
@@ -240,6 +236,8 @@ namespace txt::details{
         procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> result;
         result.fcst_ = get_txt_structure<TimeForecast>(file,filename);
         result.level_ = get_txt_structure<Level>(file,filename);
+        result.pos_ = Coord{.lat_ = get_txt_token<Lat>(file,"latitude",filename),
+                            .lon_=get_txt_token<Lon>(file,"longitude",filename)};
         return result;
     }
     
@@ -249,12 +247,9 @@ namespace txt::details{
         if constexpr(TYPE == Data_t::TIME_SERIES){
             if constexpr(FORMAT==Data_f::GRIB_v1){
                 result.version_ = get_txt_token<int>(file,"version",filename);
-                result.pos_ = Coord{.lat_ = get_txt_token<Lat>(file,"latitude",filename),
-                                    .lon_=get_txt_token<Lon>(file,"longitude",filename)};
-                result.grid_t_ = get_txt_token<RepresentationType>(file,"grid",filename);
                 size_t number_of_parameters = get_txt_token<size_t>(file,"parameters",filename);
                 for(size_t i = 0;i<number_of_parameters;++i)
-                    result.param_info_.push_back(get_common_data_properties<FORMAT,TYPE>(file,filename));
+                    result.param_info_.emplace_back(get_common_data_properties<FORMAT,TYPE>(file,filename),get_additional_data_properties<FORMAT,TYPE>(file,filename));
                 return result;
             }
             else static_assert(false,"Not implemented");

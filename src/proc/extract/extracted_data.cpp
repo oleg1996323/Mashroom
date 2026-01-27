@@ -1,4 +1,5 @@
 #include "proc/extract/extracted_data.h"
+#include "proc/extract/extracted_value.h"
 
 template<>
 boost::json::value to_json(const procedures::extract::details::ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& data){

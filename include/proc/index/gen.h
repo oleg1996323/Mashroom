@@ -42,7 +42,7 @@ std::string generate_formatted(ARGS&& arg){
         return std::vformat(format(DIR_TREE_TOKEN::MONTH),std::make_format_args(month));  
         return std::vformat(format(DIR_TREE_TOKEN::DAY),std::make_format_args(day));             
     }
-    else if constexpr(std::is_same_v<type,utc_tp>){
+    else if constexpr(IsTimePoint<type>){
         auto ymd = year_month_day(floor<days>(arg));
         auto year = ymd.year();
         auto month = ymd.month();

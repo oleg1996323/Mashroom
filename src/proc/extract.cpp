@@ -201,7 +201,7 @@ ErrorCode Extract::execute() noexcept{
             std::sort(positions.begin(),positions.end());
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
-            __extract__(path.path_,result,positions);
+            __extract__(fs::path(path.path_),result,positions);
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
         }
@@ -226,4 +226,19 @@ ErrorCode Extract::execute() noexcept{
         
     __write_file__(result,output_format_);
     return ErrorCode::NONE;
+}
+
+ErrorCode Extract::__extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>& positions){
+    auto auto_unpack = [this,&file,&ref_data,&positions](auto& data){
+        using T = std::decay_t<decltype(data)>;
+        if constexpr(std::is_same_v<T,std::monostate>)
+            return ErrorCode::NONE;
+        else {
+            auto internal_auto_unpack=[this,&file,&ref_data,&positions]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
+                return __extract__<TYPE,FORMAT>(file,ref_data,positions);
+            };
+            return internal_auto_unpack(data);
+        }
+    };
+    return std::visit(auto_unpack,ref_data);
 }

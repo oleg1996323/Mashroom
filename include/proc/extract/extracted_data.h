@@ -2,7 +2,10 @@
 
 #include "data/common_data_properties.h"
 #include "extracted_value.h"
+#include "sections/grid/grid.h"
+#include "types/coord.h"
 #include <memory>
+#include <boost/functional/hash.hpp>
 
 namespace procedures::extract::details{
 
@@ -14,7 +17,18 @@ struct AdditionalExtractDataProperties:std::monostate{
 template<>
 struct AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     TimeForecast fcst_;
+    GridInfo grid_;
+    Coord pos_;
     Level level_;
+
+    size_t hash() const{
+        size_t result = 0;
+        boost::hash_combine(result,std::hash<TimeForecast>()(fcst_));
+        boost::hash_combine(result,std::hash<GridInfo>()(grid_));
+        boost::hash_combine(result,std::hash<Coord>()(pos_));
+        boost::hash_combine(result,std::hash<Level>()(level_));
+        return result;
+    }
 };
 
 template<Data_t TYPE,Data_f FORMAT>
@@ -23,7 +37,7 @@ struct ExtractDataProperties{
     CommonDataProperties<TYPE,FORMAT> cmn_;
 
     ExtractDataProperties(const CommonDataProperties<TYPE,FORMAT>& cmn):cmn_(cmn){
-        static_assert(std::is_base_of_v<std::monostate,AdditionalExtractDataProperties<TYPE,FORMAT>>);
+        static_assert(!std::is_base_of_v<std::monostate,AdditionalExtractDataProperties<TYPE,FORMAT>>);
     }
     ExtractDataProperties(const CommonDataProperties<TYPE,FORMAT>& cmn, const AdditionalExtractDataProperties<TYPE,FORMAT>& add):cmn_(cmn),add_(add){
         static_assert(!std::is_base_of_v<std::monostate,AdditionalExtractDataProperties<TYPE,FORMAT>>);
@@ -48,7 +62,10 @@ struct ExtractDataProperties{
 
     size_t hash() const
     {
-        return  hash(cmn_,add_);
+        size_t result = 0;
+        boost::hash_combine(result,std::hash<CommonDataProperties<TYPE,FORMAT>>()(cmn_));
+        boost::hash_combine(result,add_.hash());
+        return  result;
     }
 
     bool operator<(const std::shared_ptr<ExtractDataProperties>& other) const{
@@ -95,6 +112,12 @@ template<Data_t TYPE,Data_f FORMAT>
 struct std::hash<procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>{
     size_t operator()(const procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>& cs) const{
         return cs.hash();
+    }
+    size_t operator()(const std::shared_ptr<procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>& node_ptr) const{
+        return std::hash<procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>{}(*node_ptr);
+    }
+    size_t operator()(const std::weak_ptr<procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>& node_ptr) const{
+        return std::hash<procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>{}(*node_ptr.lock());
     }
 };
 #include <memory>
@@ -320,6 +343,8 @@ namespace serialization{
 }
 
 #include "boost_functional/json.h"
+#include <map>
+#include <vector>
 
 template<>
 boost::json::value to_json(const procedures::extract::details::ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props);

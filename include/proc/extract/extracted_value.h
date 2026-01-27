@@ -103,9 +103,6 @@ class std::hash<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>
     }
 };
 
-
-
-
 namespace serialization{
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{

@@ -161,9 +161,12 @@ class Data:public __Data__{
     }
     template<Data_t T, Data_f F>
     void add_data(const path::Storage<false>& path,const std::vector<IndexResultVariant>& data){
-        data_struct<T,F>().add_data(data);
-        unsaved_.insert(F);
-        std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+        std::error_code err;
+        data_struct<T,F>().add_data(path.path_,data,err);
+        if(err==std::error_code()){
+            unsaved_.insert(F);
+            std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+        }
     }
 };
 

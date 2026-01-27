@@ -142,7 +142,7 @@ std::vector<ptrdiff_t> Grib1Data::match(
     // return result;
 }
 
-std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
+std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Data::find_all(std::optional<RepresentationType> grid_type_,
                         std::optional<TimeInterval> tinterval,
                         std::optional<DateTimeDiff> tdiff,
                         std::optional<TimeForecast> forecast_preference,
@@ -154,7 +154,7 @@ std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Dat
                         const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& common,
                         utc_tp last_update_) const
 {
-    std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
+    std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
     std::unordered_set<std::weak_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> idx_tmp;
     std::unordered_set<std::weak_ptr<IndexStruct>,IndexStruct::Hash,IndexStruct::Equal> current;
     auto check_update = [last_update_](const auto& add_path){
@@ -174,7 +174,7 @@ std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Dat
         else continue;
     }
     if(idx_tmp.empty())
-        return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+        return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     if(!common.empty()){
         for(auto& cmn_tmp:common){
             for(auto& idx:idx_tmp){
@@ -197,7 +197,7 @@ std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Dat
                 idx_tmp.insert(id);
     }
     if(idx_tmp.empty())
-        return std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+        return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     for(auto& idx:idx_tmp){
         auto idx_lock = idx.lock();
         if(idx_lock->grid_.expired())
@@ -232,7 +232,7 @@ std::vector<FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>> Grib1Dat
     for(auto& idx:idx_tmp){
         auto idx_lock = idx.lock();
         for(auto& [ts,pos]:idx_lock->ts_pos_){
-            FoundSublimedDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_add;
+            SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_add;
             to_add.cmn_=idx_lock->cmn_;
             to_add.add_.fcst_=idx_lock->tf_;
             to_add.add_.lvl_=idx_lock->lvl_;

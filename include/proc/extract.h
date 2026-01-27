@@ -36,7 +36,7 @@ private:
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     template<Data_t T,Data_f F>
     ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>&);
-
+    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>&);
     ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
     ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const;
 public:
