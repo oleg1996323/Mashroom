@@ -21,13 +21,17 @@ using namespace std::chrono;
 ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in path not defined
     ErrorCode result = ErrorCode::NONE;
     std::vector<fs::directory_entry> entries;
+    std::unordered_set<DataStructVariation> file_indexation;
+    ErrorCode err;
     for(auto& path:in_path_){
         switch(path.type_){
             case path::TYPE::DIRECTORY:{
                 for(const fs::directory_entry& entry: fs::directory_iterator(path.path_))
                     entries.push_back(entry);
                 {
-                    __process_core__(entries); //temporary solution before paralleling
+                    auto result = __check_file_data_integrity__(entries,err);
+                    if(err==ErrorCode::NONE)
+                        file_indexation.insert(std::move(result)); //temporary solution before paralleling
 
                     //TODO:
                     // if(entries.size()/cpus>1){ //check if HDD or SSD
@@ -41,7 +45,7 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                     //                                                                             );
                     //         std::mutex mute_at_print;
                     //         threads.at(cpu) = std::move(std::thread([this,r,&mute_at_print]() mutable{
-                    //                             __process_core__(std::move(r),&mute_at_print);
+                    //                             __check_file_data_integrity__(std::move(r),&mute_at_print);
                     //                         }));
                     //     }
                     //     for(int i = 0;i<cpus;++i){
@@ -50,23 +54,27 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                     //     threads.clear();
                     // }
                     // else
-                    //     __process_core__(entries);
+                    //     __check_file_data_integrity__(entries);
                 }
+                continue;
             }
             case path::TYPE::FILE:{
                 entries.push_back(fs::directory_entry(path.path_));
-                __process_core__(entries);
+                auto result = __check_file_data_integrity__(entries,err);
+                if(err==ErrorCode::NONE)
+                    file_indexation.insert(std::move(result)); //temporary solution before paralleling
+                continue;
             }
             case path::TYPE::HOST:{
                 if(path.add_.is<path::TYPE::HOST>())
                     Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_);
+                continue;
             }
             default:{
-
+                return err;
             }
         }
     }
-    auto sublimed_grib_data = data_.sublime();
     std::ofstream missing_log(out_path_/missed_data,std::ios::out|std::ios::trunc);
     if(!missing_log.is_open()){
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/missed_data).c_str());
@@ -77,46 +85,37 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
         ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/access_data).c_str());
         return ErrorCode::CANNOT_OPEN_FILE_X1;
     }
-    for(const auto& [filename,file_data]:sublimed_grib_data.data()){
-        for(const auto& [cmn,sublimed_data_seq]:file_data){
-            for(const auto& sublimed_data:sublimed_data_seq){
-                utc_tp_t<std::chrono::seconds> beg_period = t_off_.get_null_aligned_tp(sublimed_data.sequence_time_.get_interval().from(),props_.from_date_);
-                utc_tp_t<std::chrono::seconds> end_period;
-                std::error_code err;
-                DateTimeDiff discretion =    sublimed_data.sequence_time_.time_duration()!=DateTimeDiff()?
-                                                                sublimed_data.sequence_time_.time_duration():DateTimeDiff(err,std::chrono::seconds(1));
-                end_period = t_off_.get_next_tp(sublimed_data.sequence_time_.get_interval().from())-discretion;
-                auto from = sublimed_data.sequence_time_.get_interval().from();
-                auto to = sublimed_data.sequence_time_.get_interval().to();
-                if(from<=beg_period){
-                    if(to<end_period){
-                        accessible_data<<std::vformat(this->time_result_format,std::make_format_args(from))<<"-"<<
-                        std::vformat(this->time_result_format,std::make_format_args(to))<<std::endl;
-                    }
-                    else missing_log<<sublimed_data.sequence_time_.get_interval().to()<<"-"<<end_period<<std::endl;
-                }
-                else {
-                    missing_log<<std::vformat(this->time_result_format,std::make_format_args(beg_period))<<"-"<<
-                        std::vformat(this->time_result_format,std::make_format_args(from))<<std::endl;
-                    if(to<end_period)
-                        missing_log<<std::vformat(this->time_result_format,std::make_format_args(to))<<"-"<<
-                        std::vformat(this->time_result_format,std::make_format_args(end_period))<<std::endl;
-                }
-                accessible_data<<std::vformat(this->time_result_format,std::make_format_args(from))<<"-"<<
-                std::vformat(this->time_result_format,std::make_format_args(to))<<std::endl;
-            }
-        }
-    }
+    
     if(missing_log.tellp()>0)
         result = ErrorCode::INTEGRITY_VIOLATED;
     missing_log.close();
     return result;
 }
 
+
+
+void Integrity::__check_metadata_integrity__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err,std::mutex* mute_at_print = nullptr){
+    for(const auto& d:data){
+        auto check_spec_data = [](const auto& spec_data){
+            using T = std::decay_t<decltype(data)>;
+            if constexpr(std::is_same_v<T,std::monostate>)
+
+            else{
+                auto loc_check_spec_data = []<Data_t TYPE,Data_f FORMAT>(const DataStruct<TYPE,FORMAT>& loc_spec_data){
+
+                };
+            }
+        };
+    }
+}
+void Integrity::__correct_indexation__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err){
+
+}
+
 #include "definitions/def.h"
 #include "grib1/include/message.h"
 #include "data/msg.h"
-ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& entries, std::mutex* mute_at_print) noexcept{
+DataStructVariation Integrity::__check_file_data_integrity__(std::ranges::random_access_range auto&& entries,ErrorCode& err, std::mutex* mute_at_print) noexcept{
     for (const fs::directory_entry& entry : entries) {
         if (entry.is_regular_file() && entry.path().has_extension() && 
             (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -143,8 +142,8 @@ ErrorCode Integrity::__process_core__(std::ranges::random_access_range auto&& en
             do{
                 const auto& msg = grib.message();
                 if(!msg.has_value()){
-                    ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
-                    continue;
+                    err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+                    return;
                 }
                 GribMsgDataInfo info(	std::move(msg.value().get().section_2_.define_grid()),
                                             std::move(msg.value().get().section_1_.reference_time()),
