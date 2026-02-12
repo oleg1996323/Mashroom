@@ -16,7 +16,7 @@ class TimeForecast{
         uint8_t val ;
     };
     protected:
-    uint16_t N_ = -1;
+    int16_t N_ = -1;
     uint8_t N_avg_acc_missed_ = 0;
     period_t P1_ = {0};
     period_t P2_ = {0};
@@ -49,7 +49,7 @@ class TimeForecast{
     TimeForecast(TimeForecast&& other) noexcept{
         *this = std::move(other);
     }
-    uint16_t get_n() const{
+    int16_t get_n() const{
         return N_;
     }
     uint8_t get_avg_acc_miss_N_vals() const{
@@ -63,6 +63,10 @@ class TimeForecast{
     }
     TimeFrame get_time_frame() const{
         return tf_;
+    }
+    uint16_t get_doubled_octet() const noexcept{
+        return static_cast<uint16_t>(P1_.val)||
+                        P2_.val;
     }
     void set_N(uint16_t N) noexcept{
         N_ = N;
@@ -116,68 +120,6 @@ class TimeForecast{
         return *this;
     }
 
-    // template<IsDuration DUR>
-    // std::string time_stamp_to_string(utc_tp_t<DUR> initial, const std::string& time_format = "%Y:%m:d %H:%M:%S"){
-    //     std::string ts_result = std::vformat("{:"+time_format+"}",std::make_format_args(initial));
-    //     if(is_range()){
-    //         switch (tri_)
-    //         {
-    //             case TimeRangeIndicator::AVG_RANGE_M_P1_M_P2:
-    //                 return "avg{P1=-"s+__time_frame_to_fmt__()+"%d:P2=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::AVG_RANGE_M_P1_P_P2:
-    //                 return "avg{P1=-"s+__time_frame_to_fmt__()+":P2=+"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::RANGE_REF_TIME:
-    //                 return "val{P1=-"s+__time_frame_to_fmt__()+":P2=+"s+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::AVG_RANGE_REF_TIME:
-    //                 return "avg{P1=-"s+__time_frame_to_fmt__()+":P2=+"s+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::DIFF_RANGE_REF_TIME:
-    //                 return "diff{P1=-"s+__time_frame_to_fmt__()+":P2=+"s+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::ACCUM_RANGE_REF_TIME:
-    //                 return "sum{P1=-"s+__time_frame_to_fmt__()+":P2=+"s+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             default:
-    //                 assert(false);
-    //                 break;
-    //         }
-    //     }
-    //     else if(is_intervaled()){
-    //         switch (tri_){
-    //             case TimeRangeIndicator::AVG_N_UNINIT_INTERVAL_P2:
-    //                 return "avg{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::ACCUM_N_UNINIT_INTERVAL_P2:
-    //                 return "avg{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::STD_DEV_FIRST_PERIOD_P1_INTERVAL_P2:
-    //                 return "stddev{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::STD_DEV_N_FORECAST_PERIOD_P1_INTERVAL_P2:
-    //                 return "stddev{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
-    //                 return "avg{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::ACCUM_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
-    //                 return "avg{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_REDUCED_P2:
-    //                 return "avg{P1=+"s+__time_frame_to_fmt__()+"%d:dT=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::UNINIT_REF_TIME:
-    //                 return "val{P1=+"s+__time_frame_to_fmt__()+"%d:P2=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //             case TimeRangeIndicator::P1_DOUBLE_OCTETS:
-    //                 return "val{P1=+"s+__time_frame_to_fmt__()+"%d:P2=-"+__time_frame_to_fmt__()+":N=%d:missed=%d}";
-    //                 break;
-    //         }
-    //     }
-    // }
-
     bool is_range() const;
     bool is_intervaled() const;
     bool octet_doubled() const{
@@ -193,6 +135,10 @@ class TimeForecast{
         tri_==TimeRangeIndicator::INIT_REF_TIME ||
         tri_==TimeRangeIndicator::P1_DOUBLE_OCTETS;
     }
+    bool is_instantaneous() const;
+    bool is_statistical() const;
+    bool is_climatology() const;
+    bool is_past_period() const;
 };
 
 TimeForecast time_forecast_from_string(const std::string& time_period);

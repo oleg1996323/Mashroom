@@ -47,14 +47,14 @@ static size_t hash(  const std::optional<Organization>& center,
     {
         size_t hash = 0;
         if(center.has_value())
-            hash|=static_cast<uint64_t>(center.value())<<56;
-        else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<56;
+            hash|=static_cast<uint64_t>(center.value())<<16;
+        else hash|=static_cast<uint64_t>(std::numeric_limits<std::underlying_type_t<Organization>>::max())<<16;
         if(table_version.has_value())
-            hash|=(static_cast<uint64_t>(table_version.value())<<48);
-        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<48);
+            hash|=(static_cast<uint64_t>(table_version.value())<<8);
+        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<8);
         if(parameter.has_value())
-            hash|=(static_cast<uint64_t>(parameter.value())<<40);
-        else hash|=(static_cast<uint64_t>(std::numeric_limits<uint8_t>::max())<<40);
+            hash|=static_cast<uint64_t>(parameter.value());
+        else hash|=std::numeric_limits<uint8_t>::max();
         return hash;
     }
 

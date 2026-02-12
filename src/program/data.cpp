@@ -98,7 +98,8 @@ void Data::__write_all__(){
 
 void Data::save(){
     auto save_proxy = [this]<size_t... Is>(std::index_sequence<Is...>){
-        (__write_all__<static_cast<Data_f>(Is)>(),...);
+        auto nothing = [](){return;};
+        ((Is!=0?__write_all__<static_cast<Data_f>(Is)>():nothing()),...);
     };
-    save_proxy(std::make_index_sequence<static_cast<size_t>(Data_f::GRIB_v1)+1>());
+    save_proxy(std::make_index_sequence<static_cast<size_t>(Data_f::GRIB_v1)>());
 }

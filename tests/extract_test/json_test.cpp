@@ -13,7 +13,8 @@ TEST_F(Grib1Fixture,TestSimpleJson){
 }
 
 TEST_F(Grib1Fixture,TestExtractFileJson){
-    auto paths = procedures::extract::write_json_file(std::stop_token(),data(),props(),time_period(),"test_generated_files");
+    std::error_code err;
+    auto paths = procedures::extract::write_json_file(std::stop_token(),data(),props(),DateTimeDiff(err,std::chrono::months(1)),"test_generated_files");
     ASSERT_TRUE(paths.size()==1);
     ASSERT_NO_THROW(procedures::extract::read_json_file(std::stop_token(),*paths.begin()));
     auto read_data = procedures::extract::read_json_file(std::stop_token(),*paths.begin());

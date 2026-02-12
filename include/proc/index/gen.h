@@ -8,6 +8,7 @@
 #include "types/time_interval.h"
 #include "sections/grid/grid.h"
 #include "proc/index/indexoutputfileformat.h"
+#include "proc/common/functional.h"
 #include "name_tokens.h"
 
 namespace index_gen{

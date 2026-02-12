@@ -28,6 +28,7 @@ class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor
 public:
 
 private:
+    utc_tp last_update_;
     DateTimeDiff t_off_ = [](){
         std::error_code err;
         return DateTimeDiff(err,std::chrono::months(1));}();
@@ -35,9 +36,9 @@ private:
     mutable std::string file_format;
     OutputDataFileFormats output_format_ = OutputDataFileFormats::DEFAULT;
     template<Data_t T,Data_f F>
-    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>&);
-    ErrorCode __extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>&);
-    ErrorCode __extract__(const fs::path& file, ExtractedData& ref_data);
+    ExtractedData __extract__(const fs::path &file, const std::vector<ptrdiff_t>&,ErrorCode&);
+    ExtractedData __extract__(const fs::path &file, const std::vector<ptrdiff_t>&,ErrorCode&);
+    ExtractedData __extract__(const fs::path& file, ErrorCode&);
     ErrorCode __write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const;
 public:
     Extract() = default;
@@ -79,7 +80,8 @@ public:
             if (!fs::is_directory(out_path_))
                 return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY, "", AT_ERROR_ACTION::CONTINUE, out_path_.c_str());
         }
-        if (!is_correct_interval(props_.from_date_, props_.to_date_))
+        if (props_.from_date_.has_value() && props_.to_date_.has_value() &&
+            !is_correct_interval(*props_.from_date_,*props_.to_date_))
             return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE, "", AT_ERROR_ACTION::CONTINUE);
         else if (!props_.position_.has_value())
             return ErrorPrint::print_error(ErrorCode::UNDEFINED_VALUE, "Not defined", AT_ERROR_ACTION::CONTINUE);
@@ -96,6 +98,12 @@ public:
     void set_output_format(OutputDataFileFormats format)
     {
         output_format_ = format;
+    }
+    void set_last_update(utc_tp last_upd) noexcept{
+        last_update_=last_upd;
+    }
+    utc_tp last_update() const noexcept{
+        return last_update_;
     }
     OutputDataFileFormats output_format() const
     {

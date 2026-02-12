@@ -58,8 +58,8 @@ template<>
 inline ErrorCode Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>() noexcept{
     if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 
-                props_.from_date_==utc_tp() && 
-                time_point_cast<hours>(props_.to_date_)==time_point_cast<hours>(std::chrono::system_clock::now()) && 
+                !props_.from_date_.has_value() && 
+                !props_.to_date_.has_value() && 
                 !props_.grid_type_.has_value() &&
                 !props_.parameters_.empty()){
             // for(auto& [file,file_data]:Mashroom::instance().data().sublimed_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>().data()){

@@ -58,8 +58,8 @@ class ProxyDataInfo<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     info_(info){}
     ProxyDataInfo(data_t&& info):
     info_(std::move(info)){}
-    void add_info(const path::Storage<false>& path, const GribMsgDataInfo& msg_info) noexcept;
-    void add_info(const path::Storage<false>& path, GribMsgDataInfo&& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& msg_info) noexcept;
+    void add_info(const path::Storage<false>& path, FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>&& msg_info) noexcept;
     API::ErrorData::Code<API::GRIB1>::value error() const;
     const data_t& data() const;
     void swap(ProxyDataInfo& other) noexcept;

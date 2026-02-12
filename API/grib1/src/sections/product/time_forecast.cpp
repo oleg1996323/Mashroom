@@ -54,44 +54,54 @@ const char* TimeForecast::__time_frame_to_fmt__() const{
         }
 }
 
-bool TimeForecast::is_forecast() const{
-    switch(tri_){
-        case TimeRangeIndicator::UNINIT_REF_TIME:{
-            if(P1_.val>0)
-                return true;
-            else return false;
-            break;
-        }
+bool TimeForecast::is_forecast() const {
+    switch(tri_) {
+        case TimeRangeIndicator::UNINIT_REF_TIME:
+            return P1_.val > 0;
         case TimeRangeIndicator::RANGE_REF_TIME:
-        case TimeRangeIndicator::AVG_RANGE_M_P1_M_P2:
-        case TimeRangeIndicator::AVG_RANGE_M_P1_P_P2:
         case TimeRangeIndicator::AVG_RANGE_REF_TIME:
-        case TimeRangeIndicator::DIFF_RANGE_REF_TIME:
         case TimeRangeIndicator::ACCUM_RANGE_REF_TIME:
-            return P2_.val>P1_.val;
-            break;
-        case TimeRangeIndicator::ACCUM_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
-        case TimeRangeIndicator::ACCUM_N_FORECAST_PERIOD_P1_REFS_P2:
+        case TimeRangeIndicator::DIFF_RANGE_REF_TIME:
+            return (P1_.val > 0) || (P2_.val > 0);
+        case TimeRangeIndicator::AVG_RANGE_M_P1_P_P2:
+            return P2_.val > 0;
+        case TimeRangeIndicator::P1_DOUBLE_OCTETS:
+            return true;
         case TimeRangeIndicator::AVG_N_FORECAST_PERIOD_P1_REFS_P2:
+        case TimeRangeIndicator::ACCUM_N_FORECAST_PERIOD_P1_REFS_P2:
         case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
+        case TimeRangeIndicator::ACCUM_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
         case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_REDUCED_P2:
         case TimeRangeIndicator::STD_DEV_N_FORECAST_PERIOD_P1_INTERVAL_P2:
         case TimeRangeIndicator::STD_DEV_FIRST_PERIOD_P1_INTERVAL_P2:
-        case TimeRangeIndicator::TEMP_VAR_COVAR_N_REFS_AT_P2:
             return true;
-            break;
-        default: return false;
+        case TimeRangeIndicator::AVG_RANGE_M_P1_M_P2:  // Только прошлое
+        case TimeRangeIndicator::CLIMAT_MEAN_VALUE_AVG:    // Климатология
+        case TimeRangeIndicator::TEMP_VAR_COVAR_N_REFS_AT_P2:  // Статистика по анализам
+        case TimeRangeIndicator::AVG_N_UNINIT_INTERVAL_P2:     // Статистика по анализам
+        case TimeRangeIndicator::ACCUM_N_UNINIT_INTERVAL_P2:   // Статистика по анализам
+            return false;
+        case TimeRangeIndicator::INIT_REF_TIME:
+            return false;
+        
+        default:
+            return false;
     }
 }
 bool TimeForecast::is_analysis() const{
     switch(tri_){
-        case TimeRangeIndicator::UNINIT_REF_TIME:
         case TimeRangeIndicator::INIT_REF_TIME:
+            return true;
+        case TimeRangeIndicator::UNINIT_REF_TIME:
+            return P1_.val == 0;
+        case TimeRangeIndicator::TEMP_VAR_COVAR_N_REFS_AT_P2:
+        case TimeRangeIndicator::AVG_N_UNINIT_INTERVAL_P2:
+        case TimeRangeIndicator::ACCUM_N_UNINIT_INTERVAL_P2:
+            return true;
         case TimeRangeIndicator::AVG_N_FORECAST_PERIOD_P1_REFS_P2:
         case TimeRangeIndicator::ACCUM_N_FORECAST_PERIOD_P1_REFS_P2:
-            if(P1_.val==0)
-                return true;
-            else return false;
+            return P1_.val == 0;
+        
         default:
             return false;
     }   
@@ -99,11 +109,12 @@ bool TimeForecast::is_analysis() const{
 bool TimeForecast::is_range() const{
     switch(tri_){
         case TimeRangeIndicator::RANGE_REF_TIME:
+        case TimeRangeIndicator::AVG_RANGE_REF_TIME:
+        case TimeRangeIndicator::ACCUM_RANGE_REF_TIME:
+        case TimeRangeIndicator::DIFF_RANGE_REF_TIME:
         case TimeRangeIndicator::AVG_RANGE_M_P1_M_P2:
         case TimeRangeIndicator::AVG_RANGE_M_P1_P_P2:
-        case TimeRangeIndicator::AVG_RANGE_REF_TIME:
-        case TimeRangeIndicator::DIFF_RANGE_REF_TIME:
-        case TimeRangeIndicator::ACCUM_RANGE_REF_TIME:
+        case TimeRangeIndicator::CLIMAT_MEAN_VALUE_AVG:
             return true;
         default:
             return false;
@@ -111,15 +122,49 @@ bool TimeForecast::is_range() const{
 }
 bool TimeForecast::is_intervaled() const{
     switch(tri_){
-        case TimeRangeIndicator::AVG_N_UNINIT_INTERVAL_P2:
-        case TimeRangeIndicator::ACCUM_N_UNINIT_INTERVAL_P2:
-        case TimeRangeIndicator::STD_DEV_FIRST_PERIOD_P1_INTERVAL_P2:
-        case TimeRangeIndicator::STD_DEV_N_FORECAST_PERIOD_P1_INTERVAL_P2:
+        case TimeRangeIndicator::AVG_N_FORECAST_PERIOD_P1_REFS_P2:
+        case TimeRangeIndicator::ACCUM_N_FORECAST_PERIOD_P1_REFS_P2:
         case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
         case TimeRangeIndicator::ACCUM_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_P2:
         case TimeRangeIndicator::AVG_N_FORECAST_FIRST_PERIOD_P1_INTERVAL_REDUCED_P2:
+        case TimeRangeIndicator::TEMP_VAR_COVAR_N_REFS_AT_P2:
+        case TimeRangeIndicator::STD_DEV_N_FORECAST_PERIOD_P1_INTERVAL_P2:
+        case TimeRangeIndicator::STD_DEV_FIRST_PERIOD_P1_INTERVAL_P2:
+        case TimeRangeIndicator::AVG_N_UNINIT_INTERVAL_P2:
+        case TimeRangeIndicator::ACCUM_N_UNINIT_INTERVAL_P2:
             return true;
-        default: return false;
+        default:
+            return false;
+    }
+}
+bool TimeForecast::is_instantaneous() const {
+    switch(tri_) {
+        case TimeRangeIndicator::UNINIT_REF_TIME:
+        case TimeRangeIndicator::INIT_REF_TIME:
+        case TimeRangeIndicator::P1_DOUBLE_OCTETS:
+            return true;
+        default:
+            return false;
+    }
+}
+bool TimeForecast::is_statistical() const {
+    // Статистические/производные продукты
+    return is_range() || is_intervaled();
+}
+
+bool TimeForecast::is_climatology() const {
+    return tri_ == TimeRangeIndicator::CLIMAT_MEAN_VALUE_AVG;
+}
+bool TimeForecast::is_past_period() const {
+    // Продукты, относящиеся к прошлому периоду
+    switch(tri_) {
+        case TimeRangeIndicator::AVG_RANGE_M_P1_M_P2:  // Только прошлое
+        case TimeRangeIndicator::TEMP_VAR_COVAR_N_REFS_AT_P2:  // Статистика по прошлым анализам
+            return true;
+        case TimeRangeIndicator::AVG_RANGE_M_P1_P_P2:  // Смешанный период
+            return P1_.val > 0;  // Есть прошлая часть
+        default:
+            return false;
     }
 }
 #include <boost/functional/hash.hpp>

@@ -17,7 +17,8 @@ struct IndexParameters;
 template<>
 struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>> common_;
-    std::optional<TimeInterval> tinterval_;
+    std::optional<utc_tp_t<std::chrono::seconds>> from_;
+    std::optional<utc_tp_t<std::chrono::seconds>> to_;
     std::optional<DateTimeDiff> tdiff_;
     std::optional<TimeForecast> forecast_preference_;
     std::optional<Level> level_;
@@ -36,8 +37,12 @@ struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         grid_type_.emplace(rep);
         return *this;
     }
-    IndexParameters& set_time_interval(TimeInterval time){
-        tinterval_.emplace(time);
+    IndexParameters& set_from(utc_tp_t<std::chrono::seconds> from){
+        from_.emplace(from);
+        return *this;
+    }
+    IndexParameters& set_to(utc_tp_t<std::chrono::seconds> to){
+        to_.emplace(to);
         return *this;
     }
     IndexParameters& set_time_diff(DateTimeDiff diff){
@@ -81,8 +86,8 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.common_,msg.tinterval_,
-                msg.tdiff_,msg.forecast_preference_,msg.level_,
+            return serialize<NETWORK_ORDER>(msg,buf,msg.common_,msg.from_,
+                msg.to_,msg.tdiff_,msg.forecast_preference_,msg.level_,
                 msg.top_,msg.bottom_,msg.left_,msg.right_,msg.grid_type_);
         }
     };
@@ -91,8 +96,8 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.common_,msg.tinterval_,
-                msg.tdiff_,msg.forecast_preference_,msg.level_,
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.common_,msg.from_,
+                msg.to_,msg.tdiff_,msg.forecast_preference_,msg.level_,
                 msg.top_,msg.bottom_,msg.left_,msg.right_,msg.grid_type_);
         }
     };
@@ -101,8 +106,10 @@ namespace serialization{
     struct Serial_size<network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.common_,msg.tinterval_,msg.tdiff_,
-                msg.forecast_preference_,msg.level_,msg.top_,msg.bottom_,msg.left_,msg.right_,msg.grid_type_);
+            return serial_size(msg.common_,msg.from_,
+                msg.to_,msg.tdiff_,msg.forecast_preference_,
+                msg.level_,msg.top_,msg.bottom_,msg.left_,
+                msg.right_,msg.grid_type_);
         }
     };
 
@@ -112,7 +119,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<decltype(type::common_),
-            decltype(type::tinterval_),decltype(type::tdiff_),
+            decltype(type::from_),decltype(type::to_),decltype(type::tdiff_),
             decltype(type::forecast_preference_),decltype(type::level_),
             decltype(type::top_),decltype(type::bottom_),
             decltype(type::left_),decltype(type::right_),
@@ -126,7 +133,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<decltype(type::common_),
-            decltype(type::tinterval_),decltype(type::tdiff_),
+            decltype(type::from_),decltype(type::to_),decltype(type::tdiff_),
             decltype(type::forecast_preference_),decltype(type::level_),
             decltype(type::top_),decltype(type::bottom_),
             decltype(type::left_),decltype(type::right_),

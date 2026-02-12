@@ -12,7 +12,6 @@
 #include "proc/index/indexdatafileformat.h"
 #include "proc/index/write.h"
 #include "proc/index/indexoutputfileformat.h"
-#include "index/index_result.h"
 
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
@@ -29,9 +28,12 @@ info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<uint64_t>:
 int cpus = 1;
 IndexOutputFileFormat::token output_format_ = IndexOutputFileFormat::token::BINARY;
 bool host_ref_only = false;
-std::pair<fs::path,std::vector<IndexResultVariant>> __write_file__(const std::vector<IndexResultVariant>& data);
-std::vector<IndexResultVariant> __index_file__(const fs::path& file);
-std::pair<fs::path,std::vector<IndexResultVariant>> __index_write_file__(const fs::path& file);
+template<Data_t TYPE,Data_f FORMAT>
+std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> __write_file__(const std::vector<FileMsg<TYPE,FORMAT>>& data);
+template<Data_t TYPE,Data_f FORMAT>
+std::vector<FileMsg<TYPE,FORMAT>> __index_file__(const fs::path& file);
+template<Data_t TYPE,Data_f FORMAT>
+std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> __index_write_file__(const fs::path& file);
 public:
 void execute() noexcept;
 

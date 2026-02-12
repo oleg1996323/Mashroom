@@ -29,6 +29,12 @@ struct AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         boost::hash_combine(result,std::hash<Level>()(level_));
         return result;
     }
+    bool operator==(const AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& other) const{
+        return fcst_ == other.fcst_ && grid_ ==other.grid_&&pos_==other.pos_&&level_==other.level_;
+    }
+    bool operator!=(const AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& other) const{
+        return !(*this==other);
+    }
 };
 
 template<Data_t TYPE,Data_f FORMAT>
@@ -46,9 +52,7 @@ struct ExtractDataProperties{
 
     ExtractDataProperties() = default;
     bool operator==(const ExtractDataProperties& other) const{
-        if constexpr(std::is_base_of_v<std::monostate,AdditionalExtractDataProperties<TYPE,FORMAT>>)
-            return  cmn_ == other.cmn_;
-        else return cmn_ == other.cmn_ && add_ == other.add_;
+        return cmn_ == other.cmn_ && add_ == other.add_;
     }
 
     bool operator!=(const ExtractDataProperties& other) const{

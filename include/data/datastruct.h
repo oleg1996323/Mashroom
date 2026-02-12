@@ -2,9 +2,36 @@
 #include "datastruct/grib1.h"
 #include <variant>
 
-using DataStructVariation = 
+struct DataStructVariation:
 std::variant<std::monostate,
-    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
+    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>
+{   
+    using variant::variant;
+    using variant::operator=;
+    template<Data_t T,Data_f F>
+    void add_data(const DataStruct<T,F>& other,std::error_code& err){
+        auto add = [&err,&other](const auto& val){
+            using type = std::decay_t<decltype(val)>;
+            if constexpr(std::is_same_v<type,std::monostate>)
+                err=std::make_error_code(std::errc::invalid_argument);
+            else{
+                auto loc_add = [&err,&other]<Data_t TYPE,Data_f FORMAT>(DataStruct<TYPE,FORMAT>& this_data){
+                    if constexpr(TYPE==T && F==FORMAT){
+                        this_data.add_data(other);
+                        err = std::error_code();
+                    }
+                    else err=std::make_error_code(std::errc::invalid_argument);
+                };
+                loc_add(val);
+            }
+        };
+        std::visit(add,*this);
+    }
+    template<Data_t T,Data_f F>
+    void add_data(const path::Storage<false>& file,const std::vector<FileMsg<T,F>>& other,std::error_code& err){
+        add_data(file,other,err);
+    }
+};
 
 template<>
 struct std::hash<DataStructVariation>{
@@ -75,33 +102,3 @@ struct std::equal_to<DataStructVariation>{
         return operator()(tags.second,tags.first,val);
     }
 };
-
-// template<>
-// struct std::equal_to<std::unique_ptr<AbstractDataStruct>>{
-//     using is_transparent = std::true_type;
-
-//     bool operator()(const AbstractDataStruct& lhs,const AbstractDataStruct& rhs) const{
-//         return lhs.format_type()==rhs.format_type() && lhs.data_type()==rhs.data_type();
-//     }
-//     bool operator()(const std::unique_ptr<AbstractDataStruct>& lhs,const std::unique_ptr<AbstractDataStruct>& rhs) const{
-//         return (lhs && rhs)?(lhs->format_type()==rhs->format_type() && lhs->data_type()==rhs->data_type()):(!lhs && !rhs);
-//     }
-//     bool operator()(Data_t type, Data_f format, const AbstractDataStruct& val) const{
-//         return val.format_type()==format && val.data_type()==type;
-//     }
-//     bool operator()(const AbstractDataStruct& val,Data_t type, Data_f format) const{
-//         return this->operator()(type,format,val);
-//     }
-//     bool operator()(const std::pair<Data_t,Data_f>& tags, const std::unique_ptr<AbstractDataStruct>& val) const{
-//         return val && val->format_type()==tags.second && val->data_type()==tags.first;
-//     }
-//     bool operator()(const std::pair<Data_f,Data_t>& tags, const std::unique_ptr<AbstractDataStruct>& val) const{
-//         return val && val->format_type()==tags.first && val->data_type()==tags.second;
-//     }
-//     bool operator()(const std::unique_ptr<AbstractDataStruct>& val,const std::pair<Data_t,Data_f>& tags) const{
-//         return this->operator()(tags,val);
-//     }
-//     bool operator()(const std::unique_ptr<AbstractDataStruct>& val,const std::pair<Data_f,Data_t>& tags) const{
-//         return this->operator()(tags,val);
-//     }
-// };

@@ -37,17 +37,19 @@ static constexpr const char* errorness_files_filename = "corrupted_files.txt";
 class Integrity:public AbstractSearchProcess{
     private:
     TimePeriod t_off_;
-    std::vector<std::pair<fs::path,API::ErrorData::Code<API::GRIB1>::value>> file_errors_;
     int cpus = 1;
-    DataStructVariation __check_file_data_integrity__(std::ranges::random_access_range auto&& entries,ErrorCode& err, std::mutex* mute_at_print = nullptr) noexcept;
-    void __check_metadata_integrity__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err,std::mutex* mute_at_print = nullptr);
-    void __correct_indexation__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err);
+    std::pair<std::unordered_set<DataStructVariation>,std::vector<std::pair<path::Storage<false>,API::ErrorData::Code<API::GRIB1>::value>>>  
+    __check_file_data_integrity__(const std::vector<fs::directory_entry>&,ErrorCode&,std::mutex*) noexcept;
+    void __check_metadata_integrity__(const std::unordered_set<DataStructVariation>&,ErrorCode&,std::mutex*) noexcept;
+    void __correct_indexation__(const std::unordered_set<DataStructVariation>&,ErrorCode&) noexcept;
     
     public:
     virtual ErrorCode execute() noexcept override final;
     virtual ErrorCode properties_integrity() const noexcept override final{
-        if(is_correct_interval(props_.from_date_,props_.to_date_))
-            return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
+        if( props_.from_date_.has_value() &&
+            props_.to_date_.has_value() && 
+            is_correct_interval(*props_.from_date_,*props_.to_date_))
+                return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
         if(!props_.position_.has_value())
             return ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"Not defined",AT_ERROR_ACTION::CONTINUE);
         if(!is_correct_pos(&props_.position_.value())) //actually for WGS84

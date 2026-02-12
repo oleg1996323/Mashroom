@@ -21,44 +21,43 @@ namespace fs = std::filesystem;
 using namespace std::string_literals;
 
 ErrorCode add_data(const DataStructVariation& data){
-	auto lambda = [](const auto& val){
+	ErrorCode err;
+	auto lambda = [&err](const auto& val){
 		using T = std::decay_t<decltype(val)>;
-		if constexpr(std::is_same_v<std::monostate,T>)
+		if constexpr(std::is_same_v<std::monostate,T>){
+			err=ErrorCode::INVALID_ARGUMENT;
 			return;
-		else Mashroom::instance().data().add_data(val);
+		}
+		else Mashroom::instance().data().update_indexing(val);
 	};
 	std::visit(lambda,data);
+	return err;
 }
 
 /**
  * @return Return the names of created files with registered grib data
  */ 
-std::pair<fs::path,std::vector<IndexResultVariant>> Index::__write_file__(const std::vector<IndexResultVariant>& data_){
-	std::pair<fs::path,std::vector<IndexResultVariant>> result;
+template<Data_t TYPE,Data_f FORMAT>
+std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__write_file__(const std::vector<FileMsg<TYPE,FORMAT>>& data_){
+	std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> result;
 	if(!fs::exists(dest_directory_.value()))
 		throw std::runtime_error("Unavailable write directory"s + dest_directory_->c_str());
-	for(const IndexResultVariant& msg:data_){
+	for(const FileMsg<TYPE,FORMAT>& msg:data_){
 		fs::path filename;
 		switch (output_format_)
 		{
 			case IndexOutputFileFormat::JSON:{
-				auto write_json_loc = [this,&result,&filename,&data_](const auto& msg_info){
-					using T = std::decay_t<decltype(msg_info)>;
-					if constexpr(std::is_same_v<T,std::monostate>)
-						return;
-					else if constexpr(std::is_same_v<T,GribMsgDataInfo>){
-						if(result.first.empty()){
-							auto param = parameter_table(msg_info.center,msg_info.table_version,msg_info.parameter);
-							if(param)
-								filename = index_gen::generate_filename(output_format_,msg_info.date,center_to_abbr(msg_info.center),grid_to_abbr(msg_info.grid_data.type()),param->name,msg_info.table_version,system_clock::now());
-							else filename = index_gen::generate_filename(output_format_,msg_info.date,center_to_abbr(msg_info.center),grid_to_abbr(msg_info.grid_data.type()),msg_info.table_version,system_clock::now());
-						}
-						if(write_json_file(result.first,data_))
-							result.second.push_back(msg_info);
+				if constexpr(TYPE==Data_t::TIME_SERIES && FORMAT==Data_f::GRIB_v1){
+					if(result.first.empty()){
+						auto param = parameter_table(msg.center,msg.table_version,msg.parameter);
+						if(param)
+							filename = index_gen::generate_filename(output_format_,msg.date,center_to_abbr(msg.center),grid_to_abbr(msg.grid_data.type()),param->name,msg.table_version,system_clock::now());
+						else filename = index_gen::generate_filename(output_format_,msg.date,center_to_abbr(msg.center),grid_to_abbr(msg.grid_data.type()),msg.table_version,system_clock::now());
 					}
-					else static_assert(false,"Not implemented");
-				};
-				std::visit(write_json_loc,msg);
+					if(write_json_file(result.first,data_))
+						result.second.push_back(msg);
+				}
+				else static_assert(false,"Not implemented");
 			}
 				break;
 			
@@ -72,12 +71,12 @@ std::pair<fs::path,std::vector<IndexResultVariant>> Index::__write_file__(const 
 
 namespace fs = std::filesystem;
 
-std::vector<IndexResultVariant> process_file(HGrib1& grib_file_handler){
-	std::vector<IndexResultVariant> grib_msgs;
+std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(HGrib1& grib_file_handler){
+	std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> grib_msgs;
 	do{
 		auto msg = grib_file_handler.message();
 		if(msg.has_value()){
-			IndexResultVariant& info = grib_msgs.emplace_back(GribMsgDataInfo(std::move(msg.value().get().section_2_.define_grid()),
+			FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& info = grib_msgs.emplace_back(std::move(msg.value().get().section_2_.define_grid()),
 										std::move(msg.value().get().section_1_.reference_time()),
 										grib_file_handler.current_message_position(),
 										grib_file_handler.current_message_length().value(),
@@ -86,7 +85,7 @@ std::vector<IndexResultVariant> process_file(HGrib1& grib_file_handler){
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version(),
 										msg.value().get().section_1_.level_data(),
-										msg->get().err_));
+										msg->get().err_);
 		}
 	}while(grib_file_handler.next_message());
 	return grib_msgs;
@@ -95,12 +94,13 @@ std::vector<IndexResultVariant> process_file(HGrib1& grib_file_handler){
 /**
  * @brief Execute message indexing of concrete file.
  */
-std::vector<IndexResultVariant> Index::__index_file__(const fs::path& file){
+template<Data_t TYPE,Data_f FORMAT>
+std::vector<FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
 	HGrib1 grib;
-	std::vector<IndexResultVariant> res;
+	std::vector<FileMsg<TYPE,FORMAT>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		GribMsgDataInfo msg;
+		FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
 		msg.err_=API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		res.emplace_back(std::move(msg));
 		return res;
@@ -109,12 +109,13 @@ std::vector<IndexResultVariant> Index::__index_file__(const fs::path& file){
 	return res;
 }
 
-std::pair<fs::path,std::vector<IndexResultVariant>> Index::__index_write_file__(const fs::path& file){
+template<Data_t TYPE,Data_f FORMAT>
+std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__index_write_file__(const fs::path& file){
 	HGrib1 grib;
-	std::pair<fs::path,std::vector<IndexResultVariant>> res;
+	std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		GribMsgDataInfo msg;
+		FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
 		msg.err_= API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		res.second.emplace_back(std::move(msg));
 		return res;
@@ -135,18 +136,25 @@ void Index::execute() noexcept{
 						std::cout<<entry.path()<<std::endl;
 						
 						if(!dest_directory_.has_value())
-							Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path::Storage<false>::file(entry.path()),__index_file__(entry.path())); //@todo able to use different variant types
+							Mashroom::instance().data().
+							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
+								path::Storage<false>::file(entry.path(),utc_tp::clock::now()),
+								__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path())); //@todo able to use different variant types
 						else{
-							auto write_index_result = __index_write_file__(entry.path());
+							auto write_index_result = __index_write_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path());
 							written_.insert(path::Storage<false>::file(write_index_result.first));
-							Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path::Storage<false>::file(entry.path()),write_index_result.second); //@todo able to use different variant types
+							Mashroom::instance().data().
+							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
+								path::Storage<false>::file(entry.path()),
+								write_index_result.second); //@todo able to use different variant types
 						}
 					}
 					else continue;
 				}
 				break;
 			case path::TYPE::FILE:
-				Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path::Storage<false>::file(path.path_),__index_file__(path.path_)); //@todo able to use different variant types
+				Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path::Storage<false>::file(path.path_),
+						__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path.path_)); //@todo able to use different variant types
 				break;
 			case path::TYPE::HOST:
 				if(path.add_.is<path::TYPE::HOST>()){
@@ -165,7 +173,7 @@ void Index::execute() noexcept{
 						else if constexpr (std::is_same_v<decay,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>){
 							DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> d;
 							d.add_data(path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now()),block);
-							Mashroom::instance().data().add_data(std::move(d));
+							Mashroom::instance().data().update_indexing(std::move(d));
 						}
 					};
 					std::visit(add_data,msg_reply.additional().blocks_);

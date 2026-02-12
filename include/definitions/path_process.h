@@ -105,7 +105,7 @@ struct Storage{
     Storage<VIEW>& operator=(const Storage<VIEW_OTHER>& other) noexcept{
         if(this!=&other){
             path_ = other.path_;
-            type_ = other.path_;
+            type_ = other.type_;
             add_ = other.add_;
         }
     }
@@ -114,6 +114,7 @@ struct Storage{
         if(this!=&other){
             if constexpr(VIEW_OTHER==VIEW && VIEW==false)
                 path_ = std::move(other.path_);
+            else path_.swap(other.path_);
             type_ = other.type_;
             add_ = std::move(other.add_);
         }
@@ -169,14 +170,14 @@ struct Storage{
     bool operator==(const path::Storage<VIEW_OTHER>& other) const noexcept{
         if(static_cast<const void*>(&other)==static_cast<const void*>(this))
             return true;
-        return this->path_==other.path_ && this->type_==other.type_ && (add_.index() == other.add_.index())?(add_ == other.add_):false;
+        return this->path_==other.path_ && this->type_==other.type_;
     }
 
     template<bool VIEW_OTHER>
     bool operator!=(const path::Storage<VIEW_OTHER>& other) const noexcept{
         if(static_cast<const void*>(&other)==static_cast<const void*>(this))
             return false;
-        return this->path_!=other.path_ || this->type_!=other.type_;
+        return !(*this==other);
     }
 };
 }

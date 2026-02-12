@@ -68,25 +68,33 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
     return ErrorCode::NONE;
 }
 
-ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
+ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
     HGrib1 grib;
+    ExtractedData result;
+    if(API::ErrorData::Code<API::GRIB1>::value err_data = grib.open_grib(file);err_data!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+        err=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(err_data,"",file.string()),AT_ERROR_ACTION::CONTINUE);
+        return ExtractedData();
+    }
     
-    if(API::ErrorData::Code<API::GRIB1>::value err_data = grib.open_grib(file);err_data!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(err_data,"",file.string()),AT_ERROR_ACTION::CONTINUE);
-    
-    if(grib.file_size()==0)
-        return ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+    if(grib.file_size()==0){
+        err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+        return ExtractedData();
+    }
     do{
         const auto& msg = grib.message();
-        if(!msg.has_value())
-            return ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+        if(!msg.has_value()){
+            err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+            return ExtractedData();
+        }
         if(msg->get().message_length()==0)
             grib.next_message();
 
 		//ReturnVal result_date;
-        if(stop_token_.stop_requested())
-            return ErrorCode::NONE;
-        GribMsgDataInfo msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
+        if(stop_token_.stop_requested()){
+            err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
+            return ExtractedData();
+        }
+        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
                                     msg->get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
@@ -107,14 +115,17 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
                 continue;
             if(props_.grid_type_.value()!=msg_info.grid_data.type())
                 continue;                  
-            if(msg_info.date>props_.to_date_ || msg_info.date<props_.from_date_){
+            if((props_.to_date_.has_value() &&
+                msg_info.date>*props_.to_date_) ||
+                (props_.from_date_.has_value() &&
+                msg_info.date<*props_.from_date_)){
                 continue;
             }
             if(!pos_in_grid(props_.position_.value(),msg_info.grid_data))
                 continue;
         }
         if(msg_info.grid_data.has_grid())
-            procedures::extract::get_result(ref_data)[
+            procedures::extract::get_result(result)[
                 Grib1CommonDataProperties(msg_info.center,
                     msg_info.table_version,
                     msg_info.parameter)]
@@ -122,12 +133,13 @@ ErrorCode Extract::__extract__(const fs::path& file, ExtractedData& ref_data){
                 msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }while(grib.next_message());
-    return ErrorCode::NONE;
+    return result;
 }
 
 template<>
-ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>& positions){
+ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, const std::vector<ptrdiff_t>& positions, ErrorCode& err){
     HGrib1 grib;
+    ExtractedData result;
     try{
         grib.open_grib(file);
     }
@@ -136,40 +148,59 @@ ErrorCode Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::pa
         exit(0);
     }
     
-    if(grib.file_size()==0)
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
+    if(grib.file_size()==0){
+        err = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
+        return ExtractedData();
+    }
     for(const auto& pos:positions){
         if(pos<0 || !grib.set_message(pos))
             continue;
         const auto& msg = grib.message();
-        if(!msg.has_value())
-            throw std::runtime_error("Message undefined");
+        if(!msg.has_value()){
+                err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+                return ExtractedData();
+        }
         if(msg->get().message_length()==0)
             grib.next_message();
 
 		//ReturnVal result_date;
-        if(stop_token_.stop_requested())
-            return ErrorCode::INTERRUPTED;
-        GribMsgDataInfo msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
-                                    msg->get().section_1_.reference_time(),
-                                    grib.current_message_position(),
-                                    grib.current_message_length().value(),
-                                    msg->get().section_1_.parameter_number(),
-                                    msg->get().section_1_.time_forecast(),
-                                    msg->get().section_1_.center(),
-                                    msg->get().section_1_.table_version(),
-                                    msg->get().section_1_.level_data(),
-                                    msg->get().err_);
-        if(msg_info.grid_data.has_grid())
-            procedures::extract::get_result(ref_data)[
-                Grib1CommonDataProperties(
-                    msg_info.center,
-                    msg_info.table_version,
-                    msg_info.parameter)].emplace_back(
-                msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+        if(stop_token_.stop_requested()){
+            err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
+            return ExtractedData();
+        }
+        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(
+            msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
+            msg->get().section_1_.reference_time(),
+            grib.current_message_position(),
+            grib.current_message_length().value(),
+            msg->get().section_1_.parameter_number(),
+            msg->get().section_1_.time_forecast(),
+            msg->get().section_1_.center(),
+            msg->get().section_1_.table_version(),
+            msg->get().section_1_.level_data(),
+            msg->get().err_);
+        
+        if(msg_info.grid_data.has_grid()){
+            auto add_value = [this,&msg_info,&msg]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE, FORMAT>& val){
+                if constexpr(TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
+                    using namespace procedures::extract::details;
+                    CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> cmn;
+                    cmn.center_=msg_info.center;
+                    cmn.parameter_=msg_info.parameter;
+                    cmn.table_version_=msg_info.table_version;
+                    AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> add;
+                    add.fcst_=msg_info.t_unit;
+                    add.grid_=msg_info.grid_data;
+                    val[ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>(cmn,add)].emplace_back(
+                        msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+                }
+                else static_assert(false,"Not implemented");
+            };
+            std::visit(add_value,result);
+        }
         else continue; //TODO still not accessible getting data without position
     }
-    return ErrorCode::NONE;
+    return result;
 }
 
 using namespace std::string_literals;
@@ -179,14 +210,20 @@ using namespace std::string_literals;
 
 ErrorCode Extract::execute() noexcept{
     ExtractedData result;
+    ErrorCode err;
     if(in_path_.empty()){
-        auto matched = Mashroom::instance().data().match_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(props_.center_.value(),
+        auto matched = Mashroom::instance().data().match_files<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
+                                                last_update_,
+                                                props_.position_.value(),
+                                                props_.center_.value(),
+                                                props_.parameters_,
+                                                props_.from_date_,
+                                                props_.to_date_,
+                                                props_.diff_,
                                                 props_.fcst_unit_,
                                                 props_.level_,
-                                                props_.parameters_,
-                                                TimeInterval(props_.from_date_,props_.to_date_),
-                                                props_.grid_type_.value(),
-                                                props_.position_.value());
+                                                props_.grid_type_.value()
+                                                );
         
         for(auto& [path,positions]:matched){   
             if(path.type_!=path::TYPE::FILE || !fs::is_regular_file(path.path_)){
@@ -201,24 +238,27 @@ ErrorCode Extract::execute() noexcept{
             std::sort(positions.begin(),positions.end());
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
-            __extract__(fs::path(path.path_),result,positions);
+            __extract__(fs::path(path.path_),positions,err);
             if(stop_token_.stop_requested())
                 return ErrorCode::INTERRUPTED;
         }
     }
     else{
         for(const auto& path:in_path_){
-            if(Mashroom::instance().data().paths<Data_t::TIME_SERIES,Data_f::GRIB_v1>().contains(path))
                 Mashroom::instance().data().match(
-                                                path,
+                                                path.path_,
+                                                last_update_,
+                                                props_.position_.value(),
                                                 props_.center_.value(),
+                                                props_.parameters_,
+                                                props_.from_date_,
+                                                props_.to_date_,
+                                                props_.diff_,
                                                 props_.fcst_unit_,
                                                 props_.level_,
-                                                props_.parameters_,
-                                                TimeInterval(props_.from_date_,props_.to_date_),
-                                                props_.grid_type_.value(),
-                                                props_.position_.value());
-            __extract__(path.path_,result);
+                                                props_.grid_type_.value()
+                                                );
+            __extract__(path.path_,err);
         }
     }
     if(procedures::extract::get_result(result).empty())
@@ -228,17 +268,22 @@ ErrorCode Extract::execute() noexcept{
     return ErrorCode::NONE;
 }
 
-ErrorCode Extract::__extract__(const fs::path &file, ExtractedData &ref_data, const std::vector<ptrdiff_t>& positions){
-    auto auto_unpack = [this,&file,&ref_data,&positions](auto& data){
+ExtractedData Extract::__extract__(const fs::path &file, const std::vector<ptrdiff_t>& positions,ErrorCode& err){
+    ExtractedData result;
+    auto auto_unpack = [this,&file,&result,&err,&positions](auto& data){
         using T = std::decay_t<decltype(data)>;
         if constexpr(std::is_same_v<T,std::monostate>)
-            return ErrorCode::NONE;
+            return ExtractedData();
         else {
-            auto internal_auto_unpack=[this,&file,&ref_data,&positions]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
-                return __extract__<TYPE,FORMAT>(file,ref_data,positions);
+            auto internal_auto_unpack=[this,&file,&result,&positions]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
+                ErrorCode err;
+                auto loc_result = std::move(__extract__<TYPE,FORMAT>(file,positions,err));
+                if(err!=ErrorCode::NONE)
+                    return ExtractedData();
+                else return loc_result;
             };
             return internal_auto_unpack(data);
         }
     };
-    return std::visit(auto_unpack,ref_data);
+    return std::visit(auto_unpack,result);
 }

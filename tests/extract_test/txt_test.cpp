@@ -5,11 +5,12 @@
 #include "proc/extract/gen.h"
 
 TEST_F(Grib1Fixture,TestExtractFileTxt){
-    auto paths = procedures::extract::write_txt_file(std::stop_token(),data(),props(),time_period(),"test_generated_files");
+    std::error_code err;
+    auto paths = procedures::extract::write_txt_file(std::stop_token(),data(),props(),DateTimeDiff(err,std::chrono::months(1)),"test_generated_files");
     ASSERT_TRUE(paths.size()==1);
     ASSERT_NO_THROW(procedures::extract::read_txt_file(std::stop_token(),*paths.begin()));
     auto read_data = procedures::extract::read_txt_file(std::stop_token(),*paths.begin());
-    auto other = procedures::extract::write_txt_file(std::stop_token(),read_data,props(),time_period(),"test_comparing_generated_files");
+    auto other = procedures::extract::write_txt_file(std::stop_token(),read_data,props(),DateTimeDiff(err,std::chrono::months(1)),"test_comparing_generated_files");
     auto compare = [&read_data](const auto& data_1){
         auto compare_1 = [&data_1](const auto& data_2){
             for(auto& [common,values]:data_2){

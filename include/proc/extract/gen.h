@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "types/time_period.h"
+#include "proc/common/functional.h"
 #include "sys/outputdatafileformats.h"
 #include <format>
 #include "types/time_interval.h"
@@ -27,30 +27,6 @@ std::string generate_format_from_time(const T& time,char separator) noexcept{
     else if constexpr (std::is_same_v<T,std::chrono::year>)
         return "{:%Y}"s;
     else static_assert(false,"Invalid use of formatting from time (acceptable types time_point<seconds/minutes/hours/days>, year_month, year)");
-}
-
-using TimePeriodRounded = std::variant<year,year_month,utc_tp_t<days>,utc_tp_t<hours>,utc_tp_t<minutes>,utc_tp_t<std::chrono::seconds>>;
-
-TimePeriodRounded round_by_time_diff(const DateTimeDiff& diff, utc_tp_t<std::chrono::seconds> tp) {
-    
-    if(diff.years_>0)
-        return year_month_day(std::chrono::floor<std::chrono::days>(tp)).year();
-    else if(diff.months_>0){
-        std::chrono::year_month_day ymd(std::chrono::floor<std::chrono::days>(tp));
-        return year_month(ymd.year(),ymd.month());
-    }
-    else if(diff.days_>0)
-        return std::chrono::floor<std::chrono::days>(tp);
-    else if(diff.hours_>0)
-        return std::chrono::floor<std::chrono::hours>(tp);
-    else if(diff.minutes_>0)
-        return std::chrono::floor<std::chrono::minutes>(tp);
-    else if(diff.seconds_>0)
-        return std::chrono::floor<std::chrono::seconds>(tp);
-    else{
-        std::chrono::year_month_day ymd(std::chrono::floor<std::chrono::days>(tp));
-        return year_month(ymd.year(),ymd.month());
-    }
 }
 
 std::string get_file_fmt(OutputDataFileFormats fmt) noexcept;
