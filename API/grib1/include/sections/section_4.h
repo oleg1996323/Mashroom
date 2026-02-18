@@ -29,11 +29,15 @@ struct BinaryDataSection
 		else return 0;
 	}
 	Flag get_data_flag(){
-		return Flag{BDS_Harmonic(buf_),BDS_ComplexPacking(buf_),
-				BDS_OriginalInt(buf_),BDS_MoreFlags(buf_),
-				BDS_MoreFlags(buf_)?BDS_MatrixDatum(buf_):-1,
-				BDS_MoreFlags(buf_)?BDS_SecondairyBMP(buf_):-1
-				,BDS_MoreFlags(buf_)?BDS_SecondOrdValsDiffWidth(buf_):-1};
+		Flag result;
+		result.spherical_harm_coefs=static_cast<bool>(BDS_Harmonic(buf_));
+		result.complex_pack=static_cast<bool>(BDS_ComplexPacking(buf_));
+		result.int_values=static_cast<bool>(BDS_OriginalInt(buf_));
+		result.oct_14_flag_bits=static_cast<bool>(BDS_MoreFlags(buf_));
+		result.matrix = result.oct_14_flag_bits?static_cast<bool>(BDS_MatrixDatum(buf_)):false;
+		result.second_bmp=result.oct_14_flag_bits?static_cast<bool>(BDS_SecondairyBMP(buf_)):false;
+		result.second_order_diff_widths=result.oct_14_flag_bits?static_cast<bool>(BDS_SecondOrdValsDiffWidth(buf_)):false;
+		return result;
 	}
 	//#define BDS_BinScale(bds) INT2(bds[4],bds[5])
 	int16_t scale_factor(){

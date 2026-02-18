@@ -35,21 +35,53 @@ std::expected<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>,std::exception> from
         grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR> result;
         auto& obj = val.as_object();
         if(obj.contains("lat1"))
-            result.y1 = obj.at("lat1").as_double();
+            if(auto y1_tmp = from_json<std::decay_t<decltype(result.y1)>>(obj.at("lat1"));
+            y1_tmp.has_value())
+                result.y1 = y1_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lat1\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lat1\" (not contained or not double)"));
         if(obj.contains("lon1"))
-            result.x1 = obj.at("lon1").as_double();
+            if(auto x1_tmp = from_json<std::decay_t<decltype(result.x1)>>(obj.at("lon1"));
+            x1_tmp.has_value())
+                result.x1 = x1_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lon1\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lon1\" (not contained)"));
         if(obj.contains("lat2"))
-            result.y2 = obj.at("lat2").as_double();
+            if(auto y2_tmp = from_json<std::decay_t<decltype(result.y2)>>(obj.at("lat2"));
+            y2_tmp.has_value())
+                result.y2 = y2_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lat2\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lat2\" (not contained)"));
         if(obj.contains("lon2"))
-            result.x2 = obj.at("lon2").as_double();
+            if(auto x2_tmp = from_json<std::decay_t<decltype(result.x2)>>(obj.at("lon2"));
+            x2_tmp.has_value())
+                result.x2 = x2_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lon2\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lon2\" (not contained)"));
         if(obj.contains("dx"))
-            result.dx = obj.at("dx").as_uint64();
+            if(auto dx_tmp = from_json<std::decay_t<decltype(result.dx)>>(obj.at("dx"));
+            dx_tmp.has_value())
+                result.dx = dx_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"dx\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"dx\" (not contained)"));
         if(obj.contains("dy"))
-            result.dy = obj.at("dy").as_uint64();
+            if(auto dy_tmp = from_json<std::decay_t<decltype(result.dy)>>(obj.at("dy"));
+            dy_tmp.has_value())
+                result.dy = dy_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"dy\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"dy\" (not contained)"));
         if(obj.contains("ny"))
-            result.ny = obj.at("ny").as_uint64();
+            if(auto ny_tmp = from_json<std::decay_t<decltype(result.ny)>>(obj.at("ny"));
+            ny_tmp.has_value())
+            result.ny = ny_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"ny\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"ny\" (not contained)"));
         if(obj.contains("nx"))
-            result.ny = obj.at("nx").as_uint64();
+            if(auto nx_tmp = from_json<std::decay_t<decltype(result.nx)>>(obj.at("nx"));
+            nx_tmp.has_value())
+                result.nx = nx_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"nx\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"nx\" (not contained)"));
         if(obj.contains("scan mode")){
             if(auto scan_res = from_json<ScanMode>(obj.at("scan mode"));scan_res.has_value())
                 result.scan_mode = scan_res.value();
@@ -68,15 +100,15 @@ std::expected<grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>,std::exception> from
 template<>
 boost::json::value to_json(const grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>& val){
     boost::json::object obj;
-    obj["lat1"].emplace_double() = val.y1;
-    obj["lon1"].emplace_double() = val.x1;
-    obj["lat2"].emplace_double() = val.y2;
-    obj["lon2"].emplace_double() = val.x2;
-    obj["dx"].emplace_uint64() = val.dx;
-    obj["dy"].emplace_uint64() = val.dy;
-    obj["ny"].emplace_uint64() = val.ny;
-    obj["nx"].emplace_uint64() = val.nx;
+    obj["lat1"] = val.y1;
+    obj["lon1"] = val.x1;
+    obj["lat2"] = val.y2;
+    obj["lon2"] = val.x2;
+    obj["dx"]= val.dx;
+    obj["dy"]= val.dy;
+    obj["ny"]= val.ny;
+    obj["nx"]= val.nx;
     obj["scan mode"] = to_json(val.scan_mode);
-    obj["resolution component flags"] = to_json(val.scan_mode);
+    obj["resolution component flags"] = to_json(val.resolutionAndComponentFlags);
     return obj;
 }

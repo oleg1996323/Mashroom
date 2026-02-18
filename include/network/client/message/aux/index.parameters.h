@@ -20,8 +20,8 @@ struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     std::optional<utc_tp_t<std::chrono::seconds>> from_;
     std::optional<utc_tp_t<std::chrono::seconds>> to_;
     std::optional<DateTimeDiff> tdiff_;
-    std::optional<TimeForecast> forecast_preference_;
-    std::optional<Level> level_;
+    std::optional<std::pair<TimeForecast,TimeForecast::COMPARISION_TYPE>> forecast_preference_;
+    std::optional<std::pair<Level,Level::COMPARISION_TYPE>> level_;
     std::optional<Lat> top_;
     std::optional<Lat> bottom_;
     std::optional<Lon> left_;
@@ -56,8 +56,28 @@ struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         right_=right;
         return *this;
     }
-    IndexParameters& set_forecast_preference(TimeForecast fcst){
-        forecast_preference_.emplace(fcst);
+    IndexParameters& set_forecast_preference(TimeForecast fcst,TimeForecast::COMPARISION_TYPE comp_type){
+        forecast_preference_.emplace(fcst,comp_type);
+        return *this;
+    }
+    IndexParameters& set_level_preference(Level lvl,Level::COMPARISION_TYPE comp_type){
+        level_.emplace(lvl,comp_type);
+        return *this;
+    }
+    IndexParameters& set_top(const Lat& pos){
+        top_ = pos;
+        return *this;
+    }
+    IndexParameters& set_bottom(const Lat& pos){
+        bottom_ = pos;
+        return *this;
+    }
+    IndexParameters& set_left(const Lon& pos){
+        left_ = pos;
+        return *this;
+    }
+    IndexParameters& set_right(const Lon& pos){
+        right_ = pos;
         return *this;
     }
     IndexParameters& set_common_data_properties(

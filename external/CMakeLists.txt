@@ -2,16 +2,6 @@ add_executable(autogen ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 target_compile_definitions(autogen PRIVATE ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}" EXE_DIR="${AUTOGEN_EXECUTABLE_DIR}" EXE_PATH="$<TARGET_FILE:autogen>")
 target_include_directories(autogen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(autogen
-                        PROPERTIES
-                        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/lib/Debug"
-                        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/shared/Debug"
-                        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/bin/Debug"
-                        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib/Release"
-                        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/shared/Release"
-                        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin/Release")
-
-
 
 set(AUTOGEN_EXECUTABLE_DIR "$<TARGET_FILE_DIR:autogen>")
 

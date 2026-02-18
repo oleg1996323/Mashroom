@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project("Mashroom serialization tests")
-
-enable_testing()
+find_package(GTest CONFIG REQUIRED)
 
 add_executable(Mashroom_serialize_test mashroom_serialization.cpp)
 add_executable(Mashroom_messages_test mashroom_messages.cpp)

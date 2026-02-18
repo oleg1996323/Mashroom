@@ -7,7 +7,7 @@ boost::json::value to_json(const CommonDataProperties<Data_t::TIME_SERIES,Data_f
     result["center"]=to_json(props.center_);
     // result["fcst unit"]=to_json(props.fcst_unit_);
     result["table version"]=to_json(props.table_version_);
-    result["parameter"]=to_json(props.parameter_);
+    result["indicator"]=to_json(props.parameter_);
     if(props.center_.has_value() && props.table_version_.has_value() && props.parameter_.has_value())
         if(auto* param = parameter_table(*props.center_,*props.table_version_,*props.parameter_);param)
             result["parameter name"]=to_json(std::string_view(param->name));
@@ -26,13 +26,6 @@ std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exc
             else return std::unexpected(std::exception());
         }
         else return std::unexpected(std::exception());
-        // if(val_obj.contains("forecast data")){
-        //     if(auto fcst_unit_res = from_json<TimeForecast>(val_obj.at("forecast data"));fcst_unit_res.has_value()){
-        //         result.fcst_unit_=fcst_unit_res.value();
-        //     }
-        //     else return std::unexpected(std::exception());
-        // }
-        // else return std::unexpected(std::exception());
         if(val_obj.contains("table version")){
             if(auto table_version_res = from_json<TimeFrame>(val_obj.at("table version"));table_version_res.has_value()){
                 result.table_version_=table_version_res.value();
@@ -40,8 +33,8 @@ std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exc
             else return std::unexpected(std::exception());
         }
         else return std::unexpected(std::exception());
-        if(val_obj.contains("parameter")){
-            if(auto parameter_res = from_json<TimeFrame>(val_obj.at("parameter"));parameter_res.has_value()){
+        if(val_obj.contains("indicator")){
+            if(auto parameter_res = from_json<TimeFrame>(val_obj.at("indicator"));parameter_res.has_value()){
                 result.parameter_=parameter_res.value();
             }
             else return std::unexpected(std::exception());

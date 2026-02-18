@@ -27,13 +27,31 @@ namespace find_data_info::details{
         TimeSequence ts_;
         Level lvl_;
         TimeForecast fcst_;
+        bool operator==(const Additional& other) const{
+            if((!grid_ && other.grid_) ||
+                (grid_ && !other.grid_))
+                return false;
+            return (grid_?*grid_==*other.grid_:false)&&
+                ts_==other.ts_ && lvl_==other.lvl_ &&
+                fcst_ == other.fcst_;
+        }
+        bool operator!=(const Additional& other) const{
+            return !(*this==other);
+        }
     };
 }
 
 template<Data_t TYPE,Data_f FORMAT>
 struct SearchDataResult{
-    find_data_info::details::Additional<TYPE,FORMAT> add_;
-    CommonDataProperties<TYPE,FORMAT> cmn_;
+    find_data_info::details::Additional<TYPE,FORMAT> add_ = {};
+    CommonDataProperties<TYPE,FORMAT> cmn_ = {};
+    using Additional_t = decltype(add_);
+    bool operator==(const SearchDataResult& other) const{
+        return cmn_==other.cmn_ && add_==other.add_;
+    }
+    bool operator!=(const SearchDataResult& other) const{
+        return !(*this==other);
+    }
 };
 
 namespace serialization{

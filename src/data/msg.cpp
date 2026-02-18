@@ -31,8 +31,12 @@ std::expected<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_
                 result.level_= level_tmp.value();            
         }
         if(obj->contains("grid"))
-            if(auto grid_result = from_json<decltype(result.grid_data)>(obj->at("grid"));!grid_result.has_value())
-                result.grid_data = grid_result.value();
+            if(auto grid_result = from_json<std::decay_t<
+                    decltype(*result.grid_data)>>(
+                    obj->at("grid"));grid_result.has_value())
+                result.grid_data = std::make_shared<
+                    std::decay_t<decltype(*result.grid_data)>>(
+                    std::move(grid_result.value()));
         return result;
     }
     else return std::unexpected(std::invalid_argument("invalid JSON input"));
@@ -49,7 +53,9 @@ boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& v
     obj["parameter"]=val.parameter;
     obj["time"]=std::format("{:%Y/%m/%d %h:%M:%S} GMT",time_point_cast<std::chrono::seconds>(val.date));
     obj["forecast data"]=to_json(val.t_unit);
-    obj["grid"]=to_json(val.grid_data);
+    if(val.grid_data)
+        obj["grid"]=to_json(*val.grid_data);
+    else obj["grid"];
     return obj;
 }
 

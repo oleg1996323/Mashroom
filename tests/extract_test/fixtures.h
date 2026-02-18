@@ -35,8 +35,9 @@ class Grib1Fixture: public testing::Test{
         grid1.base_.x2=50;
         grid1.base_.y1=50;
         grid1.base_.y2=0;
-        extract_data_properties1.add_.grid_= grid1;
+        extract_data_properties1.add_.grid_= grid1.type();
         extract_data_properties1.add_.level_=Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
+        extract_data_properties1.add_.pos_=Coord{.lat_=45.f,.lon_=45.f};
         std::random_device rd;
         std::mt19937 gen(rd());
         std::weibull_distribution<ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t> dist(2.f,7.f);
@@ -60,7 +61,8 @@ class Grib1Fixture: public testing::Test{
         grid2.base_.x2=50;
         grid2.base_.y1=50;
         grid2.base_.y2=0;
-        extract_data_properties2.add_.grid_= grid2;
+        extract_data_properties2.add_.grid_= grid2.type();
+        extract_data_properties2.add_.pos_=Coord{.lat_=45.f,.lon_=45.f};
         {
             auto& val_collection = values[extract_data_properties2];
             for(utc_tp_t<std::chrono::seconds> time = sys_days(1990y/1/1d);time<sys_days(1990y/1/2d);time+=hours(1))

@@ -1,5 +1,9 @@
 {
     "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23
+    },
     "configurePresets": [
         {
             "name": "default",
@@ -7,9 +11,11 @@
             "description": "Basic configuration for UNIX systems by Unix Makefiles",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "/home/oster/gcc/gcc-install/bin/gcc",
-                "CMAKE_CXX_COMPILER": "/home/oster/gcc/gcc-install/bin/g++",
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE":"Debug",
+                "CMAKE_CXX_COMPILER":"$env{HOME}/gcc-install/bin/g++",
+                "CMAKE_C_COMPILER":"$env{HOME}/gcc-install/bin/gcc",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "DEBUG":null
             }
         }
     ],
@@ -17,8 +23,7 @@
         {
             "name": "default",
             "displayName": "Build-Debug",
-            "configurePreset": "default",
-            "cleanFirst": true
+            "configurePreset": "default"
         }
     ]
 }

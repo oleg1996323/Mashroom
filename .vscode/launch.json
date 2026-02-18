@@ -4,16 +4,13 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/home/oster/Mashroom/build/Debug/bin/Mashroom_data_test",/* _parse_test ",*///"/home/oster/Mashroom/library/tests/build/serialization_test",
-        "args": ["launch"],//["-help"],
-        //"test"
-        //"-index","-outp","dir:/home/oster/out_test","-inp","/home/oster/temp","-format","grib"
-        //"-ext","-inp","/home/oster/out_test","-dfrom","h0:d1:m1:y1991","-dto","h23:d31:m12:y2024","-pos","40.000:45.000","-outp","dir:/home/oster/extracted_after_ch_BDS","-extfmt", "txt:zip"
-        "stopAtEntry": false,
+        "program": "/home/oster/Mashroom/build/Debug/bin/Mashroom_data_exchange_test",
+        "args": ["launch"],
+        "stopAtEntry": true,
         "cwd": "${cwd}",
         "externalConsole": false,
         "MIMode": "gdb",
-        "miDebuggerPath": "/home/oster/binutils-gdb/gdb-install/bin/gdb",
+        "miDebuggerPath": "/home/oster/binutils-gdb/install/bin/gdb",
         "environment": [
             {
                 "name": "LD_LIBRARY_PATH",

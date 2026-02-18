@@ -149,8 +149,8 @@ class Data:public __Data__{
         std::optional<utc_tp_t<std::chrono::seconds>> from,
         std::optional<utc_tp_t<std::chrono::seconds>> to,
         std::optional<DateTimeDiff> tdiff,
-        std::optional<TimeForecast> forecast_preference,
-        std::optional<Level> level,
+        std::optional<std::pair<TimeForecast,TimeForecast::COMPARISION_TYPE>> forecast_preference,
+        std::optional<std::pair<Level,Level::COMPARISION_TYPE>> level,
         std::optional<RepresentationType> grid_type) const{
             return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
             find_all(cmn,last_update,top,bottom,left,right,

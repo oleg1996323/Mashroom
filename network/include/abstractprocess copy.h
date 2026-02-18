@@ -14,47 +14,38 @@ namespace network{
 
 class Executor{
     public:
-    template<typename F,typename... ARGS>
-    std::future<std::invoke_result_t<F,
-            const Socket&,ARGS&&...>> 
-        run(F&& function,
-            const Socket& socket,
-            ARGS&&... args)
+    template<typename F>
+    std::future<std::invoke_result_t<F>> 
+        run(F&& function)
         {
-            using Result_t=std::invoke_result_t<F,
-            const Socket&,
-            ARGS&&...>;
-            std::packaged_task<Result_t(
-            const Socket&,ARGS&&...)> pack(
-                function);
+            using Result_t=std::invoke_result_t<F>;
             return std::async(std::launch::async,
-                pack,socket,
-                std::forward<ARGS>(args)...);
+                std::packaged_task<Result_t()>(function));
         }
-    template<typename F,typename... ARGS>
+    template<typename F>
     std::future<std::invoke_result_t<F,
-            std::stop_token,
-            const Socket&,ARGS&&...>> 
+            std::stop_token>> 
         run_with_stop(F&& function,
-            std::stop_token stop_token,
-            const Socket& socket,
-            ARGS&&... args)
+            std::stop_token stop_token)
         {
             using Result_t=std::invoke_result_t<F,
-            std::stop_token,
-            const Socket&,
-            ARGS&&...>;
-            std::packaged_task<Result_t(
-            std::stop_token,const Socket&,ARGS&&...)> pack(
-                function);
+            std::stop_token>;
             return std::async(std::launch::async,
-                pack,stop_token,socket,
-                std::forward<ARGS>(args)...);
+                std::packaged_task<Result_t()>(
+                    function,stop_token));
         }
 };
 
+class AbstractTaskHandler{
+    AbstractTaskHandler& operator=(const AbstractTaskHandler& other) = delete;
+    virtual AbstractTaskHandler& operator=(AbstractTaskHandler&& other) noexcept=0;
+    virtual ~AbstractTaskHandler() = default;
+    AbstractTaskHandler(AbstractTaskHandler&& other) noexcept = default;
+    AbstractTaskHandler(const AbstractTaskHandler& other) = delete;
+};
+
 template<typename RESULT>
-class TaskHandler{
+class TaskHandler:public AbstractTaskHandler{
     std::shared_future<RESULT> future_;
     std::stop_source stop_source_;
     public:
@@ -62,24 +53,22 @@ class TaskHandler{
     TaskHandler(std::future<RESULT> future,std::stop_source stop_src = {}):
     future_(std::move(future)),stop_source_(stop_src){}
     TaskHandler(const TaskHandler& other) = delete;
-    TaskHandler(TaskHandler&& other) noexcept{
+    virtual TaskHandler(TaskHandler&& other) noexcept override{
         operator=(std::move(other));
     }
     TaskHandler& operator=(const TaskHandler& other) = delete;
-    TaskHandler& operator=(TaskHandler&& other) noexcept{
+    virtual TaskHandler& operator=(TaskHandler&& other) noexcept override{
         if(this!=&other){
             std::swap(future_,other.future_);
             std::swap(stop_source_,other.stop_source_);
         }
         return *this;
     }
-    template<typename F,typename... ARGS>
-    void launch(F&& function,const Socket& socket,ARGS&&... args){
+    template<typename F>
+    void launch(F&& function){
         future_ = std::move(Executor().run_with_stop
-                (std::forward<F>(function),
-                        stop_source_.get_token(),
-                        socket,
-                        std::forward<ARGS>(args)...));
+                (function,
+                        stop_source_.get_token()));
     }
     std::optional<RESULT> get_result_timeout(
             uint16_t timeout_sec,
@@ -124,77 +113,36 @@ class TaskHandler{
 };
 
 class AbstractProcess{
-    protected:
+    private:
+    Executor& executor_;
     Socket socket_;
     public:
-    virtual void stop()=0;
-    Socket socket() const{
-        return socket_;
-    }
-    virtual void handleEvent(Multiplexor::Event event) const=0;
-    virtual bool is_ready() const=0;
-    virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60)=0;
-    AbstractProcess(const Socket& socket):socket_(socket){}
-    AbstractProcess(const AbstractProcess&) = delete;
-    AbstractProcess(AbstractProcess&& other) noexcept:
-        socket_(std::move(other.socket_)){}
-    AbstractProcess& operator=(const AbstractProcess&) = delete;
-    AbstractProcess& operator=(AbstractProcess&& other) noexcept{
-        if(this!=&other){
-            socket_=std::move(other.socket_);
-        }
-        return *this;
-    }
-    virtual ~AbstractProcess() = default;
-    virtual bool wait(int timeout_sec)=0;
-};
-
-template<typename RESULT>
-class CommonProcess:AbstractProcess{
-    private:
-    friend class AbstractQueuableProcess;
-    std::optional<TaskHandler<RESULT>> task_;
-    public:
-    virtual void before_launch(){}
-    virtual void after_launch(){}
+    virtual void before_launch() = 0;
+    virtual void after_launch() = 0;
     template<typename F,typename... ARGS>
-    void start(F&& function,
-            const Socket& socket,
-            ARGS&&... args){
+    void start(F&& function){
         socket_ = socket;
         before_launch();
-        task_.emplace(std::move(Executor().run(function,
+        task_.emplace(std::move(executor_.run(function,
             socket,std::forward<ARGS>(args)...)));
         after_launch();
     }
-    template<typename F,typename... ARGS>
     void start_with_stop(F&& function,
             std::stop_source stop,
             const Socket& socket,
             ARGS&&... args){
         socket_ = socket;
         before_launch();
-        task_.emplace(std::move(Executor().run_with_stop(function,
+        task_.emplace(std::move(executor_.run_with_stop(function,
             stop,socket,std::forward<ARGS>(args)...)));
         after_launch();
     }
-    virtual void stop(){
-        if(task_)
-            task_->request_stop(false,0);
+    virtual void stop()=0;
+    Socket socket() const{
+        return socket_;
     }
-    virtual void handleEvent(Multiplexor::Event event) const override{
-        switch (event)
-        {
-        case Multiplexor::Event::HangUp:
-        case Multiplexor::Event::CanReadButHangUp:
-        case Multiplexor::Event::Error:
-            request_stop(false,0);
-            break;
-        default:
-            break;
-        }
-    }
-    bool is_ready() const override{
+    virtual void handleEvent(Multiplexor::Event event) const=0;
+    bool is_ready() const{
         return task_ && task_.is_ready();
     }
     bool is_busy() const{
@@ -203,7 +151,7 @@ class CommonProcess:AbstractProcess{
     bool has_task() const{
         return task_?true:false;
     }
-    virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60) override{
+    virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60){
         if(task_)
             task_->request_stop(wait_finish,timeout_sec);
     }
@@ -215,11 +163,103 @@ class CommonProcess:AbstractProcess{
             else return std::nullopt;
         }
         else{
-            err=std::make_error_code(std::errc::no_message);
+            err=std::errc::no_message;
             return std::nullopt;
         }
     }
-    CommonProcess(const Socket& socket):AbstractProcess(socket){}
+    CommonProcess() = default;
+    CommonProcess(const CommonProcess&) = delete;
+    CommonProcess(CommonProcess&& other) noexcept{
+        *this=std::move(other);
+    }
+    CommonProcess& operator=(const CommonProcess&) = delete;
+    CommonProcess& operator=(CommonProcess&& other) noexcept{
+        if(this!=&other)
+            task_ = std::move(other.task_);
+        return *this;
+    }
+    virtual ~CommonProcess(){}
+    bool wait(int timeout_sec){
+        if(task_)
+            task_->wait(timeout_sec);
+    }
+};
+
+template<typename RESULT>
+class CommonProcess{
+    private:
+    friend class AbstractQueuableProcess;
+    std::optional<TaskHandler<RESULT>> task_;
+    Executor& executor_;
+    Socket socket_;
+    public:
+    virtual void before_launch(){}
+    virtual void after_launch(){}
+    template<typename F,typename... ARGS>
+    void start(F&& function,
+            const Socket& socket,
+            ARGS&&... args){
+        socket_ = socket;
+        before_launch();
+        task_.emplace(std::move(executor_.run(function,
+            socket,std::forward<ARGS>(args)...)));
+        after_launch();
+    }
+    void start_with_stop(F&& function,
+            std::stop_source stop,
+            const Socket& socket,
+            ARGS&&... args){
+        socket_ = socket;
+        before_launch();
+        task_.emplace(std::move(executor_.run_with_stop(function,
+            stop,socket,std::forward<ARGS>(args)...)));
+        after_launch();
+    }
+    virtual void stop(){
+        if(task_)
+            task_->request_stop(false,0);
+    }
+    Socket socket() const{
+        return socket_;
+    }
+    virtual void handleEvent(Multiplexor::Event event) const{
+        switch (event)
+        {
+        case Multiplexor::Event::HangUp:
+        case Multiplexor::Event::CanReadButHangUp:
+        case Multiplexor::Event::Error:
+            request_stop(false,0);
+            break;
+        default:
+            break;
+        }
+    }
+    bool is_ready() const{
+        return task_ && task_.is_ready();
+    }
+    bool is_busy() const{
+        return task_ && task_.is_busy();
+    }
+    bool has_task() const{
+        return task_?true:false;
+    }
+    virtual void request_stop(bool wait_finish, uint16_t timeout_sec = 60){
+        if(task_)
+            task_->request_stop(wait_finish,timeout_sec);
+    }
+    std::optional<RESULT> get_result(int timeout_sec,std::error_code& err) const{
+        if(task_){
+            auto result = task_->get_result_timeout(timeout_sec,err);
+            if(result.has_value())
+                return *result;
+            else return std::nullopt;
+        }
+        else{
+            err=std::errc::no_message;
+            return std::nullopt;
+        }
+    }
+    CommonProcess() = default;
     CommonProcess(const CommonProcess&) = delete;
     CommonProcess(CommonProcess&& other) noexcept{
         *this=std::move(other);

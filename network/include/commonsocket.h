@@ -17,7 +17,6 @@ namespace network{
 enum class SEND_FLAGS;
 enum class RECV_FLAGS;
 
-template<typename DERIVED_CONNECTIONPOOL>
 class CommonServer;
 class Multiplexor;
 
@@ -57,9 +56,7 @@ class Socket{
         Option(T&& value, Options option) noexcept:value_(std::move(value)),opt_(option){}
     };
     private:
-    template<typename DERIVED_CONNECTIONPOOL>
     friend class CommonServer;
-    template<typename PROCESS_T>
     friend class CommonClient;
     friend Multiplexor;
     friend std::hash<Socket>;

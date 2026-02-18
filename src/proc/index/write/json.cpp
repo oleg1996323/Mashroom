@@ -15,4 +15,9 @@ std::expected<std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>,std::exc
 }
 
 template<>
-boost::json::value to_json(const std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& val);
+boost::json::value to_json(const std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& val){
+    boost::json::array result;
+    for(auto& msg:val)
+        result.push_back(to_json(msg));
+    return result;
+}

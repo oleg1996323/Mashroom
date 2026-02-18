@@ -4,64 +4,47 @@
 #include <mutex>
 
 namespace network{
-    template<typename PROCESS_T,typename RESULT_T = void>
-    class AbstractQueuableProcess:public AbstractProcess<PROCESS_T,RESULT_T>{
-        using Queue_task = std::function<RESULT_T(std::stop_token)>;
-        std::deque<Queue_task> queue;
-        std::condition_variable_any cv;
+    class CommonQueuableProcess:public CommonProcess<size_t>{
+        using Queue_task = std::function<size_t(std::stop_token)>;
+        std::deque<TaskHandler<size_t>> queue;
+        std::stop_source stop_;
         protected:
-        virtual void after_execution_protected() override final{
-            std::unique_lock lk(this->m);
+        virtual void after_launch() override final{
             do{
                 if(!queue.empty()){
-                    auto task = std::move(queue.front());
+                    auto exp_task = std::move(queue.front());
                     queue.pop_front();
-                    lk.unlock();
-                    std::invoke(task,this->thread.get_stop_token());
-                    lk.lock();
+                    exp_task.launch(???);
                 }
-
-                cv.wait(lk,[this](){return !this->queue.empty() ||
-                    this->thread.get_stop_token().stop_requested();});
-            }while(!this->thread.get_stop_token().stop_requested());
+            }while(!stop_.stop_requested());
         }
         public:
-        AbstractQueuableProcess():AbstractProcess<PROCESS_T,RESULT_T>(){}
-        virtual ~AbstractQueuableProcess(){
+        CommonQueuableProcess():CommonProcess<size_t>(){}
+        virtual ~CommonQueuableProcess(){
             request_stop_protected(false);
         }
-        AbstractQueuableProcess(AbstractQueuableProcess&& other) noexcept:
-            AbstractProcess<PROCESS_T,RESULT_T>(std::move(other)),
+        CommonQueuableProcess(CommonQueuableProcess&& other) noexcept:
+            CommonProcess<size_t>(std::move(other)),
             queue(std::move(other.queue)){}
-        AbstractQueuableProcess& operator=(AbstractQueuableProcess&& other) noexcept{
+        CommonQueuableProcess& operator=(CommonQueuableProcess&& other) noexcept{
             if(this!=&other){
-                std::lock_guard lk(this->m);
                 queue=std::move(other.queue);
-                AbstractProcess<PROCESS_T,RESULT_T>::operator=(std::move(other));
+                CommonProcess<size_t>::operator=(std::move(other));
             }
             return *this;
         }
-        AbstractQueuableProcess(const AbstractQueuableProcess& other) = delete;
-        AbstractQueuableProcess& operator=(const AbstractQueuableProcess& other) = delete;
-        virtual void request_stop_protected(bool wait_finish,uint16_t timeout_sec = 60) override final{
-            std::unique_lock lk(this->m);
+        CommonQueuableProcess(const CommonQueuableProcess& other) = delete;
+        CommonQueuableProcess& operator=(const CommonQueuableProcess& other) = delete;
+        virtual void request_stop(bool wait_finish,uint16_t timeout_sec = 60) override final{
             queue.clear();
             if(!wait_finish){
-                lk.unlock();
-                cv.notify_one();
-                this->thread.request_stop();
+                stop_.request_stop();
             }
-            else{
-                cv.wait(lk,[this](){
-                    return queue_ready();
-                });
-                lk.unlock();
-                return;
-            }
-            return;
+            else
+                queue_ready();
         }
         bool queue_ready(){
-            return queue.empty() && this->ready();
+            return queue.empty() && wait(-1);
         }
         template<typename F,typename... ARGS>
         void enqueue(F&& function,

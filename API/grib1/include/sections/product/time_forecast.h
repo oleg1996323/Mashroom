@@ -9,6 +9,7 @@
 #include "code_tables/table_4.h"
 #include "code_tables/table_5.h"
 #include <cassert>
+#include <functional>
 
 class TimeForecast{
     public:
@@ -139,6 +140,49 @@ class TimeForecast{
     bool is_statistical() const;
     bool is_climatology() const;
     bool is_past_period() const;
+    
+    enum COMPARISION_TYPE:uint8_t{
+        EQUAL,
+        LESS,
+        GREATER,
+        LESS_EQ,
+        GREATER_EQ
+    };
+
+    struct ComparisionMethod{
+        std::function<bool(const TimeForecast&,const TimeForecast&)> func_;
+        COMPARISION_TYPE type_;
+        struct __hashing__{
+            using is_transparent = std::true_type;
+            size_t operator()(const ComparisionMethod& method) const noexcept{
+                return static_cast<size_t>(method.type_);
+            }
+            size_t operator()(COMPARISION_TYPE type) const noexcept{
+                return static_cast<size_t>(type);
+            }
+        };
+        struct __equity__{
+            using is_transparent = std::true_type;
+            bool operator()(const ComparisionMethod& lhs,const ComparisionMethod& rhs) const noexcept{
+                return lhs.type_==rhs.type_;
+            }
+            bool operator()(const ComparisionMethod& method,COMPARISION_TYPE type) const noexcept{
+                return method.type_==type;
+            }
+            bool operator()(COMPARISION_TYPE type,const ComparisionMethod& method) const noexcept{
+                return method.type_==type;
+            }
+        };
+    };
+
+    const static std::unordered_set<ComparisionMethod,
+        TimeForecast::ComparisionMethod::__hashing__,
+        TimeForecast::ComparisionMethod::__equity__> comp;
+
+    static bool compare(COMPARISION_TYPE type,
+                        const TimeForecast& fcst_contained,
+                        const TimeForecast& value_compared,
+                        std::error_code& err) noexcept;
 };
 
 TimeForecast time_forecast_from_string(const std::string& time_period);

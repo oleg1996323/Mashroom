@@ -18,31 +18,83 @@ std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json<grid::
         grid::GridBase<ALBERS_EQUAL_AREA> result;
         auto& obj = val.as_object();
         if(obj.contains("lat1"))
-            result.y1 = obj.at("lat1").as_double();
+            if(auto y1_tmp = from_json<std::decay_t<decltype(result.y1)>>(obj.at("lat1"));
+            y1_tmp.has_value())
+                result.y1 = y1_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lat1\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lat1\" (not contained)"));
         if(obj.contains("lon1"))
-            result.x1 = obj.at("lon1").as_double();
+            if(auto x1_tmp = from_json<std::decay_t<decltype(result.x1)>>(obj.at("lon1"));
+            x1_tmp.has_value())
+                result.x1 = x1_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lon1\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lon1\" (not contained)"));
         if(obj.contains("LoV"))
-            result.LoV = obj.at("LoV").as_double();
+            if(auto LoV_tmp = from_json<std::decay_t<decltype(result.LoV)>>(obj.at("LoV"));
+            LoV_tmp.has_value())
+                result.LoV = LoV_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"LoV\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"LoV\" (not contained)"));
         if(obj.contains("latin1"))
-            result.latin1 = obj.at("latin1").as_double();
+            if(auto latin1_tmp = from_json<std::decay_t<decltype(result.latin1)>>(obj.at("latin1"));
+            latin1_tmp.has_value())
+                result.latin1 = latin1_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"latin1\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"latin1\" (not contained)"));
         if(obj.contains("latin2"))
-            result.latin2 = obj.at("latin2").as_double();
+            if(auto latin2_tmp = from_json<std::decay_t<decltype(result.latin2)>>(obj.at("latin2"));
+            latin2_tmp.has_value())
+                result.latin2 = latin2_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"latin2\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"latin2\" (not contained)"));
         if(obj.contains("Dy"))
-            result.Dy = obj.at("Dy").as_double();
+            if(auto Dy_tmp = from_json<std::decay_t<decltype(result.Dy)>>(obj.at("Dy"));
+            Dy_tmp.has_value())
+                result.Dy = Dy_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"Dy\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"Dy\" (not contained)"));
         if(obj.contains("Dx"))
-            result.Dx = obj.at("Dx").as_double();
+            if(auto Dx_tmp = from_json<std::decay_t<decltype(result.Dx)>>(obj.at("Dx"));
+            Dx_tmp.has_value())
+                result.Dx = Dx_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"Dx\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"Dx\" (not contained)"));
         if(obj.contains("lat SP"))
-            result.latitude_south_pole = obj.at("lat SP").as_double();
+            if(auto lat_SP_tmp = from_json<std::decay_t<decltype(result.latitude_south_pole)>>(obj.at("lat SP"));
+            lat_SP_tmp.has_value())
+                result.latitude_south_pole = lat_SP_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lat SP\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lat SP\" (not contained)"));
         if(obj.contains("lon SP"))
-            result.longitude_south_pole = obj.at("lon SP").as_double();
+            if(auto lon_SP_tmp = from_json<std::decay_t<decltype(result.longitude_south_pole)>>(obj.at("lon SP"));
+            lon_SP_tmp.has_value())
+                result.longitude_south_pole = lon_SP_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"lon SP\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"lon SP\" (not contained)"));
         if(obj.contains("ny"))
-            result.ny = obj.at("ny").as_uint64();
+            if(auto ny_tmp = from_json<std::decay_t<decltype(result.ny)>>(obj.at("ny"));
+            ny_tmp.has_value())
+                result.ny = ny_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"ny\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"ny\" (not contained)"));
         if(obj.contains("nx"))
-            result.ny = obj.at("nx").as_uint64();
+            if(auto nx_tmp = from_json<std::decay_t<decltype(result.nx)>>(obj.at("nx"));
+            nx_tmp.has_value())
+                result.nx = nx_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"nx\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"nx\" (not contained)"));
         if(obj.contains("isSP"))
-            result.is_south_pole = obj.at("isSP").as_bool();
+            if(auto is_SP_tmp = from_json<std::decay_t<decltype(result.is_south_pole)>>(obj.at("isSP"));
+            is_SP_tmp.has_value())
+                result.is_south_pole = is_SP_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"isSP\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"isSP\" (not contained)"));
         if(obj.contains("isBP"))
-            result.is_bipolar = obj.at("isBP").as_bool();
+            if(auto is_BP_tmp = from_json<std::decay_t<decltype(result.is_bipolar)>>(obj.at("isBP"));
+            is_BP_tmp.has_value())
+                result.is_bipolar = is_BP_tmp.value();
+            else return std::unexpected(std::invalid_argument("\"isBP\" (incorrect type or empty)"));
+        else return std::unexpected(std::invalid_argument("\"isBP\" (not contained)"));
         if(obj.contains("scan mode")){
             if(auto scan_res = from_json<ScanMode>(obj.at("scan mode"));scan_res.has_value())
                 result.scan_mode = scan_res.value();
@@ -61,20 +113,20 @@ std::expected<grid::GridBase<ALBERS_EQUAL_AREA>,std::exception> from_json<grid::
 template<>
 boost::json::value to_json(const grid::GridBase<ALBERS_EQUAL_AREA>& val){
     boost::json::object obj;
-    obj["lat1"].emplace_double() = val.y1;
-    obj["lon1"].emplace_double() = val.x1;
-    obj["LoV"].emplace_double() = val.LoV;
-    obj["latin1"].emplace_double() = val.latin1;
-    obj["latin2"].emplace_double() = val.latin2;
-    obj["Dy"].emplace_double() = val.Dy;
-    obj["Dx"].emplace_double() = val.Dx;
-    obj["lat SP"].emplace_double() = val.latitude_south_pole;
-    obj["lon SP"].emplace_double() = val.longitude_south_pole;
-    obj["ny"].emplace_uint64() = val.ny;
-    obj["nx"].emplace_uint64() = val.nx;
-    obj["isSP"].emplace_bool() = val.is_south_pole;
-    obj["isBP"].emplace_bool() = val.is_bipolar;
+    obj["lat1"] = val.y1;
+    obj["lon1"] = val.x1;
+    obj["LoV"] = val.LoV;
+    obj["latin1"] = val.latin1;
+    obj["latin2"] = val.latin2;
+    obj["Dy"] = val.Dy;
+    obj["Dx"] = val.Dx;
+    obj["lat SP"] = val.latitude_south_pole;
+    obj["lon SP"] = val.longitude_south_pole;
+    obj["ny"] = val.ny;
+    obj["nx"] = val.nx;
+    obj["isSP"] = val.is_south_pole;
+    obj["isBP"] = val.is_bipolar;
     obj["scan mode"]= to_json(val.scan_mode);
-    obj["resolution component flags"]= to_json(val.scan_mode);
+    obj["resolution component flags"]= to_json(val.resolutionAndComponentFlags);
     return obj;
 }

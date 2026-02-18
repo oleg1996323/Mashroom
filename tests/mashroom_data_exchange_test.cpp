@@ -70,7 +70,11 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
     Client client("127.0.0.1",32396);
     auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
     auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-    parameters_struct.forecast_preference_=TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
+    parameters_struct.set_forecast_preference(TimeForecast(TimeFrame::HOUR,
+                        TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                        TimeForecast::LESS);
+    parameters_struct.set_level_preference(Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
+                        Level::EQUAL);
     parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
     std::error_code ec;
     TimeSequence ts(utc_tp(),utc_tp::clock::now(),ec,days(1));
@@ -112,18 +116,43 @@ TEST_F(DataTestClass,Extract_DataExchangeTest){
 
 int main(int argc,char* argv[]){
     {
-        // Client client("127.0.0.1",32396);
-        // auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
-        // auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-        // parameters_struct.forecast_preference_=TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
-        // parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
-        // parameters_struct.time_ = TimeSequence(utc_tp(),utc_tp::clock::now(),days(1));
-        // EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
-        // Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
-        // auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
-        // EXPECT_EQ(err,ErrorCode::NONE);
-        // auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
-        // EXPECT_EQ(result.additional().blocks_.size(),1);    
+        Client client("127.0.0.1",32396);
+        auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
+        auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
+        parameters_struct.forecast_preference_=std::make_pair(
+                TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+                TimeForecast::EQUAL);
+        parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
+        parameters_struct.from_ = utc_tp_t<std::chrono::seconds>();
+        parameters_struct.to_ = std::chrono::floor<std::chrono::seconds>(utc_tp::clock::now());
+        std::error_code error_loc;
+        parameters_struct.tdiff_ = DateTimeDiff(error_loc,days(1));
+        EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+        Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
+        auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
+        EXPECT_EQ(err,ErrorCode::NONE);
+        auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
+        auto result_check = [&parameters_struct](const auto& block)
+        ->bool
+        {
+            using type = std::decay_t<decltype(block)>;
+            if constexpr (std::is_same_v<std::monostate,type>)
+                return false;
+            else if constexpr(std::is_same_v<
+                    DataStruct<Data_t::TIME_SERIES,
+                    Data_f::GRIB_v1>::find_all_t,type>){
+                        return block.size()==1 && block.front().add_.fcst_==
+                            parameters_struct.forecast_preference_.value().first &&
+                        block.front().add_.grid_ &&
+                        block.front().add_.grid_->type()==
+                        parameters_struct.grid_type_.value()&&
+                        block.front().add_.ts_.time_duration()==
+                        parameters_struct.tdiff_.value();
+                    }
+            else static_assert(false);
+        };
+        EXPECT_TRUE(std::visit(result_check,result.additional().blocks_));
+        // EXPECT_EQ(result.additional().blocks_,1);    
         // EXPECT_FALSE(result.message_more());
 
         // auto additional_extr = network::make_additional<Client_MsgT::DATA_REQUEST>();
@@ -139,7 +168,6 @@ int main(int argc,char* argv[]){
         // Message<Client_MsgT::DATA_REQUEST> msg_extr(std::move(additional_extr));
         // err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg_extr));
     }
-    // testing::InitGoogleTest(&argc,argv);
-    // return RUN_ALL_TESTS();
-    return 0;
+    testing::InitGoogleTest(&argc,argv);
+    return RUN_ALL_TESTS();
 }

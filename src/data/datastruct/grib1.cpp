@@ -194,8 +194,8 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
         std::optional<utc_tp_t<std::chrono::seconds>> from,
         std::optional<utc_tp_t<std::chrono::seconds>> to,
         std::optional<DateTimeDiff> tdiff,
-        std::optional<TimeForecast> forecast_preference,
-        std::optional<Level> level,
+        std::optional<std::pair<TimeForecast,TimeForecast::COMPARISION_TYPE>> forecast_preference,
+        std::optional<std::pair<Level,Level::COMPARISION_TYPE>> level,
         std::optional<RepresentationType> grid_type) const
 {
     std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>> result;
@@ -221,69 +221,62 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
         return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     if(!common.empty()){
         for(auto& cmn_tmp:common){
-            for(auto& idx:idx_tmp){
-                auto idx_lock = idx.lock();
-                if(cmn_tmp.center_.has_value() && idx_lock->cmn_.center_.value()!=cmn_tmp.center_.value())
+            if(auto found_cmn = common_.find(cmn_tmp);found_cmn!=common_.end()){
+                for(auto id:found_cmn->second){
+                    if(!id.expired() && idx_tmp.contains(id))
+                        current.insert(id);
+                    else continue;
+                }
+            }
+            else continue;
+        }
+        current.swap(idx_tmp);
+        current.clear();
+        if(idx_tmp.empty())
+            return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
+    }
+    if(top.value() || bottom.value() || left.value() || right.value()){
+        for(auto& [grid,idx]:grids_){
+            if(grid){
+                if(grid_type.has_value() && grid->type()!=*grid_type)
                     continue;
-                if(cmn_tmp.parameter_.has_value() && idx_lock->cmn_.parameter_.value()!=cmn_tmp.parameter_.value())
-                    continue;
-                if(cmn_tmp.table_version_.has_value() && idx_lock->cmn_.table_version_.value()!=cmn_tmp.table_version_.value())
-                    continue;
-                current.insert(idx);
+                if(top.has_value())
+                    if(auto top_tmp = grid->top();top_tmp.has_value() && top.value()>top_tmp.value())
+                        continue;
+                if(bottom.has_value())
+                    if(auto bottom_tmp = grid->bottom();bottom_tmp.has_value() && bottom.value()<bottom_tmp.value())
+                        continue;
+                if(left.has_value())
+                    if(auto left_tmp = grid->left();left_tmp.has_value() && left.value()<left_tmp.value())
+                        continue;
+                if(right.has_value())
+                    if(auto right_tmp = grid->right();right_tmp.has_value() && right.value()>right_tmp.value())
+                        continue;
+                for(auto id:idx){
+                    if(!id.expired() && idx_tmp.contains(id))
+                        current.insert(id);
+                    else continue;
+                }
             }
         }
         current.swap(idx_tmp);
         current.clear();
-    }
-    else for(auto& [cmn,idx]:common_){
-        for(auto& id:idx)
-            if(!id.expired())
-                idx_tmp.insert(id);
-    }
-    if(idx_tmp.empty())
-        return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
-    for(auto& idx:idx_tmp){
-        auto idx_lock = idx.lock();
-        if(idx_lock->grid_.expired())
-            continue;
-        auto grid_lock = idx_lock->grid_.lock();
-        if(grid_type.has_value() && grid_lock->type()!=*grid_type)
-            continue;
-        if(top.has_value())
-            if(auto top_tmp = grid_lock->top();top_tmp.has_value() && top.value()>top_tmp.value())
-                continue;
-        if(bottom.has_value())
-            if(auto bottom_tmp = grid_lock->bottom();bottom_tmp.has_value() && bottom.value()<bottom_tmp.value())
-                continue;
-        if(left.has_value())
-            if(auto left_tmp = grid_lock->left();left_tmp.has_value() && left.value()<left_tmp.value())
-                continue;
-        if(right.has_value())
-            if(auto right_tmp = grid_lock->bottom();right_tmp.has_value() && right.value()>right_tmp.value())
-                continue;
-        for(auto& id:idx_tmp)
-            if(!id.expired())
-                current.insert(id);
-        current.swap(idx_tmp);
-        current.clear();
+        if(idx_tmp.empty())
+            return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     }
     if(level){
-        for(auto& id:idx_tmp){
-            auto id_locked = id.lock();
-            if(id_locked){
-                if(id_locked->lvl_.type() != level->type())
-                    continue;
-                if(id_locked->lvl_.is_bounded()){
-                    if(id_locked->lvl_.get_top_bound()<level->get_bottom_bound() ||
-                        id_locked->lvl_.get_bottom_bound()>level->get_top_bound())
-                            continue;
-                }
-                else{
-                    if(id_locked->lvl_.get_level_height()!=level->get_level_height())
-                        continue;
-                }
-                current.insert(id);
+        for(auto [lvl,idx]:levels_){
+            std::error_code err;
+            if(bool is = Level::compare(
+                        level->second,lvl,level->first,err);
+                    err==std::error_code() && is){
+                for(auto id:idx)
+                    if(!id.expired() && 
+                        idx_tmp.contains(id))
+                        current.insert(id);
+                    else continue;
             }
+            else continue;
         }
         current.swap(idx_tmp);
         current.clear();
@@ -291,95 +284,28 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
             return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     }
     if(forecast_preference){
-        for(auto& id:idx_tmp){
-            auto id_locked = id.lock();
-            if(id_locked){
-                auto& record_tf = id.lock()->tf_;
-                if(forecast_preference->get_time_range_indicator() != TimeRangeIndicator::MISSING &&
-                    record_tf.get_time_range_indicator() != 
-                        forecast_preference->get_time_range_indicator()) {
-                    continue;
-                }
-                if(record_tf.get_time_frame()!=
-                    forecast_preference->get_time_frame()) {
-                    continue;
-                }
-                if(record_tf.is_range()) {                    
-                    if(record_tf.get_P1().val > forecast_preference->get_P1().val ||
-                    record_tf.get_P2().val < forecast_preference->get_P2().val) {
-                        continue;
-                    }                    
-                    if(forecast_preference->get_n() >= 0 && 
-                    //@todo Maybe less, greater or equal (set by user)
-                    record_tf.get_n() != forecast_preference->get_n()) {
-                        continue;
-                    }                    
-                    //@todo Maybe less, greater or equal (set by user)
-                    if(forecast_preference->get_avg_acc_miss_N_vals() > 0 &&
-                    record_tf.get_avg_acc_miss_N_vals()>
-                        forecast_preference->get_avg_acc_miss_N_vals()) {
-                        continue;
-                    }
-                }
-                else if(record_tf.is_intervaled()) {
-                    if(record_tf.get_P1().val > forecast_preference->get_P1().val ||
-                    record_tf.get_P2().val < forecast_preference->get_P2().val) {
-                        continue;
-                    }
-                    //@todo Maybe less, greater or equal (set by user)
-                    if(forecast_preference->get_n() >= 0) {
-                        if(record_tf.get_n() != forecast_preference->get_n()) {
-                            continue;
-                        }
-                    }
-                    else if(record_tf.get_n() <= 0) {
-                        continue;
-                    }                    
-                    if(forecast_preference->get_avg_acc_miss_N_vals() > 0 &&
-                    record_tf.get_avg_acc_miss_N_vals() > forecast_preference->get_avg_acc_miss_N_vals()) {
-                        continue;
-                    }
-                }
-                else if(record_tf.is_forecast() || record_tf.is_analysis()) {
-                    if(record_tf.is_forecast()!=
-                        forecast_preference->is_forecast()) {
-                        continue;
-                    }
-                    if(record_tf.octet_doubled()) {
-                        uint16_t record_val = record_tf.get_doubled_octet();
-                        uint16_t pref_val = forecast_preference->get_doubled_octet();
-                        if(record_val != pref_val) continue;
-                    }
-                    else {
-                        if(record_tf.get_P1().val>
-                            forecast_preference->get_P1().val) {
-                            continue;
-                        }
-                    }
-                    if(forecast_preference->get_n() >= 0 &&
-                    record_tf.get_n()<
-                        forecast_preference->get_n()) {
-                        continue;
-                    }
-                }
-                else if(record_tf.is_unique_value()) {
-                    if(record_tf.get_P1().val>
-                        forecast_preference->get_P1().val) {
-                        continue;
-                    }
-                    if(record_tf.get_P2().val != 0 ||
-                        forecast_preference->get_P2().val != 0) {
-                        continue;
-                    }
-                }
-                current.insert(id);
+        for(auto [tf,idx]:tf_){
+            std::error_code err;
+            if(bool is = TimeForecast::compare(
+                        forecast_preference->second,tf,forecast_preference->first,err);
+                    err==std::error_code() && is){
+                for(auto id:idx)
+                    if(!id.expired() && 
+                        idx_tmp.contains(id))
+                        current.insert(id);
+                    else continue;
             }
+            else continue;
         }
         current.swap(idx_tmp);
         current.clear();
         if(idx_tmp.empty())
             return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     }
+    std::cout<<"bounding interval:"<<"\n"<<
+    "from:"<<(from.has_value()?*from:utc_tp())<<"\n"<<
+    "to"<<(to.has_value()?*to:utc_tp::clock::now())<<std::endl;
+
     for(auto& idx:idx_tmp){
         auto idx_lock = idx.lock();
         for(auto& [ts,pos]:idx_lock->ts_pos_){
@@ -391,6 +317,9 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
             if(from.has_value() || to.has_value()){
                 TimeInterval tinterval(from.has_value()?*from:utc_tp(),
                                 to.has_value()?*to:utc_tp::clock::now());
+                std::cout<<"current interval:"<<"\n"<<
+                "from:"<<ts.get_interval().from()<<"\n"<<
+                "to"<<ts.get_interval().to()<<std::endl;
                 if(!intervals_intersect(ts.get_interval(),tinterval))
                     continue;
             }
@@ -518,13 +447,13 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
         idx_tmp->lvl_=msg.level_;
         idx_tmp->tf_=msg.t_unit;
         std::shared_ptr<GridInfo> grid_tmp;
-        if(auto found_grid =tmp.grids_.find(msg.grid_data);
+        if(auto found_grid =tmp.grids_.find(*msg.grid_data);
             found_grid!=tmp.grids_.end()){
                 grid_tmp = found_grid->first;
                 idx_tmp->grid_=grid_tmp;
         }
         else{
-            grid_tmp = std::make_shared<GridInfo>(msg.grid_data);
+            grid_tmp = msg.grid_data;
             idx_tmp->grid_ = grid_tmp;
         }
         std::shared_ptr<path::Storage<false>> file;

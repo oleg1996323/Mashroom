@@ -27,7 +27,7 @@ struct FileMsg{
 template<>
 struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
 {
-    GridInfo grid_data;
+    std::shared_ptr<GridInfo> grid_data;
     utc_tp_t<std::chrono::seconds> date;
     ptrdiff_t buf_pos_;
     TimeForecast t_unit;
@@ -48,7 +48,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         uint8_t table_version_,
         Level level,
         API::ErrorData::Code<API::GRIB1>::value err):
-        grid_data(std::move(grid_data_)),
+        grid_data(std::make_shared<GridInfo>(std::move(grid_data_))),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
         msg_sz_(msg_size),
@@ -68,7 +68,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         uint8_t table_version_,
         Level level,
         API::ErrorData::Code<API::GRIB1>::value err):
-        grid_data(grid_data_),
+        grid_data(std::make_shared<GridInfo>(grid_data_)),
         date(date_),
         buf_pos_(msg_buf_pos),
         msg_sz_(msg_size),

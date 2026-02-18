@@ -72,12 +72,16 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     continue;
                 if(props_.fcst_unit_.has_value() && props_.fcst_unit_!=info.t_unit)
                     continue;
-                if(props_.grid_type_.has_value() && (!info.grid_data.has_grid() || props_.grid_type_.value()!=info.grid_data.type()))
+                if(props_.grid_type_.has_value() && (!info.grid_data || 
+                        !info.grid_data->has_grid() || 
+                        props_.grid_type_.value()!=
+                        info.grid_data->type()))
                     continue;
                 if(props_.position_.has_value()){
-                    if(!info.grid_data.has_grid())
+                    if(!info.grid_data ||
+                        !info.grid_data->has_grid())
                         continue;
-                    else if(!pos_in_grid(props_.position_.value(),info.grid_data))
+                    else if(!pos_in_grid(props_.position_.value(),*info.grid_data))
                         continue;
                 }
                 if(props_.to_date_<info.date || props_.from_date_>info.date)
@@ -105,7 +109,11 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     continue;
                 if(auto found = index_result.find(std::make_pair<Data_f,Data_t>(Data_f::GRIB_v1,Data_t::TIME_SERIES));found!=index_result.end()){
                     std::error_code error_id;
-                    const_cast<DataStructVariation&>(*found).add_data(path::Storage<false>::file(entry.path().string(),utc_tp::clock::now()),index_local,error_id);
+                    const_cast<DataStructVariation&>(*found).add_data(
+                        path::Storage<false>::file(
+                            entry.path().string(),
+                            utc_tp::clock::now()),
+                        index_local,error_id);
                 }
                 else {
                     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> structure;

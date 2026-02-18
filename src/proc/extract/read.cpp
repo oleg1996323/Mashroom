@@ -232,24 +232,49 @@ namespace txt::details{
     }
 
     template<Data_f FORMAT,Data_t TYPE>
-    procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> get_additional_data_properties(std::istream& file,const fs::path& filename){
+    procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> 
+            get_additional_data_properties(std::istream& file,const fs::path& filename){
         procedures::extract::details::AdditionalExtractDataProperties<TYPE,FORMAT> result;
-        result.fcst_ = get_txt_structure<TimeForecast>(file,filename);
-        result.level_ = get_txt_structure<Level>(file,filename);
         result.pos_ = Coord{.lat_ = get_txt_token<Lat>(file,"latitude",filename),
                             .lon_=get_txt_token<Lon>(file,"longitude",filename)};
+        result.grid_ = get_txt_token<RepresentationType>(file,"grid",filename);
+        result.fcst_ = get_txt_structure<TimeForecast>(file,filename);
+        result.level_ = get_txt_structure<Level>(file,filename);
         return result;
     }
     
     template<Data_f FORMAT, Data_t TYPE>
     HeaderInfo<FORMAT,TYPE> read_header(std::istream& file,const fs::path& filename){
+        using namespace procedures::extract::details;
+        using ExtractProps = ExtractDataProperties<TYPE,FORMAT>;
         HeaderInfo<FORMAT,TYPE> result;
         if constexpr(TYPE == Data_t::TIME_SERIES){
             if constexpr(FORMAT==Data_f::GRIB_v1){
                 result.version_ = get_txt_token<int>(file,"version",filename);
                 size_t number_of_parameters = get_txt_token<size_t>(file,"parameters",filename);
-                for(size_t i = 0;i<number_of_parameters;++i)
-                    result.param_info_.emplace_back(get_common_data_properties<FORMAT,TYPE>(file,filename),get_additional_data_properties<FORMAT,TYPE>(file,filename));
+                uint32_t current = 0;
+                std::string buffer;
+                for(size_t i = 0;i<number_of_parameters;++i){
+                    if(!std::getline(file,buffer) || 
+                        !buffer.starts_with("#") ||
+                        !buffer.ends_with(":"))
+                        throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
+                            "parameter numeration",
+                            filename.c_str());
+                    else{
+                        std::string_view sub(buffer);
+                        sub = sub.substr(1,sub.size()-2);
+                        if(std::from_chars(sub.begin(),sub.end(),current).ec!=std::errc() ||
+                            current!=i+1)
+                            throw ErrorException(ErrorCode::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
+                            "parameter numeration",
+                            filename.c_str());
+                    }
+                    auto cmn = get_common_data_properties<FORMAT,TYPE>(file,filename);
+                    auto add = get_additional_data_properties<FORMAT,TYPE>(file,filename);
+                    result.param_info_.emplace_back(ExtractProps(
+                        std::move(cmn),std::move(add)));
+                    }
                 return result;
             }
             else static_assert(false,"Not implemented");
@@ -391,7 +416,10 @@ T get_json_token(boost::json::value json,const char* token,const fs::path& filen
         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"json file doesn't contains token "s+token,filename.c_str());
     else {
         if(auto data_from_json = from_json<T>(*ptr);!data_from_json.has_value())
-            throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,"invalid value in json file"s+token,filename.c_str());
+            throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,
+                "invalid value in json file"s+
+                token+":"+data_from_json.error().what(),
+                filename.c_str());
         else return data_from_json.value();
     }
 }
@@ -415,8 +443,6 @@ ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& f
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
-                    RepresentationType grid_t = get_json_token<RepresentationType>(json,"/grid",filename);
-                    Coord pos = get_json_token<Coord>(json,"/position",filename);
                     ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values = get_json_token<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(json,"/data",filename);
                     return values;
                 }
@@ -456,12 +482,6 @@ ExtractedData read_bin_file(const std::stop_token& stop_token,const fs::path& fi
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
-                    RepresentationType grid_t;
-                    if(auto ser_err = deserialize_from_file(grid_t,file);ser_err!=SerializationEC::NONE)
-                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
-                    Coord pos;
-                    if(auto ser_err = deserialize_from_file(pos,file);ser_err!=SerializationEC::NONE)
-                        throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());
                     ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
                     if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
                         throw ErrorException(ErrorCode::FILE_X1_READING_ERROR,""sv,filename.c_str());

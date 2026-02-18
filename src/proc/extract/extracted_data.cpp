@@ -27,6 +27,7 @@ std::expected<procedures::extract::details::ExtractDataProperties<Data_t::TIME_S
             else return std::unexpected(std::exception());
         }
         else return std::unexpected(std::exception());
+        return result;
     }
     else return std::unexpected(std::exception());
 }
@@ -94,6 +95,9 @@ boost::json::value to_json(const procedures::extract::details::AdditionalExtract
     boost::json::object result;
     result["forecast data"] = to_json(add.fcst_);
     result["level"]=to_json(add.level_);
+    result["grid"]=to_json(add.grid_);
+    result["lat"]=to_json(add.pos_.lat_);
+    result["lon"]=to_json(add.pos_.lon_);
     return result;
 }
 
@@ -103,7 +107,11 @@ std::expected<procedures::extract::details::AdditionalExtractDataProperties<Data
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
     if(val.is_object()){
         auto& obj = val.as_object();
-        if(obj.contains("forecast data") && obj.contains("level")){
+        if(obj.contains("forecast data") &&
+                obj.contains("level") &&
+                obj.contains("grid") &&
+                obj.contains("lat") &&
+                obj.contains("lon")){
             type result;
             if(auto fcst_res = from_json<TimeForecast>(obj.at("forecast data"));fcst_res.has_value())
                 result.fcst_ = fcst_res.value();
@@ -111,7 +119,18 @@ std::expected<procedures::extract::details::AdditionalExtractDataProperties<Data
             if(auto lvl_res = from_json<Level>(obj.at("level"));lvl_res.has_value())
                 result.level_ = lvl_res.value();
             else return std::unexpected(std::exception());
+            if(auto grid_res = from_json<RepresentationType>(obj.at("grid"));grid_res.has_value())
+                result.grid_ = grid_res.value();
+            else return std::unexpected(std::exception());
+            if(auto lat_res = from_json<Lat>(obj.at("lat"));lat_res.has_value())
+                result.pos_.lat_ = lat_res.value();
+            else return std::unexpected(std::exception());
+            if(auto lon_res = from_json<Lon>(obj.at("lon"));lon_res.has_value())
+                result.pos_.lon_ = lon_res.value();
+            else return std::unexpected(std::exception());
+            return result;
         }
+        else return std::unexpected(std::exception());
     }
     else
         return std::unexpected(std::exception());

@@ -17,20 +17,23 @@ struct AdditionalExtractDataProperties:std::monostate{
 template<>
 struct AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     TimeForecast fcst_;
-    GridInfo grid_;
     Coord pos_;
     Level level_;
+    RepresentationType grid_;
 
     size_t hash() const{
         size_t result = 0;
         boost::hash_combine(result,std::hash<TimeForecast>()(fcst_));
-        boost::hash_combine(result,std::hash<GridInfo>()(grid_));
         boost::hash_combine(result,std::hash<Coord>()(pos_));
         boost::hash_combine(result,std::hash<Level>()(level_));
+        boost::hash_combine(result,std::hash<RepresentationType>()(grid_));
         return result;
     }
     bool operator==(const AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& other) const{
-        return fcst_ == other.fcst_ && grid_ ==other.grid_&&pos_==other.pos_&&level_==other.level_;
+        return grid_==other.grid_ && 
+                fcst_ == other.fcst_ &&
+                pos_==other.pos_&&
+                level_==other.level_;
     }
     bool operator!=(const AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& other) const{
         return !(*this==other);
@@ -265,7 +268,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.fcst_,msg.level_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.fcst_,msg.level_,msg.grid_,msg.pos_);
         }
     };
 
@@ -273,7 +276,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_,msg.level_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_,msg.level_,msg.grid_,msg.pos_);
         }
     };
 
@@ -281,7 +284,7 @@ namespace serialization{
     struct Serial_size<procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.fcst_,msg.level_);
+            return serial_size(msg.fcst_,msg.level_,msg.grid_,msg.pos_);
         }
     };
 
@@ -290,7 +293,8 @@ namespace serialization{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
-            return min_serial_size<decltype(type::fcst_),decltype(type::level_)>();
+            return min_serial_size<decltype(type::fcst_),decltype(type::level_),
+                            decltype(type::grid_),decltype(type::pos_)>();
         }();
     };
 
@@ -299,7 +303,8 @@ namespace serialization{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         static constexpr size_t value = []() ->size_t
         {
-            return max_serial_size<decltype(type::fcst_),decltype(type::level_)>();
+            return max_serial_size<decltype(type::fcst_),decltype(type::level_),
+                            decltype(type::grid_),decltype(type::pos_)>();
         }();
     };
 

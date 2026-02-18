@@ -2,9 +2,9 @@
 #include "byte_order.h"
 struct ResolutionComponentFlags
 {
-    bool given_direction;
-    bool earth_spheroidal;
-    bool grid_direction_uv_comp;
+    bool given_direction = false;
+    bool earth_spheroidal = false;
+    bool grid_direction_uv_comp = false;
     #ifdef __cplusplus
     ResolutionComponentFlags() = default;
     ResolutionComponentFlags(unsigned char buf):

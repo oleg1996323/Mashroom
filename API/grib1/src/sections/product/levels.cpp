@@ -1,6 +1,89 @@
 #include "code_tables/table_3.h"
 #include "sections/product/levels.h"
 
+namespace level::details
+{
+    template<Level::COMPARISION_TYPE TYPE>
+    bool compare_heights(const Level& with_which_comparing,const Level& value) noexcept{   
+        if constexpr (TYPE==Level::COMPARISION_TYPE::LESS){
+            if(!(with_which_comparing.get_level_height()<
+                    value.get_level_height()))
+                return false;
+        }
+        else if constexpr(TYPE==Level::COMPARISION_TYPE::LESS_EQ){
+            if(!(with_which_comparing.get_level_height()<=
+                    value.get_level_height()))
+                return false;
+        }
+        else if constexpr(TYPE==Level::COMPARISION_TYPE::EQUAL){
+            if(!(with_which_comparing.get_level_height()==
+                    value.get_level_height()))
+                return false;
+        }
+        else if constexpr(TYPE==Level::COMPARISION_TYPE::GREATER_EQ){
+            if(!(with_which_comparing.get_level_height()>=
+                    value.get_level_height()))
+                return false;
+        }
+        else if constexpr(TYPE==Level::COMPARISION_TYPE::GREATER){
+            if(!(with_which_comparing.get_level_height()>
+                    value.get_level_height()))
+                return false;
+        }
+        else static_assert(false,"Not implemented");
+        return true;
+    }
+
+
+    template<Level::COMPARISION_TYPE TYPE>
+    bool compare(const Level& with_which_comparing,const Level& value) noexcept{
+        if(with_which_comparing.type() != value.type())
+            return false;
+        if(with_which_comparing.is_bounded()){
+            if(with_which_comparing.get_top_bound()<value.get_bottom_bound() ||
+                with_which_comparing.get_bottom_bound()>value.get_top_bound())
+                    return false;
+            else return true;
+        }
+        else return level::details::compare_heights<TYPE>(with_which_comparing,value);
+    }
+}
+
+const std::unordered_set<Level::ComparisionMethod,
+    Level::ComparisionMethod::__hashing__,
+    Level::ComparisionMethod::__equity__> Level::comp = [](){
+    return std::unordered_set<Level::ComparisionMethod,
+    Level::ComparisionMethod::__hashing__,
+    Level::ComparisionMethod::__equity__>{
+                        ComparisionMethod{.func_=
+                            level::details::compare<Level::LESS>,
+                        .type_=Level::LESS},
+                        ComparisionMethod{.func_=
+                            level::details::compare<Level::LESS_EQ>,
+                        .type_=Level::LESS_EQ},
+                        ComparisionMethod{.func_=
+                            level::details::compare<Level::EQUAL>,
+                        .type_=Level::EQUAL},
+                        ComparisionMethod{.func_=
+                            level::details::compare<Level::GREATER_EQ>,
+                        .type_=Level::GREATER_EQ},
+                        ComparisionMethod{.func_=
+                            level::details::compare<Level::GREATER>,
+                        .type_=Level::GREATER}};
+}();
+
+bool Level::compare(COMPARISION_TYPE type,
+                        const Level& fcst_contained,
+                        const Level& value_compared,
+                        std::error_code& err) noexcept
+{
+    if(auto found = comp.find(type);found==comp.end()){
+        err=std::make_error_code(std::errc::invalid_argument);
+        return false;
+    }
+    else return (*found).func_(fcst_contained,value_compared);
+}
+
 template<>
 std::expected<Level,std::exception> from_json(const boost::json::value& val){
     Level result;
@@ -9,9 +92,9 @@ std::expected<Level,std::exception> from_json(const boost::json::value& val){
             if(auto tmp_11 = from_json<uint8_t>(obj->at("11"));tmp_11.has_value())
                 result.set_first_octet(tmp_11.value());
             if(auto tmp_12 = from_json<uint8_t>(obj->at("12"));tmp_12.has_value())
-                result.set_first_octet(tmp_12.value());
+                result.set_second_octet(tmp_12.value());
             if(auto tmp_tag = from_json<LevelsTags>(obj->at("tag"));tmp_tag.has_value())
-                result.set_first_octet(tmp_tag.value());
+                result.set_type(tmp_tag.value());
     }
     else return std::unexpected(std::invalid_argument("invalid JSON input"));
     return result;

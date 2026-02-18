@@ -134,5 +134,7 @@
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "cmake.configureSettings": {
         "OSTERLIB_PATH":"/home/oster/OsterLib-install"
-    }
+    },
+    "cmake.parallelJobs": 0,
+    "cmake.ctest.parallelJobs": 0
 }

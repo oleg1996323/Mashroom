@@ -3,9 +3,9 @@ project(Oster-Mashroom
         VERSION 0.1
         DESCRIPTION "Universal indexer, effective extractor, handler and network-sharer of different geoinformational data"
         LANGUAGES C CXX)
-enable_testing()
 set(CMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE PRE_TEST)
 find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS json program_options)
+find_package(GTest CONFIG REQUIRED)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 #configuration section
 set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
@@ -27,7 +27,6 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
     execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 endif()
 add_subdirectory(external)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
@@ -61,7 +60,6 @@ set(CTEST_SCRIPT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests)
 set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #including other build-modules
-find_package(GTest CONFIG REQUIRED)
 message(STATUS ${OSTERLIB_PATH})
 find_package(OsterLib CONFIG REQUIRED PATHS ${OSTERLIB_PATH})
 add_subdirectory(API)
@@ -111,5 +109,5 @@ target_include_directories(Mashroom PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_definitions(Mashroom PRIVATE APP_DATA_RELATION_DIR="${APP_DATA_REL_DIR}")
 
 set(CMAKE_LIBRARY_PATH ${CMAKE_BINARY_DIR}/Debug/shared)
-
+enable_testing()
 add_subdirectory(tests)

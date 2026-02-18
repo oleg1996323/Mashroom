@@ -2,6 +2,9 @@
 #include "code_tables/table_3.h"
 #include <stdexcept>
 #include "serialization.h"
+#include <cstdint>
+#include <functional>
+#include <unordered_set>
 
 class Level{
     private:
@@ -95,6 +98,49 @@ class Level{
     bool operator!=(const Level& other) const{
         return !(*this==other);
     }
+
+    enum COMPARISION_TYPE:uint8_t{
+        EQUAL,
+        LESS,
+        GREATER,
+        LESS_EQ,
+        GREATER_EQ
+    };
+
+    struct ComparisionMethod{
+        std::function<bool(const Level&,const Level&)> func_;
+        COMPARISION_TYPE type_;
+        struct __hashing__{
+            using is_transparent = std::true_type;
+            size_t operator()(const ComparisionMethod& method) const noexcept{
+                return static_cast<size_t>(method.type_);
+            }
+            size_t operator()(COMPARISION_TYPE type) const noexcept{
+                return static_cast<size_t>(type);
+            }
+        };
+        struct __equity__{
+            using is_transparent = std::true_type;
+            bool operator()(const ComparisionMethod& lhs,const ComparisionMethod& rhs) const noexcept{
+                return lhs.type_==rhs.type_;
+            }
+            bool operator()(const ComparisionMethod& method,COMPARISION_TYPE type) const noexcept{
+                return method.type_==type;
+            }
+            bool operator()(COMPARISION_TYPE type,const ComparisionMethod& method) const noexcept{
+                return method.type_==type;
+            }
+        };
+    };
+
+    const static std::unordered_set<ComparisionMethod,
+        Level::ComparisionMethod::__hashing__,
+        Level::ComparisionMethod::__equity__> comp;
+
+    static bool compare(COMPARISION_TYPE type,
+                        const Level& fcst_contained,
+                        const Level& value_compared,
+                        std::error_code& err) noexcept;
 };
 
 template<>

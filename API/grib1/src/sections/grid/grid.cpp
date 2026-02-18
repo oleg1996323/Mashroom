@@ -108,28 +108,7 @@ std::optional<Lat> GridInfo::bottom() const{
 }
 std::optional<Lon> GridInfo::left() const{
     auto get_left = [](const auto& grid_def)
-    ->std::optional<Lat>
-    {
-        using T = std::decay_t<decltype(grid_def)>;
-        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
-            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
-            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
-                return !grid_def.base_.scan_mode.points_sub_i_dir?grid_def.base_.y1:grid_def.base_.y2;
-            }
-        else if constexpr(std::is_same_v<std::monostate,T>)
-            return std::nullopt;
-        else return std::nullopt;//@todo
-    };
-    return std::visit(get_left,*this);
-}
-std::optional<Lon> GridInfo::right() const{
-    auto get_right = [](const auto& grid_def)
-    ->std::optional<Lat>
+    ->std::optional<Lon>
     {
         using T = std::decay_t<decltype(grid_def)>;
         if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
@@ -141,6 +120,27 @@ std::optional<Lon> GridInfo::right() const{
             std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
             std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
                 return grid_def.base_.scan_mode.points_sub_i_dir?grid_def.base_.y1:grid_def.base_.y2;
+            }
+        else if constexpr(std::is_same_v<std::monostate,T>)
+            return std::nullopt;
+        else return std::nullopt;//@todo
+    };
+    return std::visit(get_left,*this);
+}
+std::optional<Lon> GridInfo::right() const{
+    auto get_right = [](const auto& grid_def)
+    ->std::optional<Lon>
+    {
+        using T = std::decay_t<decltype(grid_def)>;
+        if constexpr(std::is_same_v<T,GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>||
+            std::is_same_v<T,GridDefinition<RepresentationType::GAUSSIAN>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::ROTATED_GAUSSIAN_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_LAT_LON>> ||
+            std::is_same_v<T,GridDefinition<RepresentationType::STRETCHED_AND_ROTATED_LAT_LON>>){
+                return !grid_def.base_.scan_mode.points_sub_i_dir?grid_def.base_.y1:grid_def.base_.y2;
             }
         else if constexpr(std::is_same_v<std::monostate,T>)
             return std::nullopt;
@@ -343,9 +343,13 @@ std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){
     if(val.is_object()){
         auto& obj = val.as_object();
         GridInfo result;
-        if(obj.contains("representation type") && obj.contains("grid data") && 
-                    obj.at("representation type").is_uint64() && obj.at("grid data").is_object()){
-            if(result.emplace_by_id(static_cast<RepresentationType>(obj.at("representation type").as_uint64()))){
+        if(obj.contains("representation type") &&
+                    obj.contains("grid data")){
+            if(auto rt_res = from_json<RepresentationType>(
+                                obj.at("representation type"));
+                                rt_res.has_value() &&
+                                result.emplace_by_id(
+                                    rt_res.value())){
                 auto init_grid_data = [&json_data = obj.at("grid data").as_object()](auto&& grid_data)
                 {   
                     if constexpr (std::is_same_v<std::monostate,std::decay_t<decltype(grid_data)>>)
@@ -374,7 +378,7 @@ std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){
 template<>
 boost::json::value to_json(const GridInfo& val){
     boost::json::object obj;
-    obj["representation type"].emplace_uint64()=static_cast<uint64_t>(val.type());
+    obj["representation type"]=static_cast<unsigned int>(val.type());
     auto to_json_variant = [&obj](auto&& grid_data){
         if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(grid_data)>>)
             obj["grid data"] = to_json(grid_data);

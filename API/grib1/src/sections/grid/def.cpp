@@ -25,9 +25,9 @@ std::expected<ScanMode,std::exception> from_json(const boost::json::value& val){
 template<>
 boost::json::value to_json(const ScanMode& val){
 	boost::json::object obj;
-	obj["scan -i direction"].as_bool() = val.points_sub_i_dir;
-	obj["scan +j direction"].as_bool() = val.points_sub_j_dir;
-	obj["adjacent consec j-dir pts"].as_bool() = val.adj_points_j_dir;
+	obj["scan -i direction"].emplace_bool() = val.points_sub_i_dir;
+	obj["scan +j direction"].emplace_bool() = val.points_sub_j_dir;
+	obj["adjacent consec j-dir pts"].emplace_bool() = val.adj_points_j_dir;
 	return obj;
 }
 
@@ -37,10 +37,10 @@ std::expected<ResolutionComponentFlags,std::exception> from_json(const boost::js
 		ResolutionComponentFlags result;
 		auto& obj = val.as_object();
 		if(obj.contains("has direction") && obj.at("has direction").is_bool())
-		    result.given_direction = obj.at("scan -i direction").as_bool();
+		    result.given_direction = obj.at("has direction").as_bool();
 		else std::unexpected(std::invalid_argument("invalid JSON input"));
-		if(obj.contains("has direction") && obj.at("has direction").is_bool())
-		    result.earth_spheroidal = obj.at("has direction").as_bool();
+		if(obj.contains("earth sphere") && obj.at("earth sphere").is_bool())
+		    result.earth_spheroidal = obj.at("earth sphere").as_bool();
 		else std::unexpected(std::invalid_argument("invalid JSON input"));
 		if(obj.contains("UV-comp grid direction") && obj.at("UV-comp grid direction").is_bool())
 		    result.grid_direction_uv_comp = obj.at("UV-comp grid direction").as_bool();
@@ -53,9 +53,9 @@ std::expected<ResolutionComponentFlags,std::exception> from_json(const boost::js
 template<>
 boost::json::value to_json(const ResolutionComponentFlags& val){
 	boost::json::object obj;
-	obj["has direction"] = val.given_direction;
-	obj["earth sphere"] = val.earth_spheroidal;
-	obj["UV-comp grid direction"] = val.grid_direction_uv_comp;
+	obj["has direction"].emplace_bool() = val.given_direction;
+	obj["earth sphere"].emplace_bool() = val.earth_spheroidal;
+	obj["UV-comp grid direction"].emplace_bool() = val.grid_direction_uv_comp;
 	return obj;
 }
 

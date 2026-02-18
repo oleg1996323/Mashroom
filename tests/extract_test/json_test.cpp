@@ -9,6 +9,10 @@ TEST_F(Grib1Fixture,TestSimpleJson){
     auto data_local_result = from_json<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(extracted_data_json);
     ASSERT_TRUE(data_local_result.has_value());
     ExtractedData data_all = data_local_result.value();
+    std::ofstream data_ref("data_ref.json",std::ios::trunc);
+    std::ofstream data_res("data_res.json",std::ios::trunc);
+    data_ref<<to_json(data())<<std::endl;
+    data_res<<to_json(data_all)<<std::endl;
     ASSERT_EQ(data_all,data());
 }
 
@@ -18,6 +22,10 @@ TEST_F(Grib1Fixture,TestExtractFileJson){
     ASSERT_TRUE(paths.size()==1);
     ASSERT_NO_THROW(procedures::extract::read_json_file(std::stop_token(),*paths.begin()));
     auto read_data = procedures::extract::read_json_file(std::stop_token(),*paths.begin());
+    std::ofstream data_ref("data_ref_2.json",std::ios::trunc);
+    std::ofstream data_res("data_res_2.json",std::ios::trunc);
+    data_ref<<to_json(data())<<std::endl;
+    data_res<<to_json(read_data)<<std::endl;
     ASSERT_EQ(read_data,data());
     fs::remove_all("test_generated_files");
 }

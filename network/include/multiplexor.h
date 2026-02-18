@@ -38,7 +38,7 @@ namespace network{
         void __epoll_wait_throw__();
     public:
     using Event_t = epoll_event;
-    enum Event{
+    enum Event:uint32_t{
         /**
          * @brief The associated file is available for read() operations.
          */            

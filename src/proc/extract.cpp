@@ -111,9 +111,10 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
         if(props_.fcst_unit_.has_value() && msg_info.t_unit!=props_.fcst_unit_.value())
             continue;
         if(props_.grid_type_.has_value()){
-            if(!msg_info.grid_data.has_grid())
+            if(!msg_info.grid_data ||
+                !msg_info.grid_data->has_grid())
                 continue;
-            if(props_.grid_type_.value()!=msg_info.grid_data.type())
+            if(props_.grid_type_.value()!=msg_info.grid_data->type())
                 continue;                  
             if((props_.to_date_.has_value() &&
                 msg_info.date>*props_.to_date_) ||
@@ -121,16 +122,19 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
                 msg_info.date<*props_.from_date_)){
                 continue;
             }
-            if(!pos_in_grid(props_.position_.value(),msg_info.grid_data))
+            if(!pos_in_grid(props_.position_.value(),*msg_info.grid_data))
                 continue;
         }
-        if(msg_info.grid_data.has_grid())
+        if(msg_info.grid_data && msg_info.grid_data->has_grid())
             procedures::extract::get_result(result)[
                 Grib1CommonDataProperties(msg_info.center,
                     msg_info.table_version,
                     msg_info.parameter)]
                     .emplace_back(
-                msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+                msg_info.date,msg->get().extract_value(
+                        value_by_raw(
+                            props_.position_.value(),
+                            *msg_info.grid_data)));
         else continue; //TODO still not accessible getting data without position
     }while(grib.next_message());
     return result;
@@ -180,7 +184,7 @@ ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs
             msg->get().section_1_.level_data(),
             msg->get().err_);
         
-        if(msg_info.grid_data.has_grid()){
+        if(msg_info.grid_data && msg_info.grid_data->has_grid()){
             auto add_value = [this,&msg_info,&msg]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE, FORMAT>& val){
                 if constexpr(TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
                     using namespace procedures::extract::details;
@@ -190,9 +194,9 @@ ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs
                     cmn.table_version_=msg_info.table_version;
                     AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1> add;
                     add.fcst_=msg_info.t_unit;
-                    add.grid_=msg_info.grid_data;
+                    add.grid_=msg_info.grid_data->type();
                     val[ExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>(cmn,add)].emplace_back(
-                        msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),msg_info.grid_data)));
+                        msg_info.date,msg->get().extract_value(value_by_raw(props_.position_.value(),*msg_info.grid_data)));
                 }
                 else static_assert(false,"Not implemented");
             };

@@ -51,8 +51,16 @@ std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__write_file__(cons
 					if(result.first.empty()){
 						auto param = parameter_table(msg.center,msg.table_version,msg.parameter);
 						if(param)
-							filename = index_gen::generate_filename(output_format_,msg.date,center_to_abbr(msg.center),grid_to_abbr(msg.grid_data.type()),param->name,msg.table_version,system_clock::now());
-						else filename = index_gen::generate_filename(output_format_,msg.date,center_to_abbr(msg.center),grid_to_abbr(msg.grid_data.type()),msg.table_version,system_clock::now());
+							filename = index_gen::generate_filename(output_format_,
+								msg.date,center_to_abbr(msg.center),
+								grid_to_abbr(msg.grid_data->type()),
+								param->name,msg.table_version,
+								system_clock::now());
+						else filename = index_gen::generate_filename(output_format_,
+								msg.date,center_to_abbr(msg.center),
+								grid_to_abbr(msg.grid_data->type()),
+								msg.table_version,
+								system_clock::now());
 					}
 					if(write_json_file(result.first,data_))
 						result.second.push_back(msg);

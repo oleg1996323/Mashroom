@@ -1,6 +1,6 @@
 #pragma once
 
 struct Section2_3_flag{
-    bool sec2_inc;
-    bool sec3_inc;
+    bool sec2_inc = false;
+    bool sec3_inc = false;
 };

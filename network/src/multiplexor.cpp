@@ -1,52 +1,57 @@
 #include "multiplexor.h"
 
 void network::Multiplexor::__epoll_ctl_throw__(){
-    int err = errno;
+    std::error_code err = 
+        std::make_error_code(static_cast<std::errc>(errno));
     errno = 0;
-    switch(err){
-        case EPERM:
-        case ENOMEM:
-        case EBADF:
-            throw std::runtime_error(strerror(err));
+    switch(static_cast<std::errc>(err.value())){
+        case std::errc::operation_not_permitted:
+        case std::errc::not_enough_memory:
+        case std::errc::bad_file_descriptor:
+        case std::errc::too_many_symbolic_link_levels:
+        case std::errc::no_space_on_device:
+            throw std::runtime_error(err.message());
             break;
-        case EEXIST:
-        case EINVAL:
-        case ENOENT:
-            throw std::invalid_argument(strerror(err));
-            break;
-        case ELOOP:
-        case ENOSPC:
-            throw std::logic_error(strerror(err));
+        case std::errc::file_exists:
+        case std::errc::invalid_argument:
+        case std::errc::no_such_file_or_directory:
+            throw std::invalid_argument(err.message());
             break;
         default:
-            throw std::runtime_error(strerror(err));
+            throw std::runtime_error(err.message());
         break;
     }
 }
 
 void network::Multiplexor::__epoll_wait_throw__(){
-    int err = errno;
+    std::error_code err = 
+        std::make_error_code(static_cast<std::errc>(errno));
     errno = 0;
-    switch(err){
-        case EBADF:
-        case EFAULT:
-        throw std::runtime_error(strerror(err));
+    switch(static_cast<std::errc>(err.value())){
+        case std::errc::bad_file_descriptor:
+        case std::errc::bad_address:
+        throw std::runtime_error(err.message());
             break;
-        case EINTR:
+        case std::errc::interrupted:
         //ignore interruptions
             return;
             break;
-        case EINVAL:
-            throw std::invalid_argument(strerror(err));
+        case std::errc::invalid_argument:
+            throw std::invalid_argument(err.message());
         default:
-            throw std::runtime_error(strerror(err));
+            throw std::runtime_error(err.message());
     }
 }
 
 void network::Multiplexor::__set_interruptor__(){
     if(!interruptor){
-        if(int ev = eventfd(0,EFD_NONBLOCK);ev==-1)
-            throw std::runtime_error(strerror(errno));
+        if(int ev = eventfd(0,EFD_NONBLOCK);ev==-1){
+            std::error_code err = 
+                std::make_error_code(
+                static_cast<std::errc>(errno));
+            errno = 0;
+            throw std::runtime_error(err.message());
+        }
         else interruptor = std::move(std::unique_ptr<Interruptor>(new Interruptor(ev)));
         epoll_event ev{.events = Event::In|Event::EdgeTrigger};
         if(epoll_ctl(epollfd,EPOLL_CTL_ADD,interruptor->fd_,&ev)==-1)

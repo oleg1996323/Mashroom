@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include "send.h"
 #include "receive.h"
+#include "abstractqueuableprocess.h"
 
 using namespace network;
 
@@ -22,7 +23,7 @@ void send_byte(std::stop_token stop,const Socket& socket){
     }
 }
 
-class ProcessPing:public AbstractProcess<ProcessPing>{
+class ProcessPing:public AbstractQueuableProcess<ProcessPing>{
 };
 
 class ConnectionPool:public AbstractConnectionPool<ProcessPing>{
@@ -47,7 +48,7 @@ void ConnectionPool::execute(std::stop_token,const Socket& socket){
         throw std::runtime_error("Test failed");
 }
 
-class Server:public CommonServer<ConnectionPool>{
+class Server:public CommonServer{
     FRIEND_TEST(Client_server,ping);
     void after_accept(network::Socket& socket) override{
         try{

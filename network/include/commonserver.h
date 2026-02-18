@@ -6,18 +6,19 @@
 #include <sys/eventfd.h>
 #include "definitions.h"
 #include "serversettings.h"
-#include "abstractconnectionpool.h"
 #include "concepts.h"
 #include "commonsocket.h"
 #include "multiplexor.h"
 #include <stdexcept>
 #include <set>
+#include "threadpool.h"
+#include <unordered_set>
 
 namespace network{
-    template<typename DERIVED_CONNECTIONPOOL>
     class CommonServer{
         std::unique_ptr<Multiplexor> accepter;
-        DERIVED_CONNECTIONPOOL connection_pool_;
+        ThreadPool processes_pool_;
+        std::unordered_set<Socket> connections_pool_;
         Socket socket_;
         using Interrupted = bool;
         std::future<Interrupted> accept_result;
@@ -30,17 +31,25 @@ namespace network{
         public:
         using Event = Multiplexor::Event;
         protected:
-        virtual void process_max_fd_reached(int err, const Socket& socket){
-            std::cout<<strerror(err)<<std::endl;
+        virtual void process_max_fd_reached(const Socket& socket){
+            std::error_code err = std::make_error_code(
+                std::errc::too_many_files_open);
+            std::cout<<err.message()<<std::endl;
         }
-        virtual void system_max_fd_reached(int err,const Socket& socket){
-            std::cout<<strerror(err)<<std::endl;
+        virtual void system_max_fd_reached(const Socket& socket){
+            std::error_code err = std::make_error_code(
+                std::errc::too_many_files_open_in_system);
+            std::cout<<err.message()<<std::endl;
         }
-        virtual void connection_aborted(int err,const Socket& socket){
-            std::cout<<strerror(err)<<std::endl;
+        virtual void connection_aborted(const Socket& socket){
+            std::error_code err = std::make_error_code(
+                std::errc::connection_aborted);
+            std::cout<<err.message()<<std::endl;
         }
-        CommonServer& add_connection(const Socket& socket, Event events_notify){
-            connection_pool_.add_connection(socket,events_notify);
+        template<typename PROCESS>
+        CommonServer& add_connection(PROCESS process){
+            static_assert(std::is_base_of_v<AbstractProcess,std::decay_t<PROCESS>>);
+            processes_pool_.addProcess(std::make_unique<PROCESS>(std::move(process)));
             return *this;
         }
         CommonServer& remove_connection(const Socket& socket, bool wait){
@@ -48,16 +57,17 @@ namespace network{
             return *this;
         }
         CommonServer& modify_connection(const Socket& socket,Event events_notify){
-            connection_pool_.modify_connection(socket,events_notify);
+            if(auto found = connections_pool_.find(socket);found!=connections_pool_.end())
+                found->(socket,events_notify);
             return *this;
         }
         public:
         template<typename... CONNPOOL_ARGS>
-        CommonServer(CONNPOOL_ARGS&&... args):connection_pool_(std::forward<CONNPOOL_ARGS>(args)...){}
+        CommonServer(CONNPOOL_ARGS&&... args):processes_pool_(std::forward<CONNPOOL_ARGS>(args)...){}
         template<typename... CONNPOOL_ARGS>
         CommonServer(const server::Settings& settings,CONNPOOL_ARGS&&... args):
         socket_(Socket(settings.host_,settings.port_,Socket::Type::Stream,settings.protocol_)),
-        connection_pool_(std::forward<CONNPOOL_ARGS>(args)...){
+        processes_pool_(std::forward<CONNPOOL_ARGS>(args)...){
             if(settings.reuse_address_)
                 socket_.set_option(network::Socket::Option<int>(1,Socket::Options::ReuseAddress));
             socket_.bind();
@@ -65,7 +75,6 @@ namespace network{
         virtual ~CommonServer(){
             if(accepter)
                 accepter->interrupt();
-            connection_pool_.stop(false);
             accept_result.wait();
         }
         template<typename... ARGS>
@@ -118,52 +127,50 @@ namespace network{
         bool is_launched() const{
             return socket_.is_valid() && accepter;
         }
-        const DERIVED_CONNECTIONPOOL& get_connection_pool() const{
-            return connection_pool_;
+        const ThreadPool& get_connection_pool() const{
+            return processes_pool_;
         }
     };
 }
 
 namespace network{
-    template<typename DERIVED_CONNECTIONPOOL>
-    void CommonServer<DERIVED_CONNECTIONPOOL>::__accept_throw__(const Socket& socket){
-        int err = errno;
+    void CommonServer::__accept_throw__(const Socket& socket){
+        std::error_code err = 
+            std::make_error_code(static_cast<std::errc>(errno));
         errno = 0;
-        switch(err){
+        switch(static_cast<std::errc>(err.value())){
             #ifdef EAGAIN
-            case EAGAIN:
+            case std::errc::resource_unavailable_try_again:
             #elif defined EWOULDBLOCK
-            case EWOULDBLOCK:
+            case std::errc::operation_would_block:
             #endif
-            case EINTR:
+            case std::errc::interrupted:
                 break;
-            case ECONNABORTED:
-                connection_aborted(err,socket);
+            case std::errc::connection_aborted:
+                connection_aborted(socket);
                 break;
-            case EMFILE:
-                process_max_fd_reached(err,socket);
-            case ENFILE:
-                system_max_fd_reached(err,socket);
+            case std::errc::too_many_files_open:
+                process_max_fd_reached(socket);
+            case std::errc::too_many_files_open_in_system:
+                system_max_fd_reached(socket);
                 break;
-            case EPERM:
+            case std::errc::operation_not_permitted:
                 break;
-            case EBADF:
-            case ENOBUFS:
-            case ENOMEM:
-            case ENOTSOCK:
-            case EOPNOTSUPP:
-            case EPROTO:
-            case EFAULT:
-                throw std::runtime_error(strerror(err));
-            case EINVAL:
-                throw std::invalid_argument(strerror(err));
+            case std::errc::bad_file_descriptor:
+            case std::errc::no_buffer_space:
+            case std::errc::not_enough_memory:
+            case std::errc::not_a_socket:
+            case std::errc::operation_not_supported:
+            case std::errc::protocol_error:
+            case std::errc::bad_address:
+                throw std::runtime_error(err.message());
+            case std::errc::invalid_argument:
+                throw std::invalid_argument(err.message());
         }
     }
 
-    template<typename DERIVED_CONNECTIONPOOL>
-    void CommonServer<DERIVED_CONNECTIONPOOL>::accept(){
+    void CommonServer::accept(){
         accept_result= std::async(std::launch::async,[this](){
-            connection_pool_.polling_connections();
             socklen_t sin_size = address_struct_size(*socket_.storage);
             for(;;){
                 if (accepter->interrupted()){
@@ -192,7 +199,7 @@ namespace network{
                                 else{
                                     Socket socket(raw_sock,another);
                                     using Event_t = Multiplexor::Event;
-                                    connection_pool_.add_connection(socket,Event_t::HangUp|Event_t::In);
+                                    processes_pool_.add_connection(socket,Event_t::HangUp|Event_t::In);
                                     after_accept(socket);
                                     continue;
                                 }
@@ -203,8 +210,8 @@ namespace network{
                             }
                         }
                         else{
-                            if(connection_pool_.contains_socket(event.data.fd))
-                                connection_pool_.get_socket(event.data.fd);
+                            if(connections_pool_.contains(event.data.fd))
+                                processes_pool_.get_socket(event.data.fd);
                         }
                     }
                 }
@@ -217,16 +224,14 @@ namespace network{
         });
     }
 
-    template<typename DERIVED_CONNECTIONPOOL>
-    void CommonServer<DERIVED_CONNECTIONPOOL>::close(bool wait_for_end_connections, uint16_t timeout_sec){
-        
+    void CommonServer::close(bool wait_for_end_connections, uint16_t timeout_sec){
         if(accepter)
             accepter->interrupt();
-        connection_pool_.stop(wait_for_end_connections,timeout_sec);
+        
+        processes_pool_.stop(wait_for_end_connections,timeout_sec);
         accept_result.wait();
     }
-    template<typename DERIVED_CONNECTIONPOOL>
-    void CommonServer<DERIVED_CONNECTIONPOOL>::collapse(bool wait_for_end_connections, uint16_t timeout_sec){
+    void CommonServer::collapse(bool wait_for_end_connections, uint16_t timeout_sec){
         //@todo Block sockets maybe?
     }
 }

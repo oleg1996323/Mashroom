@@ -235,10 +235,31 @@ TEST_F(DataTestClass,MatchTest){
 class DataTestClass_1:public Data,public testing::Test{
     protected:
     std::string fn;
-    size_t cmn_sz = 0;
+    size_t matched_count_1 = 0;
+    std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>> match_result_1;
     std::vector<Organization> centers = {Organization::WMO,Organization::ECMWF,Organization::DWD};
     std::vector<std::pair<Organization,std::vector<uint8_t>>> tables_by_id_ = {{Organization::ECMWF,{228,180,210,130,211,162}},
                                                                             {Organization::WMO,{1,2,3}}};
+    std::unordered_set<Grib1CommonDataProperties> cmn_search_1{
+                                        {Organization::ECMWF,228,17},
+                                        {Organization::ECMWF,211,63},
+                                        {Organization::ECMWF,180,3},
+                                        {Organization::WMO,1,17}};
+    Lat top_1 = 50;
+    Lat bottom_1 = 25;
+    Lon left_1 = 40;
+    Lon right_1 = 45;
+    TimeForecast tf_1 = TimeForecast(TimeFrame::HOUR,
+                            TimeRangeIndicator::UNINIT_REF_TIME,
+                            TimeForecast::period_t{.val=12},
+                            TimeForecast::period_t{.val=0});
+    Level lvl_1 = Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
+    utc_tp_t<std::chrono::seconds> from_1 = sys_days(1991y/1/1);
+    utc_tp_t<std::chrono::seconds> to_1 = sys_days(2000y/1/1);
+    DateTimeDiff diff_1 = [](){
+                            std::error_code err;
+                            return DateTimeDiff(err,std::chrono::days(1));
+                        }();
     public:
     DataTestClass_1():fn("data_file.g1bd"){
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> gribdata;
@@ -251,6 +272,7 @@ class DataTestClass_1:public Data,public testing::Test{
         grid.base_.x2=50;
         grid.base_.y1=50;
         grid.base_.y2=0;
+        grid.base_.scan_mode.points_sub_j_dir=true;
         path::Storage<false> any;
         auto time = utc_tp::clock::now();
         std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
@@ -265,25 +287,50 @@ class DataTestClass_1:public Data,public testing::Test{
                         ptrdiff_t cur_pos = 1000*count++;
                         auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
                         auto err = std::error_code();
-                        auto msg = FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(id)/day(1))+days(d),
-                                    cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::UNINIT_REF_TIME,{6+id},{0}),
+                        auto msg = FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990+id)/month(id)/day(1))+days(d),
+                                    cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::UNINIT_REF_TIME,
+                                        {static_cast<uint8_t>(6+id)},{static_cast<uint8_t>(0)}),
                                     tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                        // std::cout<<(cmn_search_1.contains(Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter))?
+                        //                 "Contains":"Does not contains")<<std::endl;
+                        if(msg.date>=from_1 && msg.date<=to_1 && TimeForecast::compare(TimeForecast::LESS,msg.t_unit,tf_1,err) &&
+                            grid.pos_in_grid(Coord(top_1,left_1)) && grid.pos_in_grid(Coord(top_1,right_1)) &&
+                            grid.pos_in_grid(Coord(bottom_1,left_1)) && grid.pos_in_grid(Coord(bottom_1,right_1)) &&
+                            cmn_search_1.contains(Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter)) &&
+                            Level::compare(Level::COMPARISION_TYPE::EQUAL,msg.level_,lvl_1,err)){
+                                Grib1CommonDataProperties cmn(msg.center,msg.table_version,msg.parameter);
+                                SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>::Additional_t add;
+                                add.fcst_ = msg.t_unit;
+                                add.grid_ = msg.grid_data;
+                                add.lvl_ = msg.level_;
+                                if(auto found = std::find_if(match_result_1.begin(),match_result_1.end(),[&cmn,&add]
+                                    (const SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val){
+                                        return val.cmn_==cmn && val.add_.fcst_==add.fcst_ && *val.add_.grid_==*add.grid_&&
+                                                val.add_.lvl_==add.lvl_;
+                                    });found!=match_result_1.end())
+                                    found->add_.ts_.push_time(msg.date,err);
+                                else{
+                                    add.ts_ = TimeSequence(msg.date);
+                                    match_result_1.push_back(SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
+                                        .add_ = std::move(add),.cmn_=cmn});
+                                    ++matched_count_1;
+                                }
+                            }
                         msg_data.push_back(std::move(msg));
                     }
             }
-            gribdata.add_data(any,msg_data,err);
         }
+        gribdata.add_data(any,msg_data,err);
         for(auto id:data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().index_){
             for(auto& [ts,pos]:id->ts_pos_)
                 assert(ts.number_of_intervals()==0);
         }
         update_indexing(std::move(gribdata));
-        for(auto id:data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().index_){
-            for(auto& [ts,pos]:id->ts_pos_)
-                std::cout<<ts.number_of_intervals()<<std::endl;
-        }
-        for(auto& [fn,data]:gribdata.common_)
-            cmn_sz+=data.size();
+        // for(auto id:data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().index_){
+        //     for(auto& [ts,pos]:id->ts_pos_)
+        //         std::cout<<ts.number_of_intervals()<<std::endl;
+        // }
+        
         std::ofstream stream(fn,std::ofstream::trunc|std::ofstream::out);
         serialization::serialize_to_file(data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>(),stream);
     }
@@ -306,13 +353,15 @@ TEST_F(DataTestClass_1,FindAllTest){
                         sys_days(1991y/1/1),
                         sys_days(2000y/1/1),
                         DateTimeDiff(err,std::chrono::days(1)),
-                        TimeForecast(TimeFrame::HOUR,
+                        std::make_pair(TimeForecast(TimeFrame::HOUR,
                             TimeRangeIndicator::UNINIT_REF_TIME,
                             TimeForecast::period_t{.val=12},
-                            TimeForecast::period_t{.val=0}),
-                        Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
+                            TimeForecast::period_t{.val=0}),TimeForecast::LESS),
+                        std::make_pair(Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),Level::EQUAL),
                         std::nullopt);
-    EXPECT_EQ(matched_data.size(),cmn_sz);
+    EXPECT_EQ(matched_data.size(),matched_count_1);
+    for(auto& res:match_result_1)
+        EXPECT_TRUE(std::find(matched_data.begin(),matched_data.end(),res)!=matched_data.end());
     // matched_data = find_all(RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR,
     //                     ts,
     //                     TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),

@@ -2,9 +2,9 @@
 #include "byte_order.h"
 struct ScanMode
 {
-    bool points_sub_i_dir;
-    bool points_sub_j_dir;
-    bool adj_points_j_dir;
+    bool points_sub_i_dir=false;
+    bool points_sub_j_dir=false;
+    bool adj_points_j_dir=false;
 
     #ifdef __cplusplus
     ScanMode() = default;

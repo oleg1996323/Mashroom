@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(extract_test)
 
-enable_testing()
-
 add_executable(bin_test bin_test.cpp)
 add_executable(txt_test txt_test.cpp)
 add_executable(json_test json_test.cpp)

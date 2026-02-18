@@ -91,7 +91,7 @@ namespace network{
                 }
                 else{
                     try{
-                        process->throw_if_ready_and_error();
+                        process->get_intermediate_result();
                         return ErrorCode::NONE;
                     }
                     catch(const std::exception& err){
@@ -107,7 +107,7 @@ namespace network{
         const network::Message<MSG_T>& get_result(int16_t timeout_s) const{
             if(process){
                 if(process->ready())
-                    process->throw_if_ready_and_error();
+                    process->get_result();
                 if(!process->wait(timeout_s))
                     throw std::runtime_error("Timeout");
                 return mprocess_.get_received_message<MSG_T>();
@@ -117,14 +117,11 @@ namespace network{
         template<Server_MsgT::type MSG_T>
         const network::Message<MSG_T>& get_intermediate_result(int16_t timeout_s) const{
             if(process){
-                if(mprocess_.has_more().load()){
-                    std::unique_lock lock = process->locker();
-                    lock.lock();
-                    if(cv_->wait_for(lock,std::chrono::seconds(timeout_s))==std::cv_status::no_timeout)
-                        return mprocess_.get_received_message<MSG_T>();
-                    else throw std::runtime_error("Timeout");
-                }
-                else return mprocess_.get_received_message<MSG_T>();
+                std::unique_lock lock = process->locker();
+                lock.lock();
+                if(cv_->wait_for(lock,std::chrono::seconds(timeout_s))==std::cv_status::no_timeout)
+                    return mprocess_.get_received_message<MSG_T>();
+                else throw std::runtime_error("Timeout");
             }
             else throw std::runtime_error("There are not processes");
         }

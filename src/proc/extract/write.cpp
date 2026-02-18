@@ -88,38 +88,40 @@ std::string get_file_header(const ExtractedData& result, const SearchProperties&
         write_parameter(stream,"format",dformat)<<"\n";
         write_parameter(stream,"version",VERSION)<<"\n";
         if constexpr(std::is_same_v<ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::decay_t<decltype(value)>>){
-            write_parameter(stream,"latitude",props.position_->lat_)<<"\n";
-            write_parameter(stream,"longitude",props.position_->lon_)<<"\n";
-            write_parameter(stream,"grid",props.grid_type_.value())<<"\n";
             write_parameter(stream,"parameters",get_result(result).size())<<"\n";
+            size_t number = 1;
             for(auto& [props_values,value]:get_result(result)){
+                stream<<"#"<<number++<<":"<<"\n";
                 if(auto param_ptr = parameter_table(*props_values.cmn_.center_,*props_values.cmn_.table_version_,*props_values.cmn_.parameter_);param_ptr==nullptr)
                     throw ErrorException(ErrorCode::INTERNAL_ERROR,
                         "undefined parameter table (center="s+std::to_string(static_cast<std::underlying_type_t<Organization>>(*props_values.cmn_.center_))+
                         ";table version="s+std::to_string(*props_values.cmn_.table_version_)+";parameter="+
                         std::to_string(*props_values.cmn_.parameter_)+")");
                 else
-                    write_parameter(stream,"name",param_ptr->name)<<"\n";
-                write_parameter(stream,"indicator",*props_values.cmn_.parameter_)<<"\n";
-                write_parameter(stream,"table version",*props_values.cmn_.table_version_)<<"\n";
-                write_parameter(stream,"center",props.center_.value())<<"\n";
-                write_parameter(stream,"forecast data")<<"\n";
-                write_parameter<1>(stream,"time frame",props_values.add_.fcst_.get_time_frame())<<"\n";
-                write_parameter<1>(stream,"time range indicator",props_values.add_.fcst_.get_time_range_indicator())<<"\n";
+                    write_parameter<1>(stream,"name",param_ptr->name)<<"\n";
+                write_parameter<1>(stream,"indicator",*props_values.cmn_.parameter_)<<"\n";
+                write_parameter<1>(stream,"table version",*props_values.cmn_.table_version_)<<"\n";
+                write_parameter<1>(stream,"center",props.center_.value())<<"\n";
+                write_parameter<1>(stream,"latitude",props_values.add_.pos_.lat_)<<"\n";
+                write_parameter<1>(stream,"longitude",props_values.add_.pos_.lon_)<<"\n";
+                write_parameter<1>(stream,"grid",props_values.add_.grid_)<<"\n";
+                write_parameter<1>(stream,"forecast data")<<"\n";
+                write_parameter<2>(stream,"time frame",props_values.add_.fcst_.get_time_frame())<<"\n";
+                write_parameter<2>(stream,"time range indicator",props_values.add_.fcst_.get_time_range_indicator())<<"\n";
                 if(props_values.add_.fcst_.is_intervaled()){
-                    write_parameter<1>(stream,"N avg/acc",props_values.add_.fcst_.get_n())<<"\n";
-                    write_parameter<1>(stream,"N missed",props_values.add_.fcst_.get_avg_acc_miss_N_vals())<<"\n";
+                    write_parameter<2>(stream,"N avg/acc",props_values.add_.fcst_.get_n())<<"\n";
+                    write_parameter<2>(stream,"N missed",props_values.add_.fcst_.get_avg_acc_miss_N_vals())<<"\n";
                 }
                 if(props_values.add_.fcst_.octet_doubled())
-                    write_parameter<1>(stream,"P1",static_cast<uint16_t>((static_cast<uint16_t>(props_values.add_.fcst_.get_P1().val)<<8)|props_values.add_.fcst_.get_P2().val))<<"\n";
+                    write_parameter<2>(stream,"P1",static_cast<uint16_t>((static_cast<uint16_t>(props_values.add_.fcst_.get_P1().val)<<8)|props_values.add_.fcst_.get_P2().val))<<"\n";
                 else if(props_values.add_.fcst_.is_unique_value())
-                    write_parameter<1>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
+                    write_parameter<2>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
                 else {
-                    write_parameter<1>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
-                    write_parameter<1>(stream,"P2",props_values.add_.fcst_.get_P2().val)<<"\n";
+                    write_parameter<2>(stream,"P1",props_values.add_.fcst_.get_P1().val)<<"\n";
+                    write_parameter<2>(stream,"P2",props_values.add_.fcst_.get_P2().val)<<"\n";
                 }
                 if(props_values.add_.level_.is_bounded()){
-                    write_structure<1>(std::make_tuple("tag"s,"o11"s,"o12"s,"top bound"s,"bottom bound"s),stream,
+                    write_structure<2>(std::make_tuple("tag"s,"o11"s,"o12"s,"top bound"s,"bottom bound"s),stream,
                         "level",
                         props_values.add_.level_.type(),
                         props_values.add_.level_.get_first_octet(),
@@ -128,7 +130,7 @@ std::string get_file_header(const ExtractedData& result, const SearchProperties&
                         props_values.add_.level_.get_bottom_bound());
                 }
                 else {
-                    write_structure<1>(std::make_tuple("tag"s,"o11"s,"o12"s,"height"s),stream,
+                    write_structure<2>(std::make_tuple("tag"s,"o11"s,"o12"s,"height"s),stream,
                         "level",
                         props_values.add_.level_.type(),
                         props_values.add_.level_.get_first_octet(),
@@ -270,8 +272,6 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             boost::json::object json;
             json["type"] = to_json(Data_t::TIME_SERIES);
             json["format"] = to_json(Data_f::GRIB_v1);
-            json["grid"] = to_json(props.grid_type_);
-            json["position"] = to_json(props.position_);
             json["data"] = boost::json::array();
             boost::json::array& json_data = json["data"].as_array();
             for(const auto& [cmn_data,values]:get_result(result)){
@@ -339,10 +339,6 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
             if(auto ser_err = serialize_to_file(Data_t::TIME_SERIES,out);ser_err!=SerializationEC::NONE)
                 throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
             if(auto ser_err = serialize_to_file(Data_f::GRIB_v1,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
-            if(auto ser_err = serialize_to_file(props.grid_type_,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
-            if(auto ser_err = serialize_to_file(props.position_,out);ser_err!=SerializationEC::NONE)
                 throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
             
             using result_t = std::decay_t<decltype(get_result(result))>;
