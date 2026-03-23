@@ -85,7 +85,7 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
         parameters_struct.to_ = ti.to();
     }
     parameters_struct.tdiff_ = ts.time_duration();
-    EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+    EXPECT_TRUE(client.connect("127.0.0.1",32396,ec).has_socket());
     Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
     auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
     EXPECT_EQ(err,ErrorCode::NONE);
@@ -98,6 +98,7 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
 TEST_F(DataTestClass,Extract_DataExchangeTest){
     Client client("127.0.0.1",32396);
     auto additional = network::make_additional<Client_MsgT::DATA_REQUEST>();
+    std::error_code ec;
     SearchProperties props;
     props.center_=Organization::ECMWF;
     props.fcst_unit_ = TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0});
@@ -106,7 +107,7 @@ TEST_F(DataTestClass,Extract_DataExchangeTest){
     props.grid_type_ = RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
     props.position_ = Coord{.lat_=50.,.lon_=50.};
     additional.form_=std::move(ExtractMeteoGrib(props,std::nullopt,std::nullopt));
-    EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+    EXPECT_TRUE(client.connect("127.0.0.1",32396,ec).has_socket());
     Message<Client_MsgT::DATA_REQUEST> msg(std::move(additional));
     auto err = client.request<Client_MsgT::DATA_REQUEST>(true,std::move(msg));
     EXPECT_EQ(err,ErrorCode::NONE);
@@ -127,7 +128,7 @@ int main(int argc,char* argv[]){
         parameters_struct.to_ = std::chrono::floor<std::chrono::seconds>(utc_tp::clock::now());
         std::error_code error_loc;
         parameters_struct.tdiff_ = DateTimeDiff(error_loc,days(1));
-        EXPECT_TRUE(client.connect("127.0.0.1",32396).has_socket());
+        EXPECT_TRUE(client.connect("127.0.0.1",32396,error_loc).has_socket());
         Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
         auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
         EXPECT_EQ(err,ErrorCode::NONE);

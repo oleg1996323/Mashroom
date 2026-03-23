@@ -1,6 +1,6 @@
 #pragma once
 #include <network/client.h>
-#include "network/common/message/message_process.h"
+#include "network/common/message/message_handler.h"
 #include <list>
 
 namespace network{
@@ -9,7 +9,8 @@ namespace network{
         friend class ClientsHandler;
         network::Client client_;
         RequestInstance& __connect__(const std::string& host,Port port){
-            client_.connect(host,port);
+            std::error_code err;
+            client_.connect(host,port,err);
             return *this;
         }
         static std::shared_ptr<RequestInstance> __make_instance__(const std::string& host, uint16_t port){
@@ -20,9 +21,10 @@ namespace network{
         ~RequestInstance(){
             std::cout<<"Instance destroyed"<<std::endl;
         }
-        template<network::Server_MsgT::type MSG>
-        const auto& get_result(int16_t timeout_s) const{
-            return client_.get_result<MSG>(timeout_s);
+        const std::weak_ptr<const network::MessageHandler<network::Side::SERVER>>
+            get_result(int16_t timeout_s,std::error_code& err) const
+        {
+            return client_.get_result(timeout_s,err);
         }
         std::shared_ptr<RequestInstance> get_this(){
             return shared_from_this();

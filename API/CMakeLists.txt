@@ -4,7 +4,7 @@ enable_testing()
 include(GoogleTest)
 
 add_library(GIAPI INTERFACE)
-
+set(API_DIR ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(GIAPI INTERFACE ${CMAKE_CURRENT_LIST_DIR} ${OsterLib_INCLUDE_DIRS})
 
 file(GLOB_RECURSE COMMON_SOURCES_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/common/*.h)

@@ -27,33 +27,13 @@ namespace network{
     class MessageProcess{
         template<Side ASide>
         friend class MessageProcess;
-        MessageHandler<S> hmsg_;
-        MessageHandler<sent_from<S>()> recv_hmsg_;
+        std::shared_ptr<MessageHandler<S>> hmsg_;
+        std::shared_ptr<MessageHandler<sent_from<S>()>> recv_hmsg_;
         mutable std::unique_lock<std::mutex> locker_;
         std::atomic<bool> has_more_ = false;
         ErrorCode err_ = ErrorCode::NONE;
         public:
-        MessageProcess() = default;
-        MessageProcess(const MessageProcess<S>& other) = delete;
-        MessageProcess(MessageProcess<S>&& other) noexcept{
-            *this=std::move(other);
-        }
-        ~MessageProcess(){
-            std::cout<<"MessageProcess deleted"<<std::endl;
-        }
-        MessageProcess<S>& operator=(const MessageProcess<S>&) = delete;
-        MessageProcess<S>& operator=(MessageProcess<S>&& other) noexcept{
-            if(this!=&other){
-                hmsg_ = std::move(other.hmsg_);
-                recv_hmsg_ = std::move(other.recv_hmsg_);
-                std::swap(locker_,other.locker_);
-                //hmsg_.swap(other.hmsg_);
-            }
-            return *this;
-        }
-        void set_locker(std::unique_lock<std::mutex>&& locker) noexcept{
-            locker_ = std::move(locker);
-        }
+        MessageProcess() = default
         private:
         template<auto T>
         requires MessageEnumConcept<T>
@@ -85,6 +65,15 @@ namespace network{
         const std::atomic<bool>& has_more() const{
             return has_more_;
         }
+
+        std::shared_ptr<MessageHandler<S>> get_sending_message() const{
+            return hmsg_;
+        }
+
+        std::shared_ptr<MessageHandler<sent_from<S>()>> const{
+            return recv_hmsg_;
+        }
+
         template<MESSAGE_ID<S>::type MSG_T>
         const Message<MSG_T>& get_sending_message() const{
             if(std::holds_alternative<Message<MSG_T>>(hmsg_)){
@@ -110,7 +99,6 @@ namespace network{
             hmsg_.template emplace_message<T>(std::forward<ARGS>(args)...);
             ErrorCode err = __send__<T>(sock);
             return err;
-
         }
 
         /**

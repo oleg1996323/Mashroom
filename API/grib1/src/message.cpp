@@ -8,7 +8,7 @@
 //Although GRIB is not capable of representing a matrix of data values at each grid point, the meaning of bit 6 is retained in anticipation of a future capability.
 //When secondary bit maps are present in the data (used in association with second order packing) this is indicated by setting bit 7 to 1.
 //When octet 14 contains the extended flag information octets 12 and 13 will also contain "special" information; the actual data will begin in a subsequent octet. See above.
-float Message::extract_value(int n){
+float API::Message<API::TYPES::GRIB1>::extract_value(int n){
     double dec_scale = int_power(10.0,-section_1_.decimal_scale_factor());
     double scale = dec_scale*int_power(2.0, section_4_.scale_factor());
     uint8_t n_bit = section_4_.bit_per_value();
@@ -70,7 +70,7 @@ float Message::extract_value(int n){
     return UNDEFINED;
 }
 
-std::vector<float> Message::extract_all(){
+std::vector<float> API::Message<API::TYPES::GRIB1>::extract_all(){
     Flag flags = section_4_.get_data_flag();
     std::vector<float> result;
 	if(!flags.complex_pack){
@@ -130,37 +130,38 @@ std::vector<float> Message::extract_all(){
     return result;
 }
 
-std::optional<std::reference_wrapper<Message>> HGrib1::message() const{
+std::optional<std::reference_wrapper<API::Message<API::TYPES::GRIB1>>> 
+    API::HGrib1::message() const{
     if(msg_)
         return *msg_;
     else return std::nullopt;
 }
-ptrdiff_t HGrib1::current_message_position() const noexcept{
+ptrdiff_t API::HGrib1::current_message_position() const noexcept{
     return static_cast<ptrdiff_t>(current_ptr_-__f_ptr);
 }
-std::optional<unsigned long> HGrib1::current_message_length() const noexcept{
+std::optional<unsigned long> API::HGrib1::current_message_length() const noexcept{
     if(msg_)
         return msg_->section_0_.message_length();
     else return std::nullopt;
 }
-bool HGrib1::next_message(){
+bool API::HGrib1::next_message(){
     if(msg_){
         if((current_ptr_-__f_ptr)+msg_->section_0_.message_length()<sz_){
             current_ptr_+=msg_->section_0_.message_length();
-            msg_ = std::make_unique<Message>(current_ptr_);
+            msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(current_ptr_);
             return true;
         }
         return false;
     }
     return false;
 }
-std::optional<unsigned long> HGrib1::file_size() const noexcept{
+std::optional<unsigned long> API::HGrib1::file_size() const noexcept{
     if(msg_){
         return sz_;
     }
     return std::nullopt;
 }
-HGrib1::~HGrib1(){
+API::HGrib1::~HGrib1(){
     if(__f_ptr){
         assert(munmap(__f_ptr,sz_)==0);
         __f_ptr = nullptr;
@@ -170,18 +171,18 @@ HGrib1::~HGrib1(){
         file = -1;
     }
 }
-bool HGrib1::is_correct_format() const noexcept{
+bool API::HGrib1::is_correct_format() const noexcept{
     if(msg_ && sz_>=sec_0_min_sz)
         if(memcmp(msg_->section_0_.buf_,"GRIB",4))
             return true;
     return false;
 }
-std::optional<unsigned char> HGrib1::grib_version() const noexcept{
+std::optional<unsigned char> API::HGrib1::grib_version() const noexcept{
     if(is_correct_format())
         return msg_->section_0_.grib_version();
     else return std::nullopt;
 }
-API::ErrorData::Code<API_TYPE>::value HGrib1::open_grib(const fs::path& filename){
+API::ErrorData::Code<API_TYPE>::value API::HGrib1::open_grib(const fs::path& filename){
     msg_ = nullptr;
     __f_ptr = nullptr;
     current_ptr_ = nullptr;
@@ -200,7 +201,7 @@ API::ErrorData::Code<API_TYPE>::value HGrib1::open_grib(const fs::path& filename
     if(!__f_ptr)
         return API::ErrorData::Code<API_TYPE>::READ_POS_X1;
     current_ptr_ = __f_ptr;
-    msg_ = std::make_unique<Message>(__f_ptr);
+    msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(__f_ptr);
     try{
         const auto tmp = current_message_length();
         if(tmp.has_value()){
@@ -214,12 +215,12 @@ API::ErrorData::Code<API_TYPE>::value HGrib1::open_grib(const fs::path& filename
     }
     return API::ErrorData::Code<API_TYPE>::NONE_ERR;
 }
-bool HGrib1::set_message(ptrdiff_t pos) noexcept{
+bool API::HGrib1::set_message(ptrdiff_t pos) noexcept{
     if(pos>=sz_)
         return false;
     else {
         current_ptr_ = __f_ptr + pos;
-        msg_ = std::make_unique<Message>(current_ptr_);
+        msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(current_ptr_);
     }
     return true;
 }

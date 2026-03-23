@@ -190,6 +190,9 @@ namespace network{
         std::vector<char>& buffer(){
             return buffer_;
         }
+        const std::vector<char>& buffer() const{
+            return buffer_;
+        }
     };
 }
 

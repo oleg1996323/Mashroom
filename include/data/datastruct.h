@@ -18,7 +18,7 @@ std::variant<std::monostate,
                 auto loc_add = [&err,&other]<Data_t TYPE,Data_f FORMAT>(DataStruct<TYPE,FORMAT>& this_data){
                     if constexpr(TYPE==T && F==FORMAT){
                         this_data.add_data(other);
-                        err = std::error_code();
+                        err.clear();
                     }
                     else err=std::make_error_code(std::errc::invalid_argument);
                 };

@@ -7,7 +7,9 @@ add_library(gribAPI::v1 ALIAS grib1API)
 
 find_package(OsterLib CONFIG REQUIRED)
 
-target_include_directories(grib1API PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
+target_include_directories(grib1API PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+                                            ${OsterLib_INCLUDE_DIRS}
+                                            PRIVATE ${API_DIR})
 target_link_libraries(grib1API PRIVATE OsterLib::bytes OsterLib::serial OsterLib::utilities OsterLib::types OsterLib::boost_functional)
 get_target_property(grib1API_INCLUDES grib1API INCLUDE_DIRECTORIES)
 message(STATUS "Grib1 include directory: ${grib1API_INCLUDES}")

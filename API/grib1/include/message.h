@@ -13,12 +13,16 @@
 #include <string_view>
 #include <iostream>
 #include "error_data.h"
+#include "common/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-struct Message{
+namespace API{
+
+template<>
+struct Message<API::TYPES::GRIB1>{
     IndicatorSection section_0_;
     ProductDefinitionSection section_1_;
     GridDescriptionSection section_2_;
@@ -74,7 +78,7 @@ struct Message{
 struct HGrib1
 {   
     private:
-    std::unique_ptr<::Message> msg_ = nullptr;
+    std::unique_ptr<API::Message<API::TYPES::GRIB1>> msg_ = nullptr;
     unsigned char* __f_ptr = nullptr;
     unsigned char* current_ptr_ = nullptr;
     unsigned long sz_ = 0;
@@ -84,7 +88,8 @@ struct HGrib1
     HGrib1(const fs::path& filename):msg_(nullptr){open_grib(filename);}
     HGrib1() = default;
     ~HGrib1();
-    std::optional<std::reference_wrapper<::Message>> message() const;
+    std::optional<std::reference_wrapper<
+            API::Message<API::TYPES::GRIB1>>> message() const;
     ptrdiff_t current_message_position() const noexcept;
     std::optional<unsigned long> current_message_length() const noexcept;
     bool next_message();
@@ -103,3 +108,5 @@ Message* next_message(Message* msg){
 
 }
 #endif
+
+}
