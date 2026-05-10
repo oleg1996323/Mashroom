@@ -53,7 +53,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::INDEX>>{
         using type = MessageAdditional<network::Client_MsgT::INDEX>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.parameters_,msg.info_limits_,msg.last_update_);
         }
     };

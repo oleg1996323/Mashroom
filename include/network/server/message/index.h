@@ -54,7 +54,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,dynamic_cast<network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>&>(msg),
                     msg.filename,msg.file_sz_);
         }

@@ -77,7 +77,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_INDEX_REF>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.blocks_,msg.status_);
         }
     };
@@ -119,7 +119,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,Data_t T, Data_f F>
     struct Deserialize<NETWORK_ORDER,network::BaseIndexResult<T, F>>{
         using type = network::BaseIndexResult<T, F>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.data_);
         }
     };

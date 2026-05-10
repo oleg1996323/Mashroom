@@ -1,121 +1,23 @@
-#include "network/server/connection_process.h"
-#include "network/server.h"
 #include "proc/extract.h"
 #include "proc/index.h"
-#include "program/mashroom.h"
-#include <sys/mman.h>
-#include "send_file.h"
+#include "network/abstractprocess.h"
+#include "network/server/connection_process.h"
 
 using namespace network::connection;
 
 namespace network{
     namespace connection::messaging{
-        void sender<Server>::__send__(Socket sock, std::error_code& err,
-                    std::shared_ptr<MessageHandler<Side::SERVER>>& hmsg)
-        {
-            if(!hmsg || !hmsg->has_message()){
-                err = std::make_error_code(std::errc::no_message);
-                return;
-            }
-            err = 
-                send(sock,SEND_FLAGS::NoSignal,hmsg->buffer())==-1?
-                std::make_error_code(std::errc::io_error):
-                std::error_code();
-            return;
-        }
-        void sender<Server>::__bufferize__(std::error_code& err,
-                std::shared_ptr<MessageHandler<Side::SERVER>> hmsg)
-        {
-            if(serialization::SerializationEC err_serial =
-                serialization::serialize_network(
-                    static_cast<uint64_t>(serialization::serial_size(
-                    *hmsg)),hmsg->buffer());
-                    err_serial!=serialization::SerializationEC::NONE)
-            {
-                err = std::make_error_code(std::errc::bad_message);
-                return;
-            }
-            if(serialization::SerializationEC err_serial =
-                serialization::serialize_network(
-                    *hmsg,hmsg->buffer());
-                    err_serial!=serialization::SerializationEC::NONE)
-            {
-                err = std::make_error_code(std::errc::bad_message);
-                return;
-            }
-        }
-        void receiver<Server>::__receive__(Socket sock, std::error_code& err){
-            auto hmsg = std::make_shared<decltype(hmsg_)::element_type>();
-            using namespace serialization;
-            hmsg->buffer().resize(sizeof(uint64_t));
-            auto at_error = [this,hmsg](std::errc c){
-                std::lock_guard lk(m_);
-                hmsg_ = std::move(hmsg);
-                return std::make_error_code(c);
-            };
-            if(receive(sock,hmsg->buffer(),hmsg->buffer().size())==-1){
-                err = at_error(std::errc::io_error);
-                return;
-            }
-            else{
-                uint64_t data_sz=0;
-                if(serialization::deserialize_network(data_sz,std::span<const char>(hmsg->buffer()))!=serialization::SerializationEC::NONE){
-                    err = at_error(std::errc::message_size);
-                    return;
-                }
-                hmsg->buffer().resize(data_sz+hmsg->buffer().size(),0);
-                if(receive(sock,std::span<char>(hmsg->buffer()).subspan(sizeof(size_t)),hmsg->buffer().size())==-1){
-                    err = at_error(std::errc::io_error);
-                    return;
-                }
-                if(serialization::deserialize_network(*hmsg,
-                        std::span<const char>(hmsg->buffer()).subspan(sizeof(size_t)))!=
-                        serialization::SerializationEC::NONE)
-                {
-                    err = at_error(std::errc::bad_message);
-                    return;
-                }
-                else{
-                    //used for file segments transmission
-                    auto has_more_msg = [this](auto&& msg){
-                        if constexpr (std::is_same_v<std::decay_t<decltype(msg)>,std::monostate>)
-                            this->has_more_ = false;
-                        else this->has_more_.exchange(msg.message_more());
-                    };
-                    std::visit(has_more_msg,*hmsg);
-                    return;
-                }
-            }
-            std::lock_guard lk(m_);
-            hmsg_ = std::move(hmsg);
-            return;
-        }
-    }
-}
 
-
-namespace network{
-    void send_error(const Socket& socket,
-            network::connection::Process<Server>* process,
-            ErrorCode error_state,
-            server::Status status,
-            std::error_code& err){
-        using namespace network;
-        network::Message<Server_MsgT::ERROR> rep_msg;
-        rep_msg.additional().err_ = error_state;
-        rep_msg.additional().status_=network::server::Status::READY;
-        process->send_message<Server_MsgT::ERROR>(std::stop_token(),socket,err,std::move(rep_msg));
-        return;
     }
 }
 
 void index_ref_process(
         std::error_code& err,
         std::stop_token token,
-        Socket socket,
-        connection::Process<Server>* proc,
-        const Message<Client_MsgT::INDEX_REF>& msg){
-    ::Message<Server_MsgT::DATA_REPLY_INDEX_REF> rep_msg;
+        network::Socket socket,
+        network::connection::messaging::ServerProcess* proc,
+        const network::Message<Client_MsgT::INDEX_REF>& msg){
+    network::Message<Server_MsgT::DATA_REPLY_INDEX_REF> rep_msg;
     auto find_data = [&msg,&rep_msg]
         <Data_t TYPE,Data_f FORMAT>
         (const IndexParameters<TYPE,FORMAT>& index_param) mutable

@@ -170,7 +170,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,Level>{
         using type = Level;
-        SerializationEC operator()(type& val, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& val, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.level_type_,val.octet_11,val.octet_12);
         }
     };

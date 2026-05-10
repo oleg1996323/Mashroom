@@ -10,12 +10,4 @@ namespace network::connection{
     template<typename T>
     requires std::is_same_v<client_t,T> || std::is_same_v<server_t,T>
     class Process;
-    namespace messaging{
-        template<typename T>
-        requires std::is_same_v<client_t,T> || std::is_same_v<server_t,T>
-        class sender;
-        template<typename T>
-        requires std::is_same_v<client_t,T> || std::is_same_v<server_t,T>
-        class receiver;
-    }
 }

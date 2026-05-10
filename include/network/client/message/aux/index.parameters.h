@@ -115,7 +115,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = network::IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.common_,msg.from_,
                 msg.to_,msg.tdiff_,msg.forecast_preference_,msg.level_,
                 msg.top_,msg.bottom_,msg.left_,msg.right_,msg.grid_type_);

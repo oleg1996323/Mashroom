@@ -44,7 +44,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<POLAR_STEREOGRAPH_PROJ>>{
         using type = grid::GridBase<POLAR_STEREOGRAPH_PROJ>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y1,msg.x1,msg.resolutionAndComponentFlags,msg.LoV,msg.dx,
                 msg.dy,msg.is_south_pole,msg.scan_mode);
         }

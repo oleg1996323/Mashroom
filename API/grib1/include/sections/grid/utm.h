@@ -45,7 +45,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<UTM>>{
         using type = grid::GridBase<UTM>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return SerializationEC::NONE;
         }
     };

@@ -29,7 +29,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ProgressBase>{
         using type = ProgressBase;
-        SerializationEC operator()(type& progress, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& progress, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(progress,buf,progress.value_,progress.server_process_);
         }
     };

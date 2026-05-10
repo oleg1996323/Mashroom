@@ -55,7 +55,7 @@ namespace serialization{
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,SearchParamTableVersion>{
-        auto operator()(SearchParamTableVersion& val,std::span<const char> buf) const noexcept{
+        auto operator()(SearchParamTableVersion& val,StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.param_,val.t_ver_);
         }
     };

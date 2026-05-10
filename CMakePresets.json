@@ -8,14 +8,14 @@
         {
             "name": "default",
             "displayName": "Configuration-Debug",
-            "description": "Basic configuration for UNIX systems by Unix Makefiles",
+            "description": "Ninja configuration",
             "binaryDir": "${sourceDir}/build",
+            "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE":"Debug",
                 "CMAKE_CXX_COMPILER":"$env{HOME}/gcc/gcc-install/bin/g++",
                 "CMAKE_C_COMPILER":"$env{HOME}/gcc/gcc-install/bin/gcc",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "DEBUG":null,
                 "OSTERLIB_PATH":"$env{HOME}/OsterLib-install"
             }
         }
@@ -24,7 +24,8 @@
         {
             "name": "default",
             "displayName": "Build-Debug",
-            "configurePreset": "default"
+            "configurePreset": "default",
+            "jobs": 12
         }
     ]
 }

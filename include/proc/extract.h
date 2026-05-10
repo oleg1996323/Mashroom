@@ -9,8 +9,6 @@
 #include "sys/application.h"
 #include "data/common_data_properties.h"
 #include "serialization.h"
-#include "network/client.h"
-#include "network/server.h"
 #include "extract/extracted_data.h"
 
 using namespace std::string_literals;

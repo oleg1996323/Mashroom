@@ -20,13 +20,13 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
 add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
 #adding imported submodules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
+add_subdirectory(external)
 
 #execute autogeneration of code tables
 if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
     execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
 endif()
-add_subdirectory(external)
+
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
@@ -64,21 +64,19 @@ message(STATUS ${OSTERLIB_PATH})
 find_package(OsterLib CONFIG REQUIRED PATHS ${OSTERLIB_PATH})
 add_subdirectory(API)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/network)
 
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
 target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial network_lib)
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::network)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/network
                                     ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial GIAPI system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial OsterLib::network GIAPI system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})

@@ -55,7 +55,7 @@ namespace serialization
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractMeteoGrib>{
-        auto operator()(ExtractMeteoGrib& val,std::span<const char> buf) const noexcept{
+        auto operator()(ExtractMeteoGrib& val,StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.search_props_,val.t_separation_,val.file_fmt_);
         }
     };
@@ -121,7 +121,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Client_MsgT::DATA_REQUEST>>{
         using type = MessageAdditional<network::Client_MsgT::DATA_REQUEST>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.form_);
         }
     };

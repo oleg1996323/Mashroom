@@ -206,7 +206,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,TimeForecast>{
         using type = TimeForecast;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.N_,msg.N_avg_acc_missed_,msg.P1_.val,msg.P2_.val,msg.tf_,msg.tri_);
         }
     };

@@ -46,7 +46,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<SPACE_VIEW>>{
         using type = grid::GridBase<SPACE_VIEW>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
                 msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
         }

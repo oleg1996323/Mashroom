@@ -127,7 +127,6 @@ namespace network{
 
     template<Side S>
     class MessageHandler:public _MessageHandler<typename network::MESSAGE_ID<S>::type,typename network::list_message<S>::type>{
-        std::vector<char> buffer_;
         public:
         using _handler = _MessageHandler<typename network::MESSAGE_ID<S>::type, typename network::list_message<S>::type>;
         using _handler::_MessageHandler;
@@ -154,10 +153,8 @@ namespace network{
 
         MessageHandler& operator=(const MessageHandler&) = delete;
         MessageHandler& operator=(MessageHandler&& other) noexcept{
-            if(this!=&other){
-                buffer_ = std::move(other.buffer_);
+            if(this!=&other)
                 network::list_message<S>::type::operator=(std::move(other));
-            }
             return *this;
         }
         template<auto MSG,typename... ARGS>
@@ -185,13 +182,6 @@ namespace network{
             if(has_message())
                 return static_cast<MESSAGE_ID<S>>(_handler::index()-1);
             else throw std::runtime_error("Handler does not contains message");
-        }
-
-        std::vector<char>& buffer(){
-            return buffer_;
-        }
-        const std::vector<char>& buffer() const{
-            return buffer_;
         }
     };
 }

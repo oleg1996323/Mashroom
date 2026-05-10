@@ -46,7 +46,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,SearchProperties>{
         auto operator()(SearchProperties& val,
-                        std::span<const char> buf) const noexcept{
+                        StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,
                                 val.parameters_,
                                 val.fcst_unit_,

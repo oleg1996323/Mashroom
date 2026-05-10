@@ -1,5 +1,5 @@
 #include "config/server.h"
-#include "definitions.h"
+#include "network/definitions.h"
 
 template<>
 boost::json::value to_json(const network::server::Config& val){
@@ -10,7 +10,7 @@ boost::json::value to_json(const network::server::Config& val){
     map["service"] = val.settings_.service_;
     map["port"] = val.settings_.port_;
     map["protocol"] = val.settings_.protocol_;
-    map["timeout"] = val.settings_.timeout_seconds_;
+    map["timeout"] = val.settings_.timeout_seconds_processes_;
     return map;
 }
 
@@ -25,7 +25,7 @@ std::expected<network::server::Config,std::exception> from_json(const boost::jso
             result.settings_.service_=c.at("service").as_string();
             result.settings_.port_=static_cast<network::Port>(c.at("port").as_uint64());
             result.settings_.protocol_=static_cast<network::Protocol>(c.at("protocol").as_uint64());
-            result.settings_.timeout_seconds_=c.at("timeout").as_int64();
+            result.settings_.timeout_seconds_processes_=c.at("timeout").as_int64();
             for(auto& accaddr:c.at("accaddr").as_array())
                 result.accepted_addresses_.insert(accaddr.as_string().data());
         }

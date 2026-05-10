@@ -338,7 +338,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,Grib1Data::IndexStructDeserialize>{
         using type = Grib1Data::IndexStructDeserialize;
-        SerializationEC operator()(type& msg, std::span<const char>& buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.cmn_,msg.grid_,
                     msg.path_,msg.lvl_,
                     msg.tf_,msg.ts_pos_);

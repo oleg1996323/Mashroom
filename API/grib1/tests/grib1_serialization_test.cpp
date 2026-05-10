@@ -27,8 +27,10 @@ TEST(Grib1StructuresSerialization,GridSerialization_test){
     GridInfo gi = grid;
     GridInfo other;
     std::vector<char> buf;
+    serialization::StreamSerializer ss;
     ASSERT_TRUE(serialization::serialize<false>(gi,buf)==serialization::SerializationEC::NONE);
-    ASSERT_TRUE(serialization::deserialize<false>(other,std::span<const char>(buf))==serialization::SerializationEC::NONE);
+    ss.push_view(buf);
+    ASSERT_TRUE(serialization::deserialize<false>(other,ss)==serialization::SerializationEC::NONE);
     ASSERT_EQ(gi,other);
 }
 
@@ -40,8 +42,10 @@ TEST(Grib1StructuresSerialization,TimeForecastSerialization_test){
     );
     TimeForecast other;
     std::vector<char> buf;
+    serialization::StreamSerializer ss;
     ASSERT_TRUE(serialization::serialize<false>(tf,buf)==serialization::SerializationEC::NONE);
-    ASSERT_TRUE(serialization::deserialize<false>(other,std::span<const char>(buf))==serialization::SerializationEC::NONE);
+    ss.push_view(buf);
+    ASSERT_TRUE(serialization::deserialize<false>(other,ss)==serialization::SerializationEC::NONE);
     ASSERT_EQ(tf,other);
 }
 
@@ -49,8 +53,10 @@ TEST(Grib1StructuresSerialization,Level_test){
     Level lvl(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
     Level other;
     std::vector<char> buf;
+    serialization::StreamSerializer ss;
     ASSERT_TRUE(serialization::serialize<false>(lvl,buf)==serialization::SerializationEC::NONE);
-    ASSERT_TRUE(serialization::deserialize<false>(other,std::span<const char>(buf))==serialization::SerializationEC::NONE);
+    ss.push_view(buf);
+    ASSERT_TRUE(serialization::deserialize<false>(other,ss)==serialization::SerializationEC::NONE);
     ASSERT_EQ(lvl,other);
 }
 

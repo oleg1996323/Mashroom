@@ -1,3 +1,4 @@
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 add_executable(autogen ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 target_compile_definitions(autogen PRIVATE ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}" EXE_DIR="${AUTOGEN_EXECUTABLE_DIR}" EXE_PATH="$<TARGET_FILE:autogen>")
@@ -7,7 +8,7 @@ set(AUTOGEN_EXECUTABLE_DIR "$<TARGET_FILE_DIR:autogen>")
 
 message(STATUS "$<TARGET_FILE_DIR:autogen>/autogen")
 
-add_custom_command(
+add_custom_target(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/organizations.dat
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/table_0.h
     COMMAND "$<TARGET_FILE:autogen>"  # Используем генераторное выражение напрямую

@@ -255,7 +255,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,Grib1CommonDataProperties>{
         using type = Grib1CommonDataProperties;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.center_,msg.table_version_,msg.parameter_);
         }
     };

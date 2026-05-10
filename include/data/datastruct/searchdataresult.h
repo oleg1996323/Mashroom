@@ -68,7 +68,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,find_data_info::details::Additional<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = find_data_info::details::Additional<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.ts_,msg.fcst_,msg.grid_,msg.lvl_);
         }
     };
@@ -111,7 +111,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.cmn_,msg.add_);
         }
     };

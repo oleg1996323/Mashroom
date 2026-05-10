@@ -1,5 +1,7 @@
 #include "network/client/connection_process.h"
 #include "network/client.h"
+#include "network/commonsocket.h"
+#include "network/abstractprocess.h"
 
 namespace network{
     namespace connection::messaging{

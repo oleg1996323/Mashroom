@@ -4,7 +4,7 @@
 #include <memory>
 #include "variant.h"
 #include "types/time_interval.h"
-#include "definitions.h"
+#include "network/definitions.h"
 
 namespace fs = std::filesystem;
 namespace path{
@@ -262,7 +262,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,path::Additional<path::TYPE::FILE>>{
         using type = path::Additional<path::TYPE::FILE>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.last_check_);
         }
     };
@@ -304,7 +304,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,path::Additional<path::TYPE::DIRECTORY>>{
         using type = path::Additional<path::TYPE::DIRECTORY>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.last_check_);
         }
     };
@@ -346,7 +346,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,path::Additional<path::TYPE::HOST>>{
         using type = path::Additional<path::TYPE::HOST>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.port_,msg.last_check_);
         }
     };
@@ -388,7 +388,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,path::Storage<false>>{
         using type = path::Storage<false>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.type_,msg.path_,msg.add_);
         }
     };

@@ -113,7 +113,7 @@ namespace serialization{
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
-        auto operator()(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val,std::span<const char> buf) const noexcept{
+        auto operator()(ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val,StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(val,buf,val.time_date,val.value);
         }
     };

@@ -275,7 +275,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = procedures::extract::details::AdditionalExtractDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.fcst_,msg.level_,msg.grid_,msg.pos_);
         }
     };
@@ -319,7 +319,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,Data_t TYPE,Data_f FORMAT>
     struct Deserialize<NETWORK_ORDER,procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>>{
         using type = procedures::extract::details::ExtractDataProperties<TYPE,FORMAT>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.cmn_,msg.add_);
         }
     };

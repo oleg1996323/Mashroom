@@ -493,7 +493,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ScanMode>{
         using type = ScanMode;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.points_sub_i_dir,msg.points_sub_j_dir,msg.adj_points_j_dir);
         }
     };
@@ -533,7 +533,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,ResolutionComponentFlags>{
         using type = ResolutionComponentFlags;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.given_direction,msg.earth_spheroidal,msg.grid_direction_uv_comp);
         }
     };

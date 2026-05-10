@@ -9,7 +9,8 @@
 #include "network/client/connection_process.h"
 #include <netdb.h>
 #include <future>
-#include "commonclient.h"
+#include "network/commonsocket.h"
+#include "network/abstractclient.h"
 
 namespace network{
     class ClientsHandler;
@@ -52,7 +53,7 @@ namespace network{
         }
     }
 
-    class Client:public CommonClient{
+    class Client:public AbstractClient{
         private:
         friend struct std::hash<network::Client>;
         friend struct std::equal_to<network::Client>;

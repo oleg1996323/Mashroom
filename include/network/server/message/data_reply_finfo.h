@@ -2,8 +2,6 @@
 #include <network/common/message/msgdef.h>
 #include "progress_base.h"
 #include <fstream>
-#include <sys/mman.h>
-#include "utility.h"
 
 namespace network{
 template<>
@@ -56,7 +54,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>>{
         using type = network::MessageAdditional<network::Server_MsgT::DATA_REPLY_FILEINFO>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.filename_,msg.file_sz_);
         }
     };

@@ -29,6 +29,14 @@
             "command": "test",
             "problemMatcher": [],
             "detail": "CMake template test task"
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: configure",
+            "command": "configure",
+            "preset": "default",
+            "problemMatcher": [],
+            "detail": "CMake template configure task"
         }
     ],
     "version": "2.0.0"

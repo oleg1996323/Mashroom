@@ -5,8 +5,6 @@
 #include <sys/log_err.h>
 #include <netinet/in.h>
 
-
-
 std::unique_ptr<Server> Server::make_instance(const server::Settings& settings){
     auto result = std::unique_ptr<Server>(
         new Server(settings));

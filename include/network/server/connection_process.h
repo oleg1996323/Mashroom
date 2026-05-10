@@ -12,12 +12,119 @@
 #include <queue>
 #include <shared_mutex>
 #include "network/common/connection_process.h"
-#include "abstractqueuableprocess.h"
+#include "network/commonsocket.h"
 
-namespace network{
-    void reply(std::stop_token stop,const Socket& socket,connection::Process<Server>* proc);
+namespace network::connection{
+    void send_error(const Socket& socket,
+            network::connection::Process<Server>* process,
+            ErrorCode error_state,
+            server::Status status,
+            std::error_code& err){
+        using namespace network;
+        network::Message<Server_MsgT::ERROR> rep_msg;
+        rep_msg.additional().err_ = error_state;
+        rep_msg.additional().status_=network::server::Status::READY;
+        process->send_message<Server_MsgT::ERROR>(std::stop_token(),socket,err,std::move(rep_msg));
+        return;
+    }
 
-    class Server;
+    template<>
+    class Process<Server>:public AbstractConnectionProcess{
+        MessageHandler<Side::SERVER> recv_hmsg_;
+        public:
+        virtual void on_read(std::error_code& err) noexcept override{
+            using namespace serialization;
+            auto at_error = [this](std::errc c){
+                recv_hmsg_ = std::move(recv_hmsg_);
+                return std::make_error_code(c);
+            };
+            io_context().receive(err,io_context().free_space());
+            if(err!=std::error_code())
+                return;
+            else {
+                if(auto ser_res = io_context().deserialize(recv_hmsg_);ser_res!=serialization::SerializationEC::NONE)
+                {
+                    if(ser_res==serialization::SerializationEC::BUFFER_SIZE_LESSER)
+                        err = std::make_error_code(std::errc::resource_unavailable_try_again);
+                    else{
+                        err = std::make_error_code(std::errc::bad_message);
+                        MessageHandler<Side::SERVER> err_msg;
+                        err_msg.emplace_message_by_id(
+                            Message_t<Side::SERVER>::ERROR,
+                            ErrorCode::RECEIVING_MESSAGE_ERROR);
+                        io_context().serialize(err_msg);
+                        io_context().send(err);
+                    }
+                    return;
+                }
+            }
+            if(receive(sock,hmsg->buffer(),hmsg->buffer().size())==-1){
+                err = at_error(std::errc::io_error);
+                return;
+            }
+            else{
+                uint64_t data_sz=0;
+                if(serialization::deserialize_network(data_sz,std::span<const char>(hmsg->buffer()))!=serialization::SerializationEC::NONE){
+                    err = at_error(std::errc::message_size);
+                    return;
+                }
+                hmsg->buffer().resize(data_sz+hmsg->buffer().size(),0);
+                if(receive(sock,std::span<char>(hmsg->buffer()).subspan(sizeof(size_t)),hmsg->buffer().size())==-1){
+                    err = at_error(std::errc::io_error);
+                    return;
+                }
+                if(serialization::deserialize_network(*hmsg,
+                        std::span<const char>(hmsg->buffer()).subspan(sizeof(size_t)))!=
+                        serialization::SerializationEC::NONE)
+                {
+                    err = at_error(std::errc::bad_message);
+                    return;
+                }
+                else{
+                    //used for file segments transmission
+                    auto has_more_msg = [this](auto&& msg){
+                        if constexpr (std::is_same_v<std::decay_t<decltype(msg)>,std::monostate>)
+                            this->has_more_ = false;
+                        else this->has_more_.exchange(msg.message_more());
+                    };
+                    std::visit(has_more_msg,*hmsg);
+                    return;
+                }
+            }
+            std::lock_guard lk(m_);
+            hmsg_ = std::move(hmsg);
+            return;
+        }
+        virtual void on_write(std::error_code& err) noexcept override{
+            if(!hmsg || !hmsg->has_message()){
+                err = std::make_error_code(std::errc::no_message);
+                return;
+            }
+            err = 
+                send(sock,SEND_FLAGS::NoSignal,hmsg->buffer())==-1?
+                std::make_error_code(std::errc::io_error):
+                std::error_code();
+            return;
+        }
+        virtual void on_task_done(std::error_code& err) noexcept override{
+
+        }
+        virtual void on_stop_requested(std::error_code& err) noexcept override{
+
+        }
+        
+        Process(
+                ConnectionHandle hconn,
+                std::error_code& err) noexcept:
+            AbstractConnectionProcess(hconn,err){}
+        ~Process() = default;
+        virtual void handle_event(
+                    Event event,
+                    std::error_code& err) noexcept = 0;
+        virtual bool requestable() const noexcept override{
+            return false;
+        }
+    };
     namespace connection::messaging{
         template<>
         class sender<network::Server>{

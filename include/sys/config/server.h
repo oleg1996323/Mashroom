@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_set>
 #include "boost_functional/json.h"
-#include "serversettings.h"
+#include "network/serversettings.h"
 
 namespace network::server{
 

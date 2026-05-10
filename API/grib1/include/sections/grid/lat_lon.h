@@ -178,7 +178,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>>{
         using type = grid::GridBase<LAT_LON_GRID_EQUIDIST_CYLINDR>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.dy,msg.dx,
                 msg.ny,msg.nx,msg.scan_mode,msg.resolutionAndComponentFlags);
         }

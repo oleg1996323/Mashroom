@@ -161,7 +161,7 @@ namespace serialization{
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,grid::GridBase<GAUSSIAN>>{
         using type = grid::GridBase<GAUSSIAN>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.y1,msg.x1,msg.y2,msg.x2,msg.ny,msg.nx,
                 msg.directionIncrement,msg.N,msg.scan_mode,msg.resolutionAndComponentFlags);
         }

@@ -2,7 +2,7 @@
 #include <optional>
 #include <expected>
 #include <set>
-#include "definitions.h"
+#include "network/definitions.h"
 #include "serialization.h"
 #include "msgdef.h"
 
@@ -61,7 +61,7 @@ namespace serialization{
     requires MessageEnumConcept<MSG_T>
     struct Deserialize<NETWORK_ORDER,MessageBase<MSG_T>>{
         using type = MessageBase<MSG_T>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.data_sz_,msg.msg_more_);
         }
     };
@@ -250,7 +250,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,auto MSG_T>
     struct Deserialize<NETWORK_ORDER,network::Message<MSG_T>>{
         using type = network::Message<MSG_T>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.base_,msg.additional_);
         }
     };

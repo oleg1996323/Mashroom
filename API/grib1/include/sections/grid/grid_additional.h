@@ -122,7 +122,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Deserialize<NETWORK_ORDER,grid::GridAdditional<REP,grid::GridModification::NONE>>{
         using type = grid::GridAdditional<REP,grid::GridModification::NONE>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return SerializationEC::NONE;
         }
     };
@@ -164,7 +164,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Deserialize<NETWORK_ORDER,grid::GridAdditional<REP,grid::GridModification::ROTATION>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.xp,msg.yp,msg.ang);
         }
     };
@@ -206,7 +206,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Deserialize<NETWORK_ORDER,grid::GridAdditional<REP,grid::GridModification::STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::STRETCHING>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.xsp,msg.ysp,msg.s_factor);
         }
     };
@@ -248,7 +248,7 @@ namespace serialization{
     template<bool NETWORK_ORDER,RepresentationType REP>
     struct Deserialize<NETWORK_ORDER,grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>>{
         using type = grid::GridAdditional<REP,grid::GridModification::ROTATION_STRETCHING>;
-        SerializationEC operator()(type& msg, std::span<const char> buf) const noexcept{
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,msg.rot_,msg.stretch_);
         }
     };
