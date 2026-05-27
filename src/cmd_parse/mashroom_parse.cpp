@@ -14,7 +14,7 @@ namespace parse{
         return Contains::instance().parse(input);
     }
     ErrorCode server_notifier(const std::vector<std::string>& input) noexcept{
-        return ServerAction::instance().parse(input);
+        return Network::instance().parse(input);
     }
     ErrorCode config_notifier(const std::vector<std::string>& input) noexcept{
         return ProgramConfig::instance().parse(input);
@@ -45,49 +45,21 @@ namespace parse{
         }),"Check the integrity (dimensional and temporal) of indexd data and detect the corrupted files of different format.",Integrity::instance())
         ("contains",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
             err_ = contains_notifier(items);
-        }),"Check if indexd data contains the data specified by properties",Contains::instance())
-        ("program-config",po::value<std::vector<std::string>>()->zero_tokens(),"Configure the program",ProgramConfig::instance())
-        ("server-config",po::value<std::vector<std::string>>()->zero_tokens(),"Configure the server",ServerConfig::instance())
-        ("save","Save the current instance")
-        ("server","Server activities",ServerAction::instance())
+        }),"Check if indexed data contains the data specified by properties",Contains::instance())
+        ("config",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
+            err_ = config_notifier(items);
+        }),"Configurations",ProgramConfig::instance())
+        ("network",po::value<std::vector<std::string>>()->zero_tokens()->notifier([this](const std::vector<std::string>& items){
+            
+        }),"Network activities",Network::instance())
+        ("save",po::value<void>()->notifier([this](){
+            
+        }),"Save the current instance (data, configurations)")
         ("help,H","Show help")
-        ("exit","Exit from program");
+        ("exit",po::value<void>()->notifier([](){
+            exit(0);
+        }),"Exit from program");
         assert(!descriptor_.find_nothrow("add",false));
         define_uniques();
-    }
-    ErrorCode Mashroom::execute(vars& vm,const std::vector<std::string>& args) noexcept{
-        if(err_!=ErrorCode::NONE)
-            return err_;
-        else if(vm.contains("exit") && vm.size()==1)
-            exit(0);
-        else if(vm.contains("save") && vm.size()==1){
-            err_ = save_notifier();
-            return err_;
-        }
-        else if(vm.contains("program-config")){
-            return config_notifier(args);
-        }
-        else if(vm.contains("server-config")){
-            return serverconfig_notifier(args);
-        }
-        else if(vm.contains("extract")){
-            return extract_notifier(args);
-        }
-        else if(vm.contains("index")){
-            return index_notifier(args);
-        }
-        else if(vm.contains("integrity")){
-            return integrity_notifier(args);
-        }
-        else if(vm.contains("contains")){
-            return contains_notifier(args);
-        }
-        else if(vm.contains("server")){
-            return server_notifier(args);
-        }
-        else{
-            err_=try_notify(vm);
-            return err_;
-        }
     }
 }

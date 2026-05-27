@@ -1,22 +1,43 @@
 {
-    "version": 8,
+    "version": 10,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 23
+        "minor": 20
     },
     "configurePresets": [
         {
+            "$comment": ["Configuration for basic building and intalling by Unix Makefiles in Unix systems"],
             "name": "default",
-            "displayName": "Configuration-Debug",
-            "description": "Ninja configuration",
+            "description": "Default build",
             "binaryDir": "${sourceDir}/build",
+            "cmakeExecutable": "cmake",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER":"$env{HOME}/gcc-install/bin/g++",
+                "CMAKE_C_COMPILER":"$env{HOME}/gcc-install/bin/gcc",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "OSTERLIB_PATH":"$env{HOME}/OsterLib-install"
+            }
+        },
+        {
+            "name":"Ninja",
+            "inherits":"default",
+            "displayName": "Ninja Configuration-Debug",
+            "$comment": "Configuration for basic building and installing by Ninja in Unix systems",
             "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE":"Debug",
-                "CMAKE_CXX_COMPILER":"$env{HOME}/gcc/gcc-install/bin/g++",
-                "CMAKE_C_COMPILER":"$env{HOME}/gcc/gcc-install/bin/gcc",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "OSTERLIB_PATH":"$env{HOME}/OsterLib-install"
+                "CMAKE_INSTALL_PREFIX":"$env{HOME}/Mashroom-install"
+            }
+        },
+        {
+            "name":"Makefiles",
+            "inherits":"default",
+            "displayName": "Makefiles Configuration-Debug",
+            "$comment": "Configuration for basic building and installing by Unix Makefiles in Unix systems",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":"Debug",
+                "CMAKE_INSTALL_PREFIX":"$env{HOME}/Mashroom-install"
             }
         }
     ],
@@ -25,7 +46,7 @@
             "name": "default",
             "displayName": "Build-Debug",
             "configurePreset": "default",
-            "jobs": 12
+            "jobs": 16
         }
     ]
 }

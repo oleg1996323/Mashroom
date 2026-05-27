@@ -13,8 +13,8 @@
 #include "sys/error_print.h"
 #include "sys/application.h"
 #include "data.h"
-#include "network/server.h"
-#include "program/clients_handler.h"
+#include "web/server.h"
+#include "web/client.h"
 #include "concepts.h"
 #include <boost/algorithm/string.hpp>
 
@@ -26,13 +26,9 @@ constexpr std::string_view mashroom_data_info = "mashroom_data.json"sv;
 class Mashroom{
     Data data_;
     std::unordered_set<fs::path> data_files_;
-    std::unique_ptr<network::Server> server_;
-    /** @brief Handle all clients connected to different servers at current moment
-     *  @details Filled at any kind of procedures like Extract or Index (inside them methods) or
-     *  by permanent connection to these servers
-     */
-    network::ClientsHandler clients_;
     fs::path data_dir_;
+    network::Server server_;
+    network::Client client_;
     void __read_initial_data_file__();
     void __write_initial_data_file__();
     fs::path __filename__() const{
@@ -57,26 +53,21 @@ class Mashroom{
         save();
     }
     static ErrorCode read_command(const std::vector<std::string>& argv);
-    /**
-     * @brief Suspend active server
-     * @todo Expand to different server specified by type (data,cadastre,measurement etc)
-     */
-    void collapse_server(bool wait_processes, uint16_t timeout_sec = 60);
-    /**
-     * @brief Close active server and (optionaly close instantly close all existing connection without finishing the processes)
-     * @todo Expand to different server specified by type (data,cadastre,measurement etc)
-     */
-    void close_server(bool wait_processes, uint16_t timeout_sec = 60); //further will be lot of servers (data,cadastre,measurement etc)
-    void shutdown_server(); //further will be lot of servers (data,cadastre,measurement etc)
-    void deploy_server(); //further will be lot of servers (data,cadastre,measurement etc)
-    void launch_server(); //further will be lot of servers (data,cadastre,measurement etc)
     bool read_command();
     ErrorCode connect(const std::string& host);
 
-    template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    std::shared_ptr<network::RequestInstance> request(bool wait, const std::string& host,Port port,ARGS&&... args);
-    template<network::Client_MsgT::type MSG_T, typename... ARGS>
-    std::shared_ptr<network::RequestInstance> request(uint16_t timeout_sec, const std::string& host,network::Port port,ARGS&&... args);
+    template<typename DATA_FRAME_SEND, typename START_FRAME = std::monostate, typename END_FRAME = std::monostate>
+    std::shared_ptr<network::MessageHandler<network::Side::SERVER>> 
+        request(network::ConnectionHandle hconn, START_FRAME &&start, DATA_FRAME_SEND &&data, END_FRAME &&end){
+        return client_.request<network::MessageHandler<network::Side::SERVER>>(
+            hconn,
+            std::forward<decltype(start)>(start),
+            std::forward<decltype(data)>(data),
+            std::forward<decltype(end)>(end));
+    }
+    network::Server& server() noexcept{
+        return server_;
+    }
     const Data& data() const{
         return data_;
     }
@@ -97,7 +88,10 @@ class Mashroom{
             else if(boost::iequals(buffer,std::string_view("no")))
                 return false;
             else{
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"please write \"yes\" if you want to save changes; else write \"no\"",AT_ERROR_ACTION::CONTINUE,buffer);
+                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                "please write \"yes\" if you want to save changes; \
+else write \"no\"",
+                AT_ERROR_ACTION::CONTINUE,buffer);
             }
             return true;
         }
@@ -108,12 +102,3 @@ class Mashroom{
         return inst;
     }
 };
-
-template<network::Client_MsgT::type MSG_T, typename... ARGS>
-std::shared_ptr<network::RequestInstance> Mashroom::request(bool wait,const std::string& host,network::Port port,ARGS&&... args){
-    return clients_.request<MSG_T>(wait,host,port,std::forward<ARGS>(args)...);
-}
-template<network::Client_MsgT::type MSG_T, typename... ARGS>
-std::shared_ptr<network::RequestInstance> Mashroom::request(uint16_t timeout_sec,const std::string& host,network::Port port,ARGS&&... args){
-    return clients_.request<MSG_T>(timeout_sec,host,port,std::forward<ARGS>(args)...);
-}

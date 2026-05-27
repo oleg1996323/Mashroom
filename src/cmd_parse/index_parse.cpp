@@ -42,7 +42,7 @@ namespace parse{
         "\" format is set automatically. Ignored if \"index-overwrite\" is not set.").c_str())
         /*@todo*/("index-overwrite",po::bool_switch(),("Set overwrite mode at indexing. That mean all indexd data from read files will be structured in hierarchy depending of index-dir-order."s+
         "If index-dir-order is set to \"\" (empty) the indexd file will be simply copied to the defined by \"out-dirs\" option path.").c_str())
-        ("index-ref","")
+        ("index-ref",po::value<void>()->zero_tokens()->notifier(),"")
         ("index-part-memsize",po::value<info_quantity>()->default_value(static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{})->notifier([this](const info_quantity& memory_size){
             hIndex->set_max_index_size(memory_size);
         }),("Specify the maximal part size of shared data when indexing process a host-path. It is useful for limiting the data indexing in cases when the summary size of remote indexd data is unknown."s+\

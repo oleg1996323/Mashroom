@@ -392,8 +392,15 @@ namespace serialization{
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>>{
         using type = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
         SerializationEC operator()(type& msg,
-                std::span<const char> buf) const noexcept{
-                    size_t sz = 0;
+            StreamSerializer& buf) const noexcept{
+                size_t sz = 0;
+                if(buf.advance_if_deserialized(sz)){
+
+                }
+                else{
+                    if(auto err = deserialize<NETWORK_ORDER>(sz,buf);
+                        err!=SerializationEC::NONE)
+                        return err;
                     msg.index_.clear();
                     msg.by_diff_.clear();
                     msg.by_intervals_.clear();
@@ -402,25 +409,26 @@ namespace serialization{
                     msg.levels_.clear();
                     msg.paths_.clear();
                     msg.tf_.clear();
-                    if(auto err = deserialize<NETWORK_ORDER>(sz,buf);
+                    buf.set_container_size(sz);
+                }
+                sz = buf.remained_container_elements();
+                for(int i=0;i<sz;++i){
+                    std::shared_ptr<type::IndexStructDeserialize> tmp;
+                    if(auto err = deserialize<NETWORK_ORDER>(tmp,buf);
                         err!=SerializationEC::NONE)
-                        return err;
-                    buf=buf.subspan(serial_size(sz));
-                    for(int i=0;i<sz;++i){
-                        std::shared_ptr<type::IndexStructDeserialize> tmp;
-                        if(auto err = deserialize<NETWORK_ORDER>(tmp,buf);
-                            err!=SerializationEC::NONE)
-                                return err;
-                        buf = buf.subspan(serial_size(tmp));
-                        if(!tmp)
-                            continue;
+                            return err;
+                    else buf.commit_container_elem();
+                    if(!tmp)
+                        continue;
+                    else{
                         auto tmp_grid = tmp->grid_;
                         auto tmp_path = tmp->path_;
                         std::shared_ptr<type::IndexStruct> index=
                             std::make_shared<type::IndexStruct>(std::move(*tmp));
                         msg.rewrite_index(index);
                     }
-                    return SerializationEC::NONE;
+                }
+                return SerializationEC::NONE;
         }
     };
 

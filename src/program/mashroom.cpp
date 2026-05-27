@@ -2,10 +2,10 @@
 #include <boost/json.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <cmd_parse/mashroom_parse.h>
-#include <network/server.h>
-#include <sys/config.h>
-#include <sys/log_err.h>
+#include "cmd_parse/mashroom_parse.h"
+#include "web/server.h"
+#include "sys/config.h"
+#include "sys/log_err.h"
 #include "CLI/CLInavig.h"
 
 namespace fs = std::filesystem;
@@ -89,12 +89,10 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
     dat_file.close();
 }
-
 ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
     parse::Mashroom::instance().parse(argv);
     return ErrorCode::NONE;
 }
-
 bool Mashroom::read_command(){
     #if  defined(__unix__) || defined(__unix)
     read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
@@ -102,39 +100,4 @@ bool Mashroom::read_command(){
     read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
     #endif
     return true;
-}
-void Mashroom::collapse_server(bool wait_processes, uint16_t timeout_sec){
-    if(server_)
-        server_->collapse(wait_processes,timeout_sec);
-    server_.reset();
-}
-void Mashroom::close_server(bool wait_processes, uint16_t timeout_sec){
-    if(server_)
-        server_->close(wait_processes,timeout_sec);
-}
-void Mashroom::shutdown_server(){
-    if(server_)
-        server_->close(false);
-}
-void Mashroom::deploy_server(){
-    ErrorCode err;
-    try{
-        server_ = network::Server::make_instance(
-        Application::config().current_server_setting().settings_);
-    }
-    catch(const std::exception& err){
-        std::cout<<err.what()<<std::endl;
-    }
-    return;
-}
-void Mashroom::launch_server(){
-    if(!server_)
-        deploy_server();
-    if(!server_){
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR, "server deploy and launching failure",AT_ERROR_ACTION::CONTINUE);
-        return;
-    }
-    if(server_->get_status()==network::server::Status::INACTIVE)
-        server_->launch();
-    else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Server already launched",AT_ERROR_ACTION::CONTINUE);
 }

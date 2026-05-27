@@ -12,7 +12,7 @@
 #include <numeric>
 #include <format>
 #include "definitions/path_process.h"
-#include "network/client.h"
+#include "web/client.h"
 #include "program/mashroom.h"
 #include "sys/error_print.h"
 #include "definitions/def.h"
@@ -37,7 +37,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     std::cout << " Thread="<<std::this_thread::get_id()<<" : "<< entry.path()<<std::flush;
             }
 
-            HGrib1 grib;
+            API::HGrib1 grib;
             API::ErrorData::Code<API::GRIB1>::value error_f = grib.open_grib(entry.path());
             if(error_f!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
                 if(mute_at_print){

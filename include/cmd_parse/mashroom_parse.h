@@ -6,11 +6,10 @@
 #include "cmd_parse/config_parse.h"
 #include "cmd_parse/contains_parse.h"
 #include "cmd_parse/functions.h"
-#include "cmd_parse/server_parse.h"
+#include "cmd_parse/network.h"
 #include "cmd_parse/server_config_parse.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include <boost/program_options.hpp>
 #include "program/mashroom.h"
 
 namespace parse{
@@ -27,7 +26,6 @@ namespace parse{
         friend AbstractCLIParser;
         Mashroom():AbstractCLIParser("Mashroom options"){}
         virtual void init() noexcept override final;
-        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
         void print_help(std::ostream& os,const std::string& option,std::span<const std::string> args) const noexcept;
     };
 }

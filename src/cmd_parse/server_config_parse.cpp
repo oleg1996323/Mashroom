@@ -12,14 +12,14 @@ ErrorCode add_addresses(const std::vector<std::string>& addrs) noexcept{
             sockaddr_in tmp;
             int res = inet_pton(AF_INET,addr.data(),&tmp);
             if(res>0)
-                ServerConfigOptions::config()->accepted_addresses_.insert(std::string(addr));
+                app().config().server_config().push_to_white_list(addr);
         }
         {
             sockaddr_in6 tmp;
             int res = inet_pton(AF_INET6,addr.data(),&tmp);
             if(res>0)
-                ServerConfigOptions::config()->accepted_addresses_.insert(std::string(addr));
-            else return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"invalid address",AT_ERROR_ACTION::CONTINUE,addr);
+                app().config().server_config().push_to_white_list(addr);
+            else ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,"invalid address",AT_ERROR_ACTION::CONTINUE,addr);
         }
     }
     return ErrorCode::NONE;
@@ -28,7 +28,7 @@ ErrorCode add_addresses(const std::vector<std::string>& addrs) noexcept{
 ErrorCode add_notifier(const std::vector<std::string>& input) noexcept{
     ErrorCode err = ServerConfig::instance().parse(input);
     if(err!=ErrorCode::NONE){
-        ServerConfigOptions::config().reset();
+        app().config().server_config().reset();
         return err;
     }
     else if(std::string_view name = ServerConfigOptions::config()->name_;

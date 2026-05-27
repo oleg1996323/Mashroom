@@ -4,10 +4,10 @@
 #include <string>
 #include "sys/error_code.h"
 #include "proc/index.h"
-#include "information_parse.h"
 #include <tuple>
 #include "cmd_parse/cmd_def.h"
-#include "path_parse.h"
+#include "types_parse/information_parse.h"
+#include "types_parse/path_parse.h"
 namespace parse{
     class Index:public AbstractCLIParser<parse::Index>{
         friend AbstractCLIParser;

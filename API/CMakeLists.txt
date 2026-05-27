@@ -21,7 +21,13 @@ else()
     target_link_libraries(GIAPI INTERFACE common_h OsterLib::bytes)
 endif()
 
+#execute autogeneration of code tables
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
+    execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
+endif()
+add_subdirectory(external)
 add_subdirectory(grib1)
+
 set_property(TARGET grib1API APPEND PROPERTY INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(GIAPI INTERFACE gribAPI::v1)
 target_compile_definitions(grib1API PUBLIC GRIB1API PRIVATE "API_TYPE=API::GRIB1")

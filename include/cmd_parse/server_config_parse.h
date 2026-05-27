@@ -27,13 +27,9 @@ namespace parse{
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
         virtual void callback() noexcept override final{
             if(err_!=ErrorCode::NONE)
-                config().reset();
+                app().config().server_config().reset();
         }
         public:
-        static std::unique_ptr<network::server::Config>& config() noexcept{
-            static std::unique_ptr<network::server::Config> config;
-            return config;
-        }
     };
 
     class ServerConfig:public AbstractCLIParser<ServerConfig>{    

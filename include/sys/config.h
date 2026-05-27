@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <filesystem>
 
-#include "config/server.h"
+#include "config/network.h"
 #include "config/user.h"
 #include "config/system.h"
 namespace fs = std::filesystem;
@@ -19,13 +19,9 @@ namespace fs = std::filesystem;
 
 class Config{   
     private:
-    sys::Settings sys_settings_;
-    mutable network::server::Config server_config_;
-    mutable user::Settings user_config_;
-    std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual> configs_;
-    std::unordered_set<network::server::Config> server_configs_;
-    inline static const user::Settings empty_config_{};
-    inline static const network::server::Config empty_server_config_{};
+    sys::Config sys_settings_;
+    user::Config user_configs_;
+    network::Config network_configs_;
     public:
     Config(){
         read_user_config();
@@ -38,45 +34,20 @@ class Config{
     ~Config(){
         save();
     }
-    bool add_user_config(const user::Settings& settings)noexcept;
-    bool add_server_config(network::server::Config&&) noexcept;
-    bool setup_server_config(network::server::Config&&) noexcept;
-    bool setup_user_config(const user::Settings& settings)noexcept;
-    bool remove_user_config(const std::string& name)noexcept;
-    bool remove_user_config(std::string_view name)noexcept;
-    bool remove_server_config(std::string_view name)noexcept;
-    bool remove_server_config(const std::string& name)noexcept;
-    bool set_server_config(std::string_view name) const noexcept;
-    bool set_user_config(std::string_view name) const noexcept;
-    void save();
-    const sys::Settings& system_settings() const{
+    network::client::Config& client_config() noexcept{
+        return network_configs_.client_config();
+    }
+    network::server::Config& server_config() noexcept{
+        return network_configs_.server_config();
+    }
+    user::Config& user_config() noexcept{
+        return user_configs_;
+    }
+    sys::Config& system_config() noexcept{
         return sys_settings_;
     }
-    bool has_config_name(const std::string& name) const{
-        return configs_.contains(name);
-    }
-    bool has_config_name(std::string_view name) const{
-        return configs_.contains(name);
-    }
-    bool has_server_config(std::string_view name) const{
-        return server_configs_.contains(name);
-    }
-    bool has_server_config(const std::string& name) const{
-        return server_configs_.contains(name);
-    }
-    ErrorCode set_log_directory(const fs::path& path) noexcept;
-    ErrorCode set_config_directory(const fs::path& path) noexcept;
-    ErrorCode set_server_config_directory(const fs::path& path) noexcept;
-    const std::unordered_set<user::Settings,user::SettingsHash,user::SettingsEqual>&  get_user_configs() const noexcept;
-    const std::unordered_set<network::server::Config>&  get_server_configs() const noexcept;
-    const user::Settings& get_user_config(const std::string& name) const noexcept;
-    const user::Settings& get_user_config(std::string_view name) const noexcept;
-    const user::Settings& get_current_user_config() const noexcept;
-    const network::server::Config& get_server_config(std::string_view name) const noexcept;
-    const network::server::Config& get_server_config(const std::string& name) const noexcept;
-    const network::server::Config& get_current_server_config() const noexcept;
-    const network::server::Config& current_server_setting() const noexcept;
-
+    ErrorCode save() noexcept;
+    ErrorCode load() noexcept;
     private:
     void read_user_config() noexcept;
     void read_server_config() noexcept;

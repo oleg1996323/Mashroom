@@ -14,5 +14,5 @@ target_link_libraries(grib1API PRIVATE OsterLib::bytes OsterLib::serial OsterLib
 get_target_property(grib1API_INCLUDES grib1API INCLUDE_DIRECTORIES)
 message(STATUS "Grib1 include directory: ${grib1API_INCLUDES}")
 set(grib1API_INCLUDES ${grib1API_INCLUDES} PARENT_SCOPE)
-
+add_dependencies(grib1API organizations table_org generate_grib1_eccodes_tables)
 add_subdirectory(tests)

@@ -115,7 +115,9 @@ namespace parse{
 
         using vars = po::variables_map;
 
-        virtual ErrorCode execute(vars&,const std::vector<std::string>&) noexcept = 0;
+        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept{
+            return try_notify(vm);
+        }
         virtual void callback() noexcept{
             err_=ErrorCode::NONE;
         };

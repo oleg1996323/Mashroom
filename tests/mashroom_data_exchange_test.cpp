@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "program/data.h"
-#include "network/client.h"
-#include "network/server.h"
+#include "web/client.h"
+#include "web/server.h"
 #include <fstream>
 
 class TestingServer:public network::Server{

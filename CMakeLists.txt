@@ -8,8 +8,21 @@ find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS json program_options)
 find_package(GTest CONFIG REQUIRED)
 set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 #configuration section
-set(LOG_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/log_error)
+
+#add submodules
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
+    execute_process(COMMAND "git" "submodule" "add" "https://github.com/antirez/linenoise" "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
+endif()
+
+#add submodules
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/CLI11")
+    execute_process(COMMAND "git" "submodule" "add" "https://github.com/CLIUtils/CLI11" "${CMAKE_CURRENT_LIST_DIR}/external/CLI11")
+endif()
+
 set(CONFIG_REL_HOME_DIR .config/Mashroom)
+set(NETWORK_FILES_DIR network)
+set(SYSTEM_FILES_DIR system)
+set(LOG_DIRECTORY log)
 set(APP_DATA_REL_DIR /data)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_C_STANDARD 23)
@@ -19,23 +32,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
 add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
-#adding imported submodules
-add_subdirectory(external)
-
-#execute autogeneration of code tables
-if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
-    execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "${CMAKE_CURRENT_LIST_DIR}/external/eccodes")
-endif()
-
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 file(GLOB_RECURSE CLparse_SOURCES ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
-file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/network/**.cpp)
+file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/web/**.cpp)
 file(GLOB_RECURSE Sys_SOURCES ${CMAKE_SOURCE_DIR}/src/sys/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
-file(GLOB_RECURSE Network_lib_SOURCES ${CMAKE_SOURCE_DIR}/network/src/**.cpp)
-list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(network|cmd_parse|sys)/")
+list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(web|cmd_parse|sys)/*")
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/bin)
@@ -63,29 +67,29 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 message(STATUS ${OSTERLIB_PATH})
 find_package(OsterLib CONFIG REQUIRED PATHS ${OSTERLIB_PATH})
 add_subdirectory(API)
-
-
+execute_process(COMMAND "git submodule update --remote --recursive")
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
-target_include_directories(system PUBLIC ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
-target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}")
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::network)
+target_include_directories(system PRIVATE ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
+target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}"
+        NETWORK_MASHROOM_FILES_DIR="${NETWORK_FILES_DIR}" SYSTEM_MASHROOM_FILES_DIR)
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial INTERFACE OsterLib::network INTERFACE GIAPI)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial OsterLib::network GIAPI system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial GIAPI OsterLib::network system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse/types_parse
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/external/CLI11
                                     ${OsterLib_INCLUDE_DIRS})
-target_link_libraries(clip PUBLIC GIAPI OsterLib::CLInput system Boost::program_options Boost::json)
+target_link_libraries(clip PUBLIC GIAPI OsterLib::CLInput system Boost::json CLI11::CLI11)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
@@ -99,7 +103,14 @@ target_link_libraries(Mashroom_lib PUBLIC GIAPI
                     OsterLib::utilities
                     OsterLib::compressor
                     OsterLib::types)
-target_include_directories(Mashroom_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(Mashroom_lib 
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR} 
+    INTERFACE OsterLib::network)
+
+get_target_property(network_TYPE OsterLib::network TYPE)
+message(STATUS "network TYPE: ${network_TYPE}")
+get_target_property(network_SOURCES OsterLib::network INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS ${network_SOURCES})
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)

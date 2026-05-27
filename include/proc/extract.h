@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 #include "proc/interfaces/abstractsearchprocess.h"
 #include "proc/interfaces/abstractthreadinterruptor.h"
 #include <netdb.h>
-#include <program/data.h>
+#include "program/data.h"
 #include "types/time_period.h"
 
 
