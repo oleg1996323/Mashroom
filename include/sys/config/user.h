@@ -5,7 +5,7 @@
 #include "types/time_interval.h"
 #include <expected>
 #include "sys/outputdatafileformats.h"
-#include "types/time_period.h"
+#include "types/time_interval.h"
 #include "base_config.h"
 
 namespace user{
@@ -13,12 +13,28 @@ namespace user{
         /**
          * @brief time-period between index updates
          */
-        TimePeriod index_update_ti_;
+        fs::path output_files_root_dir = "~/Mashroom_output/";
+        DateTimeDiff index_update_ti=[](){
+            std::error_code err;
+            return DateTimeDiff(err,years(0),
+                                    months(0),
+                                    days(7),
+                                    hours(0),
+                                    minutes(0),
+                                    std::chrono::seconds(0));}();
         /**
          * @brief time-period between Mashroom updates
          */
-        TimePeriod mashroom_update_ti_;
-        OutputDataFileFormats default_format_ = OutputDataFileFormats::BIN_F|
+        DateTimeDiff mashroom_update_ti=[](){
+            std::error_code err;
+            return DateTimeDiff(err,years(0),
+                                    months(0),
+                                    days(7),
+                                    hours(0),
+                                    minutes(0),
+                                    std::chrono::seconds(0));}();
+
+        OutputDataFileFormats default_format = OutputDataFileFormats::BIN_F|
                                                 OutputDataFileFormats::ARCHIVED;
     };
 
@@ -29,21 +45,6 @@ namespace user{
             
         }
     };
-    
-    static Settings default_config() noexcept{
-        return Settings{.index_update_ti_=TimePeriod(years(0),
-                                                months(0),
-                                                days(7),
-                                                hours(0),
-                                                minutes(0),
-                                                std::chrono::seconds(0)),
-                        .mashroom_update_ti_=TimePeriod(years(0),
-                                                months(0),
-                                                days(7),
-                                                hours(0),
-                                                minutes(0),
-                                                std::chrono::seconds(0))};
-    }
 }
 
 #include "boost_functional/json.h"

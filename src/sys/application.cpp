@@ -14,6 +14,10 @@ LogError& Application::log(){
 Config& Application::config(){
     return *(app().conf_);
 }
+CLI::App& Application::command_line(){
+    static CLI::App cli;
+    return cli;
+}
 std::string_view Application::program_name(){
     return program_invocation_name;
 }

@@ -7,6 +7,7 @@
 #include "sys/config.h"
 #include "sys/log_err.h"
 #include "CLI/CLInavig.h"
+#include <CLI/CLI.hpp>
 
 namespace fs = std::filesystem;
 

@@ -55,27 +55,26 @@ template<>
 boost::json::value to_json(const user::Settings& val){
     using namespace boost;
     json::object map;
-    map["mashroom-update-ti"] = to_json(val.mashroom_update_ti_);
-    map["index-update-ti"] = to_json(val.index_update_ti_);
+    map["mashroom-update-ti"] = to_json(val.mashroom_update_ti);
+    map["index-update-ti"] = to_json(val.index_update_ti);
     return map;
 }
 
 template<>
 std::expected<user::Settings,std::exception> from_json(const boost::json::value& val){
     user::Settings result;
-    
     {
-        std::expected<TimePeriod, std::exception> json_res = from_json<TimePeriod>(
+        std::expected<DateTimeDiff, std::exception> json_res = from_json<DateTimeDiff>(
             val.at("mashroom-update-ti"));
         if(json_res.has_value())
-            result.mashroom_update_ti_ = std::move(json_res.value());
+            result.mashroom_update_ti = std::move(json_res.value());
         else return std::unexpected(json_res.error());
     }
     {
-        std::expected<TimePeriod, std::exception> json_res = from_json<TimePeriod>(
+        std::expected<DateTimeDiff, std::exception> json_res = from_json<DateTimeDiff>(
             val.at("index-update-ti"));
         if(json_res.has_value())
-            result.index_update_ti_ = std::move(json_res.value());
+            result.index_update_ti = std::move(json_res.value());
         else return std::unexpected(json_res.error());
     }
     return result;

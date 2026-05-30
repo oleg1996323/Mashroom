@@ -11,13 +11,10 @@ set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 
 #add submodules
 if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
-    execute_process(COMMAND "git" "submodule" "add" "https://github.com/antirez/linenoise" "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
+    execute_process(COMMAND "git" "submodule" "add" "--force" "https://github.com/antirez/linenoise" "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
 endif()
 
-#add submodules
-if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/CLI11")
-    execute_process(COMMAND "git" "submodule" "add" "https://github.com/CLIUtils/CLI11" "${CMAKE_CURRENT_LIST_DIR}/external/CLI11")
-endif()
+find_package(CLI11 CONFIG REQUIRED)
 
 set(CONFIG_REL_HOME_DIR .config/Mashroom)
 set(NETWORK_FILES_DIR network)

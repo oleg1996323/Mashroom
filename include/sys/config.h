@@ -24,8 +24,7 @@ class Config{
     network::Config network_configs_;
     public:
     Config(){
-        read_user_config();
-        read_server_config();
+        load();
     }
     Config& operator=(const Config&) = delete;
     Config& operator=(Config&&) = delete;
@@ -48,11 +47,6 @@ class Config{
     }
     ErrorCode save() noexcept;
     ErrorCode load() noexcept;
-    private:
-    void read_user_config() noexcept;
-    void read_server_config() noexcept;
-    void write_user_config();
-    void write_server_config();
 };
 
 //config_file

@@ -4,6 +4,7 @@
 #include <string>
 #include "log_err.h"
 #include "config.h"
+#include <CLI/CLI.hpp>
 
 class Config;
 class LogError;
@@ -19,6 +20,7 @@ class Application{
     static Application& app();
     static LogError& log();
     static Config& config();
+    static CLI::App& command_line();
     static std::string_view program_name();
     private:
 
