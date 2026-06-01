@@ -13,9 +13,8 @@
 #include "proc/extract.h"
 
 namespace parse{
-    class Extract:public AbstractCLIParser<parse::Extract>{
-        friend AbstractCLIParser;
-        Extract(CLI::App* cli):AbstractCLIParser("Extract options"){
+
+    void init_extract(CLI::App* cli) noexcept{
             ::Extract hExtract;
             auto* extract = cli->add_subcommand("extract","Extract specified data.");
                 extract->require_subcommand(1)->
@@ -99,7 +98,11 @@ namespace parse{
                 this argument will be ignored for it.");
                 
                 extract_procedure.
-        }
+    }
+
+    class Extract:public AbstractCLIParser<parse::Extract>{
+        friend AbstractCLIParser;
+        
 
         virtual void init() noexcept override final;
         virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
