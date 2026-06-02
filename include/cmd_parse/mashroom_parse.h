@@ -45,7 +45,7 @@ namespace parse{
 
     class Mashroom{
         Mashroom(){}
-        virtual void init() noexcept override final;
-        void print_help(std::ostream& os,const std::string& option,std::span<const std::string> args) const noexcept;
+        void init() noexcept;
+        void print_help(std::ostream& os) const noexcept;
     };
 }
