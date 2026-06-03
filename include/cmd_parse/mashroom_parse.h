@@ -1,11 +1,5 @@
 #pragma once
-#include "cmd_parse/cmd_def.h"
-#include "cmd_parse/index_parse.h"
-#include "cmd_parse/extract_parse.h"
-#include "cmd_parse/integrity_parse.h"
 #include "cmd_parse/config_parse.h"
-#include "cmd_parse/contains_parse.h"
-#include "cmd_parse/functions.h"
 #include "cmd_parse/network.h"
 #include "cmd_parse/server_config_parse.h"
 #include "sys/error_code.h"

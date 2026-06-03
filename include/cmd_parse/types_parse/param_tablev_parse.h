@@ -11,7 +11,6 @@
 #include "sys/error_print.h"
 #include "concepts.h"
 #include "cast/parameters.h"
-#include "cmd_parse/functions.h"
 
 struct SearchParamTableVersion;
 
@@ -28,11 +27,8 @@ std::unordered_set<SearchParamTableVersion> param_by_tv_abbr(Organization center
                     "not matched parameters",AT_ERROR_ACTION::CONTINUE,std::ranges::join_with_view(tokens," ")|std::ranges::to<std::string>());
             continue;
         }
-        else{
-            //std::cout<<"Matched more than 1 parameters:"<<std::endl;
-            //std::cout<<parameters_to_txt(center,parameters)<<std::endl;
+        else
             result.insert(std::make_move_iterator(parameters.begin()),std::make_move_iterator(parameters.end()));
-        }
     }
     return result;
 }

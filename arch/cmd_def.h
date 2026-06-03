@@ -34,7 +34,6 @@ enum class DataExtractMode{
 #include <expected>
 #include <functional>
 #include <span>
-#include "cmd_parse/functions.h"
 
 namespace parse{
     namespace po = boost::program_options;
