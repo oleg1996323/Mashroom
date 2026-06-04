@@ -1,7 +1,6 @@
 #pragma once
 #include "cmd_parse/config_parse.h"
 #include "cmd_parse/network.h"
-#include "cmd_parse/server_config_parse.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "program/mashroom.h"
@@ -9,6 +8,7 @@
 
 namespace parse{
     namespace po = boost::program_options;
+    Network network_;
     ErrorCode extract_notifier(const std::vector<std::string>& input) noexcept;
     ErrorCode index_notifier(const std::vector<std::string>& input) noexcept;
     ErrorCode integrity_notifier(const std::vector<std::string>& input) noexcept;

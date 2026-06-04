@@ -2,6 +2,8 @@
 #include <cinttypes>
 #include <cstddef>
 #include <type_traits>
+#include <string>
+#include <boost/lexical_cast.hpp>
 
 enum class OutputDataFileFormats : uint32_t{
     DEFAULT = 0,
@@ -40,4 +42,12 @@ inline bool operator!=(int lhs,OutputDataFileFormats rhs) noexcept{
 }
 inline bool operator!=(OutputDataFileFormats lhs,int rhs) noexcept{
     return rhs!=lhs;
+}
+
+namespace boost{
+template<>
+std::string lexical_cast(const OutputDataFileFormats& input);
+
+template<>
+::OutputDataFileFormats lexical_cast(const std::string& input);
 }

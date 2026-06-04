@@ -1,5 +1,4 @@
 #include "cmd_parse/network.h"
-#include "functions.h"
 #include "sys/application.h"
 #include <boost/program_options.hpp>
 #include "program/mashroom.h"

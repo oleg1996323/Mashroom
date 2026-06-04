@@ -1,5 +1,6 @@
 #include "cmd_parse/types_parse/center_parse.h"
 #include <ranges>
+#include "cast/center.h"
 
 namespace parse{
     std::expected<Organization,ErrorCode> center_notifier(const std::vector<std::string>& input) noexcept{

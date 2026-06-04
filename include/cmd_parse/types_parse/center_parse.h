@@ -5,13 +5,10 @@
 #include "sys/error_code.h"
 #include <thread>
 #include "sys/error_print.h"
-#include "functions.h"
 #include "code_tables/table_0.h"
 #include "proc/interfaces/abstractsearchprocess.h"
 #include "types/time_interval.h"
 #include "grid_type_parse.h"
-
-#include "cmd_parse/cmd_def.h"
 #include "sections/section_1.h"
 #include "param_tablev_parse.h"
 #include "path_parse.h"

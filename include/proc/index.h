@@ -27,7 +27,7 @@ std::optional<fs::path> dest_directory_;
 info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{};
 int cpus = 1;
 IndexOutputFileFormat::token output_format_ = IndexOutputFileFormat::token::BINARY;
-bool host_ref_only = false;
+bool host_ref_only_ = false;
 template<Data_t TYPE,Data_f FORMAT>
 std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> __write_file__(const std::vector<FileMsg<TYPE,FORMAT>>& data);
 template<Data_t TYPE,Data_f FORMAT>
@@ -51,7 +51,10 @@ void set_using_processor_cores(int cores){
     else cpus = 1;
 }
 void set_host_ref_only(){
-    host_ref_only = true;
+    host_ref_only_ = true;
+}
+bool host_ref_only() const{
+    return host_ref_only_;
 }
 /**
  * @brief Sets the maximum allowed size when receiving part of data remotely via a host.

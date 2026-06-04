@@ -6,12 +6,6 @@
 #include "proc/index.h"
 #include "sys/application.h"
 #include "sys/config.h"
-#include "cmd_parse/cmd_def.h"
-#include "cmd_parse/functions.h"
-#include "functions.h"
-#include "cmd_parse/index_parse.h"
-#include "cmd_parse/integrity_parse.h"
-#include "cmd_parse/extract_parse.h"
 #include <boost/program_options.hpp>
 
 namespace parse{

@@ -1,5 +1,6 @@
-#include "information_parse.h"
+#include "types_parse/information_parse.h"
 #include <boost/regex.hpp>
+#include "parsing.h"
 
 namespace parse{
     namespace detail{

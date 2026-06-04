@@ -8,7 +8,6 @@
 #include <array>
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include "functions.h"
 #include <boost/program_options.hpp>
 
 using info_units = boost::units::information::hu::byte::info;

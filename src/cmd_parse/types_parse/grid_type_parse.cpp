@@ -1,7 +1,6 @@
-#include "grid_type_parse.h"
+#include "types_parse/grid_type_parse.h"
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include "cmd_parse/functions.h"
 #include "cast/grid.h"
 
 void boost::program_options::validate(boost::any& v,const std::vector<std::basic_string<char>>& values,

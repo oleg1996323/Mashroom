@@ -1,18 +1,6 @@
-#include "out_format_parse.h"
-#include "cmd_parse/functions.h"
-#include <boost/regex.hpp>
 #include "sys/outputdatafileformats.h"
-#include <type_traits>
-
-void boost::program_options::validate(boost::any& v,const std::vector<std::basic_string<char>>& values,
-                                    OutputDataFileFormats* target_type,int)
-{
-    namespace po = boost::program_options;
-    auto r = regex("^((txt|bin|json)(\\+zip)?|(zip\\+)?(txt|bin|json))$");
-    po::validators::check_first_occurrence(values);
-    const std::string s = po::validators::get_single_string(values);
-    v = lexical_cast<OutputDataFileFormats>(s);
-}
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 
 template<>
 std::string boost::lexical_cast(const OutputDataFileFormats& input){
