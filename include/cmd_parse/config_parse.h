@@ -7,35 +7,58 @@
 #include "config/server.h"
 #include "config/client.h"
 #include "config/user.h"
+#include <CLI/CLI.hpp>
 
 namespace parse{
-    class SystemConfig:public AbstractCLIParser<parse::SystemConfig>{
-        friend AbstractCLIParser;
-        SystemConfig();
-        virtual void init() noexcept override final;
-        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
+    class SystemConfig{
+        SystemConfig(CLI::App* app);
+        void execute();
     };
-    class UserConfig:public AbstractCLIParser<parse::UserConfig>{
-        friend AbstractCLIParser;
-        UserConfig();
-        virtual void init() noexcept override final;
-        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
+    class UserConfig{
+        CLI::App* app_;
+        CLI::Option* output_files_root_dir_;
+        CLI::Option* index_upd_ti_;
+        CLI::Option* mashroom_upd_ti_;
+        CLI::Option* output_fmt_default_;
+        UserConfig(CLI::App* app):
+        app_(app)
+        {
+            output_files_root_dir_=app_
+            ->add_option("--output-root-dir",
+            "the root directory where user files will be placed")
+            ->default_val("~/Mashroom_output/")
+            ->capture_default_str();
+            index_upd_ti_=app_
+            ->add_option("--index-update-ti",
+            "index update time interval")
+            ->default_val([](){
+                std::error_code err;
+                return DateTimeDiff(err,days(7));}())
+            ->capture_default_str();
+            mashroom_upd_ti_=app_
+            ->add_option("--mashroom-update-ti",
+            "Mashroom update time interval")
+            ->default_val([](){
+                std::error_code err;
+                return DateTimeDiff(err,days(7));}())
+            ->capture_default_str();
+        }
+        void execute();
     };
-    class NetworkConfig:public AbstractCLIParser<parse::NetworkConfig>{
-        friend AbstractCLIParser;
-        NetworkConfig();
-        virtual void init() noexcept override final;
-        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
+    class NetworkConfig{
+        NetworkConfig(CLI::App* app);
+        void execute();
     };
     
-    class ProgramConfig:public AbstractCLIParser<parse::ProgramConfig>{
-        friend AbstractCLIParser;
-        std::unique_ptr<ProgramConfig> hConfig;
-        ProgramConfig();
-        virtual void init() noexcept override final;
-        virtual ErrorCode execute(vars& vm,const std::vector<std::string>& args) noexcept override final;
-        const std::unique_ptr<ProgramConfig>& config() const noexcept{
-            return hConfig;
-        }
+    class Configuration{
+        CLI::App* app_;
+        CLI::App * user_=app_->add_subcommand(
+                "user","user configuration");
+        CLI::App * close_=app_->add_subcommand(
+                "system","system configuration");
+        CLI::App * suspend_=app_->add_subcommand(
+                "network","network configuration");
+        Configuration(CLI::App* app);
+        void execute();
     };
 }

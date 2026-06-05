@@ -33,15 +33,9 @@ namespace parse{
                 name);
         return ErrorCode::NONE;
     }
-    
-
-    ProgramConfig::ProgramConfig():AbstractCLIParser("Config options:"){}
 
     void ProgramConfig::init() noexcept{
-        add_options_instances("system",po::value<std::vector<std::string>>(),"Configure the system settings",SystemConfig::instance());
-        add_options_instances("user",po::value<std::vector<std::string>>(),"Configure the user settings",UserConfig::instance());
-        add_options_instances("network",po::value<std::vector<std::string>>(),"Configure the network settings",NetworkConfig::instance());
-        define_uniques();
+        
     }
     ErrorCode ProgramConfig::execute(vars& vm,const std::vector<std::string>& args) noexcept{
         return try_notify(vm);

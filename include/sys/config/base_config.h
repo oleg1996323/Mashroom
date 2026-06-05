@@ -102,8 +102,10 @@ bool BaseConfig<SETTINGS>::add_from_file(const std::string& name, const fs::path
         auto parsed = parse_json_from_file(filename);
         if(parsed.has_value()){
             auto parsed_settings = from_json<SETTINGS>(parsed.value());
-            if(parsed_settings.has_value())
+            if(parsed_settings.has_value()){
                 add(name,std::move(parsed_settings.value()));
+                return true;
+            }
             else return false;
         }
         else return false;

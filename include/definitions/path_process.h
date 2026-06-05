@@ -183,98 +183,61 @@ struct Storage{
 }
 
 #include <boost/lexical_cast.hpp>
-#include <boost/regex.hpp>
 #include <chrono>
 #include <regex>
+#include "network/address.h"
 
 template<>
 path::Storage<false> boost::lexical_cast(const std::string& str){
     using namespace std::string_literals;
-    static std::regex regex_type("^dir:|file:|host:$",
+    static std::regex regex_type("^(dir:|file:|host:).+$",
         std::regex_constants::ECMAScript|
         std::regex_constants::icase);
     path::TYPE type;
     std::smatch match;
-    path::Storage<false> result;
-    std::string_view input = str;
-    if (std::regex_search(input.data(), regex_type)) {
-        if(match[0]=="dir:"){
+    if (std::regex_match(str,match,regex_type)) {
+        if(match[1]=="dir:")
             type=path::TYPE::DIRECTORY;
-            input = input.substr(sizeof("dir"))
-        }
-        else if(match[0]=="file:")
+        else if(match[1]=="file:")
             type=path::TYPE::FILE;
-        else if(match[0]=="host:")
+        else if(match[1]=="host:")
             type=path::TYPE::HOST;
+        else throw std::runtime_error("unknown input");
     }
     if(type==path::TYPE::HOST){
-        static boost::regex regex_val("^([0-9.]+):([0-9]{1,5})$");
-        if (boost::regex_match(input.data(), match, regex_val)) {
+        static const std::regex regex_val("^host:([0-9.]+):([0-9]{1,5})$");
+        if (std::regex_search(str.begin(),str.end(), match, regex_val)) {
             std::string host;
             uint64_t port;
-            if(match[0].str().size()>0){
-                if(match[1].str().size()>0)
-                    host=match[1].str();
-                else
-                    throw std::runtime_error("invalid input");
-                if(match[2].str().size()>0){
-                    std::string tmp = match[2].str();
-                    if(std::from_chars(tmp.data(),tmp.data()+tmp.size(),port).ec==std::errc() && 
-                        port<=static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()))
-                        result = path::Storage<false>::host(host,port,std::chrono::system_clock::now());
-                    else throw std::runtime_error("invalid option value \"port\"");
-                }
-                else
-                    throw std::runtime_error("invalid input");
+            host=match[1].str();
+            std::string tmp = match[2].str();
+            if(std::from_chars(tmp.data(),tmp.data()+tmp.size(),port).ec==std::errc() && 
+                port<=static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()))
+            {
+                std::error_code err;
+                auto addr = network::make_address(host,port,err);
+                if(addr.valid())
+                    return path::Storage<false>::host(host,port,std::chrono::system_clock::now());
+                else throw std::runtime_error("invalid host/port input");
             }
-            else
-                throw std::runtime_error("invalid input");
+            else throw std::runtime_error("invalid option value \"port\"");
         }
+        else throw std::runtime_error("invalid host input");
     }
     else{
-        static boost::regex regex_val("^:(.+)$");
-        if (boost::regex_match(input, match, regex_val)) {
-            std::string path;
-            if(match[0].str().size()>0){
-                
-            }
-            else throw std::runtime_error("invalid input");
+        static const std::regex regex_val("^dir:(.+)|file:(.+)$");
+        if (std::regex_match(str.begin(),str.end(), match, regex_val)) {
+            std::string path=match[1].str();
+            if(path.starts_with("~"s+fs::path::preferred_separator))
+                path = std::string(getenv("HOME"))+fs::path::preferred_separator+path.substr(2);
+            if(type==path::TYPE::FILE)
+                return path::Storage<false>::file(
+                    path,std::chrono::system_clock::now());
+            else return path::Storage<false>::directory(
+                    path,std::chrono::system_clock::now());
         }
         else throw std::runtime_error("invalid input");
     }
-        
-    
-    using namespace boost::program_options;
-    
-    if (boost::regex_match(input, match, regex_type)) {
-        std::string type;
-        if(match[1].str().size()>0){
-            std::string path;
-            if(match[3].str().size()>0)
-                path = match[3].str();
-            else throw po::validation_error(po::validation_error::invalid_option_value,input);
-            type = match[2].str();
-            if(path.starts_with("~"s+fs::path::preferred_separator))
-                path = std::string(getenv("HOME"))+fs::path::preferred_separator+path.substr(2);
-            if(type=="dir")
-                return path::Storage<false>::directory(path,std::chrono::system_clock::now());
-            else if(type=="file")
-                return path::Storage<false>::file(path,std::chrono::system_clock::now());
-            else throw po::validation_error(po::validation_error::invalid_option_value,input);
-        }
-        else if(match[5].str().size()>0 && match[6].str().size()>0){
-            try{
-                if(network::is_correct_address(match[5]))
-                    return path::Storage<false>::host(match[5].str(),lexical_cast<uint16_t>(match[6].str()),std::chrono::system_clock::now());
-                else throw po::validation_error(po::validation_error::invalid_option_value,input);
-            }
-            catch(const boost::bad_lexical_cast& err){
-                throw po::validation_error(po::validation_error::invalid_option_value,input);
-            }
-        }
-        else throw po::validation_error(po::validation_error::invalid_option_value,input);
-    }
-    else throw po::validation_error(po::validation_error::invalid_option_value,input);
 }
 
 template<bool VIEW>
