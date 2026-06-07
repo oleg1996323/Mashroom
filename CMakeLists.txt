@@ -11,7 +11,7 @@ set(CMAKE_SKIP_TEST_ALL_DEPENDENCY FALSE)
 
 #add submodules
 if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
-    execute_process(COMMAND "git" "submodule" "add" "--force" "https://github.com/antirez/linenoise" "${CMAKE_CURRENT_LIST_DIR}/external/linenoise")
+    execute_process(COMMAND "git" "submodule" "add" "--force" "https://github.com/antirez/linenoise" "external/linenoise")
 endif()
 
 find_package(CLI11 CONFIG REQUIRED)
@@ -33,7 +33,8 @@ add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 file(GLOB_RECURSE CLparse_SOURCES ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
-file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/web/**.cpp)
+file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/include/web/**.h 
+                                ${CMAKE_SOURCE_DIR}/src/web/**.cpp)
 file(GLOB_RECURSE Sys_SOURCES ${CMAKE_SOURCE_DIR}/src/sys/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(web|cmd_parse|sys)/*")
@@ -86,7 +87,7 @@ target_include_directories(clip PUBLIC
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
                                     ${CMAKE_CURRENT_SOURCE_DIR}/external/CLI11
                                     ${OsterLib_INCLUDE_DIRS})
-target_link_libraries(clip PUBLIC GIAPI OsterLib::CLInput system Boost::json CLI11::CLI11)
+target_link_libraries(clip PUBLIC GIAPI OsterLib::types OsterLib::CLInput system Boost::json CLI11::CLI11 web)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})

@@ -11,41 +11,21 @@
 
 namespace parse{
     class SystemConfig{
+        CLI::App* app_;
+        CLI::Option* log_dir_;
+        CLI::Option* config_dir_;
+        CLI::Option* cache_files_dir_;
+        CLI::Option* network_files_dir_;
+        public:
         SystemConfig(CLI::App* app);
         void execute();
     };
-    class UserConfig{
-        CLI::App* app_;
-        CLI::Option* output_files_root_dir_;
-        CLI::Option* index_upd_ti_;
-        CLI::Option* mashroom_upd_ti_;
-        CLI::Option* output_fmt_default_;
-        UserConfig(CLI::App* app):
-        app_(app)
-        {
-            output_files_root_dir_=app_
-            ->add_option("--output-root-dir",
-            "the root directory where user files will be placed")
-            ->default_val("~/Mashroom_output/")
-            ->capture_default_str();
-            index_upd_ti_=app_
-            ->add_option("--index-update-ti",
-            "index update time interval")
-            ->default_val([](){
-                std::error_code err;
-                return DateTimeDiff(err,days(7));}())
-            ->capture_default_str();
-            mashroom_upd_ti_=app_
-            ->add_option("--mashroom-update-ti",
-            "Mashroom update time interval")
-            ->default_val([](){
-                std::error_code err;
-                return DateTimeDiff(err,days(7));}())
-            ->capture_default_str();
-        }
-        void execute();
-    };
+    
     class NetworkConfig{
+        CLI::App* app_;
+        CLI::App* server_;
+        CLI::App* client_;
+        public:
         NetworkConfig(CLI::App* app);
         void execute();
     };
@@ -54,10 +34,11 @@ namespace parse{
         CLI::App* app_;
         CLI::App * user_=app_->add_subcommand(
                 "user","user configuration");
-        CLI::App * close_=app_->add_subcommand(
+        CLI::App * system_=app_->add_subcommand(
                 "system","system configuration");
-        CLI::App * suspend_=app_->add_subcommand(
+        CLI::App * network_=app_->add_subcommand(
                 "network","network configuration");
+        public:
         Configuration(CLI::App* app);
         void execute();
     };

@@ -11,7 +11,6 @@
 #include "grid_type_parse.h"
 #include "sections/section_1.h"
 #include "param_tablev_parse.h"
-#include "path_parse.h"
 #include "coord_parse.h"
 #include <expected>
 

@@ -33,7 +33,6 @@ ErrorCode Config::load() noexcept{
                             AT_ERROR_ACTION::CONTINUE);
             }
         }
-        else return ErrorCode::NONE;
     }
     {
         std::string usr_fn = system_config().configurations_directory()/sys::user_config_filename();
@@ -58,6 +57,7 @@ ErrorCode Config::load() noexcept{
                     network_configs_ = std::move(network_tmp.value());
             }
         }
+        return ErrorCode::NONE;
     }
 }
 

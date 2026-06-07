@@ -116,3 +116,19 @@ std::string boost::lexical_cast(const info_quantity& input){
     }
     return std::to_string(val)+" "+std::string(parse::detail::units.at(power));
 }
+
+template<>
+bool CLI::detail::lexical_cast<info_quantity>(const std::string& input, info_quantity& output) {
+    try{
+        output = boost::lexical_cast<info_quantity>(input);
+        return true;
+    }
+    catch(...){
+        return false;
+    }
+}
+
+template<>
+std::string CLI::detail::to_string(const info_quantity& input){
+    return boost::lexical_cast<std::string>(input);
+}

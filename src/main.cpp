@@ -1,4 +1,4 @@
-#include "application.h"
+#include "sys/application.h"
 #include <vector>
 #include <iostream>
 #include <cassert>
@@ -10,7 +10,9 @@
 static int progress_line = 6;
 
 int main(int argc, char* argv[]){
-    CLIHandler::make_instance(Application::config().system_settings().system_files_dir,cli_history_filename);
+    CLIHandler::make_instance(
+        Application::config().system_config().cache_files_directory(),
+        sys::history_filename());
     while(Mashroom::instance().read_command()){}
     return 0;
 }

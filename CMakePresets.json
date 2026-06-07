@@ -6,47 +6,57 @@
     },
     "configurePresets": [
         {
-            "$comment": ["Configuration for basic building and intalling by Unix Makefiles in Unix systems"],
+            "$comment": [
+                "Configuration for basic building and intalling by Unix Makefiles in Unix systems"
+            ],
             "name": "default",
             "description": "Default build",
             "binaryDir": "${sourceDir}/build",
             "cmakeExecutable": "cmake",
             "cacheVariables": {
-                "CMAKE_CXX_COMPILER":"$env{HOME}/gcc-install/bin/g++",
-                "CMAKE_C_COMPILER":"$env{HOME}/gcc-install/bin/gcc",
+                "CMAKE_CXX_COMPILER": "$env{HOME}/gcc/gcc-install/bin/g++",
+                "CMAKE_C_COMPILER": "$env{HOME}/gcc/gcc-install/bin/gcc",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "OSTERLIB_PATH":"$env{HOME}/OsterLib-install"
+                "OSTERLIB_PATH": "$env{HOME}/OsterLib-install"
             }
         },
         {
-            "name":"Ninja",
-            "inherits":"default",
+            "name": "Ninja",
+            "inherits": "default",
             "displayName": "Ninja Configuration-Debug",
             "$comment": "Configuration for basic building and installing by Ninja in Unix systems",
             "generator": "Ninja",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE":"Debug",
-                "CMAKE_INSTALL_PREFIX":"$env{HOME}/Mashroom-install"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "$env{HOME}/Mashroom-install"
             }
         },
         {
-            "name":"Makefiles",
-            "inherits":"default",
+            "name": "Makefiles",
+            "inherits": "default",
             "displayName": "Makefiles Configuration-Debug",
             "$comment": "Configuration for basic building and installing by Unix Makefiles in Unix systems",
             "generator": "Unix Makefiles",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE":"Debug",
-                "CMAKE_INSTALL_PREFIX":"$env{HOME}/Mashroom-install"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "$env{HOME}/Mashroom-install"
             }
         }
     ],
     "buildPresets": [
         {
             "name": "default",
-            "displayName": "Build-Debug",
-            "configurePreset": "default",
-            "jobs": 16
+            "displayName": "Build",
+            "jobs": 6
+        },
+        {
+            "name": "Build",
+            "description": "Ninja build",
+            "displayName": "Ninja build",
+            "configurePreset": "Ninja",
+            "inherits": [
+                "default"
+            ]
         }
     ]
 }

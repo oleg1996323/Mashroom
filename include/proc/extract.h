@@ -19,6 +19,7 @@ namespace fs = std::filesystem;
 #include <netdb.h>
 #include "program/data.h"
 #include "types/time_period.h"
+#include "web/client/message/data_request.h"
 
 
 class Extract : public AbstractSearchProcess, public AbstractThreadInterruptor

@@ -1,5 +1,5 @@
 #pragma once
-#include "web/common/def.h"
+#include "web/common/msgdef.h"
 #include <string_view>
 #include <memory>
 #include <fstream>
@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "network/abstractprocess.h"
-#include "web/common/message/message_handler.h"
+#include "web/common/message_handler.h"
 #include "web/common/connection_process.h"
 #include "network/commonsocket.h"
 #include "network/multiplexor/eventhandle.h"

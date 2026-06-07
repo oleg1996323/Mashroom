@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "web/common/message/message_handler.h"
+#include "web/common/message_handler.h"
 #include "program/data.h"
 
 using namespace network;

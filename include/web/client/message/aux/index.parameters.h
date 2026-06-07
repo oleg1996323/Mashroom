@@ -1,6 +1,6 @@
 #pragma once
 #include <variant>
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 #include "API/grib1/include/code_tables.h"
 #include "API/grib1/include/sections/product/levels.h"
 #include "API/grib1/include/sections/product/time_forecast.h"

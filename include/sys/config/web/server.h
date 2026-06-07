@@ -17,7 +17,6 @@ class Config:public BaseConfig<network::server::Settings>{
     friend std::expected<network::server::Config,
         std::exception> from_json(const boost::json::value& val);
     Config() = default;
-    virtual void print(std::ostream&) const override;
     const std::unordered_set<std::string>& black_list() const noexcept{
         return black_list_;
     }
@@ -27,14 +26,48 @@ class Config:public BaseConfig<network::server::Settings>{
     bool push_to_black_list(const std::string& host) noexcept{
         if(!host.empty() && !black_list_.contains(host)){
             black_list_.insert(host);
+            if(white_list_.contains(host))
+                white_list_.erase(host);
+            return true;
         }
         else return false;
     }
     bool push_to_white_list(const std::string& host) noexcept{
         if(!host.empty() && !white_list_.contains(host)){
             white_list_.insert(host);
+            if(black_list_.contains(host))
+                black_list_.erase(host);
+            return true;
         }
         else return false;
+    }
+    bool remove_from_white_list(const std::string& host) noexcept{
+        if(!white_list_.contains(host))
+            return false;
+        white_list_.erase(host);
+        return true;
+    }
+    bool remove_from_black_list(const std::string& host) noexcept{
+        if(!black_list_.contains(host))
+            return false;
+        black_list_.erase(host);
+        return true;
+    }
+    void print_black_list(std::ostream& stream) const{
+        stream<<'[';
+        for(auto& host:black_list_)
+            stream<<host<<',';
+        if(!black_list_.empty())
+            stream.seekp(-1,std::ios_base::end);
+        stream<<']'<<std::endl;
+    }
+    void print_white_list(std::ostream& stream) const{
+        stream<<'[';
+        for(auto& host:white_list_)
+            stream<<host<<',';
+        if(!black_list_.empty())
+            stream.seekp(-1,std::ios_base::end);
+        stream<<']'<<std::endl;
     }
 };
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "web/common/def.h"
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
+#include "web/common/msgdef.h"
 #include <optional>
 #include "serialization.h"
 #include "web/server/message/data_reply_index_info.h"

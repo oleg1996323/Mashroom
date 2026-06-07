@@ -79,33 +79,4 @@ namespace network::server{
         config_.num_threads_pool_ = std::thread::hardware_concurrency();
         return config_;
     }
-    void Config::print(std::ostream& stream) const{
-        stream<<"Server configurations:"<<std::endl;
-        int i = 1;
-        for(auto& [name,conf]:configurations()){
-            stream<<"name: \""<<name<<"\""<<std::endl;
-            stream<<"\thost: \'"<<conf.host_<<"\n"<<
-                "\'\tservice: \'"<<conf.service_<<"\n"<<
-                "\'\tport: \'"<<conf.port_<<"\n"<<
-                "\'\tprotocol: \'"<<network::protocol::to_text(conf.protocol_)<<"\n"<<
-                "\'\ttimeout: "<<conf.timeout_seconds_processes_<<" seconds"<<"\n"<<
-                "\'\tjobs parallel: "<<conf.num_threads_pool_<<" threads\n"<<"\n"<<
-                "\'\tevents in process: "<<conf.number_events_<<" events"<<std::endl;
-                    
-        }
-        stream<<"White list: ";
-        {
-            auto joined = white_list_ | std::views::join_with(';');
-            for (char addr : joined)
-                stream << addr;
-            stream<<std::endl;
-        }
-        {
-            stream<<"Black list: ";
-            auto joined = black_list_ | std::views::join_with(';');
-            for (char addr : joined)
-                stream << addr;
-            stream<<std::endl;
-        }
-    }
 }

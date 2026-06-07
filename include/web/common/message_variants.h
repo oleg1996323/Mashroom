@@ -2,7 +2,7 @@
 #include <optional>
 #include <expected>
 #include <set>
-#include "network/definitions.h"
+#include <variant>
 #include "serialization.h"
 #include "msgdef.h"
 

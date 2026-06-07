@@ -1,5 +1,5 @@
 #pragma once
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 
 namespace network{
 template<>

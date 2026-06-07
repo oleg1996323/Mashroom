@@ -21,6 +21,7 @@ namespace parse{
                 "suspend","suspend all connections with launched server");
         bool wait_ = false;
         uint16_t timeout_ = 0;
+        public:
         Network(CLI::App* app);
         void execute();
     };

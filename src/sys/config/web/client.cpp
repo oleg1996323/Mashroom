@@ -50,20 +50,3 @@ std::expected<network::client::Config,std::exception>
     }
     return result;
 }
-namespace network::client{
-    void Config::print(std::ostream& stream) const{
-        stream<<"Server configurations:"<<std::endl;
-        int i = 1;
-        for(auto& [name,conf]:configurations()){
-            stream<<"name: \""<<name<<"\""<<std::endl;
-            stream<<"\'\tprotocol: \'"<<network::protocol::to_text(conf.protocol_)<<"\n"<<
-                "\'\ttimeout: "<<conf.timeout_seconds_processes_<<" seconds"<<"\n"<<
-                "\'\tjobs parallel: "<<conf.num_threads_pool_<<" threads\n"<<"\n"<<
-                "\'\tevents in process: "<<conf.number_events_<<" events"<<"\n";
-                if(conf.binded_addr_.has_value() && conf.binded_addr_->valid())
-                    stream<<"binding to "<<network::ip_to_text(*conf.binded_addr_)<<
-                        ":"<<network::port_to_text(*conf.binded_addr_)<<std::endl;
-                else stream<<std::endl;
-        }
-    }
-}

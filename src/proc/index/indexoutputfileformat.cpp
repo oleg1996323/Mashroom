@@ -53,3 +53,19 @@ template<>
     }
     else throw boost::bad_lexical_cast();
 }
+
+template<>
+bool CLI::detail::lexical_cast<::IndexOutputFileFormat::token>(const std::string& input, ::IndexOutputFileFormat::token& output) {
+    try{
+        output = boost::lexical_cast<::IndexOutputFileFormat::token>(input);
+        return true;
+    }
+    catch(...){
+        return false;
+    }
+}
+
+template<>
+std::string CLI::detail::to_string(const ::IndexOutputFileFormat::token& input){
+    return boost::lexical_cast<std::string>(input);
+}

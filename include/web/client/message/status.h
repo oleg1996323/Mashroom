@@ -1,5 +1,5 @@
 #pragma once
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 
 namespace network{
     template<>
@@ -61,5 +61,3 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::SERVER_STATUS>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::SERVER_STATUS>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::SERVER_STATUS>>);
-static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::SERVER_STATUS>>);
-static_assert(std::is_move_assignable_v<network::Message<network::Client_MsgT::SERVER_STATUS>>);

@@ -44,3 +44,14 @@ namespace boost{
                     info_quantity* target_type, int);
     }
 }
+
+#include <CLI/CLI.hpp>
+
+namespace CLI {
+    namespace detail {
+        template <>
+        bool lexical_cast<info_quantity>(const std::string& input, info_quantity& output);
+        template<>
+        std::string to_string(const info_quantity& input);
+    }
+}

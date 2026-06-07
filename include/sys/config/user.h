@@ -41,9 +41,6 @@ namespace user{
     class Config:public BaseConfig<user::Settings>{
         public:
         Config()=default;
-        void print(std::ostream& stream) const override final{
-            
-        }
     };
 }
 

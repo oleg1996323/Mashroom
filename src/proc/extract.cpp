@@ -21,6 +21,7 @@
 #include "proc/extract/write.h"
 #include "compressor.h"
 #include "sys/error_exception.h"
+#include "API/grib1/include/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
@@ -69,7 +70,7 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
 }
 
 ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
-    HGrib1 grib;
+    API::HGrib1 grib;
     ExtractedData result;
     if(API::ErrorData::Code<API::GRIB1>::value err_data = grib.open_grib(file);err_data!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
         err=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(err_data,"",file.string()),AT_ERROR_ACTION::CONTINUE);
@@ -142,7 +143,7 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
 
 template<>
 ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, const std::vector<ptrdiff_t>& positions, ErrorCode& err){
-    HGrib1 grib;
+    API::HGrib1 grib;
     ExtractedData result;
     try{
         grib.open_grib(file);

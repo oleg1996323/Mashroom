@@ -56,7 +56,19 @@ class BaseConfig{
     bool contains(const std::string& name) const noexcept{
         return configurations().contains(name);
     }
-    virtual void print(std::ostream&) const = 0;
+    virtual void print(const std::string& name, std::ostream& stream) const{
+        if(configs_.contains(name)){
+            stream<<name<<":\n\t"<<to_json(configs_.at(name))<<std::endl;
+        }
+        else std::cout<<"Not found"<<std::endl;
+    }
+    void print_all(std::ostream& stream) const{
+        for(const auto& [name,settings]:configs_)
+            print(name,stream);
+    }
+    void print_current(std::ostream& stream) const{
+        print(current_name_,stream);
+    }
     virtual const std::unordered_map<std::string, 
         SETTINGS>& configurations() const noexcept{
         return const_cast<BaseConfig*>(this)->configurations();
@@ -86,10 +98,10 @@ class BaseConfig{
     }
 
     template<String NAME>
-    std::reference_wrapper<SETTINGS> get_config(NAME&& name) noexcept{
+    SETTINGS* get_config(NAME&& name) noexcept{
         if(auto found = configurations().find(name);found!=configurations().end())
-            return std::ref(found.second);
-        else std::reference_wrapper<SETTINGS>();
+            return &found->second;
+        else return nullptr;
     }
 };
 
@@ -122,8 +134,10 @@ bool BaseConfig<SETTINGS>::modify_from_file(const std::string& name, const fs::p
         auto parsed = parse_json_from_file(filename);
         if(parsed.has_value()){
             auto parsed_settings = from_json<SETTINGS>(parsed.value());
-            if(parsed_settings.has_value())
+            if(parsed_settings.has_value()){
                 modify(name,std::move(parsed_settings.value()));
+                return true;
+            }
             else return false;
         }
         else return false;

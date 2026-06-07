@@ -1,7 +1,10 @@
 #pragma once
-#include "web/common/message/msgdef.h"
+#include <vector>
+#include "../../common/msgdef.h"
+#include "aux/index.parameters.h"
 #include "types/time_interval.h"
 #include "grib1/include/sections/grid/grid.h"
+
 
 namespace network{
     template<>
@@ -80,5 +83,3 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::INDEX_REF>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::INDEX_REF>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::INDEX_REF>>);
-static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::INDEX_REF>>);
-static_assert(std::is_move_assignable_v<network::Message<network::Client_MsgT::INDEX_REF>>);

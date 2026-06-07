@@ -1,6 +1,6 @@
 #pragma once
-#include "web/common/def.h"
-#include "web/common/message/message_handler.h"
+#include "web/common/msgdef.h"
+#include "web/common/message_handler.h"
 #include "web/common/connection_process.h"
 #include "network/abstractprocess.h"
 

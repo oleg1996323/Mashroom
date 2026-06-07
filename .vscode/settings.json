@@ -135,6 +135,6 @@
     "cmake.configureSettings": {
         "OSTERLIB_PATH":"/home/oster/OsterLib-install"
     },
-    "cmake.parallelJobs": 0,
+    "cmake.parallelJobs": 8,
     "cmake.ctest.parallelJobs": 0
 }

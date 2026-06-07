@@ -10,7 +10,6 @@ namespace network::client{
     struct Config:public BaseConfig<network::client::Settings>{
         public:
         Config() = default;
-        void print(std::ostream&) const override;
     };
 
     Config default_config();

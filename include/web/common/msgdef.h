@@ -1,8 +1,51 @@
 #pragma once
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <filesystem>
 #include <optional>
-#include "web/common/def.h"
-#include "data/def.h"
-#include "serialization.h"
+
+#include <netdb.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/sendfile.h>
+#include <netinet/tcp.h>
+#include <sys/epoll.h>
+#include <thread>
+
+namespace network{
+    enum class Side{
+        SERVER,
+        CLIENT
+    };
+
+    template<Side S>
+    constexpr Side sent_from(){
+        if constexpr(S == Side::SERVER)
+            return Side::CLIENT;
+        else return Side::SERVER;
+    }
+
+    namespace server{
+        enum class Status:int{
+            READY,
+            SUSPENDED,
+            INACTIVE          
+        };
+    }
+    enum class Transaction{
+        ACCEPT,
+        DECLINE,
+        CANCEL
+    };
+}
 #include <expected>
 
 using namespace std::chrono;
@@ -108,15 +151,5 @@ namespace network{
 
     template<auto MSG_T>
     requires MessageEnumConcept<MSG_T>
-    struct MessageData;
-
-    template<auto MSG_T>
-    requires MessageEnumConcept<MSG_T>
     class Message;
-
-    template<auto MSG_T, template<auto> class MsgImpl>
-    concept MessageConcept = requires(){
-        requires MessageEnumConcept<MSG_T>;
-        requires std::is_same_v<MsgImpl<MSG_T>,Message<MSG_T>>;
-    };
 }

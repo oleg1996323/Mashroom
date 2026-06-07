@@ -21,3 +21,14 @@ std::string boost::lexical_cast(const IndexOutputFileFormat::token& input);
 
 template<>
 ::IndexOutputFileFormat::token boost::lexical_cast(const std::string& input);
+
+#include <CLI/CLI.hpp>
+
+namespace CLI {
+    namespace detail {
+        template <>
+        bool lexical_cast<::IndexOutputFileFormat::token>(const std::string& input, ::IndexOutputFileFormat::token& output);
+        template<>
+        std::string to_string(const ::IndexOutputFileFormat::token& input);
+    }
+}

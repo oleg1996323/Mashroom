@@ -66,3 +66,22 @@ std::string boost::lexical_cast(const Coord& input){
     std::string result = "lat"+std::to_string(input.lat_)+"-"+"lon"+std::to_string(input.lon_);
     return result;
 }
+
+namespace CLI {
+    namespace detail {
+        template <>
+        bool lexical_cast<Coord>(const std::string& input, Coord& output) {
+            try{
+                output = boost::lexical_cast<Coord>(input);
+                return true;
+            }
+            catch(...){
+                return false;
+            }
+        }
+        template<>
+        std::string to_string(const Coord& val){
+            return boost::lexical_cast<std::string>(val);
+        }
+    }
+}

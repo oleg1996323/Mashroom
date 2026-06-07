@@ -10,9 +10,11 @@ find_package(OsterLib CONFIG REQUIRED)
 target_include_directories(grib1API PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
                                             ${OsterLib_INCLUDE_DIRS}
                                             PRIVATE ${API_DIR})
-target_link_libraries(grib1API PRIVATE OsterLib::bytes OsterLib::serial OsterLib::utilities OsterLib::types OsterLib::boost_functional)
+target_link_libraries(grib1API PRIVATE OsterLib::bytes OsterLib::serial OsterLib::utilities OsterLib::types OsterLib::boost_functional INTERFACE OsterLib)
 get_target_property(grib1API_INCLUDES grib1API INCLUDE_DIRECTORIES)
 message(STATUS "Grib1 include directory: ${grib1API_INCLUDES}")
 set(grib1API_INCLUDES ${grib1API_INCLUDES} PARENT_SCOPE)
-add_dependencies(grib1API organizations table_org generate_grib1_eccodes_tables)
+target_sources(grib1API PRIVATE ${GENERATED_SOURCE})
+target_include_directories(grib1API PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_dependencies(grib1API generate_grib1_eccodes_tables)
 add_subdirectory(tests)

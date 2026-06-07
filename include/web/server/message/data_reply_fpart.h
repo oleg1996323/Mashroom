@@ -1,6 +1,6 @@
 #pragma once
 #include "progress_base.h"
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 #include <fstream>
 #include "network/utility.h"
 #include "sys/error_code.h"
@@ -105,3 +105,8 @@ namespace serialization{
         }();
     };
 }
+
+static_assert(serialization::deserialize_concept<true,network::Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
+static_assert(serialization::deserialize_concept<false,network::Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
+static_assert(serialization::serialize_concept<true,network::Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
+static_assert(serialization::serialize_concept<false,network::Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);

@@ -1,6 +1,6 @@
 #pragma once
 #include "progress_base.h"
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 
 namespace network{
 template<>

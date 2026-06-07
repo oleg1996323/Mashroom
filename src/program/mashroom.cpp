@@ -91,7 +91,7 @@ void Mashroom::__write_initial_data_file__(){
     dat_file.close();
 }
 ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
-    parse::Mashroom::instance().parse(argv);
+    Application::command_line().parse(argv.data());
     return ErrorCode::NONE;
 }
 bool Mashroom::read_command(){

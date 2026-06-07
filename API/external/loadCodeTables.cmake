@@ -25,15 +25,17 @@ function(load_eccode_header)
     file(MAKE_DIRECTORY "${FULL_OUTPUT_DIR}/include/generated/code_tables")
     file(MAKE_DIRECTORY "${FULL_OUTPUT_DIR}/src/generated/code_tables")
 
-    add_custom_target(
-        generate_grib1_eccodes_tables ALL
-        COMMAND ${Python3_EXECUTABLE} 
-            "${FULL_PYTHON_SCRIPT}"
-            "--src=${FULL_SOURCE_DIR}"
-            "--out=${FULL_OUTPUT_DIR}"
-        WORKING_DIRECTORY ${ARG_PYTHON_AUTOGEN_DIR}
-        DEPENDS "${FULL_PYTHON_SCRIPT}"
+    file(GLOB TABLE_FILES "${ARG_SOURCE_DIR}/*.table")
+
+    add_custom_command(
+        OUTPUT ${GENERATED_HEADER} ${GENERATED_SOURCE}
+        COMMAND ${Python3_EXECUTABLE}
+            "${ARG_PYTHON_AUTOGEN_DIR}/loadCodeTables.py"
+            "--src=${ARG_SOURCE_DIR}"
+            "--out=${ARG_OUTPUT_DIR}"
+        DEPENDS ${TABLE_FILES} "${ARG_PYTHON_AUTOGEN_DIR}/loadCodeTables.py"
         COMMENT "Generating ecCodes tables..."
-        BYPRODUCTS ${GENERATED_HEADER} ${GENERATED_SOURCE}
+        VERBATIM
     )
+    add_custom_target(generate_grib1_eccodes_tables DEPENDS ${GENERATED_HEADER} ${GENERATED_SOURCE})
 endfunction()

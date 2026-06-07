@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "cmd_parse/functions.h"
 #include "sys/application.h"
 #include "filesystem.h"
 #include "definitions/def.h"

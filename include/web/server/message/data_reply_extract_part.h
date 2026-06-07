@@ -1,5 +1,5 @@
 #pragma once
-#include "web/common/message/msgdef.h"
+#include "web/common/msgdef.h"
 #include "progress_base.h"
 
 namespace network{

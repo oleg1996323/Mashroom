@@ -41,14 +41,19 @@ class Mashroom{
         return __crash_dir__()/mashroom_data_info;
     }
     public:
-    Mashroom():data_dir_(fs::path(get_current_dir_name())/"data"){
+    Mashroom():
+        data_dir_(fs::path(get_current_dir_name())/"data"),
+        client_([](){
+            std::error_code err;
+            return network::Client(
+                err,
+                app().config().client_config().current_settings().number_events_);
+        }()){
         if(!fs::exists(data_dir_))
             if(!fs::create_directories(data_dir_))
                 ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,data_dir_.c_str());
         __read_initial_data_file__();
     }
-    Mashroom(Mashroom&& other):data_(std::move(other.data_)),data_files_(std::move(other.data_files_)),
-        data_dir_(std::move(other.data_dir_)){}
     ~Mashroom(){
         save();
     }

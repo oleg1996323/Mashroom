@@ -1,29 +1,67 @@
 #pragma once
 #include "sys/config.h"
+#include <CLI/CLI.hpp>
+#include "sys/application.h"
 
-namespace parse::user{
-    ErrorCode add_config(const std::string& name, const fs::path& filename) noexcept{
-        if(!app().config().user_config().add_from_file(name,filename))
-            return  ErrorPrint::print_error(
-                    ErrorCode::COMMAND_INPUT_X1_ERROR,
-                    "cannot add user configuration",AT_ERROR_ACTION::CONTINUE,
-                    filename.c_str());
-        else return ErrorCode::NONE;
-    }
-    ErrorCode remove_config(const std::string& name) noexcept{
-        if(!Application::config().user_config().remove(name))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "config name doesn't exists",AT_ERROR_ACTION::CONTINUE,name);
-        return ErrorCode::NONE;
-    }
+namespace parse{
+    class UserConfig{
+        class Add{
+            CLI::App* app_;
+            CLI::Option* name_;
+            CLI::Option* output_files_root_dir_;
+            CLI::Option* index_upd_ti_;
+            CLI::Option* mashroom_upd_ti_;
+            public:
+            Add(CLI::App* app);
+            void execute();
+        };
 
-    ErrorCode modify_config(const std::string& name, const fs::path& filename) noexcept{
-        if(!Application::config().user_config().modify_from_file(
-                    name,filename))
-            return ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
-                "config name doesn't exists",
-                AT_ERROR_ACTION::CONTINUE,
-                name);
-        return ErrorCode::NONE;
-    }
+        class Remove{
+            CLI::App* app_;
+            CLI::Option* name_;
+            public:
+            Remove(CLI::App* app);
+            void execute();
+        };
+
+        class Modify{
+            CLI::App* app_;
+            CLI::Option* name_;
+            CLI::Option* output_files_root_dir_;
+            CLI::Option* index_upd_ti_;
+            CLI::Option* mashroom_upd_ti_;
+            public:
+            Modify(CLI::App* app);
+            void execute();
+        };
+
+        class Load{
+            CLI::App* app_;
+            CLI::Option* name_;
+            CLI::Option* path_;
+            public:
+            Load(CLI::App* app);
+            void execute();
+        };
+
+        class Print{
+            CLI::App* app_;
+            CLI::Option* name_;
+            public:
+            Print(CLI::App* app);
+            void execute();
+        };
+
+        CLI::App* app_;
+        CLI::App* add_;
+        CLI::App* modify_;
+        CLI::App* load_;
+        CLI::App* remove_;
+        CLI::App* print_all_;
+        CLI::App* print_named_;
+        CLI::App* current_;
+        public:
+        UserConfig(CLI::App* app);
+        void execute();
+    };
 }
