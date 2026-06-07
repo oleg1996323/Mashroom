@@ -1,6 +1,13 @@
-[submodule "/home/oster/Mashroom/API/external/eccodes"]
-	path = /home/oster/Mashroom/API/external/eccodes
-	url = https://github.com/ecmwf/eccodes.git
-[submodule "/home/oster/Mashroom/external/linenoise"]
-	path = /home/oster/Mashroom/external/linenoise
+[submodule "external/linenoise"]
+	path = external/linenoise
 	url = https://github.com/antirez/linenoise
+[submodule "API/external/eccodes"]
+    path = API/external/eccodes
+    url = https://github.com/ecmwf/eccodes.git
+[submodule "googletest"]
+    path = googletest
+    url = https://github.com/google/googletest.git
+[submodule "library/linenoise"]
+    path = library/linenoise
+    url = https://github.com/antirez/linenoise
+	
