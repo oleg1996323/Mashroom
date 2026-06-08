@@ -13,10 +13,6 @@
 #include "network/multiplexor/eventhandle.h"
 
 namespace network{
-    void parse_message_request(){
-        //parse message
-    }
-
     class ServerConnectionProcess:public AbstractConnectionProcess
     {
         MessageHandler<Side::CLIENT> recv_hmsg_;

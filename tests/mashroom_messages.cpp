@@ -11,7 +11,7 @@ TEST(NetworkMesssageHandler,ClientSide){
     ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::CLIENT>::SERVER_STATUS+1);
     hmsg.clear();
     ASSERT_EQ(hmsg.index(),0);
-    ASSERT_EQ(hmsg.emplace_default_message_by_id(MESSAGE_ID<Side::CLIENT>::INDEX_REF),ErrorCode::NONE);
+    ASSERT_EQ(hmsg.emplace_message_by_id(MESSAGE_ID<Side::CLIENT>::INDEX_REF),ErrorCode::NONE);
     ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::CLIENT>::INDEX_REF+1);
 }
 
@@ -23,7 +23,7 @@ TEST(NetworkMesssageHandler,ServerSide){
     hmsg.clear();
     ASSERT_EQ(hmsg.index(),0);
     
-    ASSERT_EQ(hmsg.emplace_default_message_by_id(MESSAGE_ID<Side::SERVER>::DATA_REPLY_INDEX_REF),ErrorCode::NONE);
+    ASSERT_EQ(hmsg.emplace_message_by_id(MESSAGE_ID<Side::SERVER>::DATA_REPLY_INDEX_REF),ErrorCode::NONE);
     ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::SERVER>::DATA_REPLY_INDEX_REF+1);
 }
 
@@ -35,7 +35,9 @@ TEST(NetworkMesssageHandler,MessageHandlerSerializationTest){
     ASSERT_EQ(serialization::serial_size(handler),serialization::serial_size(var));
     std::vector<char> buffer;
     ASSERT_EQ(serialization::serialize_network(handler,buffer),serialization::SerializationEC::NONE);
-    ASSERT_EQ(serialization::deserialize_network(var,buffer),serialization::SerializationEC::NONE);
+    serialization::StreamSerializer ser;
+    ser.push_view(buffer);
+    ASSERT_EQ(serialization::deserialize_network(var,ser),serialization::SerializationEC::NONE);
     ASSERT_TRUE(std::holds_alternative<network::Message<Client_MsgT::INDEX_REF>>(var));
 }
 

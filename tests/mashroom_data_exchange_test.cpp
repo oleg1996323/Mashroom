@@ -4,20 +4,30 @@
 #include "web/server.h"
 #include <fstream>
 
-class TestingServer:public network::Server{
-    public:
-    TestingServer(const network::server::Settings& settings):Server(settings){}
-};
 
 class DataTestClass:public Data,public testing::Test{
     protected:
-    TestingServer server_;
+    network::Server server_;
     std::string fn;
     std::vector<ptrdiff_t> pos_;
     std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
-    DataTestClass():fn("data_file.g1bd"),server_(network::server::Settings("127.0.0.1","",Protocol::TCP,30,32396,true)){
+    DataTestClass():
+    fn("data_file.g1bd")
+    {
+        std::error_code err;
+        server_.configure(network::server::Settings(
+            "127.0.0.1",
+            "",
+            network::Protocol::TCP,
+            30,32396,
+            network::ConnectionOptions{
+                .reuse_address_={true,{}},
+                .reuse_port_{true,{}},
+                .keep_alive_={true,{}}}),{},{},err);
+        if(err!=std::error_code())
+            throw std::runtime_error("config error");
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
         grid.base_.dx=1;
@@ -53,11 +63,9 @@ class DataTestClass:public Data,public testing::Test{
         update_indexing(std::move(gribdata));
         std::ofstream stream(fn,std::ofstream::trunc|std::ofstream::out);
         serialization::serialize_to_file(gribdata,stream);
-        network::server::Settings sets;
-        sets.host_ = "127.0.0.1";
-        sets.port_ = 32396;
-        sets.reuse_address_ = true;
-        server_.launch();
+        server_.launch(err);
+        if(err!=std::error_code())
+            throw std::runtime_error("launch error");
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -67,8 +75,9 @@ class DataTestClass:public Data,public testing::Test{
 };
 
 TEST_F(DataTestClass,Index_DataExchangeTest){
-    Client client("127.0.0.1",32396);
-    auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
+    std::error_code err;
+    network::Client client(err,10);
+    auto additional = network::Message<network::Client_MsgT::INDEX_REF>();
     auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
     parameters_struct.set_forecast_preference(TimeForecast(TimeFrame::HOUR,
                         TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
@@ -85,12 +94,33 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
         parameters_struct.to_ = ti.to();
     }
     parameters_struct.tdiff_ = ts.time_duration();
-    EXPECT_TRUE(client.connect("127.0.0.1",32396,ec).has_socket());
-    Message<Client_MsgT::INDEX_REF> msg(std::move(additional));
-    auto err = client.request<Client_MsgT::INDEX_REF>(true,std::move(msg));
-    EXPECT_EQ(err,ErrorCode::NONE);
-    auto& result = client.get_intermediate_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(30);
-    ASSERT_TRUE((std::holds_alternative<std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>>(result.additional().blocks_)));
+    network::ConnectionHandle hconn = client.connect(
+        "127.0.0.1",
+        32396,
+        network::Socket::Type::Stream,
+        network::Protocol::TCP,
+        {},ec);
+    EXPECT_TRUE(hconn.is_valid_handler());
+    network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(additional));
+    auto result = client.request<network::MessageHandler<network::Side::SERVER>>(
+        hconn,
+        serialization::serial_size(msg),
+        std::move(msg),
+        std::monostate());
+    EXPECT_FALSE(result->error().has_value());
+    auto add_data = [&](auto& block){
+        using decay = std::decay_t<decltype(block)>;
+        if constexpr(std::is_same_v<decay,std::monostate>){
+            assert(false);
+        }
+        else if constexpr (std::is_same_v<decay,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>){
+            DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> d;
+            d.add_data(path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now()),block);
+            Mashroom::instance().data().update_indexing(std::move(d));
+        }
+    };
+    std::visit(add_data,result->get_result_frame()->data_frame().data());
+    
     EXPECT_EQ((std::get<std::vector<SearchDataResult<(Data_t)1U, (Data_f)1>>>(result.additional().blocks_).size()),1);    
     EXPECT_FALSE(result.message_more());
 }

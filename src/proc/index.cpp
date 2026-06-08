@@ -14,6 +14,7 @@
 #include "proc/index/write.h"
 #include "proc/index/gen.h"
 #include "proc/index/indexdatafileformat.h"
+#include "API/grib1/include/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
@@ -77,7 +78,7 @@ std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__write_file__(cons
 
 namespace fs = std::filesystem;
 
-std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(HGrib1& grib_file_handler){
+std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API::HGrib1& grib_file_handler){
 	std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> grib_msgs;
 	do{
 		auto msg = grib_file_handler.message();
@@ -102,7 +103,7 @@ std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(HGrib1& g
  */
 template<Data_t TYPE,Data_f FORMAT>
 std::vector<FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
-	HGrib1 grib;
+	API::HGrib1 grib;
 	std::vector<FileMsg<TYPE,FORMAT>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
@@ -117,7 +118,7 @@ std::vector<FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
 
 template<Data_t TYPE,Data_f FORMAT>
 std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__index_write_file__(const fs::path& file){
-	HGrib1 grib;
+	API::HGrib1 grib;
 	std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
@@ -165,14 +166,21 @@ void Index::execute() noexcept{
 			case path::TYPE::HOST:
 				if(path.add_.is<path::TYPE::HOST>()){
 					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
-					auto add_msg = network::make_additional<network::Client_MsgT::INDEX_REF>();
-					add_msg.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-					network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(add_msg));
-					auto instance = Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_,std::move(msg));
-					if(!instance)
-						return;
+					auto msg = network::Message<network::Client_MsgT::INDEX_REF>();
+					msg.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
 					std::error_code err;
-					decltype(auto) msg_reply = instance->get_result<network::Server_MsgT::DATA_REPLY_INDEX_REF>(-1,err);
+					network::ConnectionHandle hconn=Mashroom::instance().connect(err,
+						path.path_,
+						path.add_.get<path::TYPE::HOST>().port_,
+						::app().config().client_config().current_settings());
+					auto instance = Mashroom::instance().request(
+						hconn,serialization::serial_size(msg),std::move(msg),std::monostate());
+					if(instance->error().has_value()){
+						std::cout<<instance->error()->message()<<std::endl;
+						return;
+					}
+					std::error_code err;
+					decltype(auto) msg_reply = instance->get_result_frame()->data_frame();
 					if(err!=std::error_code())
 						return;
 					auto add_data = [&path](auto&& block){
@@ -185,7 +193,7 @@ void Index::execute() noexcept{
 							Mashroom::instance().data().update_indexing(std::move(d));
 						}
 					};
-					std::visit(add_data,msg_reply.additional().blocks_);
+					std::visit(add_data,msg_reply.data());
 					if(host_ref_only){
 						//@download filepart
 					}

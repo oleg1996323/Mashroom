@@ -57,12 +57,24 @@ class Mashroom{
     ~Mashroom(){
         save();
     }
-    static ErrorCode read_command(const std::vector<std::string>& argv);
+    static ErrorCode read_command(std::vector<std::string>&& argv);
     bool read_command();
-    ErrorCode connect(const std::string& host);
+    network::ConnectionHandle connect(std::error_code& err,
+        const std::string& host,
+        network::Port port,
+        const network::client::Settings& settings)
+    {
+        return client_.connect(
+            host,
+            port,
+            network::Socket::Type::Stream,
+            network::Protocol::TCP,
+            settings,
+            err);
+    }
 
     template<typename DATA_FRAME_SEND, typename START_FRAME = std::monostate, typename END_FRAME = std::monostate>
-    std::shared_ptr<network::MessageHandler<network::Side::SERVER>> 
+    decltype(auto)
         request(network::ConnectionHandle hconn, START_FRAME &&start, DATA_FRAME_SEND &&data, END_FRAME &&end){
         return client_.request<network::MessageHandler<network::Side::SERVER>>(
             hconn,

@@ -90,8 +90,12 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
     dat_file.close();
 }
-ErrorCode Mashroom::read_command(const std::vector<std::string>& argv){
-    Application::command_line().parse(argv.data());
+ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
+    try {
+        Application::command_line().parse(std::move(argv));
+    } catch (const CLI::ParseError &e) {
+        return ErrorCode::COMMAND_INPUT_X1_ERROR;
+    }
     return ErrorCode::NONE;
 }
 bool Mashroom::read_command(){

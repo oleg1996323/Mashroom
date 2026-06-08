@@ -17,45 +17,63 @@ namespace network{
     class _MessageHandler:std::false_type{};
 
     template<Side S>
-    class MessageHandler:public network::list_message<S>::type
+    class MessageHandler
             /* typename network::MESSAGE_ID<S>::type */
     {
+        network::list_message<S>::type data_;
         using factory = VariantFactory<typename network::list_message<S>::type>;
         public:
         using VARIANT = typename network::list_message<S>::type;
-        using VARIANT::variant;
-        public:
+        template<bool,auto>
+        friend struct serialization::Serialize;
+        template<bool,auto>
+        friend struct serialization::Deserialize;
+        template<auto>
+        friend struct serialization::Serial_size;
+        template<auto>
+        friend struct serialization::Min_serial_size;
+        template<auto>
+        friend struct serialization::Max_serial_size;
         FRIEND_TEST(NetworkMesssageHandler,ClientSide);
         FRIEND_TEST(NetworkMesssageHandler,ServerSide);
+        MessageHandler()=default;
         MessageHandler(const MessageHandler&) = delete;
-        MessageHandler(MessageHandler&& other) noexcept{
-            *this = std::move(other);
-        }
-
+        MessageHandler(MessageHandler&& other) noexcept:
+        data_(move(other.data_))
+        {}
         MessageHandler& operator=(const MessageHandler&) = delete;
         MessageHandler& operator=(MessageHandler&& other) noexcept{
             if(this!=&other)
-                network::list_message<S>::type::operator=(std::move(other));
+                data_ = std::move(other.data_);
             return *this;
         }
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
         void emplace_message(ARGS&&... args) noexcept{
-            this->template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
+            data_.template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
         }
         template<typename... ARGS>
         ErrorCode emplace_message_by_id(Message_t<S> id, ARGS&&... args) noexcept{
             if(id+1>std::variant_size_v<VARIANT> ||
-                !factory::emplace(*this,id+1,std::forward<ARGS>(args)...))
+                !factory::emplace(data_,id+1,std::forward<ARGS>(args)...))
                 return ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid variant type",AT_ERROR_ACTION::CONTINUE);
             else
                 return ErrorCode::NONE;
         }
+        decltype(auto) index() const noexcept{
+            return data_.index();
+        }
         void clear() noexcept{
-            this->template emplace<std::monostate>();
+            data_.template emplace<std::monostate>();
+        }
+        network::list_message<S>::type& data() noexcept{
+            return data_;
+        }
+        const network::list_message<S>::type& data() const noexcept{
+            return data_;
         }
         bool has_message() const noexcept{
-            if(!std::holds_alternative<std::monostate>(*this))
+            if(!std::holds_alternative<std::monostate>(data_))
                 return true;
             else return false;
         }
@@ -71,21 +89,58 @@ namespace network{
                     }
                     else return std::nullopt;
                 };
-                return std::visit(visitor,*this);
+                return std::visit(visitor,data_);
             }
             else return std::nullopt;
         }
     };
 }
 
-ENABLE_DERIVED_VARIANT(network::MessageHandler<network::Side::CLIENT>,network::list_message<network::Side::CLIENT>::type);
-ENABLE_DERIVED_VARIANT(network::MessageHandler<network::Side::SERVER>,network::list_message<network::Side::SERVER>::type);
+namespace serialization{
+    template<bool NETWORK_ORDER,network::Side S>
+    struct Serialize<NETWORK_ORDER,network::MessageHandler<S>>{
+        using type = network::MessageHandler<S>;
+        SerializationEC operator()(const type& val, std::vector<char>& buf) const noexcept{
+            return serialize<NETWORK_ORDER>(val,buf,val.data_);
+        }
+    };
 
-static_assert(std::is_base_of_v<network::list_message<network::Side::CLIENT>::type,network::MessageHandler<network::Side::CLIENT>>);
-static_assert(std::is_base_of_v<network::list_message<network::Side::SERVER>::type,network::MessageHandler<network::Side::SERVER>>);
-static_assert(IsStdVariant<network::MessageHandler<network::Side::SERVER>>);
+    template<bool NETWORK_ORDER,network::Side S>
+    struct Deserialize<NETWORK_ORDER,network::MessageHandler<S>>{
+        using type = network::MessageHandler<S>;
+        SerializationEC operator()(type& val, StreamSerializer& buf) const noexcept{
+            return deserialize<NETWORK_ORDER>(val,buf,val.data_);
+        }
+    };
+
+    template<network::Side S>
+    struct Serial_size<network::MessageHandler<S>>{
+        using type = network::MessageHandler<S>;
+        size_t operator()(const type& val) const noexcept{
+            return serial_size(val.data_);
+        }
+    };
+
+    template<network::Side S>
+    struct Min_serial_size<network::MessageHandler<S>>{
+        using type = network::MessageHandler<S>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::data_)>();
+        }();
+    };
+
+    template<network::Side S>
+    struct Max_serial_size<network::MessageHandler<S>>{
+        using type = network::MessageHandler<S>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::data_)>();
+        }();
+    };
+}
+
 static_assert(serialization::min_serial_size<network::MessageHandler<network::Side::SERVER>>()>0);
 static_assert(serialization::max_serial_size<network::MessageHandler<network::Side::SERVER>>()>0);
-static_assert(IsStdVariant<network::MessageHandler<network::Side::CLIENT>>);
 static_assert(serialization::min_serial_size<network::MessageHandler<network::Side::CLIENT>>()>0);
 static_assert(serialization::max_serial_size<network::MessageHandler<network::Side::CLIENT>>()>0);

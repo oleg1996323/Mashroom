@@ -191,12 +191,9 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                     __check_metadata_integrity__(result.first,err);
                 continue;
             }
-            case path::TYPE::HOST:{
-                if(path.add_.is<path::TYPE::HOST>())
-                    Mashroom::instance().request<network::Client_MsgT::INDEX_REF>(true,path.path_,path.add_.get<path::TYPE::HOST>().port_);
-                continue;
-            }
-            default:{
+            default:
+            {
+                std::cout<<"Unvailable using of host-paths"<<std::endl;
                 return err;
             }
         }

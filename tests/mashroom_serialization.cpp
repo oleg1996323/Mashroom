@@ -50,8 +50,10 @@ TEST(Serialization, DataStruct_serialization){
     ASSERT_TRUE(err==std::error_code());
     {
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_check;
+        serialization::StreamSerializer ser;
+        ser.push_view(buf);
         ASSERT_EQ(serialize<true>(ids,buf),serialization::SerializationEC::NONE);
-        ASSERT_EQ(deserialize<true>(to_check,std::span<const char>(buf)),serialization::SerializationEC::NONE);
+        ASSERT_EQ(deserialize<true>(to_check,ser),serialization::SerializationEC::NONE);
 
         EXPECT_EQ(serial_size(to_check),serial_size(ids));
         EXPECT_EQ(ids,to_check);
@@ -79,7 +81,9 @@ TEST(Serialization, PathStorage){
     ASSERT_EQ(serial_size(path_view),serial_size(path_view.add_)+serial_size(path_view.path_)+sizeof(path_view.type_));
     {
         path::Storage<false> path;
-        ASSERT_EQ(deserialize<true>(path,std::span<const char>(buf)),SerializationEC::NONE);
+        serialization::StreamSerializer ser;
+        ser.push_view(buf);
+        ASSERT_EQ(deserialize<true>(path,ser),SerializationEC::NONE);
         EXPECT_EQ(path,path_view);
     }
     {
