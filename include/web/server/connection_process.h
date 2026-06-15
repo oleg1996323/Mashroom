@@ -17,34 +17,32 @@ namespace network{
     {
         MessageHandler<Side::CLIENT> recv_hmsg_;
         MessageHandler<Side::SERVER> send_hmsg_;
+
+        void __task__(std::error_code& err, network::Client_MsgT::type msg_id){
+            switch(msg_id){
+                case Client_MsgT::SERVER_STATUS:
+                    on_write(err);
+                    return;
+                case Client_MsgT::EXTRACT:
+                    //heavy task
+                    break;
+            }
+        }
+
         public:
         virtual void on_read(std::error_code& err) noexcept override{
             using namespace serialization;
-            auto at_error = [this](std::errc c){
-                recv_hmsg_ = std::move(recv_hmsg_);
-                return std::make_error_code(c);
-            };
-            io_context().receive(err,io_context().free_space());
-            if(err!=std::error_code())
+            err.clear();
+            io_context().receive(err,recv_hmsg_);
+            if(err) {
+                handle_receive_error(err);
                 return;
-            else {
-                if(auto ser_res = io_context().deserialize(recv_hmsg_);ser_res!=serialization::SerializationEC::NONE)
-                {
-                    if(ser_res==serialization::SerializationEC::BUFFER_SIZE_LESSER)
-                        err = std::make_error_code(std::errc::resource_unavailable_try_again);
-                    else{
-                        err = std::make_error_code(std::errc::bad_message);
-                        MessageHandler<Side::SERVER> err_msg;
-                        err_msg.emplace_message_by_id(
-                            Message_t<Side::SERVER>::ERROR,
-                            ErrorCode::RECEIVING_MESSAGE_ERROR,
-                            server::Status::READY);
-                        io_context().serialize(err_msg);
-                        io_context().send(err);
-                    }
-                    return;
-                }
             }
+            if(auto msg_id = recv_hmsg_.message_type();
+                msg_id.has_value())
+
+                
+            return;
         }
         virtual void on_write(std::error_code& err) noexcept override{
             if(!send_hmsg_.has_message()){

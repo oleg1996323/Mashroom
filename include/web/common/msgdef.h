@@ -4,7 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <optional>
-
+#include "serialization.h"
 #include <netdb.h>
 #include <poll.h>
 #include <fcntl.h>
@@ -26,6 +26,15 @@ namespace network{
         CLIENT
     };
 
+    enum class MessageCategoryEnum{
+        SYSTEM,
+        FILE,
+        APPLICATION
+    };
+
+    template<Side S,MessageCategoryEnum CAT>
+    struct MessageCategory;
+
     template<Side S>
     constexpr Side sent_from(){
         if constexpr(S == Side::SERVER)
@@ -43,7 +52,9 @@ namespace network{
     enum class Transaction{
         ACCEPT,
         DECLINE,
-        CANCEL
+        CANCEL,
+        NEW,
+        CONTINUE
     };
 }
 #include <expected>
@@ -52,6 +63,7 @@ using namespace std::chrono;
 namespace fs = std::filesystem;
 
 namespace network{
+
     template<Side S>
     struct MESSAGE_ID;
 
@@ -78,27 +90,24 @@ namespace network{
             return Side::SERVER;
         }
         enum type:int{
-            DATA_REPLY_FILEINFO,
-            SERVER_STATUS,
-            DATA_REPLY_INDEX,
+            CREDENTIALS,
+            TRANSACTION,
+            VERSION,
             ERROR,
             PROGRESS,
-            DATA_REPLY_FILEPART,
-            VERSION,
-            DATA_REPLY_INDEX_REF,
-            DATA_REPLY_EXTRACT
+            SERVER_STATUS,
+            FILE_DATA,
+            FILE_METADATA,
+            INDEX,
+            EXTRACT
         };
-
-        constexpr static size_t count(){
-            return DATA_REPLY_EXTRACT+1;
-        }
     };
 
 
     /**
      * @brief network::client::MESSAGE_ID - type of client-side sent messages.
      * 
-     * @details DATA_REQUEST: Client request of specified (matched) data to be extracted from server-device.
+     * @details EXTRACT: Client request of specified (matched) data to be extracted from server-device.
      * @details SERVER_STATUS: Request of the server status (if connection can be established).
      * @details INDEX: Index request with sharing some part of data (specified by memory (in either KB, or MB, or GB, or TB))
      * @details INDEX_REF: Index request (only references about owners and owned information)
@@ -111,15 +120,16 @@ namespace network{
             return Side::CLIENT;
         }
         enum type:int{
-            DATA_REQUEST,
+            CREDENTIALS,
+            TRANSACTION,
+            VERSION,
+            ERROR,
+            PROGRESS,
             SERVER_STATUS,
             INDEX,
             INDEX_REF,
-            TRANSACTION
+            EXTRACT,
         };
-        constexpr static size_t count(){
-            return TRANSACTION+1;
-        }
     };
 
     template<Side S>

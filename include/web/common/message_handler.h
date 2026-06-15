@@ -9,21 +9,30 @@
 
 namespace network{
     #include <cstddef>
-    
-    template <typename T>
-    concept HasError = requires(T t) { t.error(); };
-
-    template<typename ENUM,typename = void>
-    class _MessageHandler:std::false_type{};
 
     template<Side S>
     class MessageHandler
             /* typename network::MESSAGE_ID<S>::type */
     {
         network::list_message<S>::type data_;
-        using factory = VariantFactory<typename network::list_message<S>::type>;
         public:
         using VARIANT = typename network::list_message<S>::type;
+        using VARIANT_SYS = typename MessageCategory<S,MessageCategoryEnum::SYSTEM>::type;
+        using VARIANT_APP = typename MessageCategory<S,MessageCategoryEnum::APPLICATION>::type;
+        using VARIANT_FILE = typename MessageCategory<S,MessageCategoryEnum::FILE>::type;
+        private:
+        using factory_cat = VariantFactory<VARIANT>;
+        using factory_sys = VariantFactory<VARIANT_SYS>;
+        using factory_app = VariantFactory<VARIANT_APP>;
+        using factory_file = VariantFactory<VARIANT_FILE>;
+
+        static_assert(std::is_same_v<std::variant_alternative_t<0,VARIANT_SYS>,
+                        std::monostate>);
+        static_assert(std::is_same_v<std::variant_alternative_t<0,VARIANT_FILE>,
+                        std::monostate>);
+        static_assert(std::is_same_v<std::variant_alternative_t<0,VARIANT_APP>,
+                        std::monostate>);
+        public:
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -49,19 +58,20 @@ namespace network{
         }
         template<auto MSG,typename... ARGS>
         requires MessageEnumConcept<MSG>
-        void emplace_message(ARGS&&... args) noexcept{
-            data_.template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
-        }
-        template<typename... ARGS>
-        ErrorCode emplace_message_by_id(Message_t<S> id, ARGS&&... args) noexcept{
-            if(id+1>std::variant_size_v<VARIANT> ||
-                !factory::emplace(data_,id+1,std::forward<ARGS>(args)...))
-                return ErrorPrint::print_error(ErrorCode::INVALID_ARGUMENT,"invalid variant type",AT_ERROR_ACTION::CONTINUE);
-            else
-                return ErrorCode::NONE;
-        }
-        decltype(auto) index() const noexcept{
-            return data_.index();
+        Message<MSG>& emplace_message(ARGS&&... args) noexcept{
+            if constexpr(is_app_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_APP>();
+                return cat_data.template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
+            }
+            else if constexpr(is_sys_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_SYS>();
+                return cat_data.template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
+            }
+            else if constexpr(is_file_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_FILE>();
+                return cat_data.template emplace<Message<MSG>>(std::forward<ARGS>(args)...);
+            }
+            else static_assert(false,"Not implemented");
         }
         void clear() noexcept{
             data_.template emplace<std::monostate>();
@@ -72,24 +82,62 @@ namespace network{
         const network::list_message<S>::type& data() const noexcept{
             return data_;
         }
+        bool is_system() const noexcept{
+            return std::holds_alternative<SystemMsg<S>>(data_);
+        }
+        bool is_application() const noexcept{
+            return std::holds_alternative<AppMsg<S>>(data_);
+        }
+        bool is_file() const noexcept{
+            return std::holds_alternative<FileMsg<S>>(data_);
+        }
         bool has_message() const noexcept{
-            if(!std::holds_alternative<std::monostate>(data_))
-                return true;
+            if(!std::holds_alternative<std::monostate>(data_)){
+                auto visit = [](const auto& msg) noexcept 
+                ->bool
+                {
+                    using type = std::decay_t<decltype(msg)>;
+                    if constexpr(std::is_same_v<type,std::monostate>)
+                        return false;
+                    else return true;
+                };
+                return std::visit(visit,data_);
+            }
             else return false;
         }
 
-        std::optional<MESSAGE_ID<S>> message_type() const noexcept{
+        std::optional<typename MESSAGE_ID<S>::type> message_type() const noexcept{
             if(has_message()){
-                auto visitor = [](const auto& varval){
-                    if constexpr(!std::is_same_v<decltype(varval),std::monostate>){
-                        auto def_enum_msg = []<MESSAGE_ID<S> T>(const Message<T>& msg){
-                            return std::optional<MESSAGE_ID<S>>(T);
+                auto cat_visitor = [](const auto& category) noexcept ->
+                    std::optional<typename MESSAGE_ID<S>::type>
+                {
+                    if constexpr(
+                        !std::is_same_v<std::decay_t<decltype(category)>,std::monostate>)
+                    {
+                        auto msg_visitor=[](const auto& message) noexcept ->
+                        std::optional<
+                            typename MESSAGE_ID<S>::type>
+                        {
+                            if constexpr(
+                                    !std::is_same_v<std::decay_t<decltype(message)>,std::monostate>)
+                            {
+                                auto def_enum_msg = []
+                                    <MESSAGE_ID<S>::type T>(
+                                    const Message<T>& msg) noexcept ->
+                                    std::optional<typename MESSAGE_ID<S>::type>
+                                {
+                                    return std::optional<
+                                        typename MESSAGE_ID<S>::type>(T);
+                                };
+                                return def_enum_msg(message);
+                            }
+                            else return std::nullopt;
                         };
-                        return def_enum_msg(varval);
+                        return std::visit(msg_visitor,category);
                     }
                     else return std::nullopt;
                 };
-                return std::visit(visitor,data_);
+                return std::visit(cat_visitor,data_);
             }
             else return std::nullopt;
         }

@@ -1,15 +1,12 @@
 #pragma once
 #include <thread>
 #include <unistd.h>
-#include "web/common/msgdef.h"
+#include "web/client/connection_process.h"
 #include <sys/eventfd.h>
 #include <poll.h>
-#include "web/common/credentials.h"
 #include <variant>
-#include "web/client/connection_process.h"
 #include <netdb.h>
 #include <future>
-#include "network/commonsocket.h"
 #include "network/abstractclient.h"
 
 namespace network{

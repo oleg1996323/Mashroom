@@ -7,88 +7,191 @@
 #include "msgdef.h"
 
 //client messages
-#include "web/client/message/index.h"
-#include "web/client/message/index_ref.h"
-#include "web/client/message/status.h"
-#include "web/client/message/data_request.h"
-#include "web/client/message/transaction.h"
+#include "web/client/message/application/index.h"
+#include "web/client/message/application/index_ref.h"
+#include "web/client/message/system/status.h"
+#include "web/client/message/application/extract.h"
+#include "web/client/message/system/version.h"
+#include "web/client/message/system/error.h"
+#include "web/client/message/system/credentials.h"
+#include "web/client/message/system/progress.h"
 
 //server messages
-#include "web/server/message/index.h"
-#include "web/server/message/data_reply_index_info.h"
-#include "web/server/message/data_reply_extract_part.h"
-#include "web/server/message/data_reply_finfo.h"
-#include "web/server/message/data_reply_fpart.h"
-#include "web/server/message/error.h"
-#include "web/server/message/progress.h"
-#include "web/server/message/version.h"
-#include "web/server/message/status.h"
+#include "web/server/message/application/index.h"
+#include "web/server/message/application/extract.h"
+#include "web/server/message/file/data.h"
+#include "web/server/message/file/metadata.h"
+#include "web/server/message/system/error.h"
+#include "web/server/message/system/version.h"
+#include "web/server/message/system/status.h"
+#include "web/server/message/system/credentials.h"
+#include "web/server/message/system/progress.h"
+
+//common server-client messages
+#include "web/common/detail/transaction.h"
 
 using namespace std::chrono;
 namespace fs = std::filesystem;
 
 namespace network{
     template<Side S>
+    using SystemMsg = std::conditional_t<S==Side::CLIENT,
+                                    std::variant<std::monostate,
+                                    Message<Client_MsgT::CREDENTIALS>,
+                                    Message<Client_MsgT::SERVER_STATUS>,
+                                    Message<Client_MsgT::ERROR>,
+                                    Message<Client_MsgT::TRANSACTION>,
+                                    Message<Client_MsgT::VERSION>,
+                                    Message<Client_MsgT::PROGRESS>
+                                    >,
+                                    std::variant
+                                    <std::monostate,
+                                    Message<Server_MsgT::CREDENTIALS>,
+                                    Message<Server_MsgT::SERVER_STATUS>,
+                                    Message<Server_MsgT::ERROR>,
+                                    Message<Server_MsgT::TRANSACTION>,
+                                    Message<Server_MsgT::VERSION>,
+                                    Message<Server_MsgT::PROGRESS>
+                                    >
+                                    >;
+
+    template<Side S>
+    using FileMsg = std::conditional_t<S==Side::CLIENT,
+                                    std::variant<std::monostate>,
+                                    std::variant<
+                                    std::monostate,
+                                    Message<Server_MsgT::FILE_METADATA>,
+                                    Message<Server_MsgT::FILE_DATA>
+                                    >
+                                    >;
+    template<Side S>
+    using AppMsg = std::conditional_t<S==Side::CLIENT,
+                                    std::variant<std::monostate,
+                                    Message<Client_MsgT::INDEX>,
+                                    Message<Client_MsgT::INDEX_REF>,
+                                    Message<Client_MsgT::EXTRACT>
+                                    >,
+                                    std::variant<std::monostate,
+                                    Message<Server_MsgT::INDEX>,
+                                    Message<Server_MsgT::EXTRACT>
+                                    >
+                                    >;
+    
+    template<Side S,MESSAGE_ID<S>::type MSG>
+    constexpr bool is_app_message_v = (S==Side::SERVER?(MSG == Server_MsgT::INDEX ||
+                                    MSG == Server_MsgT::EXTRACT):
+                                    (MSG == Client_MsgT::INDEX ||
+                                    MSG == Client_MsgT::INDEX_REF ||
+                                    MSG == Client_MsgT::EXTRACT));
+    template<Side S,MESSAGE_ID<S>::type MSG>
+    constexpr bool is_sys_message_v = (S==Side::SERVER?(MSG == Server_MsgT::SERVER_STATUS ||
+                                    MSG == Server_MsgT::ERROR ||
+                                    MSG == Server_MsgT::TRANSACTION ||
+                                    MSG == Server_MsgT::VERSION ||
+                                    MSG == Server_MsgT::CREDENTIALS ||
+                                    MSG == Server_MsgT::PROGRESS):
+                                    (MSG == Client_MsgT::SERVER_STATUS ||
+                                    MSG == Client_MsgT::ERROR ||
+                                    MSG == Client_MsgT::TRANSACTION ||
+                                    MSG == Client_MsgT::VERSION ||
+                                    MSG == Client_MsgT::CREDENTIALS ||
+                                    MSG == Client_MsgT::PROGRESS));
+    template<Side S,MESSAGE_ID<S>::type MSG>
+    constexpr bool is_file_message_v = (S==Side::SERVER?(MSG == Server_MsgT::FILE_DATA ||
+                                    MSG == Server_MsgT::FILE_METADATA):
+                                    false);
+
+    template<Side S>
     struct list_message;
 
-    template<>
-    struct list_message<Side::CLIENT>{
-        using type = std::variant<std::monostate,
-                        Message<network::Client_MsgT::DATA_REQUEST>,
-                        Message<network::Client_MsgT::SERVER_STATUS>,
-                        Message<network::Client_MsgT::INDEX>,
-                        Message<network::Client_MsgT::INDEX_REF>,
-                        Message<network::Client_MsgT::TRANSACTION>>;
+
+    template<Side S>
+    struct MessageCategory<S,MessageCategoryEnum::SYSTEM>{
+        using type = SystemMsg<S>;
     };
-    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::DATA_REQUEST>>);
-    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::DATA_REQUEST>>);
-    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::SERVER_STATUS>>);
-    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::SERVER_STATUS>>);
-    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::INDEX>>);
-    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::INDEX>>);
-    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::INDEX_REF>>);
-    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::INDEX_REF>>);
-    static_assert(std::is_move_constructible_v<Message<network::Client_MsgT::TRANSACTION>>);
-    static_assert(std::is_move_assignable_v<Message<network::Client_MsgT::TRANSACTION>>);
+
+    template<Side S>
+    struct MessageCategory<S,MessageCategoryEnum::FILE>{
+        using type = FileMsg<S>;
+    };
+
+    template<Side S>
+    struct MessageCategory<S,MessageCategoryEnum::APPLICATION>{
+        using type = AppMsg<S>;
+    };
+
+    template<Side S>
+    using Msg = std::variant<std::monostate,
+                        SystemMsg<S>,
+                        FileMsg<S>,
+                        AppMsg<S>>;
 
     template<>
     struct list_message<Side::SERVER>{
-        using type =    std::variant<std::monostate,
-                        Message<network::Server_MsgT::DATA_REPLY_FILEINFO>,
-                        Message<network::Server_MsgT::SERVER_STATUS>,
-                        Message<network::Server_MsgT::DATA_REPLY_INDEX>,
-                        Message<network::Server_MsgT::ERROR>,
-                        Message<network::Server_MsgT::PROGRESS>,
-                        Message<network::Server_MsgT::DATA_REPLY_FILEPART>,
-                        Message<network::Server_MsgT::VERSION>,
-                        Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>,
-                        Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>;
+        using type = Msg<Side::SERVER>;
     };
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_FILEINFO>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_FILEINFO>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::SERVER_STATUS>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::SERVER_STATUS>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_INDEX>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_INDEX>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::ERROR>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::ERROR>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::PROGRESS>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::PROGRESS>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_FILEPART>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::VERSION>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::VERSION>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>>);
-    static_assert(std::is_move_constructible_v<Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>);
-    static_assert(std::is_move_assignable_v<Message<network::Server_MsgT::DATA_REPLY_EXTRACT>>);
 
-    constexpr Side get_side(MessageEnumConcept_t auto msg_t){
-        using type = decltype(msg_t);
-        if constexpr(std::is_same_v<type,MESSAGE_ID<Side::SERVER>::type>)
-            return MESSAGE_ID<Side::SERVER>::side();
-        else if constexpr(std::is_same_v<type,MESSAGE_ID<Side::CLIENT>::type>)
-            return MESSAGE_ID<Side::CLIENT>::side();
-        else static_assert(false,"Undefined side");
+    template<Side S>
+    bool is_sys_msg(typename MESSAGE_ID<S>::type id) noexcept{
+        using type = typename MESSAGE_ID<S>::type;
+        switch(id){
+            case type::ERROR:
+            case type::TRANSACTION:
+            case type::SERVER_STATUS:
+            case type::VERSION:
+            case type::CREDENTIALS:
+            case type::PROGRESS:
+                return true;
+                break;
+            default:
+                return false;
+                break;
+        }
     }
+
+    template<Side S>
+    bool is_file_msg(typename MESSAGE_ID<S>::type id) noexcept{
+        if constexpr (S==Side::SERVER){
+            switch(id){
+                case Server_MsgT::FILE_DATA:
+                case Server_MsgT::FILE_METADATA:
+                    return true;
+                    break;
+                default:
+                    return false;
+                    break;
+            }
+        }
+        else return false;
+    }
+
+    template<Side S>
+    bool is_app_msg(typename MESSAGE_ID<S>::type id) noexcept{
+        using type = typename MESSAGE_ID<S>::type;
+        if constexpr (S==Side::SERVER)
+            switch(id){
+                case Server_MsgT::INDEX:
+                case Server_MsgT::EXTRACT:
+                    return true;
+                    break;
+                default:
+                    return false;
+                    break;
+            }
+        else switch(id){
+                case type::INDEX:
+                case type::INDEX_REF:
+                case type::EXTRACT:
+                    return true;
+                    break;
+                default:
+                    return false;
+                    break;
+            }
+    }
+
+    template<>
+    struct list_message<Side::CLIENT>{
+        using type = Msg<Side::CLIENT>;
+    };
 }

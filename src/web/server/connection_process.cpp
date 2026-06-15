@@ -128,7 +128,7 @@ void reply(std::stop_token stop){
                     std::get<Message<Client_MsgT::INDEX>>(*msg));
         }
             break;
-        case Client_MsgT::DATA_REQUEST:{
+        case Client_MsgT::EXTRACT:{
             Extract hExtract;
             auto init_h = [&hExtract](auto& form){
                 if constexpr(std::is_same_v<std::decay_t<decltype(form)>,std::monostate>){
@@ -143,7 +143,7 @@ void reply(std::stop_token stop){
             };
             std::visit(init_h,
                 std::get<Message<
-                Client_MsgT::DATA_REQUEST>>(*msg).additional().form_);
+                Client_MsgT::EXTRACT>>(*msg).additional().form_);
             if(err!=std::error_code()){
                 send_error(
                     socket,

@@ -3,6 +3,8 @@ add_executable(autogen ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 #execute autogeneration of code tables
 if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/eccodes")
     execute_process(COMMAND "git" "submodule" "add" "https://github.com/ecmwf/eccodes.git" "eccodes")
+else()
+    execute_process(COMMAND "git" "submodule" "update" "eccodes")
 endif()
 
 target_compile_definitions(autogen PRIVATE ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}" EXE_PATH="$<TARGET_FILE:autogen>")

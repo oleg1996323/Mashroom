@@ -1,7 +1,6 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include "web/server/connection_process.h"
-
 #include <string_view>
 #include <cinttypes>
 #include <memory>
@@ -11,7 +10,6 @@
 #include <future>
 #include <vector>
 #include <sys/eventfd.h>
-#include "web/common/credentials.h"
 #include "network/abstractserver.h"
 
 using namespace std::string_view_literals;

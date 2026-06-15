@@ -394,8 +394,8 @@ namespace serialization{
         SerializationEC operator()(type& msg,
             StreamSerializer& buf) const noexcept{
                 size_t sz = 0;
-                if(buf.advance_if_deserialized(sz)){
-
+                if(buf.try_advance(sz)){
+                    buf.get_value_at(sz,0);
                 }
                 else{
                     if(auto err = deserialize<NETWORK_ORDER>(sz,buf);
@@ -409,15 +409,14 @@ namespace serialization{
                     msg.levels_.clear();
                     msg.paths_.clear();
                     msg.tf_.clear();
-                    buf.set_container_size(sz);
+                    buf.register_value(sz);
                 }
-                sz = buf.remained_container_elements();
                 for(int i=0;i<sz;++i){
                     std::shared_ptr<type::IndexStructDeserialize> tmp;
                     if(auto err = deserialize<NETWORK_ORDER>(tmp,buf);
                         err!=SerializationEC::NONE)
                             return err;
-                    else buf.commit_container_elem();
+                    else buf.update_value_at(sz-1,0);
                     if(!tmp)
                         continue;
                     else{
