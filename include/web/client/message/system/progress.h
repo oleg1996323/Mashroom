@@ -22,6 +22,11 @@ namespace network{
         friend struct serialization::Max_serial_size;
         Message() = default;
         public:
+        Message(Message<Client_MsgT::TRANSACTION>
+            transaction) 
+            noexcept:
+            Message<Client_MsgT::TRANSACTION>(std::move(transaction))
+        {}
         Message(const Message& other):
         Message<Client_MsgT::TRANSACTION>(other){}
         Message(Message&& other) noexcept:

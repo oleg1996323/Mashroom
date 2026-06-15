@@ -14,7 +14,7 @@ using info_quantity = boost::units::quantity<info_units>;
 namespace network{
     template<>
     class Message<network::Client_MsgT::INDEX>:
-            public Message<Server_MsgT::TRANSACTION>,
+            public Message<Client_MsgT::TRANSACTION>,
             public BaseIndexRequest
     {
         std::optional<uint64_t> info_limits_;
@@ -30,12 +30,17 @@ namespace network{
         friend struct serialization::Max_serial_size;
         public:
         Message() = default;
+        Message(Message<Client_MsgT::TRANSACTION>
+            transaction) 
+            noexcept:
+            Message<Client_MsgT::TRANSACTION>(std::move(transaction))
+        {}
         Message(const Message& other):
-        Message<Server_MsgT::TRANSACTION>(other),
+        Message<Client_MsgT::TRANSACTION>(other),
         BaseIndexRequest(other),
         info_limits_(other.info_limits_){}
         Message(Message&& other) noexcept:
-        Message<Server_MsgT::TRANSACTION>(std::move(other)),
+        Message<Client_MsgT::TRANSACTION>(std::move(other)),
         BaseIndexRequest(std::move(other)),
         info_limits_(other.info_limits_){}
         Message(utc_tp last_update,
@@ -46,7 +51,7 @@ namespace network{
             info_limits_(info.value()){}
         Message& operator=(const Message& other) noexcept{
             if(this!=&other){
-                Message<Server_MsgT::TRANSACTION>::operator=(other);
+                Message<Client_MsgT::TRANSACTION>::operator=(other);
                 BaseIndexRequest::operator=(other);
                 info_limits_ = other.info_limits_;
             }
@@ -54,7 +59,7 @@ namespace network{
         }
         Message& operator=(Message&& other) noexcept{
             if(this!=&other){
-                Message<Server_MsgT::TRANSACTION>::
+                Message<Client_MsgT::TRANSACTION>::
                     operator=(std::move(other));
                 BaseIndexRequest::operator=(std::move(other));
                 info_limits_ = std::move(other.info_limits_);
@@ -78,7 +83,7 @@ namespace serialization{
         using type = Message<network::Client_MsgT::INDEX>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,
-                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<const Message<Client_MsgT::TRANSACTION>&>(msg),
                 static_cast<const BaseIndexRequest&>(msg),
                 msg.info_limits_);
         }
@@ -89,7 +94,7 @@ namespace serialization{
         using type = Message<network::Client_MsgT::INDEX>;
         SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,
-                static_cast<Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<Message<Client_MsgT::TRANSACTION>&>(msg),
                 static_cast<BaseIndexRequest&>(msg),
                 msg.info_limits_);
         }
@@ -100,7 +105,7 @@ namespace serialization{
         using type = Message<network::Client_MsgT::INDEX>;
         size_t operator()(const type& msg) const noexcept{
             return serial_size(
-                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<const Message<Client_MsgT::TRANSACTION>&>(msg),
                 static_cast<const BaseIndexRequest&>(msg),
                 msg.info_limits_);
         }
@@ -112,7 +117,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<
-                Message<Server_MsgT::TRANSACTION>,
+                Message<Client_MsgT::TRANSACTION>,
                 BaseIndexRequest,
                 decltype(type::info_limits_)>();
         }();
@@ -124,7 +129,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<
-                Message<Server_MsgT::TRANSACTION>,
+                Message<Client_MsgT::TRANSACTION>,
                 BaseIndexRequest,
                 decltype(type::info_limits_)>();
         }();

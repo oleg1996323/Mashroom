@@ -15,7 +15,7 @@
 namespace network{    
     template<>
     class Message<network::Client_MsgT::EXTRACT>
-            :public Message<Server_MsgT::TRANSACTION>{
+            :public Message<Client_MsgT::TRANSACTION>{
         ExtractForm form_;
         bool file_;
         template<bool,auto>
@@ -30,6 +30,11 @@ namespace network{
         friend struct serialization::Max_serial_size;
         public:
         Message() = default;
+        Message(Message<Client_MsgT::TRANSACTION>
+            transaction) 
+            noexcept:
+            Message<Client_MsgT::TRANSACTION>(std::move(transaction))
+        {}
         Message(const Message& other) = delete;
         Message(Message&& other) noexcept{
             if(this!=&other){
@@ -65,7 +70,7 @@ namespace serialization{
             return serialize<NETWORK_ORDER>(
                 msg,
                 buf,
-                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<const Message<Client_MsgT::TRANSACTION>&>(msg),
                 msg.form_,
                 msg.file_);
         }
@@ -78,7 +83,7 @@ namespace serialization{
             return deserialize<NETWORK_ORDER>(
                 msg,
                 buf,
-                static_cast<Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<Message<Client_MsgT::TRANSACTION>&>(msg),
                 msg.form_,
                 msg.file_);
         }
@@ -89,7 +94,7 @@ namespace serialization{
         using type = Message<network::Client_MsgT::EXTRACT>;
         size_t operator()(const type& msg) const noexcept{
             return serial_size(
-                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                static_cast<const Message<Client_MsgT::TRANSACTION>&>(msg),
                 msg.form_,
                 msg.file_);
         }
@@ -101,7 +106,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return min_serial_size<
-                Message<Server_MsgT::TRANSACTION>,
+                Message<Client_MsgT::TRANSACTION>,
                 decltype(type::form_),
                 decltype(type::file_)>();
         }();
@@ -113,7 +118,7 @@ namespace serialization{
         static constexpr size_t value = []() ->size_t
         {
             return max_serial_size<
-                Message<Server_MsgT::TRANSACTION>,
+                Message<Client_MsgT::TRANSACTION>,
                 decltype(type::form_),
                 decltype(type::file_)>();
         }();

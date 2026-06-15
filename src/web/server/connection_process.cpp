@@ -10,11 +10,11 @@ template <Data_t TYPE,Data_f FORMAT>
 void 
     find_data(
         const network::Message<Client_MsgT::INDEX_REF>& input,
-        network::Message<network::Server_MsgT::DATA_REPLY_INDEX_REF>& output,
+        network::Message<network::Server_MsgT::INDEX>& output,
         const IndexParameters<TYPE,FORMAT>& index_param)
 {
     if constexpr (TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
-        network::Message<network::Server_MsgT::DATA_REPLY_INDEX_REF> rep_input;
+        network::Message<network::Server_MsgT::INDEX> rep_input;
         auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(
             index_param.common_,
             input.last_update_,
@@ -38,11 +38,11 @@ template <Data_t TYPE,Data_f FORMAT>
 void 
     find_data(
         const network::Message<Client_MsgT::INDEX>& input,
-        network::Message<network::Server_MsgT::DATA_REPLY_INDEX>& output,
+        network::Message<network::Server_MsgT::INDEX>& output,
         const IndexParameters<TYPE,FORMAT>& index_param)
 {
     if constexpr (TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
-        network::Message<network::Server_MsgT::DATA_REPLY_INDEX> rep_input;
+        network::Message<network::Server_MsgT::INDEX> rep_input;
         auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(
             index_param.common_,
             input.last_update_,
@@ -62,11 +62,12 @@ void
     else static_assert(false);
 };
 
-network::Message<Server_MsgT::DATA_REPLY_INDEX_REF> index_ref_process(
+network::Message<Server_MsgT::INDEX> index_ref_process(
         std::error_code& err,
         std::stop_token token,
         const network::Message<Client_MsgT::INDEX_REF>& msg){
-    network::Message<network::Server_MsgT::DATA_REPLY_INDEX_REF> rep_msg;
+    const auto& transaction = msg.transaction().get_reply();
+    network::Message<network::Server_MsgT::INDEX> rep_msg(std::move(transaction));
     auto find_data_proxy = [&](const auto& val){
         if constexpr (std::is_same_v<std::monostate,std::decay_t<decltype(val)>>)
             return;
@@ -77,11 +78,11 @@ network::Message<Server_MsgT::DATA_REPLY_INDEX_REF> index_ref_process(
     return rep_msg;
 }
 
-::Message<Server_MsgT::DATA_REPLY_INDEX> index_process(std::error_code& err,
+::Message<Server_MsgT::INDEX> index_process(std::error_code& err,
         std::stop_token token,
         const Message<Client_MsgT::INDEX>& msg)
 {
-    ::Message<Server_MsgT::DATA_REPLY_INDEX> rep_msg;
+    ::Message<Server_MsgT::INDEX> rep_msg;
     auto find_data_proxy = [&](const auto& val){
         if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(val)>>)
             find_data(msg,rep_msg,val);

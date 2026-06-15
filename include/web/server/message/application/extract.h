@@ -54,9 +54,6 @@ namespace network{
             }
             return *this;
         }
-        const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
-            return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
-        }
     };
 }
 

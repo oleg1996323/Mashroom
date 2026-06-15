@@ -13,6 +13,7 @@ namespace network{
         std::string op_hash_ = 
             boost::uuids::to_string(boost::uuids::random_generator()());
         Transaction op_status_ = Transaction::DECLINE;
+        std::array<char,64> reserved_;
         friend Message<Client_MsgT::TRANSACTION> 
             get_reply(const Message<Server_MsgT::TRANSACTION>&) noexcept;
         template<bool,auto>
@@ -27,19 +28,36 @@ namespace network{
         friend struct serialization::Max_serial_size;
         public:
         Message(const Message& other) noexcept:
-        op_hash_(other.op_hash_),op_status_(other.op_status_){}
+        op_hash_(other.op_hash_),op_status_(other.op_status_){
+            std::memcpy(reserved_.data(),
+                    other.reserved_.data(),
+                    other.reserved_.size());
+        }
         Message(Message&& other) noexcept:
-        op_hash_(std::move(other.op_hash_)),op_status_(other.op_status_){}
+        op_hash_(std::move(other.op_hash_)),
+        op_status_(std::move(other.op_status_)){
+            reserved_.swap(other.reserved_);
+            other.reserved_.fill(0);
+        }
         Message(Transaction op_status):op_status_(op_status){}
         Message() = default;
         Message& operator=(const Message& other) noexcept{
-            op_hash_=other.op_hash_;
-            op_status_=other.op_status_;
+            if(this!=&other){
+                op_hash_=other.op_hash_;
+                op_status_=other.op_status_;
+                std::memcpy(reserved_.data(),
+                    other.reserved_.data(),
+                    other.reserved_.size());
+            }
             return *this;
         }
         Message& operator=(Message&& other) noexcept{
-            op_hash_=other.op_hash_;
-            op_status_=other.op_status_;
+            if(this!=&other){
+                op_hash_=std::move(other.op_hash_);
+                op_status_=std::move(other.op_status_);
+                reserved_.swap(other.reserved_);
+                other.reserved_.fill(0);
+            }
             return *this;
         }
         const std::string& hash() const noexcept{
@@ -50,6 +68,12 @@ namespace network{
         }
         Message<Server_MsgT::TRANSACTION> 
             get_reply() const noexcept;
+        const Message& transaction() const noexcept{
+            return *this;
+        }
+        Message& transaction() noexcept{
+            return *this;
+        }
     };
 }
 
