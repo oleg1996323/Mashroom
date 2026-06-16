@@ -35,7 +35,12 @@ namespace network{
                 emplace<IndexParameters<T,F>>(
                     std::forward<IndexParameters<T,F>>(index));
         }
-
+        template<Data_t T,Data_f F>
+        IndexParameters<T,F>& add_index(){
+            return parameters_.emplace_back().
+                emplace<IndexParameters<T,F>>(
+                    IndexParameters<T,F>());
+        }
         const std::vector<IndexParameters_t>& parameters() const noexcept{
             return parameters_;
         }

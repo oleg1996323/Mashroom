@@ -5,8 +5,11 @@
 namespace network{
     template<>
     class Message<network::Server_MsgT::CREDENTIALS>{
+        uint16_t attempts_;
         using AccessMode = Data_a;
         AccessMode access_ = AccessMode::PUBLIC;
+        bool success_ = false;
+        
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -17,13 +20,27 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        public:
-        Message(AccessMode access){}
         Message() = default;
+        public:
+        Message(uint16_t attempts,
+                AccessMode access,
+                bool success):
+            attempts_(attempts),
+            access_(access),
+            success_(success){}
         Message(const Message&) = default;
         Message(Message&&) = default;
         Message& operator=(const Message& other) = default;
         Message& operator=(Message&& other) noexcept = default;
+        AccessMode access() const noexcept{
+            return access_;
+        }
+        bool success() const noexcept{
+            return success_;
+        }
+        uint16_t attempts_left() const noexcept{
+            return attempts_;
+        }
     };
 }
 

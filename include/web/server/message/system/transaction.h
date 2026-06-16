@@ -66,6 +66,9 @@ namespace network{
         Transaction state() const noexcept{
             return op_status_;
         }
+        void state(Transaction state) noexcept{
+            op_status_=state;
+        }
         Message<Client_MsgT::TRANSACTION> 
             get_reply() const noexcept;
         const Message& transaction() const noexcept{

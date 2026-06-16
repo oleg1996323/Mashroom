@@ -17,6 +17,7 @@ namespace network{
         template<auto>
         friend struct serialization::Max_serial_size;
         public:
+        Message() = default;
         Message(uint64_t version):
         version_(version){}
         Message(const Message& other):
@@ -31,7 +32,9 @@ namespace network{
             version_=other.version_;
             return *this;
         }
-        Message() = default;
+        uint64_t version() const noexcept{
+            return version_;
+        }
     };
 }
 

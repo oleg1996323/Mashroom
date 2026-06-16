@@ -24,6 +24,7 @@ struct __Data__{
     };
 
     enum class ACCESS:uint8_t{
+        DENIED,
         PUBLIC,
         PROTECTED,
         PRIVATE

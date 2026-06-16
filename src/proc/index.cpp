@@ -167,7 +167,7 @@ void Index::execute() noexcept{
 				if(path.add_.is<path::TYPE::HOST>()){
 					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
 					auto msg = network::Message<network::Client_MsgT::INDEX_REF>();
-					msg.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
+					msg.add_index<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
 					std::error_code err;
 					network::ConnectionHandle hconn=Mashroom::instance().connect(err,
 						path.path_,
@@ -179,8 +179,7 @@ void Index::execute() noexcept{
 						std::cout<<instance->error()->message()<<std::endl;
 						return;
 					}
-					std::error_code err;
-					decltype(auto) msg_reply = instance->get_result_frame()->data_frame();
+					decltype(auto) msg_reply = instance->received()->data_frame();
 					if(err!=std::error_code())
 						return;
 					auto add_data = [&path](auto&& block){

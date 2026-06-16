@@ -120,6 +120,14 @@ namespace network{
         using type = AppMsg<S>;
     };
 
+    using ClientAppMsg = AppMsg<Side::CLIENT>;
+    using ClientSysMsg = SystemMsg<Side::CLIENT>;
+    using ClientFileMsg = FileMsg<Side::CLIENT>;
+
+    using ServerAppMsg = AppMsg<Side::SERVER>;
+    using ServerSysMsg = SystemMsg<Side::SERVER>;
+    using ServerFileMsg = FileMsg<Side::SERVER>;
+
     template<Side S>
     using Msg = std::variant<std::monostate,
                         SystemMsg<S>,

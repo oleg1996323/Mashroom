@@ -17,46 +17,47 @@ namespace network{
     {
         MessageHandler<Side::CLIENT> recv_hmsg_;
         MessageHandler<Side::SERVER> send_hmsg_;
-
-        void __task__(std::error_code& err, network::Client_MsgT::type msg_id){
-            switch(msg_id){
-                case Client_MsgT::SERVER_STATUS:
-                    on_write(err);
-                    return;
-                case Client_MsgT::EXTRACT:
-                    //heavy task
-                    break;
-            }
+        std::optional<size_t> version_; //@todo
+        std::optional<Data_a> access_;
+        std::optional<Client_MsgT> waiting_;
+        void __index_process__(
+                std::stop_token token,ClientAppMsg msg) noexcept;
+        void __task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept;
+        void __enqueue_error__(std::error_code& err,
+                std::string description,
+                server::Status status,
+                ErrorCode code) noexcept
+        {
+            Message<Server_MsgT::ERROR> reply(
+                    code,
+                    ErrorPrint::message(
+                        code,
+                        std::move(description)),
+                        status
+                    );
+            io_context().serialize(reply);
         }
-
+        void __enqueue_error__(std::error_code& err,
+                std::string description,
+                server::Status status,
+                Message<Server_MsgT::TRANSACTION> transaction,
+                ErrorCode code) noexcept
+        {
+            Message<Server_MsgT::ERROR> reply(
+                    ErrorCode::INTERNAL_ERROR,
+                    ErrorPrint::message(
+                        code,
+                        std::move(description)),
+                        std::move(transaction),
+                        status
+                    );
+            io_context().serialize(reply);
+        }
         public:
-        virtual void on_read(std::error_code& err) noexcept override{
-            using namespace serialization;
-            err.clear();
-            io_context().receive(err,recv_hmsg_);
-            if(err) {
-                handle_receive_error(err);
-                return;
-            }
-            if(auto msg_id = recv_hmsg_.message_type();
-                msg_id.has_value())
-
-                
-            return;
-        }
-        virtual void on_write(std::error_code& err) noexcept override{
-            if(!send_hmsg_.has_message()){
-                err = std::make_error_code(std::errc::no_message);
-                return;
-            }
-            return;
-        }
-        virtual void on_task_done(std::error_code& err) noexcept override{
-
-        }
-        virtual void on_stop_requested(std::error_code& err) noexcept override{
-
-        }
+        virtual void on_read(std::error_code& err) noexcept override;
+        virtual void on_write(std::error_code& err) noexcept override;
+        virtual void on_task_done(std::error_code& err) noexcept override;
+        virtual void on_stop_requested(std::error_code& err) noexcept override;
         
         ServerConnectionProcess(
                 ConnectionHandle hconn,
@@ -67,7 +68,7 @@ namespace network{
                     Event event,
                     std::error_code& err) noexcept
         {
-
+            
         }
         virtual bool requestable() const noexcept override{
             return false;

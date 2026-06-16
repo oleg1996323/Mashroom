@@ -14,8 +14,8 @@
             "binaryDir": "${sourceDir}/build",
             "cmakeExecutable": "cmake",
             "cacheVariables": {
-                "CMAKE_CXX_COMPILER": "$env{HOME}/gcc-install/bin/g++",
-                "CMAKE_C_COMPILER": "$env{HOME}/gcc-install/bin/gcc",
+                "CMAKE_CXX_COMPILER": "$env{HOME}/gcc/gcc-install/bin/g++",
+                "CMAKE_C_COMPILER": "$env{HOME}/gcc/gcc-install/bin/gcc",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "OSTERLIB_PATH": "$env{HOME}/OsterLib-install"
             }

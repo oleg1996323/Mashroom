@@ -66,13 +66,6 @@ namespace network{
             }
             return *this;
         }
-        
-        template<template<Data_t T,Data_f F> typename INDEX,Data_t T,Data_f F>
-        IndexParameters<T,F>& add_index(INDEX<T,F> index){
-            static_assert(std::is_same_v<INDEX<T,F>,IndexParameters<T,F>>,
-                "mismatch indexing types");
-            return BaseIndexRequest::add_index(std::forward<INDEX<T,F>>(index));
-        }
     };
 }
 

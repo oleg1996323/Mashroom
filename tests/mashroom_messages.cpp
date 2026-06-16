@@ -8,10 +8,10 @@ TEST(NetworkMesssageHandler,ClientSide){
     MessageHandler<Side::CLIENT> hmsg;
     hmsg.emplace_message<MESSAGE_ID<Side::CLIENT>::SERVER_STATUS>();
     ASSERT_TRUE(hmsg.has_message());
-    ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::CLIENT>::SERVER_STATUS+1);
+    ASSERT_TRUE(hmsg.message_type().has_value());
+    ASSERT_EQ(*hmsg.message_type(),MESSAGE_ID<Side::CLIENT>::SERVER_STATUS);
     hmsg.clear();
-    ASSERT_EQ(hmsg.index(),0);
-    ASSERT_EQ(hmsg.emplace_message_by_id(MESSAGE_ID<Side::CLIENT>::INDEX_REF),ErrorCode::NONE);
+    ASSERT_EQ(hmsg.emplace_message(MESSAGE_ID<Side::CLIENT>::INDEX_REF),ErrorCode::NONE);
     ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::CLIENT>::INDEX_REF+1);
 }
 

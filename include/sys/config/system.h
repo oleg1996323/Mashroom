@@ -3,6 +3,10 @@
 #include <string_view>
 #include "sys/error_code.h"
 
+#ifndef __Mashroom_VERSION
+    #define __Mashroom_VERSION
+#endif
+
 namespace sys{
     std::string_view user_config_filename() noexcept;
     std::string_view system_config_filename() noexcept;
@@ -37,6 +41,9 @@ namespace sys{
         }
         static std::string default_cache_files_directory() noexcept{
             return get_app_data_dir();
+        }
+        constexpr size_t version() const noexcept{
+            return size_t(__Mashroom_VERSION);
         }
         private:
         fs::path log_dir_ = default_log_directory();

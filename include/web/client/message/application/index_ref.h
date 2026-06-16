@@ -21,14 +21,18 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
         Message() = default;
         Message(Message<Client_MsgT::TRANSACTION>
             transaction) 
             noexcept:
             Message<Client_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const Message& other) = delete;
+        Message(const Message& other) noexcept:
+        Message<Client_MsgT::TRANSACTION>(other),
+        BaseIndexRequest(other){}
         Message(Message&& other) noexcept:
+        Message<Client_MsgT::TRANSACTION>(std::move(other)),
         BaseIndexRequest(std::move(other)){}
         Message(utc_tp last_update){}
         Message& operator=(const Message& other) noexcept
@@ -46,12 +50,6 @@ namespace network{
                 BaseIndexRequest::operator=(std::move(other));
             }
             return *this;
-        }
-        template<template<Data_t T,Data_f F> typename INDEX,Data_t T,Data_f F>
-        IndexParameters<T,F>& add_index(INDEX<T,F> index){
-            static_assert(std::is_same_v<INDEX<T,F>,IndexParameters<T,F>>,
-                "mismatch indexing types");
-            return BaseIndexRequest::add_index(std::forward<INDEX<T,F>>(index));
         }
     };
 }

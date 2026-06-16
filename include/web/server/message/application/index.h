@@ -9,7 +9,7 @@ namespace network{
     template<>
     class Message<network::Server_MsgT::INDEX>:public Message<Server_MsgT::TRANSACTION>
     {
-        IndexResult blocks_;
+        std::vector<IndexResult> blocks_;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -46,6 +46,10 @@ namespace network{
                 blocks_=std::move(other.blocks_);
             }
             return *this;
+        }
+        template<Data_t T,Data_f F>
+        void add_block(BaseIndexResult<T,F> block) noexcept{
+            blocks_.emplace_back().emplace(std::move(block));
         }
     };
 }

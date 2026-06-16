@@ -26,6 +26,12 @@ namespace network{
         Message(Message&&) = default;
         Message& operator=(const Message& other) = default;
         Message& operator=(Message&& other) noexcept = default;
+        const std::string& login() const noexcept{
+            return login_;
+        }
+        const std::string& password() const noexcept{
+            return password_;
+        }
     };
 }
 

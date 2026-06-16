@@ -73,6 +73,22 @@ namespace network{
             }
             else static_assert(false,"Not implemented");
         }
+        template<typename MESSAGE_ID<S>::type MSG,typename... ARGS>
+        Message<MSG>& emplace_message(Message<MSG> msg) noexcept{
+            if constexpr(is_app_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_APP>();
+                return cat_data.emplace(std::move(msg));
+            }
+            else if constexpr(is_sys_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_SYS>();
+                return cat_data.emplace(std::move(msg));
+            }
+            else if constexpr(is_file_message_v<S,MSG>){
+                auto& cat_data = data_.template emplace<VARIANT_FILE>();
+                return cat_data.emplace(std::move(msg));
+            }
+            else static_assert(false,"Not implemented");
+        }
         void clear() noexcept{
             data_.template emplace<std::monostate>();
         }
@@ -104,6 +120,52 @@ namespace network{
                 return std::visit(visit,data_);
             }
             else return false;
+        }
+
+        template<typename MESSAGE_ID<S>::type MSG_T>
+        std::optional<std::reference_wrapper<const Message<MSG_T>>>
+            get_message() const noexcept
+        {
+            if constexpr (is_app_message_v<S,MSG_T>){
+                if(std::holds_alternative<
+                        typename MessageCategory<S,
+                            MessageCategoryEnum::APPLICATION>::type>(data_))
+                {
+                    const auto& cat = std::get<
+                                typename MessageCategory<
+                                S,MessageCategoryEnum::APPLICATION>::type>(data_);
+                    if(std::holds_alternative<Message<MSG_T>>(cat))
+                        return std::cref(std::get<Message<MSG_T>>(cat));
+                    else return std::nullopt;
+                }
+            }
+            else if constexpr (is_sys_message_v<S,MSG_T>){
+                if(std::holds_alternative<
+                        typename MessageCategory<S,
+                            MessageCategoryEnum::SYSTEM>::type>(data_))
+                {
+                    const auto& cat = std::get<
+                                typename MessageCategory<
+                                S,MessageCategoryEnum::SYSTEM>::type>(data_);
+                    if(std::holds_alternative<Message<MSG_T>>(cat))
+                        return std::cref(std::get<Message<MSG_T>>(cat));
+                    else return std::nullopt;
+                }
+            }
+            else if constexpr (is_file_message_v<S,MSG_T>){
+                if(std::holds_alternative<
+                        typename MessageCategory<S,
+                            MessageCategoryEnum::FILE>::type>(data_))
+                {
+                    const auto& cat = std::get<
+                                typename MessageCategory<
+                                S,MessageCategoryEnum::FILE>::type>(data_);
+                    if(std::holds_alternative<Message<MSG_T>>(cat))
+                        return std::cref(std::get<Message<MSG_T>>(cat));
+                    else return std::nullopt;
+                }
+            }
+            else static_assert(false,"not implemented category");
         }
 
         std::optional<typename MESSAGE_ID<S>::type> message_type() const noexcept{

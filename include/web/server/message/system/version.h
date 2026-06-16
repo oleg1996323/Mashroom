@@ -4,7 +4,6 @@
 namespace network{
     template<>
     class Message<network::Server_MsgT::VERSION>{
-        server::Status status_;
         uint64_t version_;
         template<bool,auto>
         friend struct serialization::Serialize;
@@ -17,17 +16,18 @@ namespace network{
         template<auto>
         friend struct serialization::Max_serial_size;
         public:
-        Message(uint64_t version, server::Status status):
-        status_(status),version_(version){}
+        Message(uint64_t version):
+        version_(version){}
         Message(const Message& other):
-        status_(other.status_),
         version_(other.version_){}
         Message(Message&& other):
-        status_(other.status_),
         version_(other.version_){}
         Message& operator=(const Message& other) = default;
         Message& operator=(Message&& other) noexcept = default;
         Message() = default;
+        uint64_t version() const noexcept{
+            return version_;
+        }
     };
 }
 
@@ -37,7 +37,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,network::Message<network::Server_MsgT::VERSION>>{
         using type = Message<network::Server_MsgT::VERSION>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.version_);
+            return serialize<NETWORK_ORDER>(msg,buf,msg.version_);
         }
     };
 
@@ -45,7 +45,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,network::Message<network::Server_MsgT::VERSION>>{
         using type = Message<network::Server_MsgT::VERSION>;
         SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.status_,msg.version_);
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.version_);
         }
     };
 
@@ -53,7 +53,7 @@ namespace serialization{
     struct Serial_size<Message<network::Server_MsgT::VERSION>>{
         using type = Message<network::Server_MsgT::VERSION>;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.status_,msg.version_);
+            return serial_size(msg.version_);
         }
     };
 
@@ -62,7 +62,7 @@ namespace serialization{
         using type = Message<network::Server_MsgT::VERSION>;
         static constexpr size_t value = []()
         {
-            return min_serial_size<decltype(type::status_),decltype(type::version_)>();
+            return min_serial_size<decltype(type::version_)>();
         }();
     };
 
@@ -71,7 +71,7 @@ namespace serialization{
         using type = Message<network::Server_MsgT::VERSION>;
         static constexpr size_t value = []()
         {
-            return max_serial_size<decltype(type::status_),decltype(type::version_)>();
+            return max_serial_size<decltype(type::version_)>();
         }();
     };
 }
