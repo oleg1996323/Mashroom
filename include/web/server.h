@@ -21,7 +21,7 @@ namespace network{
         Server() = default;
         server::Status status() const;
         virtual ~Server() override final{
-            close(false,0);
+            close(0);
         }
     };
 }

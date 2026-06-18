@@ -138,6 +138,7 @@ namespace network{
                         return std::cref(std::get<Message<MSG_T>>(cat));
                     else return std::nullopt;
                 }
+                else return std::nullopt;
             }
             else if constexpr (is_sys_message_v<S,MSG_T>){
                 if(std::holds_alternative<
@@ -151,6 +152,7 @@ namespace network{
                         return std::cref(std::get<Message<MSG_T>>(cat));
                     else return std::nullopt;
                 }
+                else return std::nullopt;
             }
             else if constexpr (is_file_message_v<S,MSG_T>){
                 if(std::holds_alternative<
@@ -164,6 +166,7 @@ namespace network{
                         return std::cref(std::get<Message<MSG_T>>(cat));
                     else return std::nullopt;
                 }
+                else return std::nullopt;
             }
             else static_assert(false,"not implemented category");
         }

@@ -40,7 +40,7 @@ class DataTestClass:public Data,public testing::Test{
         grid.base_.y2=0;
         path::Storage<false> any = path::Storage<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
-        std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         for(int d=0;d<=(sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1);++d)
         {
@@ -49,7 +49,7 @@ class DataTestClass:public Data,public testing::Test{
                     ptrdiff_t cur_pos = 1000*count++;
                     auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
                     auto err = std::error_code();
-                    FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
+                    data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,
                                 TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,

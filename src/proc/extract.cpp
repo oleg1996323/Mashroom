@@ -95,7 +95,7 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
             err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
             return ExtractedData();
         }
-        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
+        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
                                     msg->get().section_1_.reference_time(),
                                     grib.current_message_position(),
                                     grib.current_message_length().value(),
@@ -173,7 +173,7 @@ ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs
             err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
             return ExtractedData();
         }
-        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(
+        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(
             msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
             msg->get().section_1_.reference_time(),
             grib.current_message_position(),

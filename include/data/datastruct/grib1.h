@@ -231,7 +231,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         rewrite_indexes(other.index_);
     }
     void add_data(const path::Storage<false>& path,
-        const std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
+        const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
         std::error_code& err);
 
     void add_data(const path::Storage<false>& path,

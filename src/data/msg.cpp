@@ -4,9 +4,9 @@ using namespace boost;
 using namespace std::string_view_literals;
 
 template<>
-std::expected<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json(const boost::json::value& val){
+std::expected<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json(const boost::json::value& val){
     if(auto obj = val.if_object();obj){
-        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> result;
+        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> result;
         if(obj->contains("position") && obj->at("position").is_uint64())
             result.buf_pos_=obj->at("position").as_int64();
         if(obj->contains("message size") && obj->at("message size").is_uint64())
@@ -43,7 +43,7 @@ std::expected<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_
 }
 
 template<>
-boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val){
+boost::json::value to_json(const data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val){
     boost::json::object obj;
     
     obj["position"]=val.buf_pos_;
@@ -60,7 +60,7 @@ boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& v
 }
 
 // template<>
-// std::expected<FileMsgVariant,std::exception> from_json<FileMsgVariant>(const boost::json::value& val){
+// std::expected<data::FileMsgVariant,std::exception> from_json<data::FileMsgVariant>(const boost::json::value& val){
 //     if(!val.is_object())
 //         return std::unexpected(std::exception());
 //     else{
@@ -74,14 +74,14 @@ boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& v
 //             else if(obj.at("type").as_string()=="time series" && obj.at("format").as_string()=="grib v1")
 //                 if(!obj.contains("data"))
 //                     return std::unexpected(std::exception());
-//                 else return from_json<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(obj.at("data"));
+//                 else return from_json<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(obj.at("data"));
 //             else return std::unexpected(std::exception());
 //         }
 //     }
 // }
 
 // template<>
-// boost::json::value to_json(const FileMsgVariant& val){
+// boost::json::value to_json(const data::FileMsgVariant& val){
 //     boost::json::object obj;
 
 //     auto lambda = [&obj](const auto& value){
@@ -90,7 +90,7 @@ boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& v
 //             obj["type"]="undefined";
 //             obj["format"]="undefined";
 //         }
-//         else if constexpr(std::is_same_v<type,FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>){
+//         else if constexpr(std::is_same_v<type,data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>){
 //             obj["type"]="time series";
 //             obj["format"]="grib v1";
 //             obj["data"] = to_json(value);

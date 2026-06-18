@@ -9,7 +9,7 @@ TEST(Serialization, DataStruct_serialization){
     using namespace std::chrono;
     using namespace std::string_literals;
     std::vector<char> buf;
-    std::vector<decltype(FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>::buf_pos_)> buf_pos(100);
+    std::vector<decltype(data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>::buf_pos_)> buf_pos(100);
     std::ranges::iota(buf_pos,0);
     GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid_def;
     grid_def.base_.x1=18;
@@ -31,7 +31,7 @@ TEST(Serialization, DataStruct_serialization){
     scan.points_sub_j_dir = false;
     grid_def.base_.scan_mode = scan;
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> ids;
-    std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msgs;
+    std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msgs;
     utc_tp_t<std::chrono::seconds> time = std::chrono::sys_days(1990y/1/1);
     std::error_code err;
     DateTimeDiff diff(err,std::chrono::days(1));
@@ -40,7 +40,7 @@ TEST(Serialization, DataStruct_serialization){
     auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
     path::Storage<false> path = path::Storage<false>::file("any_path"s+to_data_format_name(Data_f::GRIB_v1).data(),utc_tp::clock::now());
     for(auto pos:buf_pos){
-        FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(std::move(grid_def),std::move(time),pos,300,228,tf,Organization::ECMWF,128,lvl,f_error);
+        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(std::move(grid_def),std::move(time),pos,300,228,tf,Organization::ECMWF,128,lvl,f_error);
         msgs.push_back(std::move(msg));
         time=diff+time;
     }

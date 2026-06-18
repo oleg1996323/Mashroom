@@ -15,7 +15,7 @@
 //         const auto& msg = grib.message();
 //         if(!msg.has_value())
 //             return std::unexpected(ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE));
-//         FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
+//         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
 //                                     std::move(msg.value().get().section_1_.date()),
 //                                     grib.current_message_position(),
 //                                     grib.current_message_length().value(),
@@ -53,7 +53,7 @@
 //         const auto msg = grib.message();
 //         if(!msg.has_value())
 //             throw std::runtime_error("Message undefined");
-//         FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
+//         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
 //                                     std::move(msg.value().get().section_1_.date()),
 //                                     grib.current_message_position(),
 //                                     grib.current_message_length().value(),

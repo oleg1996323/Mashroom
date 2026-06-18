@@ -48,7 +48,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path().string()),error_f));
                 continue;
             }
-            std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> index_local;
+            std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> index_local;
             do{
                 const auto& msg = grib.message();
                 if(!msg.has_value()){
@@ -56,7 +56,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path().string()),API::ErrorData::ErrorCode<API::GRIB1>::BAD_FILE_X1));
                     break;
                 }
-                FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
+                data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
                                             std::move(msg.value().get().section_1_.reference_time()),
                                             grib.current_message_position(),
                                             grib.current_message_length().value(),

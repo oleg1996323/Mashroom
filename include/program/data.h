@@ -170,7 +170,7 @@ class Data:public __Data__{
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }
     template<Data_t T, Data_f F>
-    void add_data(const path::Storage<false>& path,const std::vector<FileMsg<T,F>>& data){
+    void add_data(const path::Storage<false>& path,const std::vector<data::FileMsg<T,F>>& data){
         std::error_code err;
         data_struct<T,F>().add_data(path,data,err);
         if(err==std::error_code()){

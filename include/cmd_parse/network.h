@@ -19,7 +19,6 @@ namespace parse{
                 "close","close all connections with launched server");
         CLI::App * suspend_=app_->add_subcommand(
                 "suspend","suspend all connections with launched server");
-        bool wait_ = false;
         uint16_t timeout_ = 0;
         public:
         Network(CLI::App* app);

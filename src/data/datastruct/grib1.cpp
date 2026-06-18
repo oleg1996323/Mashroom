@@ -420,12 +420,12 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::rewrite_index(const std::s
 }
 
 void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Storage<false>& path,
-        const std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
+        const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
         std::error_code& err)
 {   
     if(!std::is_sorted(grib_msg.begin(),grib_msg.end(),[]
-    (const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& lhs,
-        const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& rhs)
+    (const data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& lhs,
+        const data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& rhs)
         {
             return lhs.date<rhs.date;
         }))

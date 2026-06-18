@@ -29,7 +29,7 @@ class GribDataStruct:public testing::Test{
         grid.base_.y2=0;
         auto any = path::Storage<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
-        std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         auto param=16;
         auto table_v=228;
@@ -40,7 +40,7 @@ class GribDataStruct:public testing::Test{
                     ptrdiff_t cur_pos = 1000*count++;
                     auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
                     auto err = std::error_code();
-                    auto msg = FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
+                    auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,
                                 Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
@@ -83,7 +83,7 @@ class DataTestClass:public Data,public testing::Test{
         grid.base_.y2=0;
         auto any = path::Storage<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
-        std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         for(int d=0;d<=(sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1);++d)
         {
@@ -92,7 +92,7 @@ class DataTestClass:public Data,public testing::Test{
                     ptrdiff_t cur_pos = 1000*count++;
                     auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
                     
-                    auto msg = FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
+                    auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,
                                 Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
@@ -275,7 +275,7 @@ class DataTestClass_1:public Data,public testing::Test{
         grid.base_.scan_mode.points_sub_j_dir=true;
         path::Storage<false> any;
         auto time = utc_tp::clock::now();
-        std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         for(int id = 1;id<=tables_by_id_.size();++id){
             uint64_t count = 0;
@@ -287,7 +287,7 @@ class DataTestClass_1:public Data,public testing::Test{
                         ptrdiff_t cur_pos = 1000*count++;
                         auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
                         auto err = std::error_code();
-                        auto msg = FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990+id)/month(id)/day(1))+days(d),
+                        auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990+id)/month(id)/day(1))+days(d),
                                     cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::UNINIT_REF_TIME,
                                         {static_cast<uint8_t>(6+id)},{static_cast<uint8_t>(0)}),
                                     tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);

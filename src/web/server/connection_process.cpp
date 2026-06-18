@@ -16,7 +16,6 @@ void
     static_assert((MSG_T==Client_MsgT::INDEX || MSG_T==Client_MsgT::INDEX_REF),
         "only client index message may be accepted");
     if constexpr (TYPE == Data_t::TIME_SERIES && FORMAT == Data_f::GRIB_v1){
-        network::Message<network::Server_MsgT::INDEX> rep_input;
         auto result = Mashroom::instance().data().find_all<TYPE,FORMAT>(
             index_param.common_,
             input.last_update_,
@@ -30,7 +29,7 @@ void
             index_param.grid_type_);
         if(!result.empty())
             //@todo add access mode
-            output.add_block<TYPE,FORMAT>(Data_a::PUBLIC,std::move(result));
+            output.add_block(std::move(result));
         else return;
     }
     else static_assert(false);
@@ -62,22 +61,34 @@ template<Client_MsgT::type MSG_T>
 }
 
 void ServerConnectionProcess::__index_process__(
-    std::stop_token token,ClientAppMsg appmsg) noexcept
+    std::stop_token stop,
+    ClientAppMsg appmsg) noexcept
 {   std::error_code err;
-    auto handle_msg = [this,token,&err]
-        <Client_MsgT::type MSG_T>
-        (const Message<MSG_T>& msg) ->void noexcept
+    auto dive_into = [this,&stop,&err](auto& in_app_msg)noexcept
     {
-        if constexpr (MSG_T==Client_MsgT::INDEX ||
-            MSG_T==Client_MsgT::INDEX_REF)
-        {
-            index_process(err,token,msg);
+        if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
+            err = std::make_error_code(std::errc::bad_message);
             return;
         }
-        else err = std::make_error_code(std::errc::bad_message);
-        return;
+        else{
+            auto handle_msg = [this,&stop,&err]
+                <Client_MsgT::type MSG_T>
+                (const Message<MSG_T>& msg) noexcept
+            {
+                if constexpr (MSG_T==Client_MsgT::INDEX ||
+                    MSG_T==Client_MsgT::INDEX_REF)
+                {
+                    index_process(err,stop,msg);
+                    return;
+                }
+                else err = std::make_error_code(std::errc::bad_message);
+                return;
+            };
+            handle_msg(in_app_msg);
+            return;
+        }
     };
-    std::visit(handle_msg,appmsg);
+    std::visit(dive_into,appmsg);
 }
 
 void extract(std::error_code& err,const Message<
@@ -300,7 +311,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
 
         case Client_MsgT::INDEX_REF:
         auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>()->get();
-        emplace_task(err,TaskMode::Thread,
+        emplace_binded_task<TaskMode::Thread>(err,
             &ServerConnectionProcess::__index_process__,
                 this,msg_ref);
     }

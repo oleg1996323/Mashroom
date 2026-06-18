@@ -29,11 +29,11 @@ int cpus = 1;
 IndexOutputFileFormat::token output_format_ = IndexOutputFileFormat::token::BINARY;
 bool host_ref_only_ = false;
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> __write_file__(const std::vector<FileMsg<TYPE,FORMAT>>& data);
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> __write_file__(const std::vector<data::FileMsg<TYPE,FORMAT>>& data);
 template<Data_t TYPE,Data_f FORMAT>
-std::vector<FileMsg<TYPE,FORMAT>> __index_file__(const fs::path& file);
+std::vector<data::FileMsg<TYPE,FORMAT>> __index_file__(const fs::path& file);
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> __index_write_file__(const fs::path& file);
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> __index_write_file__(const fs::path& file);
 public:
 void execute() noexcept;
 

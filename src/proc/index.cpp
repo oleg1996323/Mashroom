@@ -37,11 +37,11 @@ ErrorCode add_data(const DataStructVariation& data){
  * @return Return the names of created files with registered grib data
  */ 
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__write_file__(const std::vector<FileMsg<TYPE,FORMAT>>& data_){
-	std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> result;
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__write_file__(const std::vector<data::FileMsg<TYPE,FORMAT>>& data_){
+	std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> result;
 	if(!fs::exists(dest_directory_.value()))
 		throw std::runtime_error("Unavailable write directory"s + dest_directory_->c_str());
-	for(const FileMsg<TYPE,FORMAT>& msg:data_){
+	for(const data::FileMsg<TYPE,FORMAT>& msg:data_){
 		fs::path filename;
 		switch (output_format_)
 		{
@@ -78,12 +78,12 @@ std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__write_file__(cons
 
 namespace fs = std::filesystem;
 
-std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API::HGrib1& grib_file_handler){
-	std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> grib_msgs;
+std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API::HGrib1& grib_file_handler){
+	std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> grib_msgs;
 	do{
 		auto msg = grib_file_handler.message();
 		if(msg.has_value()){
-			FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& info = grib_msgs.emplace_back(std::move(msg.value().get().section_2_.define_grid()),
+			data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& info = grib_msgs.emplace_back(std::move(msg.value().get().section_2_.define_grid()),
 										std::move(msg.value().get().section_1_.reference_time()),
 										grib_file_handler.current_message_position(),
 										grib_file_handler.current_message_length().value(),
@@ -102,12 +102,12 @@ std::vector<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API::HGri
  * @brief Execute message indexing of concrete file.
  */
 template<Data_t TYPE,Data_f FORMAT>
-std::vector<FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
+std::vector<data::FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
 	API::HGrib1 grib;
-	std::vector<FileMsg<TYPE,FORMAT>> res;
+	std::vector<data::FileMsg<TYPE,FORMAT>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
+		data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
 		msg.err_=API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		res.emplace_back(std::move(msg));
 		return res;
@@ -117,12 +117,12 @@ std::vector<FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
 }
 
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> Index::__index_write_file__(const fs::path& file){
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__index_write_file__(const fs::path& file){
 	API::HGrib1 grib;
-	std::pair<fs::path,std::vector<FileMsg<TYPE,FORMAT>>> res;
+	std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> res;
 	using namespace API::ErrorData;
 	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-		FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
+		data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
 		msg.err_= API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
 		res.second.emplace_back(std::move(msg));
 		return res;
@@ -174,7 +174,7 @@ void Index::execute() noexcept{
 						path.add_.get<path::TYPE::HOST>().port_,
 						::app().config().client_config().current_settings());
 					auto instance = Mashroom::instance().request(
-						hconn,serialization::serial_size(msg),std::move(msg),std::monostate());
+						hconn,std::monostate(),std::move(msg),std::monostate());
 					if(instance->error().has_value()){
 						std::cout<<instance->error()->message()<<std::endl;
 						return;
@@ -193,7 +193,7 @@ void Index::execute() noexcept{
 						}
 					};
 					std::visit(add_data,msg_reply.data());
-					if(host_ref_only){
+					if(host_ref_only()){
 						//@download filepart
 					}
 				}

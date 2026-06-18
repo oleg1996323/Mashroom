@@ -19,6 +19,8 @@
 #include <expected>
 #include "API/grib1/include/sections/product/time_forecast.h"
 
+namespace data{
+
 template<Data_t T,Data_f F>
 struct FileMsg{
     static_assert(false,"Not implemented");
@@ -81,13 +83,15 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
     FileMsg() = default;
 };
 
-template<>
-std::expected<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& val);
+}
 
 template<>
-boost::json::value to_json(const FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);
+std::expected<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> from_json<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& val);
 
-// using FileMsgVariant = std::variant<std::monostate,FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
+template<>
+boost::json::value to_json(const data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);
+
+// using FileMsgVariant = std::variant<std::monostate,data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;
 
 // template<>
 // std::expected<FileMsgVariant,std::exception> from_json<FileMsgVariant>(const boost::json::value& val);
