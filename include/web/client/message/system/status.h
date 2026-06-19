@@ -5,10 +5,10 @@
 namespace network{
     template<>
     class Message<network::Client_MsgT::SERVER_STATUS>{
-        Message(const Message& other) = delete;
+        Message(const Message& other) = default;
         Message(Message&& other)=default;
         Message() = default;
-        Message& operator=(const Message& other) = delete;
+        Message& operator=(const Message& other) noexcept = default;
         Message& operator=(Message&& other) noexcept = default;
     };
 }

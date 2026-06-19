@@ -73,14 +73,16 @@ class Mashroom{
             err);
     }
 
-    template<typename DATA_FRAME_SEND, typename START_FRAME = std::monostate, typename END_FRAME = std::monostate>
-    decltype(auto)
-        request(network::ConnectionHandle hconn, START_FRAME &&start, DATA_FRAME_SEND &&data, END_FRAME &&end){
+    template<typename network::Client_MsgT::type MSG_T, typename START_FRAME = std::monostate, typename END_FRAME = std::monostate>
+    auto
+        request(network::ConnectionHandle hconn, START_FRAME start, network::Message<MSG_T> data, END_FRAME end){
+            network::MessageHandler<network::Side::CLIENT> handler_;
+            handler_.emplace_message<MSG_T>(std::move(data));
         return client_.request<network::MessageHandler<network::Side::SERVER>>(
             hconn,
-            std::forward<decltype(start)>(start),
-            std::forward<decltype(data)>(data),
-            std::forward<decltype(end)>(end));
+            std::forward<START_FRAME>(start),
+            std::move(handler_),
+            std::forward<END_FRAME>(end));
     }
     network::Server& server() noexcept{
         return server_;

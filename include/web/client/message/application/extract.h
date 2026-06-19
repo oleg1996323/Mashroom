@@ -35,11 +35,13 @@ namespace network{
             noexcept:
             Message<Client_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const Message& other) = delete;
+        Message(const Message& other) noexcept{
+            form_= other.form_;
+            file_=other.file_;
+        }
         Message(Message&& other) noexcept{
-            if(this!=&other){
-                *this = std::move(other);
-            }
+            form_= std::move(other.form_);
+            file_=other.file_;
         }
         Message& operator=(const Message& other) = delete;
         Message& operator=(Message&& other) noexcept{

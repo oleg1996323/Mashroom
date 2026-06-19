@@ -22,10 +22,26 @@ namespace network{
                     login_(login),
                     password_(password){}
         Message() = default;
-        Message(const Message&) = default;
-        Message(Message&&) = default;
-        Message& operator=(const Message& other) = default;
-        Message& operator=(Message&& other) noexcept = default;
+        Message(const Message& other) noexcept:
+        login_(other.login_),
+        password_(other.password_){}
+        Message(Message&& other) noexcept:
+        login_(std::move(other.login_)),
+        password_(std::move(other.password_)){}
+        Message& operator=(const Message& other) noexcept{
+            if(this!=&other){
+                login_=other.login_;
+                password_=other.password_;
+            }
+            return *this;
+        }
+        Message& operator=(Message&& other) noexcept{
+            if(this!=&other){
+                login_=std::move(other.login_);
+                password_=std::move(other.password_);
+            }
+            return *this;
+        }
         const std::string& login() const noexcept{
             return login_;
         }

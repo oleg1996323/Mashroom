@@ -51,6 +51,10 @@ namespace network{
         void add_block(BaseIndexResult<T,F> block) noexcept{
             blocks_.emplace_back().emplace(std::move(block));
         }
+        template<Data_t T,Data_f F>
+        void add_block(typename DataStruct<T,F>::find_all_t block) noexcept{
+            blocks_.emplace_back().emplace<typename DataStruct<T,F>::find_all_t>(std::move(block));
+        }
     };
 }
 

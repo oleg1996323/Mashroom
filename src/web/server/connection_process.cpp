@@ -29,7 +29,7 @@ void
             index_param.grid_type_);
         if(!result.empty())
             //@todo add access mode
-            output.add_block(std::move(result));
+            output.add_block<TYPE,FORMAT>(std::move(result));
         else return;
     }
     else static_assert(false);
