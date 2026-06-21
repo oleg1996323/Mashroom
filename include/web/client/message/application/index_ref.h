@@ -5,6 +5,9 @@
 #include "types/time_interval.h"
 #include "grib1/include/sections/grid/grid.h"
 #include "web/common/detail/transaction.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
@@ -22,6 +25,13 @@ namespace network{
         template<auto>
         friend struct serialization::Max_serial_size;
         public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return Message<Client_MsgT::TRANSACTION>::operator==(other) &&
+                    BaseIndexRequest::operator==(other);
+            }
+        #endif
         Message() = default;
         Message(Message<Client_MsgT::TRANSACTION>
             transaction) 

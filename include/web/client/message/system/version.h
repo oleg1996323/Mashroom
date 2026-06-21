@@ -1,6 +1,9 @@
 #pragma once
 #include "serialization.h"
 #include "web/common/msgdef.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
@@ -16,6 +19,13 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return version_==other.version_;
+            }
+        #endif
         public:
         Message() = default;
         Message(uint64_t version):
@@ -82,3 +92,5 @@ namespace serialization{
         }();
     };
 }
+
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::VERSION>>);

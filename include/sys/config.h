@@ -1,18 +1,10 @@
 #pragma once
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include "error_print.h"
 #include "error_code.h"
-#include <type_traits>
-#include <filesystem>
 
-#include "config/network.h"
-#include "config/user.h"
-#include "config/system.h"
+#include "sys/config/network.h"
+#include "sys/config/user.h"
+#include "sys/config/system.h"
 namespace fs = std::filesystem;
 
 #include "types/time_interval.h"
@@ -30,9 +22,7 @@ class Config{
     Config& operator=(Config&&) = delete;
     Config(const Config&) = delete;
     Config(Config&&) = delete;
-    ~Config(){
-        save();
-    }
+    ~Config(){}
     network::client::Config& client_config() noexcept{
         return network_configs_.client_config();
     }

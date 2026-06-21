@@ -10,6 +10,8 @@
 static int progress_line = 6;
 
 int main(int argc, char* argv[]){
+    Application::app();
+    parse::Mashroom mashroom(Mashroom::command_line());
     CLIHandler::make_instance(
         Application::config().system_config().cache_files_directory(),
         sys::history_filename());

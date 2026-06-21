@@ -56,8 +56,7 @@ namespace network{
                 data_ = std::move(other.data_);
             return *this;
         }
-        template<auto MSG,typename... ARGS>
-        requires MessageEnumConcept<MSG>
+        template<typename MESSAGE_ID<S>::type MSG,typename... ARGS>
         Message<MSG>& emplace_message(ARGS&&... args) noexcept{
             if constexpr(is_app_message_v<S,MSG>){
                 auto& cat_data = data_.template emplace<VARIANT_APP>();
@@ -77,15 +76,15 @@ namespace network{
         Message<MSG>& emplace_message(Message<MSG> msg) noexcept{
             if constexpr(is_app_message_v<S,MSG>){
                 auto& cat_data = data_.template emplace<VARIANT_APP>();
-                return cat_data.emplace(std::move(msg));
+                return cat_data.template emplace<Message<MSG>>(std::move(msg));
             }
             else if constexpr(is_sys_message_v<S,MSG>){
                 auto& cat_data = data_.template emplace<VARIANT_SYS>();
-                return cat_data.emplace(std::move(msg));
+                return cat_data.template emplace<Message<MSG>>(std::move(msg));
             }
             else if constexpr(is_file_message_v<S,MSG>){
                 auto& cat_data = data_.template emplace<VARIANT_FILE>();
-                return cat_data.emplace(std::move(msg));
+                return cat_data.template emplace<Message<MSG>>(std::move(msg));
             }
             else static_assert(false,"Not implemented");
         }

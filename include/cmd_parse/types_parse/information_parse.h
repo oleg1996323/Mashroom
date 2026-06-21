@@ -8,7 +8,7 @@
 #include <array>
 #include "sys/error_code.h"
 #include "sys/error_print.h"
-#include <boost/program_options.hpp>
+#include <boost/lexical_cast.hpp>
 
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
@@ -38,11 +38,6 @@ namespace boost{
     info_quantity lexical_cast(const std::string& input);
     template<>
     std::string lexical_cast(const info_quantity& input);
-    namespace program_options{
-        void validate(boost::any& v,
-                    const std::vector<std::string>& values,
-                    info_quantity* target_type, int);
-    }
 }
 
 #include <CLI/CLI.hpp>

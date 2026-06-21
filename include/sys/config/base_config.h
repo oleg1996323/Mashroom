@@ -7,7 +7,7 @@
 
 template<typename SETTINGS>
 class BaseConfig{
-    static std::unordered_map<std::string, 
+    std::unordered_map<std::string, 
         SETTINGS> configs_;
     
     std::string current_name_;
@@ -22,13 +22,12 @@ class BaseConfig{
     using settings_t = typename decltype(configs_)::mapped_type;
     virtual ~BaseConfig() = default;
     BaseConfig():
+        configs_({{"default",SETTINGS{}}}),
         current_name_("default"),
         current_settings_(std::ref(configs_.at(current_name_))){}
-    template<typename CONFIG_SETS>
-    bool add(const std::string& name, CONFIG_SETS&& settings) noexcept{
-        static_assert(std::is_same_v<std::decay_t<SETTINGS>,CONFIG_SETS>);
+    bool add(const std::string& name, SETTINGS&& settings) noexcept{
         if(!configurations().contains(name)){
-            configurations().insert({name,std::forward<CONFIG_SETS>(settings)});
+            configurations().insert({name,std::forward<SETTINGS>(settings)});
             return true;
         }
         else return false;
@@ -42,10 +41,9 @@ class BaseConfig{
         }
         else return false;
     }
-    template<typename CONFIG_SETS>
-    bool modify(const std::string& name,CONFIG_SETS&& settings) noexcept{
+    bool modify(const std::string& name,SETTINGS&& settings) noexcept{
         if(auto found = configurations().find(name);found!=configurations().end()){
-            configurations().erase(found);
+            found->second=std::forward<SETTINGS>(settings);
             return true;
         }
         else return false;

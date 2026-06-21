@@ -3,14 +3,6 @@
 #include "sys/error_print.h"
 #include "cast/grid.h"
 
-void boost::program_options::validate(boost::any& v,const std::vector<std::basic_string<char>>& values,
-                                    RepresentationType* target_type,int)
-{
-    namespace po = boost::program_options;
-    po::validators::check_first_occurrence(v);
-    const std::string& s = po::validators::get_single_string(values);
-    v = lexical_cast<RepresentationType>(s);
-}
 
 #include "parsing.h"
 #include "grib1/include/sections/grid/grid.h"

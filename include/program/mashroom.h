@@ -17,7 +17,7 @@
 #include "web/client.h"
 #include "concepts.h"
 #include <boost/algorithm/string.hpp>
-
+#include <CLI/CLI.hpp>
 
 namespace fs = std::filesystem;
 using namespace std::string_view_literals;
@@ -72,6 +72,7 @@ class Mashroom{
             settings,
             err);
     }
+    static CLI::App& command_line() noexcept;
 
     template<typename network::Client_MsgT::type MSG_T, typename START_FRAME = std::monostate, typename END_FRAME = std::monostate>
     auto

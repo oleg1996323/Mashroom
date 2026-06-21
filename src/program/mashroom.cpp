@@ -8,8 +8,16 @@
 #include "sys/log_err.h"
 #include "CLI/CLInavig.h"
 #include <CLI/CLI.hpp>
+#include <boost/program_options.hpp>
 
 namespace fs = std::filesystem;
+
+CLI::App& Mashroom::command_line() noexcept{
+    static std::unique_ptr<CLI::App> cli;
+    if(!cli)
+        cli = std::make_unique<CLI::App>("Mashroom","Geoinformational data indexer/extractor");
+    return *cli;
+}
 
 void Mashroom::__read_initial_data_file__(){
     using namespace boost;
@@ -92,8 +100,12 @@ void Mashroom::__write_initial_data_file__(){
 }
 ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
     try {
-        Application::command_line().parse(std::move(argv));
+        Mashroom::command_line().parse(std::move(argv));
+    }
+    catch(const CLI::CallForHelp& help){
+        std::cout<<command_line().help()<<std::endl;
     } catch (const CLI::ParseError &e) {
+        std::cout<<e.what()<<std::endl;
         return ErrorCode::COMMAND_INPUT_X1_ERROR;
     }
     return ErrorCode::NONE;

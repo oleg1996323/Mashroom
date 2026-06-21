@@ -5,6 +5,9 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "serialization.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
@@ -26,6 +29,15 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return  op_hash_==other.op_hash_ &&
+                        op_status_==other.op_status_ &&
+                        reserved_==other.reserved_;
+            }
+        #endif
         public:
         Message(const Message& other) noexcept:
         op_hash_(other.op_hash_),op_status_(other.op_status_){
@@ -66,8 +78,6 @@ namespace network{
         Transaction state() const noexcept{
             return op_status_;
         }
-        Message<Server_MsgT::TRANSACTION> 
-            get_reply() const noexcept;
         const Message& transaction() const noexcept{
             return *this;
         }
@@ -126,3 +136,4 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::TRANSACTION>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::TRANSACTION>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::TRANSACTION>>);
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::TRANSACTION>>);

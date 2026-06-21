@@ -8,6 +8,9 @@
 #include <boost/units/quantity.hpp>
 #include "web/common/detail/transaction.h"
 #include "detail/index/base_index.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 using info_units = boost::units::information::hu::byte::info;
 using info_quantity = boost::units::quantity<info_units>;
 
@@ -28,6 +31,16 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+                        FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return Message<Client_MsgT::TRANSACTION>::operator==(other) &&
+                    BaseIndexRequest::operator==(other) &&
+                    info_limits_==other.info_limits_;
+            }
+        #endif
         public:
         Message() = default;
         Message(Message<Client_MsgT::TRANSACTION>

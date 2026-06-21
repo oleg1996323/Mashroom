@@ -3,6 +3,7 @@
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 #include <boost/algorithm/hex.hpp>
+#include "serialization.h"
 
 namespace network{
     
@@ -13,20 +14,8 @@ namespace network{
     };
 
     namespace detail{
-        std::string to_string(const boost::uuids::detail::md5::digest_type &digest) noexcept{
-            using boost::uuids::detail::md5;
-            const auto intDigest = reinterpret_cast<const int*>(&digest);
-            std::string result;
-            boost::algorithm::hex(intDigest, intDigest + (sizeof(md5::digest_type)/sizeof(int)), std::back_inserter(result));
-            return result;
-        }
-        std::string to_string(const boost::uuids::detail::sha1::digest_type &digest) noexcept{
-            using boost::uuids::detail::sha1;
-            const auto intDigest = reinterpret_cast<const int*>(&digest);
-            std::string result;
-            boost::algorithm::hex(intDigest, intDigest + (sizeof(sha1::digest_type)/sizeof(int)), std::back_inserter(result));
-            return result;
-        }
+        std::string to_string(const boost::uuids::detail::md5::digest_type &digest) noexcept;
+        std::string to_string(const boost::uuids::detail::sha1::digest_type &digest) noexcept;
     }
 
     template<typename DIGEST>
@@ -39,6 +28,12 @@ namespace network{
     }
     
     class Hash{
+        template<bool,auto>
+        friend struct serialization::Serialize;
+        template<bool,auto>
+        friend struct serialization::Deserialize;
+        template<auto>
+        friend struct serialization::Serial_size;
         template<auto>
         friend struct serialization::Min_serial_size;
         template<auto>
@@ -67,7 +62,7 @@ namespace serialization{
     struct Serialize<NETWORK_ORDER,network::Hash>{
         using type = Hash;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return serialize<NETWORK_ORDER>(msg,buf,msg.value(),msg.algorithm());
+            return serialize<NETWORK_ORDER>(msg,buf,msg.hash_,msg.algo_);
         }
     };
 
@@ -75,7 +70,7 @@ namespace serialization{
     struct Deserialize<NETWORK_ORDER,network::Hash>{
         using type = Hash;
         SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
-            return deserialize<NETWORK_ORDER>(msg,buf,msg.value(),msg.algorithm());
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.hash_,msg.algo_);
         }
     };
 
@@ -83,7 +78,7 @@ namespace serialization{
     struct Serial_size<Hash>{
         using type = Hash;
         size_t operator()(const type& msg) const noexcept{
-            return serial_size(msg.value(),msg.algorithm());
+            return serial_size(msg.hash_,msg.algo_);
         }
     };
 

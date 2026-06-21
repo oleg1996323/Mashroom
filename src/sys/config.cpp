@@ -62,39 +62,42 @@ ErrorCode Config::load() noexcept{
 }
 
 ErrorCode Config::save() noexcept{
-    if(safe_write_to_file(
-        sys_settings_.configurations_directory(),
-        sys::system_config_filename().data(),
-        [this](std::ofstream& stream){
-            boost::json::value val = to_json(sys_settings_);
-            stream<<val.as_object();
-            stream.flush();
-            return true;
-        })!=std::error_code())
+    if(!directory_accessible(sys_settings_.configurations_directory()) || 
+            safe_write_to_file(
+                sys_settings_.configurations_directory(),
+                sys::system_config_filename().data(),
+                [this](std::ofstream& stream){
+                    boost::json::value val = to_json(sys_settings_);
+                    stream<<val.as_object();
+                    stream.flush();
+                    return false;
+                })!=std::error_code())
         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
                 "system settings file writing error",
                 AT_ERROR_ACTION::CONTINUE);
-    if(safe_write_to_file(
-        sys_settings_.configurations_directory(),
-        sys::user_config_filename().data(),
-        [this](std::ofstream& stream){
-            boost::json::value val = to_json(user_configs_);
-            stream<<val.as_object();
-            stream.flush();
-            return true;
-        })!=std::error_code())
+    if(!directory_accessible(sys_settings_.configurations_directory()) ||
+            safe_write_to_file(
+                sys_settings_.configurations_directory(),
+                sys::user_config_filename().data(),
+                [this](std::ofstream& stream){
+                    boost::json::value val = to_json(user_configs_);
+                    stream<<val.as_object();
+                    stream.flush();
+                    return false;
+                })!=std::error_code())
         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
                 "user configurations file writing error",
                 AT_ERROR_ACTION::CONTINUE);
-    if(safe_write_to_file(
-        sys_settings_.configurations_directory(),
-        sys::network_config_filename().data(),
-        [this](std::ofstream& stream){
-            boost::json::value val = to_json(network_configs_);
-            stream<<val.as_object();
-            stream.flush();
-            return true;
-        })!=std::error_code())
+    if(!directory_accessible(sys_settings_.configurations_directory()) ||
+            safe_write_to_file(
+                sys_settings_.configurations_directory(),
+                sys::network_config_filename().data(),
+                [this](std::ofstream& stream){
+                    boost::json::value val = to_json(network_configs_);
+                    stream<<val.as_object();
+                    stream.flush();
+                    return false;
+                })!=std::error_code())
         return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,
                 "network configurations file writing error",
                 AT_ERROR_ACTION::CONTINUE);

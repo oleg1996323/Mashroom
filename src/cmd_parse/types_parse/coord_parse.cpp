@@ -1,24 +1,7 @@
 #include "types_parse/coord_parse.h"
 #include <boost/regex.hpp>
 #include <iostream>
-
-void boost::program_options::validate(boost::any& v,const std::vector<std::string>& values,
-                                    std::optional<Coord>* target_type,int)
-{
-	namespace po = boost::program_options;
-	po::validators::check_first_occurrence(v);
-	const std::string& s = po::get_single_string(values);
-	v = lexical_cast<std::optional<Coord>>(s);
-}
-
-void boost::program_options::validate(boost::any& v,const std::vector<std::string>& values,
-                                    Coord* target_type,int)
-{
-	namespace po = boost::program_options;
-	po::validators::check_first_occurrence(v);
-	const std::string& s = po::get_single_string(values);
-	v = lexical_cast<Coord>(s);
-}
+#include <boost/lexical_cast.hpp>
 
 template<>
 std::optional<Coord> boost::lexical_cast(const std::string& input){
@@ -37,28 +20,27 @@ std::optional<Coord> boost::lexical_cast(const std::string& input){
 
 template<>
 Coord boost::lexical_cast(const std::string& input){
-    namespace po = boost::program_options;
 	boost::regex r = regex("^(lat(-?[0-9]+(?:\\.[0-9]+)?)-lon(-?[0-9]+(?:\\.[0-9]+)?))|(lon(-?[0-9]+(?:\\.[0-9]+)?)-lat(-?[0-9]+(?:\\.[0-9]+)?))$");
     boost::smatch match_reg;
     if(boost::regex_match(input,match_reg,r)){
         Coord coord;
         if(!match_reg[1].str().empty()){
-            std::cout<<"2: "<<match_reg[2]<<std::endl;
-            std::cout<<"3: "<<match_reg[3]<<std::endl;
+            // std::cout<<"2: "<<match_reg[2]<<std::endl;
+            // std::cout<<"3: "<<match_reg[3]<<std::endl;
             coord.lat_ = lexical_cast<Lat>(match_reg[2]);
             coord.lon_ = lexical_cast<Lon>(match_reg[3]);
         }
         else{
-            std::cout<<"5: "<<match_reg[5]<<std::endl;
-            std::cout<<"6: "<<match_reg[6]<<std::endl;
+            // std::cout<<"5: "<<match_reg[5]<<std::endl;
+            // std::cout<<"6: "<<match_reg[6]<<std::endl;
             coord.lat_ = lexical_cast<Lon>(match_reg[5]);
             coord.lon_ = lexical_cast<Lat>(match_reg[6]);
         }
         if(!is_correct_pos(coord))
-            throw po::validation_error(po::validation_error::invalid_option_value,input);
+            throw std::runtime_error(input);
         else return coord;
     }
-    else throw po::validation_error(po::validation_error::invalid_option_value,input);
+    else throw std::runtime_error(input);
 }
 
 template<>

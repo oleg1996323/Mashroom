@@ -54,25 +54,11 @@ path::Storage<false> boost::lexical_cast(const std::string& str){
     }
 }
 
-template<bool VIEW>
-std::string boost::lexical_cast(const path::Storage<VIEW>& input){
-    std::string result;
-    switch (input.type_)
-    {
-        case path::TYPE::FILE:
-            result+="file:";
-            break;
-        case path::TYPE::DIRECTORY:
-            result+="dir:";
-            break;
-        case path::TYPE::HOST:
-            result+="host:";
-            break;
-        default:
-            break;
-    }
-    result+=input.path_;
-    if(input.type_==path::TYPE::HOST)
-        result+=" port:"+std::get<path::Additional<path::TYPE::HOST>>(input.add_);
-    return result;
+template <>
+bool CLI::detail::lexical_cast<
+    path::Storage<false>>(
+        const std::string& input, path::Storage<false>& output)
+{
+    output = boost::lexical_cast<path::Storage<false>>(input);
+    return true;
 }

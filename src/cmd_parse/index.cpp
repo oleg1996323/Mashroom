@@ -21,9 +21,10 @@ namespace parse{
         "Output directory where the files with extracted data will be placed")->
         capture_default_str()->default_str([](){
             auto tmp_dir = boost::uuids::random_generator()();
-            return (::app().config().user_config().current_settings().output_files_root_dir/
+            auto str = (::app().config().user_config().current_settings().output_files_root_dir/
                 "index"/
                 std::string(tmp_dir.begin(),tmp_dir.end())).string();
+            return str;
         }());
         input_paths_ = app_->add_option(
             "--input-paths",input_paths_val_,
@@ -50,6 +51,9 @@ namespace parse{
         ->default_str([](){
             return boost::lexical_cast<std::string>(static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{});
         }());
+        app_->callback([this](){
+            this->execute();
+        });
     }
 
     void Index::execute(){

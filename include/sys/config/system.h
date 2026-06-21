@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <string_view>
 #include "sys/error_code.h"
+#include "boost_functional/json.h"
 
 #ifndef __Mashroom_VERSION
     #define __Mashroom_VERSION
@@ -20,10 +21,10 @@ namespace sys{
     
     class Config{
         public:
-        ErrorCode set_session_logging_directory(const fs::path& path) noexcept;
-        ErrorCode set_configurations_directory(const fs::path& path) noexcept;
-        ErrorCode set_network_files_directory(const fs::path& path) noexcept;
-        ErrorCode set_cache_files_directory(const fs::path& path) noexcept;
+        ErrorCode session_logging_directory(const fs::path& path) noexcept;
+        ErrorCode configurations_directory(const fs::path& path) noexcept;
+        ErrorCode network_files_directory(const fs::path& path) noexcept;
+        ErrorCode cache_files_directory(const fs::path& path) noexcept;
         const fs::path& session_logging_directory() const noexcept;
         const fs::path& configurations_directory() const noexcept;
         const fs::path& network_files_directory() const noexcept;
@@ -54,3 +55,10 @@ namespace sys{
 
     
 }
+
+template<>
+boost::json::value to_json(const sys::Config& val);
+
+template<>
+std::expected<sys::Config,std::exception> 
+        from_json(const boost::json::value& val);

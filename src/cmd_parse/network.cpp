@@ -6,6 +6,9 @@ namespace parse{
     Network::Network(CLI::App* app):app_(app){
         close_->add_option("--timeout",timeout_,"timeout closing in seconds");
         suspend_->add_option("--timeout", timeout_, "timeout suspending in seconds");
+        app_->callback([this](){
+            this->execute();
+        });
     }
     void Network::execute(){
         try{

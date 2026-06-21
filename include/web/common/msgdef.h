@@ -101,6 +101,10 @@ namespace network{
             INDEX,
             EXTRACT
         };
+
+        static constexpr size_t msg_number() noexcept{
+            return EXTRACT+1;
+        }
     };
 
 
@@ -130,6 +134,10 @@ namespace network{
             INDEX_REF,
             EXTRACT,
         };
+
+        static constexpr size_t msg_number() noexcept{
+            return EXTRACT+1;
+        }
     };
 
     template<Side S>

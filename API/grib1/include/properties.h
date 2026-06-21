@@ -23,6 +23,20 @@ struct SearchProperties{
     std::optional<TimeForecast> fcst_unit_;
     std::optional<Level> level_;
     std::optional<RepresentationType> grid_type_;
+
+    #ifdef DEBUG
+        bool operator==(const SearchProperties& other) const noexcept{
+            return parameters_==other.parameters_ &&
+            from_date_==other.from_date_ &&
+            to_date_==other.to_date_ &&
+            diff_==other.diff_ &&
+            position_==other.position_ &&
+            center_==other.center_ &&
+            fcst_unit_==other.fcst_unit_ &&
+            level_ == other.level_ &&
+            grid_type_==other.grid_type_;
+        }
+    #endif
 };
 
 namespace serialization{

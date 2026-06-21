@@ -1,6 +1,53 @@
 #include "config/web/server.h"
 #include "network/definitions.h"
 
+bool network::server::Config::push_to_black_list(const std::string& host) noexcept{
+    if(!host.empty() && !black_list_.contains(host)){
+        black_list_.insert(host);
+        if(white_list_.contains(host))
+            white_list_.erase(host);
+        return true;
+    }
+    else return false;
+}
+bool network::server::Config::push_to_white_list(const std::string& host) noexcept{
+    if(!host.empty() && !white_list_.contains(host)){
+        white_list_.insert(host);
+        if(black_list_.contains(host))
+            black_list_.erase(host);
+        return true;
+    }
+    else return false;
+}
+bool network::server::Config::remove_from_white_list(const std::string& host) noexcept{
+    if(!white_list_.contains(host))
+        return false;
+    white_list_.erase(host);
+    return true;
+}
+bool network::server::Config::remove_from_black_list(const std::string& host) noexcept{
+    if(!black_list_.contains(host))
+        return false;
+    black_list_.erase(host);
+    return true;
+}
+void network::server::Config::print_black_list(std::ostream& stream) const noexcept{
+    stream<<'[';
+    for(auto& host:black_list_)
+        stream<<host<<',';
+    if(!black_list_.empty())
+        stream.seekp(-1,std::ios_base::end);
+    stream<<']'<<std::endl;
+}
+void network::server::Config::print_white_list(std::ostream& stream) const noexcept{
+    stream<<'[';
+    for(auto& host:white_list_)
+        stream<<host<<',';
+    if(!black_list_.empty())
+        stream.seekp(-1,std::ios_base::end);
+    stream<<']'<<std::endl;
+}
+
 template<>
 boost::json::value to_json(const network::server::Config& val){
     using namespace boost;

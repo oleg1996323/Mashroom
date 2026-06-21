@@ -1,4 +1,5 @@
 #include "cmd_parse/config/client.h"
+#include "cmd_parse/types_parse/address.h"
 
 namespace parse{
     ClientConfig::OptionsSetting::OptionsSetting(CLI::App* app):

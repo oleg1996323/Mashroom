@@ -32,12 +32,6 @@ namespace parse{
     
     class Configuration{
         CLI::App* app_;
-        CLI::App * user_=app_->add_subcommand(
-                "user","user configuration");
-        CLI::App * system_=app_->add_subcommand(
-                "system","system configuration");
-        CLI::App * network_=app_->add_subcommand(
-                "network","network configuration");
         public:
         Configuration(CLI::App* app);
         void execute();

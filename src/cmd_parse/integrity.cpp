@@ -1,5 +1,5 @@
 #include "cmd_parse/integrity.h"
-
+#include "definitions/path_process.h"
 #include "sys/error_print.h"
 #include "sys/application.h"
 #include "sys/config.h"
@@ -16,6 +16,9 @@ namespace parse{
         threads")->
         capture_default_str()->
         default_val(16);
+        app_->callback([this](){
+            this->execute();
+        });
     }
 
     void Integrity::execute(){

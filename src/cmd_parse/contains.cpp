@@ -15,6 +15,9 @@ namespace parse{
         threads")->
         capture_default_str()->
         default_val(16);
+        app_->callback([this](){
+            this->execute();
+        });
     }
 
     void Contains::execute(){

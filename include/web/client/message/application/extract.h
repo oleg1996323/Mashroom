@@ -11,6 +11,9 @@
 #include "data/def.h"
 #include "web/common/detail/transaction.h"
 #include "web/client/message/application/detail/extract/extract_form.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{    
     template<>
@@ -28,24 +31,31 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        
         public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return form_==other.form_ &&
+                Message<Client_MsgT::TRANSACTION>::operator==(other) &&
+                file_==other.file_;
+            }
+        #endif
         Message() = default;
         Message(Message<Client_MsgT::TRANSACTION>
             transaction) 
             noexcept:
             Message<Client_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const Message& other) noexcept{
-            form_= other.form_;
-            file_=other.file_;
-        }
+        Message(const Message& other) noexcept = delete;
         Message(Message&& other) noexcept{
             form_= std::move(other.form_);
             file_=other.file_;
         }
         Message& operator=(const Message& other) = delete;
         Message& operator=(Message&& other) noexcept{
-            form_ = std::move(other.form_);
+            if(this!=&other)
+                form_ = std::move(other.form_);
             return *this;
         }
         void file(bool get_file) noexcept{

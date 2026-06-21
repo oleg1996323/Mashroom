@@ -30,6 +30,13 @@ struct ExtractRequestForm<Data_t::TIME_SERIES, Data_f::GRIB_v1>
     ExtractRequestForm(ExtractRequestForm&& other) noexcept;
     ExtractRequestForm& operator=(const ExtractRequestForm& other) = delete;
     ExtractRequestForm& operator=(ExtractRequestForm&& other) noexcept;
+    #ifdef DEBUG
+        bool operator==(const ExtractRequestForm& other) const noexcept{
+            return search_props_==other.search_props_ &&
+            t_separation_==other.t_separation_ &&
+            file_fmt_==other.file_fmt_;
+        }
+    #endif
 };
 
 using ExtractMeteoGrib = ExtractRequestForm<Data_t::TIME_SERIES, Data_f::GRIB_v1>;

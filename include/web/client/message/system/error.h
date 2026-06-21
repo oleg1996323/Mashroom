@@ -1,6 +1,9 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include "sys/error_code.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
@@ -18,6 +21,15 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return description_==other.description_ && 
+                    transaction_==other.transaction_ &&
+                    err_==other.err_;
+            }
+        #endif
         public:
         Message(ErrorCode error_code,
                     std::string description):
@@ -128,3 +140,4 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::ERROR>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::ERROR>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::ERROR>>);
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::ERROR>>);

@@ -203,3 +203,5 @@ namespace network{
         using type = Msg<Side::CLIENT>;
     };
 }
+
+static_assert(std::is_move_constructible_v<network::SystemMsg<network::Side::CLIENT>>);

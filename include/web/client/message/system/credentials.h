@@ -1,6 +1,10 @@
 #pragma once
 #include "web/common/msgdef.h"
 
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
+
 namespace network{
     template<>
     class Message<network::Client_MsgT::CREDENTIALS>{
@@ -16,6 +20,13 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return login_==other.login_ && password_==other.password_;
+            }
+        #endif
         public:
         Message(std::string login,
                 std::string password):
@@ -102,3 +113,4 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::CREDENTIALS>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::CREDENTIALS>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::CREDENTIALS>>);
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::CREDENTIALS>>);

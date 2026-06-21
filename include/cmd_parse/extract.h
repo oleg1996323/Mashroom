@@ -24,7 +24,7 @@ namespace parse{
         CLI::Option* level_;
         CLI::Option* grid_;
         CLI::Option* output_fmt_;
-        CLI::Option* time_interval_;
+        CLI::App* time_interval_;
 
         std::string output_dir_val_;
         std::vector<std::string> input_paths_val_;
@@ -38,7 +38,12 @@ namespace parse{
         std::string time_forecast_val_;
         std::string level_val_;
         std::vector<std::string> grid_val_;
-        DateTimeDiff time_interval_val_;
+        uint32_t years = 0;
+        uint32_t months = 0;
+        uint32_t days = 0;
+        uint32_t hours = 0;
+        uint32_t minutes = 0;
+        uint32_t seconds = 0;
         ::OutputDataFileFormats output_fmt_val_;
         public:
         Extract(CLI::App* app);

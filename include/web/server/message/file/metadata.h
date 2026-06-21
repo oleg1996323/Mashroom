@@ -25,10 +25,26 @@ namespace network
             noexcept:
             Message<Server_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const Message& other) = delete;
-        Message(Message&& other)=default;
-        Message& operator=(const Message& other) = delete;
-        Message& operator=(Message&& other) noexcept = default;
+        Message(const Message& other) noexcept:
+        Message<Server_MsgT::TRANSACTION>(other),
+        file_data_(other.file_data_){}
+        Message(Message&& other) noexcept:
+        Message<Server_MsgT::TRANSACTION>(std::move(other)),
+        file_data_(std::move(other.file_data_)){}
+        Message& operator=(const Message& other) noexcept{
+            if(this!=&other){
+                Message<Server_MsgT::TRANSACTION>::operator=(other);
+                file_data_ = other.file_data_;
+            }
+            return *this;
+        }
+        Message& operator=(Message&& other) noexcept{
+            if(this!=&other){
+                Message<Server_MsgT::TRANSACTION>::operator=(std::move(other));
+                file_data_ = std::move(other.file_data_);
+            }
+            return *this;
+        }
         const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
             return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
         }

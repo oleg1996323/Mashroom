@@ -11,34 +11,45 @@ TEST(NetworkMesssageHandler,ClientSide){
     ASSERT_TRUE(hmsg.message_type().has_value());
     ASSERT_EQ(*hmsg.message_type(),MESSAGE_ID<Side::CLIENT>::SERVER_STATUS);
     hmsg.clear();
-    ASSERT_EQ(hmsg.emplace_message(MESSAGE_ID<Side::CLIENT>::INDEX_REF),ErrorCode::NONE);
-    ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::CLIENT>::INDEX_REF+1);
+    hmsg.emplace_message<Client_MsgT::INDEX_REF>();
 }
 
 TEST(NetworkMesssageHandler,ServerSide){
     MessageHandler<Side::SERVER> hmsg;
     hmsg.emplace_message<MESSAGE_ID<Side::SERVER>::SERVER_STATUS>();
     ASSERT_TRUE(hmsg.has_message());
-    ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::SERVER>::SERVER_STATUS+1);
+    auto type = hmsg.message_type();
+    ASSERT_TRUE(type.has_value());
+    ASSERT_EQ(*type,Server_MsgT::SERVER_STATUS);
     hmsg.clear();
-    ASSERT_EQ(hmsg.index(),0);
-    
-    ASSERT_EQ(hmsg.emplace_message_by_id(MESSAGE_ID<Side::SERVER>::DATA_REPLY_INDEX_REF),ErrorCode::NONE);
-    ASSERT_EQ(hmsg.index(),MESSAGE_ID<Side::SERVER>::DATA_REPLY_INDEX_REF+1);
+    ASSERT_FALSE(hmsg.has_message());
+    type = hmsg.message_type();
+    ASSERT_FALSE(type.has_value());    
 }
 
 TEST(NetworkMesssageHandler,MessageHandlerSerializationTest){
-    MessageHandler<Side::CLIENT> handler;
-    handler.emplace_message_by_id(Client_MsgT::INDEX_REF);
-    network::list_message<Side::CLIENT>::type var;
-    var = network::Message<Client_MsgT::INDEX_REF>();
-    ASSERT_EQ(serialization::serial_size(handler),serialization::serial_size(var));
-    std::vector<char> buffer;
-    ASSERT_EQ(serialization::serialize_network(handler,buffer),serialization::SerializationEC::NONE);
-    serialization::StreamSerializer ser;
-    ser.push_view(buffer);
-    ASSERT_EQ(serialization::deserialize_network(var,ser),serialization::SerializationEC::NONE);
-    ASSERT_TRUE(std::holds_alternative<network::Message<Client_MsgT::INDEX_REF>>(var));
+    MessageHandler<Side::CLIENT> send_;
+    MessageHandler<Side::CLIENT> recv_;
+    auto variants_test = [&]<size_t ENUM>(){
+        constexpr Client_MsgT::type ID = static_cast<Client_MsgT::type>(ENUM);
+        send_.emplace_message<ID>();
+        ASSERT_TRUE(send_.has_message());
+        ASSERT_EQ(send_.message_type().value(),ID);
+        std::vector<char> buffer;
+        ASSERT_EQ(serialization::serialize_network(send_,buffer),serialization::SerializationEC::NONE);
+        serialization::StreamSerializer ser;
+        ser.push_view(buffer);
+        ASSERT_EQ(serialization::deserialize_network(recv_,ser),serialization::SerializationEC::NONE);
+        ASSERT_TRUE(recv_.has_message());
+        ASSERT_EQ(recv_.message_type().value(),ID);
+        ASSERT_EQ(recv_.get_message<ID>()->get(),send_.get_message<ID>()->get());
+        send_.clear();
+        recv_.clear();
+    };
+    auto test = [&]<size_t... SZ>(std::index_sequence<SZ...> idx){
+        (variants_test.template operator()<SZ>(),...);
+    };
+    test(std::make_index_sequence<MESSAGE_ID<Side::CLIENT>::msg_number()>());
 }
 
 class DataTestClass_1:public Data,public testing::Test{

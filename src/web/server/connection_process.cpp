@@ -42,7 +42,7 @@ template<Client_MsgT::type MSG_T>
 {
     static_assert((MSG_T==Client_MsgT::INDEX || MSG_T==Client_MsgT::INDEX_REF),
         "only client index message may be accepted");
-    const auto& transaction = msg.transaction().get_reply();
+    const auto& transaction = get_reply(msg.transaction());
     ::Message<Server_MsgT::INDEX> rep_msg(transaction);
     auto find_data_proxy = [&](const auto& val){
         if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(val)>>)
@@ -257,7 +257,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::PROGRESS>();
             if(msg_ref.has_value()){
                 const auto& msg_progress = msg_ref->get();
-                io_context().serialize(Message<Server_MsgT::PROGRESS>(msg_progress.get_reply()));
+                io_context().serialize(Message<Server_MsgT::PROGRESS>(get_reply(msg_progress)));
             }
             else{
                 __enqueue_error__(err,

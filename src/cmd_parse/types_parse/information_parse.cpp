@@ -78,16 +78,6 @@ namespace parse{
     }
 }
 
-
-void boost::program_options::validate(boost::any& v,
-              const std::vector<std::string>& values,
-              info_quantity* target_type, int)
-{
-    validators::check_first_occurrence(v);
-    const string& s = validators::get_single_string(values);
-    v = lexical_cast<info_quantity>(s);
-}
-
 template<>
 info_quantity boost::lexical_cast(const std::string& input){
     static boost::regex r("^(-?(0|[1-9][0-9]*)(\\.[0-9]+)?)[ ]*([a-zA-Z]+)$");

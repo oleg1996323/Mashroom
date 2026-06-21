@@ -6,17 +6,16 @@ Application::Application():
 {}
 
 Application& Application::app(){
-    return *app_;
+    static std::unique_ptr<Application> app;
+    if(!app)
+        app=std::make_unique<Application>();
+    return *app;
 }
 LogError& Application::log(){
     return *(app().logger_);
 }
 Config& Application::config(){
     return *(app().conf_);
-}
-CLI::App& Application::command_line(){
-    static CLI::App cli;
-    return cli;
 }
 std::string_view Application::program_name(){
     return program_invocation_name;

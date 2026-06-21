@@ -1,12 +1,23 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include "serialization.h"
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
     class Message<network::Client_MsgT::SERVER_STATUS>{
-        Message(const Message& other) = default;
-        Message(Message&& other)=default;
+        public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return true;
+            }
+        #endif
+        public:
+        Message(const Message& other) noexcept = default;
+        Message(Message&& other) noexcept =default;
         Message() = default;
         Message& operator=(const Message& other) noexcept = default;
         Message& operator=(Message&& other) noexcept = default;
@@ -62,3 +73,4 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::SERVER_STATUS>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::SERVER_STATUS>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::SERVER_STATUS>>);
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::SERVER_STATUS>>);

@@ -11,7 +11,6 @@ class LogError;
 class Application;
 
 class Application{
-    static std::unique_ptr<Application> app_;
     std::unique_ptr<Config> conf_;
     std::unique_ptr<LogError> logger_;
     std::string_view program_name_;
@@ -20,13 +19,11 @@ class Application{
     static Application& app();
     static LogError& log();
     static Config& config();
-    static CLI::App& command_line();
     static std::string_view program_name();
     private:
 
     // static std::unique_ptr<ProxyDataInfo> d_info_;
 };
 
-inline std::unique_ptr<Application> Application::app_=std::make_unique<Application>();
 Application& app();
 LogError& log();

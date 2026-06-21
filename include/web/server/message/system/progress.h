@@ -54,7 +54,6 @@ namespace network{
             state_=std::move(other.state_);
             return *this;
         }
-        Message<Client_MsgT::PROGRESS> get_reply() const noexcept;
         const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
             return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
         }

@@ -6,7 +6,6 @@
 #include "proc/index.h"
 #include "sys/application.h"
 #include "sys/config.h"
-#include <boost/program_options.hpp>
 
 namespace parse{
     SystemConfig::SystemConfig(CLI::App* app):
@@ -35,23 +34,26 @@ namespace parse{
         ->default_val(::app().config().system_config().
             network_files_directory())
         ->capture_default_str();
+        app_->callback([this](){
+            this->execute();
+        });
     }
     void SystemConfig::execute(){
         if(log_dir_->count()){
             ::app().config().system_config().
-            set_session_logging_directory(log_dir_->as<std::string>());
+            session_logging_directory(log_dir_->as<std::string>());
         }
         if(config_dir_->count()){
             ::app().config().system_config().
-            set_configurations_directory(config_dir_->as<std::string>());
+            configurations_directory(config_dir_->as<std::string>());
         }
         if(cache_files_dir_->count()){
             ::app().config().system_config().
-            set_cache_files_directory(cache_files_dir_->as<std::string>());
+            cache_files_directory(cache_files_dir_->as<std::string>());
         }
         if(network_files_dir_->count()){
             ::app().config().system_config().
-            set_network_files_directory(network_files_dir_->as<std::string>());
+            network_files_directory(network_files_dir_->as<std::string>());
         }
     }
 
@@ -60,6 +62,9 @@ namespace parse{
     {
         server_ = app_->add_subcommand("server","server configuration");
         client_ = app_->add_subcommand("client","client configuration");
+        app_->callback([this](){
+            this->execute();
+        });
     }
     void NetworkConfig::execute(){
         if(app_->got_subcommand("server")){
@@ -73,19 +78,20 @@ namespace parse{
     }
 
     Configuration::Configuration(CLI::App* app):
-    app_(app){}
+    app_(app){
+        CLI::App* user=app_->add_subcommand(
+                "user","user configuration");
+        static parse::UserConfig user_obj(user);
+        CLI::App* system=app_->add_subcommand(
+                "system","system configuration");
+        static parse::SystemConfig system_obj(system);
+        CLI::App* network=app_->add_subcommand(
+                "network","network configuration");
+        static parse::NetworkConfig network_obj(network);
+        app_->callback([this](){
+            this->execute();
+        });
+    }
     void Configuration::execute(){
-        if(app_->got_subcommand(user_)){
-            static parse::UserConfig user_obj(user_);
-            user_obj.execute();
-        }
-        else if(app_->got_subcommand(system_)){
-            static parse::SystemConfig system_obj(user_);
-            system_obj.execute();
-        }
-        else{
-            static parse::NetworkConfig network_obj(user_);
-            network_obj.execute();
-        }
     }
 }

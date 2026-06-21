@@ -4,6 +4,9 @@
 #include "web/common/detail/transaction.h"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif
 
 namespace network{
     template<>
@@ -20,8 +23,15 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        Message() = default;
         public:
+        #ifdef DEBUG
+            FRIEND_TEST(NetworkMesssageHandler,MessageHandlerSerializationTest);
+            bool operator==(const Message& other) const noexcept{
+                return Message<Client_MsgT::TRANSACTION>::operator==(other);
+            }
+        #endif
+        public:
+        Message() = default;
         Message(Message<Client_MsgT::TRANSACTION>
             transaction) 
             noexcept:
@@ -98,3 +108,4 @@ static_assert(serialization::deserialize_concept<true,network::Message<network::
 static_assert(serialization::deserialize_concept<false,network::Message<network::Client_MsgT::PROGRESS>>);
 static_assert(serialization::serialize_concept<true,network::Message<network::Client_MsgT::PROGRESS>>);
 static_assert(serialization::serialize_concept<false,network::Message<network::Client_MsgT::PROGRESS>>);
+static_assert(std::is_move_constructible_v<network::Message<network::Client_MsgT::PROGRESS>>);

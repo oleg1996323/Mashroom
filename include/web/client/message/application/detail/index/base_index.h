@@ -53,6 +53,14 @@ namespace network{
         void last_update(utc_tp last_upd) noexcept{
             last_update_ = last_upd;
         }
+        bool operator==(const BaseIndexRequest& other) const noexcept{
+            return std::equal(
+                        parameters_.begin(),
+                        parameters_.end(),
+                        other.parameters_.begin(),
+                        other.parameters_.end()) &&
+                        last_update_==other.last_update_;
+        }
     };
 }
 

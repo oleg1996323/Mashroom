@@ -1,4 +1,5 @@
 #include "cmd_parse/config/server.h"
+#include "cmd_parse/types_parse/address.h"
 
 namespace parse{
     ServerConfig::OptionsSetting::OptionsSetting(CLI::App* app):

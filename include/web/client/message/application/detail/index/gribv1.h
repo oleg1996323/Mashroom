@@ -84,6 +84,24 @@ struct IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
             Data_f::GRIB_v1>>& common_data_properties() 
                                 const
                                 noexcept;
+    bool operator==(const IndexParameters& other) const noexcept{
+        return 
+            std::equal(
+                    common_.begin(),
+                    common_.end(),
+                    other.common_.begin(),
+                    other.common_.end()) &&
+            from_==other.from_ &&
+            to_==other.to_ &&
+            tdiff_==other.tdiff_ &&
+            forecast_preference_==other.forecast_preference_ &&
+            level_==other.level_ &&
+            top_==other.top_ &&
+            bottom_==other.bottom_ &&
+            left_==other.left_ &&
+            right_==other.right_ &&
+            grid_type_==other.grid_type_;
+    }
 };
 using IndexParameters_t = std::variant<std::monostate,
     IndexParameters<Data_t::TIME_SERIES,Data_f::GRIB_v1>>;

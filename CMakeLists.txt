@@ -28,16 +28,16 @@ option(PERMANENT_GET ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,$ENV{LD_LIBRARY_PATH}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lzip -static-libstdc++")
-add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10")
+add_compile_options("-fPIC" "-O0" "-fconcepts-diagnostics-depth=10" "-fdiagnostics-all-candidates")
 
 #getting source files from modules
 file(GLOB_RECURSE ALL_SOURCES LIST_DIRECTORIES false ${CMAKE_CURRENT_LIST_DIR}/src/**.cpp)
 file(GLOB_RECURSE CLparse_SOURCES ${CMAKE_SOURCE_DIR}/src/cmd_parse/**.cpp)
-file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/include/web/**.h 
-                                ${CMAKE_SOURCE_DIR}/src/web/**.cpp)
+file(GLOB_RECURSE Network_SOURCES ${CMAKE_SOURCE_DIR}/src/web/**.cpp)
 file(GLOB_RECURSE Sys_SOURCES ${CMAKE_SOURCE_DIR}/src/sys/**.cpp)
 file(GLOB_RECURSE Mashroom_SOURCES ${CMAKE_SOURCE_DIR}/src/**.cpp)
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/src/(web|cmd_parse|sys)/*")
+message(STATUS "System sources: ${Sys_SOURCES}")
 list(FILTER Mashroom_SOURCES EXCLUDE REGEX "/main.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/bin)
@@ -71,7 +71,11 @@ add_library(system SHARED ${Sys_SOURCES})
 target_include_directories(system PRIVATE ${CMAKE_SOURCE_DIR}/include/sys ${CMAKE_SOURCE_DIR}/include ${OsterLib_INCLUDE_DIRS})
 target_compile_definitions(system PUBLIC LOG_DIR="${LOG_DIRECTORY}" CONFIG_MASHROOM_DIR_REL="${CONFIG_REL_HOME_DIR}"
         NETWORK_MASHROOM_FILES_DIR="${NETWORK_FILES_DIR}" SYSTEM_MASHROOM_FILES_DIR)
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial INTERFACE OsterLib::network INTERFACE GIAPI)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    message(STATUS "DEBUG defined")
+    target_compile_definitions(system PUBLIC DEBUG)
+endif()
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::boost_functional OsterLib::network INTERFACE GIAPI)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
@@ -100,7 +104,8 @@ target_link_libraries(Mashroom_lib PUBLIC GIAPI
                     OsterLib::bytes
                     OsterLib::utilities
                     OsterLib::compressor
-                    OsterLib::types)
+                    OsterLib::types
+                    Boost::program_options)
 target_include_directories(Mashroom_lib 
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR} 
     INTERFACE OsterLib::network)
