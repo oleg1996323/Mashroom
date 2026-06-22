@@ -38,7 +38,7 @@ namespace user{
                                                 OutputDataFileFormats::ARCHIVED;
     };
 
-    class Config:public BaseConfig<user::Settings>{
+    class Config:public config::detail::BaseConfig<user::Settings>{
         public:
         Config()=default;
     };

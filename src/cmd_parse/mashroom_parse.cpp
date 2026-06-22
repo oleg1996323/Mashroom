@@ -43,7 +43,7 @@ namespace parse{
         "server activities");
         static std::unique_ptr<parse::Network> network = std::make_unique<parse::Network>(server_);
         CLI::App* exit_ = app_->add_subcommand("exit","Exit from program");
-        exit_->add_flag("--save","flag if saving is needed before exit");
+        exit_->add_flag("--save","flag if saving is needed before exit")->expected(0,1);
         app_->callback([this](){
             this->execute();
         });

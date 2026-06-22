@@ -51,15 +51,7 @@ void network::server::Config::print_white_list(std::ostream& stream) const noexc
 template<>
 boost::json::value to_json(const network::server::Config& val){
     using namespace boost;
-    json::object map;
-    boost::json::array configurations;
-    for(auto& [name,settings]:val.configurations()){
-        json::object tmp;
-        tmp["name"] = name;
-        tmp["settings"] = to_json(settings);
-        configurations.push_back(tmp);
-    }
-    map["configurations"] = std::move(configurations);
+    json::object map = val.base_to_json().as_object();
     map["black list"] = to_json(val.black_list());
     map["white list"] = to_json(val.white_list());
     return map;
@@ -71,32 +63,9 @@ std::expected<network::server::Config,std::exception>
     network::server::Config result;
     if(val.is_object()){
         auto& c = val.as_object();
-        if(c.contains("configurations")){
-            if(c.at("configurations").is_array()){
-                auto& arr = c.at("configurations").as_array();
-                for(auto& arr_val:arr){
-                    if(arr_val.is_object()){
-                        auto& pair = arr_val.as_object();
-                        if(pair.contains("name") && pair.contains("settings"))
-                            if(auto name_tmp = from_json<decltype(result)::name_t>(pair.at("name"));
-                                name_tmp.has_value())
-                            {
-                                if(name_tmp.value().empty())
-                                    return std::unexpected(
-                                        std::invalid_argument("\"name\" empty"));
-                                if(auto sets_tmp = from_json<decltype(result)::settings_t>(pair.at("settings"));
-                                    sets_tmp.has_value())
-                                    result.add(name_tmp.value(),std::move(sets_tmp.value()));                                
-                            }
-                            else if(pair.at("name").is_null())
-                                return std::unexpected(
-                                    std::invalid_argument("\"name\" empty"));
-                            else return std::unexpected(
-                                    std::invalid_argument("\"name\" not string"));
-                    }
-                }
-            }
-        }
+        if(auto base_res = result.base_from_json(val);
+            base_res.has_value())
+            return std::unexpected(base_res.value());
         if(c.contains("black list"))
             if(auto tmp = from_json<network::server::Config::black_list_t>(c.at("black list"));
                 tmp.has_value()){
@@ -109,6 +78,9 @@ std::expected<network::server::Config,std::exception>
                     for(auto& host:tmp.value())
                         result.push_to_white_list(host);
     }
+    else if(val.is_null())
+        return result;
+    else return std::unexpected(std::invalid_argument("not object-type in client-config"));
     return result;
 }
 

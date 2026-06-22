@@ -7,7 +7,7 @@
 
 namespace network::server{
 
-class Config:public BaseConfig<network::server::Settings>{
+class Config:public config::detail::BaseConfig<network::server::Settings>{
     std::unordered_set<std::string> black_list_;
     std::unordered_set<std::string> white_list_; //@todo save credentials
     public:

@@ -9,13 +9,6 @@
 namespace parse{
     class Index{
         CLI::App* app_;
-        CLI::Option* jobs_;
-        CLI::Option* output_dir_;
-        CLI::Option* input_paths_;
-        CLI::Option* format_;
-        CLI::Option* overwrite_;
-        CLI::Option* ref_;
-        CLI::Option* web_file_max_size_;
         std::string output_dir_val_;
         std::vector<path::Storage<false>> input_paths_val_;
         IndexOutputFileFormat::token fmt_val_;

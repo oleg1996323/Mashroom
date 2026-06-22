@@ -5,13 +5,14 @@
 #include <iostream>
 #include <functional>
 
+namespace config::detail{
+
 template<typename SETTINGS>
 class BaseConfig{
     std::unordered_map<std::string, 
         SETTINGS> configs_;
     
     std::string current_name_;
-    std::reference_wrapper<SETTINGS> current_settings_;
     protected:
     virtual std::unordered_map<std::string, 
         SETTINGS>& configurations() noexcept{
@@ -22,9 +23,19 @@ class BaseConfig{
     using settings_t = typename decltype(configs_)::mapped_type;
     virtual ~BaseConfig() = default;
     BaseConfig():
-        configs_({{"default",SETTINGS{}}}),
-        current_name_("default"),
-        current_settings_(std::ref(configs_.at(current_name_))){}
+        current_name_("default"){
+            configs_["default"];
+        }
+    BaseConfig(BaseConfig&& other) noexcept:
+    configs_(std::move(other.configs_)),
+    current_name_(std::move(other.current_name_)){}
+    BaseConfig& operator=(BaseConfig&& other) noexcept{
+        if(this!=&other){
+            configs_=std::move(other.configs_);
+            current_name_=std::move(other.current_name_);
+        }
+        return *this;
+    }
     bool add(const std::string& name, SETTINGS&& settings) noexcept{
         if(!configurations().contains(name)){
             configurations().insert({name,std::forward<SETTINGS>(settings)});
@@ -75,12 +86,11 @@ class BaseConfig{
         return current_name_;
     }
     const SETTINGS& current_settings() const noexcept{
-        return current_settings_.get();
+        return configs_.at(current_name_);
     }
     bool set_current(const std::string& name) noexcept{
         if(current_name_!=name){
             if(auto tmp = configs_.find(name);tmp!=configs_.end()){
-                current_settings_=std::ref(*tmp);
                 current_name_ = name;
                 return true;
             }
@@ -90,9 +100,8 @@ class BaseConfig{
     }
     void reset() noexcept{
         current_name_="default";
-        SETTINGS new_conf={{"default",configs_.at("default")}};
-        configs_.swap(new_conf);
-        current_settings_=std::ref(configs_.at(current_name_));
+        configs_.clear();
+        configs_["default"];
     }
 
     template<String NAME>
@@ -100,6 +109,63 @@ class BaseConfig{
         if(auto found = configurations().find(name);found!=configurations().end())
             return &found->second;
         else return nullptr;
+    }
+    template<String NAME>
+    const SETTINGS* get_config(NAME&& name) const noexcept{
+        if(auto found = configurations().find(name);found!=configurations().end())
+            return &found->second;
+        else return nullptr;
+    }
+
+    boost::json::value base_to_json() const{
+        using namespace boost;
+        json::object map;
+        boost::json::array configurations;
+        for(auto& [name,settings]:this->configurations()){
+            json::object tmp;
+            tmp["name"] = name;
+            tmp["settings"] = to_json(settings);
+            configurations.push_back(tmp);
+        }
+        map["configurations"] = std::move(configurations);
+        map["current"] = current_name_;
+        return map;
+    }
+
+    std::optional<std::exception>
+            base_from_json(const boost::json::value& val){
+        auto& c = val.as_object();
+        if(c.contains("configurations")){
+            if(c.at("configurations").is_array()){
+                auto& arr = c.at("configurations").as_array();
+                for(auto& arr_val:arr){
+                    if(arr_val.is_object()){
+                        auto& pair = arr_val.as_object();
+                        if(pair.contains("name") && pair.contains("settings"))
+                            if(auto name_tmp = from_json<name_t>(pair.at("name"));
+                                name_tmp.has_value())
+                            {
+                                if(name_tmp.value().empty())
+                                    return std::invalid_argument("\"name\" empty");
+                                if(auto sets_tmp = from_json<settings_t>(pair.at("settings"));
+                                    sets_tmp.has_value())
+                                    add(name_tmp.value(),std::move(sets_tmp.value()));                                
+                            }
+                            else if(pair.at("name").is_null())
+                                return std::invalid_argument("\"name\" empty");
+                            else return std::invalid_argument("\"name\" not string");
+                    }
+                }
+            }
+        }
+        if(c.contains("current") && c.at("current").is_string()){
+            auto current = c.at("current").as_string();
+            if(contains(std::string(current.data(),current.size())))
+                set_current(current.c_str());
+            else set_current("default");
+        }
+        else set_current("default");
+        return std::nullopt;
     }
 };
 
@@ -142,3 +208,7 @@ bool BaseConfig<SETTINGS>::modify_from_file(const std::string& name, const fs::p
     }
     else return false;
 }
+}
+
+#include "boost_functional/json.h"
+

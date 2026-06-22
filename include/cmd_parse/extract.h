@@ -11,20 +11,6 @@
 namespace parse{
     class Extract{
         CLI::App* app_;
-        CLI::Option* jobs_;
-        CLI::Option* output_dir_;
-        CLI::Option* input_paths_;
-        CLI::Option* from_;
-        CLI::Option* to_;
-        CLI::Option* coord_;
-        CLI::Option* centers_;
-        CLI::Option* parameters_;
-        CLI::Option* collections_;
-        CLI::Option* time_forecast_;
-        CLI::Option* level_;
-        CLI::Option* grid_;
-        CLI::Option* output_fmt_;
-        CLI::App* time_interval_;
 
         std::string output_dir_val_;
         std::vector<std::string> input_paths_val_;
@@ -38,12 +24,12 @@ namespace parse{
         std::string time_forecast_val_;
         std::string level_val_;
         std::vector<std::string> grid_val_;
-        uint32_t years = 0;
-        uint32_t months = 0;
-        uint32_t days = 0;
-        uint32_t hours = 0;
-        uint32_t minutes = 0;
-        uint32_t seconds = 0;
+        uint32_t years_ = 0;
+        uint32_t months_ = 0;
+        uint32_t days_ = 0;
+        uint32_t hours_ = 0;
+        uint32_t minutes_ = 0;
+        uint32_t seconds_ = 0;
         ::OutputDataFileFormats output_fmt_val_;
         public:
         Extract(CLI::App* app);

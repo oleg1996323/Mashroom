@@ -7,7 +7,7 @@
 
 namespace network::client{
 
-    struct Config:public BaseConfig<network::client::Settings>{
+    struct Config:public config::detail::BaseConfig<network::client::Settings>{
         public:
         Config() = default;
     };
