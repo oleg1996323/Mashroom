@@ -63,7 +63,6 @@ class DataTestClass:public Data,public testing::Test{
         update_indexing(std::move(gribdata));
         std::ofstream stream(fn,std::ofstream::trunc|std::ofstream::out);
         serialization::serialize_to_file(gribdata,stream);
-        server_.launch(err);
         if(err!=std::error_code())
             throw std::runtime_error("launch error");
         std::this_thread::sleep_for(std::chrono::seconds(1));

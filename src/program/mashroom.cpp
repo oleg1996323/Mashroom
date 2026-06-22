@@ -111,10 +111,11 @@ ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
     return ErrorCode::NONE;
 }
 bool Mashroom::read_command(){
-    #if  defined(__unix__) || defined(__unix)
-    read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
-    #elif defined(_WIN32)
-    read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
-    #endif
+    try{
+        read_command(boost::program_options::split_unix(std::string(CLIHandler::instance().input(std::string_view(">>")))));
+    }
+    catch(const std::exception& e){
+        std::cout<<e.what()<<std::endl;
+    }
     return true;
 }

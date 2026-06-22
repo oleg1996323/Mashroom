@@ -20,9 +20,6 @@ namespace network{
         std::optional<size_t> version_; //@todo
         std::optional<Data_a> access_;
         std::optional<Client_MsgT> waiting_;
-        void __index_process__(
-                std::stop_token stop,   
-                ClientAppMsg msg) noexcept;
         void __task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept;
         void __enqueue_error__(std::error_code& err,
                 std::string description,

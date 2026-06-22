@@ -60,35 +60,40 @@ template<Client_MsgT::type MSG_T>
     return rep_msg;
 }
 
-void ServerConnectionProcess::__index_process__(
+std::expected<
+    Message<Server_MsgT::INDEX>,
+    std::error_code> __index_process__(
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
-    auto dive_into = [this,&stop,&err](auto& in_app_msg)noexcept
+    auto dive_into = [&stop,&err](auto& in_app_msg) noexcept->
+            std::expected<
+            Message<Server_MsgT::INDEX>,
+            std::error_code>
     {
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
-            err = std::make_error_code(std::errc::bad_message);
-            return;
+            return std::unexpected(std::make_error_code(std::errc::bad_message));
         }
         else{
-            auto handle_msg = [this,&stop,&err]
+            auto handle_msg = [&stop,&err]
                 <Client_MsgT::type MSG_T>
-                (const Message<MSG_T>& msg) noexcept
+                (const Message<MSG_T>& msg) noexcept ->
+                    std::expected<
+                    Message<Server_MsgT::INDEX>,
+                    std::error_code>
             {
                 if constexpr (MSG_T==Client_MsgT::INDEX ||
                     MSG_T==Client_MsgT::INDEX_REF)
                 {
-                    index_process(err,stop,msg);
-                    return;
+                    auto result = index_process(err,stop,msg);
+                    return result;
                 }
-                else err = std::make_error_code(std::errc::bad_message);
-                return;
+                else return std::unexpected(std::make_error_code(std::errc::bad_message));
             };
-            handle_msg(in_app_msg);
-            return;
+            return handle_msg(in_app_msg);
         }
     };
-    std::visit(dive_into,appmsg);
+    return std::visit(dive_into,appmsg);
 }
 
 void extract(std::error_code& err,const Message<
@@ -304,16 +309,26 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             }
         }
         break;
-        case Client_MsgT::EXTRACT:
-            //heavy task
+        case Client_MsgT::EXTRACT:{
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
+            if(msg_ref.has_value());
+                extract(err,msg_ref->get());
             break;
-        case Client_MsgT::INDEX:
-
-        case Client_MsgT::INDEX_REF:
-        auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>()->get();
-        emplace_binded_task<TaskMode::Thread>(err,
-            &ServerConnectionProcess::__index_process__,
-                this,msg_ref);
+        }
+        case Client_MsgT::INDEX:{
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
+            if(msg_ref.has_value())
+                emplace_task<TaskMode::Thread>(err,
+                    __index_process__,
+                        msg_ref->get());
+        }
+        case Client_MsgT::INDEX_REF:{
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>();
+            if(msg_ref.has_value())
+                emplace_task<TaskMode::Thread>(err,
+                    __index_process__,
+                        msg_ref->get());
+        }
     }
 }
 
@@ -326,9 +341,9 @@ void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
         return;
     }
     if(auto msg_id = recv_hmsg_.message_type();
-        msg_id.has_value())
-
-        
+        msg_id.has_value()){
+        __task__(err,msg_id.value());
+    }
     return;
 }
 
