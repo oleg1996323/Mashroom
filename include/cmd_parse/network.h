@@ -6,10 +6,6 @@
 #include <CLI/CLI.hpp>
 
 namespace parse{
-
-    void init_network(CLI::App* app);
-
-
     class Network{
         CLI::App* app_;
         uint16_t timeout_ = 0;

@@ -60,21 +60,17 @@ namespace parse{
     NetworkConfig::NetworkConfig(CLI::App* app):
     app_(app)
     {
-        server_ = app_->add_subcommand("server","server configuration");
-        client_ = app_->add_subcommand("client","client configuration");
+        CLI::App* server_ = app_->add_subcommand("server","server configuration");
+        static ServerConfig server(server_);
+        server_->callback([](){server.execute();});
+        CLI::App* client_ = app_->add_subcommand("client","client configuration");
+        static ClientConfig client(client_);
+        client_->callback([](){client.execute();});
         app_->callback([this](){
             this->execute();
         });
     }
     void NetworkConfig::execute(){
-        if(app_->got_subcommand("server")){
-            static ServerConfig server(server_);
-            server.execute();
-        }
-        if(app_->got_subcommand("client")){
-            static ClientConfig client(client_);
-            client.execute();
-        }
     }
 
     Configuration::Configuration(CLI::App* app):

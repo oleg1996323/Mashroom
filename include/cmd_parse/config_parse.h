@@ -23,8 +23,6 @@ namespace parse{
     
     class NetworkConfig{
         CLI::App* app_;
-        CLI::App* server_;
-        CLI::App* client_;
         public:
         NetworkConfig(CLI::App* app);
         void execute();

@@ -18,7 +18,7 @@ namespace parse{
     Mashroom::Mashroom(CLI::App& app):
         app_(&app){
         //app_->require_subcommand(1);
-        CLI::App* index_ = app_->add_subcommand("Index",
+        CLI::App* index_ = app_->add_subcommand("index",
             "read specified files and register "s+
             "the contained data properties and "+
             "data positions. Organize the data "+

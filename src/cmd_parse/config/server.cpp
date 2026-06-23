@@ -4,93 +4,82 @@
 namespace parse{
     ServerConfig::OptionsSetting::OptionsSetting(CLI::App* app):
     app_(app){
-        reuse_addr_=app->add_flag("--reuse_address")
-        ->default_val(false)
+        network::ConnectionOptions default_val;
+        CLI::Option* reuse_addr_=app->add_flag("--reuse_address")
+        ->default_val(default_val.reuse_address_.first)
         ->capture_default_str();
-        reuse_port_=app->add_flag("--reuse_port")
-        ->default_val(false)
+        CLI::Option* reuse_port_=app->add_flag("--reuse_port")
+        ->default_val(default_val.reuse_port_.first)
         ->capture_default_str();
-        broadcast_socket_=app->add_flag("--broadcast")
-        ->default_val(false)
+        CLI::Option* broadcast_socket_=app->add_flag("--broadcast")
+        ->default_val(default_val.broadcast_socket_.first)
         ->capture_default_str();
-        dont_route_=app->add_flag("--dont-route")
-        ->default_val(false)
+        CLI::Option* dont_route_=app->add_flag("--dont-route")
+        ->default_val(default_val.dont_route_.first)
         ->capture_default_str();
-        keep_alive_=app->add_flag("--keep-alive")
-        ->default_val(false)
+        CLI::Option* keep_alive_=app->add_flag("--keep-alive")
+        ->default_val(default_val.keep_alive_.first)
         ->capture_default_str();
-        linger_=app->add_option("--linger");
-        timeout_send_=app->add_option("--send-timeout")
-        ->default_val(timeval{.tv_sec=0,.tv_usec=0})
+        CLI::Option* linger_=app->add_option("--linger",options_.linger_)->
+        default_val(default_val.linger_.first)->
+        capture_default_str();
+        CLI::Option* timeout_send_=app->add_option("--send-timeout",options_.timeout_send_)
+        ->default_val(default_val.timeout_send_.first)
         ->capture_default_str();
-        timeout_recv_=app->add_option("--recv-timeout")
-        ->default_val(timeval{.tv_sec=0,.tv_usec=0})
+        CLI::Option* timeout_recv_=app->add_option("--recv-timeout",options_.timeout_input_)
+        ->default_val(default_val.timeout_input_.first)
         ->capture_default_str();
-        bufsiz_send_=app->add_option("--send-bufsiz")
-        ->default_val(default_bufsiz_send)
+        CLI::Option* bufsiz_send_=app->add_option("--send-bufsiz",options_.buffer_size_out_)
+        ->default_val(default_val.buffer_size_out_.first)
         ->capture_default_str();
-        bufsiz_recv_=app->add_option("--recv-bufsiz")
-        ->default_val(default_bufsiz_recv)
+        CLI::Option* bufsiz_recv_=app->add_option("--recv-bufsiz",options_.buffer_size_in_)
+        ->default_val(default_val.buffer_size_in_.first)
         ->capture_default_str();
+        app_->callback([this](){execute();});
     }
-    void ServerConfig::OptionsSetting::execute(network::ConnectionOptions& options){
-        if(reuse_addr_->count())
-            options.reuse_address_={true,{}};
-        if(reuse_port_->count())
-            options.reuse_port_={true,{}};
-        if(broadcast_socket_->count())
-            options.broadcast_socket_={true,{}};
-        if(dont_route_->count())
-            options.dont_route_={true,{}};
-        if(keep_alive_->count())
-            options.keep_alive_={true,{}};
-        if(linger_->count())
-            options.linger_={linger_->as<linger>(),{}};
-        if(timeout_send_->count())
-            options.timeout_send_={timeout_send_->as<timeval>(),{}};
-        if(timeout_recv_->count())
-            options.timeout_input_={timeout_recv_->as<timeval>(),{}};
-        if(bufsiz_send_->count())
-            options.buffer_size_out_={bufsiz_send_->as<int>(),{}};
-        if(bufsiz_recv_->count())
-            options.buffer_size_in_={bufsiz_recv_->as<int>(),{}};
-    }
+    void ServerConfig::OptionsSetting::execute(network::ConnectionOptions& options){}
     ServerConfig::Add::Add(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",name_val_,"network configuration name")
         ->required();
-        host_=app_
+        CLI::Option* host_=app_
         ->add_option("--host,-H",
+            host_val_,
         "host of deploying server")
         ->default_val("0.0.0.0") //automatic choice of network device by OS
         ->capture_default_str();
-        port_=app_
+        CLI::Option* port_=app_
         ->add_option("--port,-P", //automatic choice of port by OS
+            port_val_,
         "port of deploying server")
         ->default_val(0)
         ->capture_default_str();
-        protocol_=app_
+        CLI::Option* protocol_=app_
         ->add_option("--proto",
+            protocol_val_,
         "protocol of deploying server")
         ->default_val(std::string(network::protocol::to_text(network::Protocol::TCP)))
         ->capture_default_str();
-        process_timeout_=app_
+        CLI::Option* process_timeout_=app_
         ->add_option("--timeout-processes",
+            process_timeout_val_,
         "timeout of interconnection")
         ->default_val(-1)
         ->capture_default_str();
-        parallel_=app_
+        CLI::Option* parallel_=app_
         ->add_option("--jobs",
+            jobs_val_,
         "using CPU cores by deploying server")
         ->default_val(std::thread::hardware_concurrency())
         ->capture_default_str();
-        events_handled_=app_
+        CLI::Option* events_handled_=app_
         ->add_option("--events-handle",
+            events_handled_val_,
         "maximum number of processed pended events")
         ->default_val(50)
         ->capture_default_str();
-        options_=app_
+        CLI::App* options_=app_
         ->add_subcommand("opt",
         "server options setting");
     }
@@ -326,8 +315,8 @@ namespace parse{
         print_named_ = app_->add_subcommand("print","print named server configuration (if exists)");
         current_ = app_->add_subcommand(
             "current","print current active server configuration");
-        black_list_->add_subcommand("black-list","black list of hosts");
-        white_list_->add_subcommand("white-list","white list of hosts");
+        black_list_ = app_->add_subcommand("black-list","black list of hosts");
+        white_list_ = app_->add_subcommand("white-list","white list of hosts");
 
     }
     void ServerConfig::execute(){

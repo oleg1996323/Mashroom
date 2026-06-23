@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 CLI::App& Mashroom::command_line() noexcept{
     static std::unique_ptr<CLI::App> cli;
     if(!cli)
-        cli = std::make_unique<CLI::App>("Mashroom","Geoinformational data indexer/extractor");
+        cli = std::make_unique<CLI::App>("Geoinformational data indexer/extractor","Mashroom");
     return *cli;
 }
 
