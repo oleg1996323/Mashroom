@@ -26,9 +26,19 @@ struct ExtractRequestForm<Data_t::TIME_SERIES, Data_f::GRIB_v1>
     explicit ExtractRequestForm(SearchProperties&& search_props,
         std::optional<DateTimeDiff>&& t_sep,
         std::optional<OutputDataFileFormats> file_fmt);
-    ExtractRequestForm(const ExtractRequestForm& other) = delete;
+    ExtractRequestForm(const ExtractRequestForm& other):
+        search_props_(other.search_props_),
+        t_separation_(other.t_separation_),
+        file_fmt_(other.file_fmt_){}
     ExtractRequestForm(ExtractRequestForm&& other) noexcept;
-    ExtractRequestForm& operator=(const ExtractRequestForm& other) = delete;
+    ExtractRequestForm& operator=(const ExtractRequestForm& other) noexcept{
+        if(this!=&other){
+            search_props_=other.search_props_;
+            t_separation_=other.t_separation_;
+            file_fmt_=other.file_fmt_;
+        }
+        return *this;
+    }
     ExtractRequestForm& operator=(ExtractRequestForm&& other) noexcept;
     #ifdef DEBUG
         bool operator==(const ExtractRequestForm& other) const noexcept{

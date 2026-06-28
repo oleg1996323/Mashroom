@@ -11,31 +11,25 @@ namespace parse{
             static constexpr uint32_t default_bufsiz_recv =1024*8;
             
             CLI::App* app_;
-            CLI::Option* reuse_addr_;
-            CLI::Option* reuse_port_;
-            CLI::Option* broadcast_socket_;
-            CLI::Option* dont_route_;
-            CLI::Option* keep_alive_;
-            CLI::Option* linger_;
-            CLI::Option* timeout_send_;
-            CLI::Option* timeout_recv_;
-            CLI::Option* bufsiz_recv_;
-            CLI::Option* bufsiz_send_;
+            network::ConnectionOptions options_;
             public:
             OptionsSetting(CLI::App* app);
-            void execute(network::ConnectionOptions& options);
+            void execute();
+            const network::ConnectionOptions& options() const noexcept{
+                return options_;
+            }
         };
 
         class Add{
             CLI::App* app_;
 
-            CLI::Option* name_;
-            CLI::Option* bind_address_;
-            CLI::Option* protocol_;
-            CLI::Option* process_timeout_;
-            CLI::Option* parallel_;
-            CLI::Option* events_handled_;
-            CLI::App* options_;
+            std::string name_val_;
+            network::Address bind_address_val_;
+            network::Protocol protocol_val_;
+            network::Timeout process_timeout_val_;
+            uint32_t jobs_val_;
+            uint32_t events_handled_val_;
+            std::unique_ptr<OptionsSetting> opt_settings;
             public:
             Add(CLI::App* app);
 
@@ -44,7 +38,7 @@ namespace parse{
 
         class Remove{
             CLI::App* app_;
-            CLI::Option* name_;
+            std::string name_val_;
             public:
             Remove(CLI::App* app);
 
@@ -53,13 +47,13 @@ namespace parse{
 
         class Modify{
             CLI::App* app_;
-            CLI::Option* name_;
-            CLI::Option* bind_address_;
-            CLI::Option* protocol_;
-            CLI::Option* process_timeout_;
-            CLI::Option* parallel_;
-            CLI::Option* events_handled_;
-            CLI::App* options_;
+            std::string name_val_;
+            network::Address bind_address_val_;
+            network::Protocol protocol_val_;
+            network::Timeout process_timeout_val_;
+            uint32_t jobs_val_;
+            uint32_t events_handled_val_;
+            std::unique_ptr<OptionsSetting> opt_settings;
             public:
             Modify(CLI::App* app);
             void execute();
@@ -67,8 +61,8 @@ namespace parse{
 
         class Load{
             CLI::App* app_;
-            CLI::Option* name_;
-            CLI::Option* path_;
+            std::string name_val_;
+            std::string path_val_;
             public:
             Load(CLI::App* app);
             void execute();
@@ -76,22 +70,13 @@ namespace parse{
 
         class Print{
             CLI::App* app_;
-            CLI::Option* name_;
+            std::string name_val_;
             public:
             Print(CLI::App* app);
             void execute();
         };
         
         CLI::App* app_;
-        CLI::App* add_;
-        CLI::App* modify_;
-        CLI::App* load_;
-        CLI::App* remove_;
-        CLI::App* print_all_;
-        CLI::App* print_named_;
-        CLI::App* current_;
-        CLI::App* black_list_;
-        CLI::App* white_list_;
         public:
         ClientConfig(CLI::App* app);
         void execute();

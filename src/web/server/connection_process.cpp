@@ -3,6 +3,8 @@
 #include "network/abstractprocess.h"
 #include "web/server/connection_process.h"
 #include "program/mashroom.h"
+#include "sys/application.h"
+#include "sys/config.h"
 
 using namespace network;
 
@@ -66,7 +68,7 @@ std::expected<
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
-    auto dive_into = [&stop,&err](auto& in_app_msg) noexcept->
+    auto into = [&stop,&err](auto& in_app_msg) noexcept->
             std::expected<
             Message<Server_MsgT::INDEX>,
             std::error_code>
@@ -93,142 +95,99 @@ std::expected<
             return handle_msg(in_app_msg);
         }
     };
-    return std::visit(dive_into,appmsg);
+    return std::visit(into,appmsg);
 }
 
-void extract(std::error_code& err,const Message<
+std::expected<
+    Message<Server_MsgT::EXTRACT>,
+    std::error_code> extract_process(std::error_code& err,
+        std::stop_token token,
+        const Message<
         Client_MsgT::EXTRACT>& msg)
 {
-    // Extract hExtract;
-    // auto init_h = [&hExtract](auto& form){
-    //     if constexpr(std::is_same_v<std::decay_t<decltype(form)>,std::monostate>){
-    //         return ErrorPrint::print_error(
-    //             ErrorCode::UNDEFINED_VALUE,
-    //             "extract form type",
-    //             AT_ERROR_ACTION::CONTINUE);
-    //     }
-    //     else{
-    //         return hExtract.set_by_request(form);
-    //     }
-    // };
-    // std::visit(init_h,
-    //     msg.form());
-    // if(err!=std::error_code()){
-    //     send_error(
-    //         socket,
-    //         proc,
-    //         ErrorCode::INVALID_ARGUMENT,
-    //         network::server::Status::READY,
-    //         err);
-    //     return;
-    // }
-    // std::string file_namebase = std::to_string(
-    //     utc_tp::clock::now().time_since_epoch().count())+"_"+
-    //     socket.ip_to_text()+":"+socket.port_to_text();
-    // //main directory of current request with .zip file and cache-dir
-    // auto curdir = fs::temp_directory_path()/file_namebase;
-    // fs::remove_all(curdir);
-    // if(!fs::create_directories(curdir)){
-    //     send_error(
-    //             socket,
-    //             proc,
-    //             ErrorCode::INTERNAL_ERROR,
-    //             network::server::Status::READY,
-    //             err);
-    //     return;
-    // }
-    // //@todo change further to std::error_code
-    // ErrorCode error_code;
-    // //@todo make setting temporary dir by config
-    // error_code = hExtract.add_in_path(curdir.c_str()); 
-    // if(error_code==ErrorCode::NONE)
-    //     error_code = hExtract.execute();
-    // else{
-    //     send_error(
-    //         socket,
-    //         proc,
-    //         ErrorCode::INTERNAL_ERROR,
-    //         network::server::Status::READY,
-    //         err);
-    //     fs::remove_all(curdir);
-    //     return;
-    // }
-    // auto add = network::make_additional<Server_MsgT::DATA_REPLY_EXTRACT>();
-    // for(auto entry:fs::directory_iterator(curdir))
-    // {
-    //     if(entry.is_regular_file() && entry.path().extension()==".zip"){
-    //         add.file_sz_ = fs::file_size(curdir);
-    //         add.filename_ = entry.path().string();
-    //         add.status_ = server::Status::READY;
-    //     }
-    //     else{
-    //         send_error(
-    //             socket,
-    //             proc,
-    //             ErrorCode::INTERNAL_ERROR,
-    //             network::server::Status::READY,
-    //             err);
-    //         fs::remove_all(curdir);
-    //         return;
-    //     }
-    //     proc->send_message<Server_MsgT::DATA_REPLY_EXTRACT>(
-    //         stop,
-    //         socket,
-    //         err,
-    //         Message<Server_MsgT::DATA_REPLY_EXTRACT>(std::move(add)));
-    //     if(err==std::error_code()){
-    //         std::ifstream file_stream();
-    //         int fno = open(curdir.c_str(),O_RDONLY|O_DIRECT);
-    //         if(fno==-1){
-    //             send_error(
-    //                 socket,
-    //                 proc,
-    //                 ErrorCode::INTERNAL_ERROR,
-    //                 server::Status::READY,
-    //                 err);
-    //             fs::remove_all(curdir);
-    //             return;
-    //         }
-    //         auto file_add = make_additional<Server_MsgT::DATA_REPLY_FILEPART>();
-    //         file_add.file_hash_ = std::hash<fs::path>()(entry.path());
-    //         file_add.status_=server::Status::READY;
-    //         //@todo set user-optional buffer size by config
-    //         auto ptr = (char*)mmap(nullptr,add.file_sz_,PROT_READ,MAP_PRIVATE,fno,0);
-    //         if(ptr==nullptr){
-    //             send_error(
-    //                 socket,
-    //                 proc,
-    //                 ErrorCode::INTERNAL_ERROR,
-    //                 server::Status::READY,
-    //                 err);
-    //             std::cout<<strerror(errno)<<std::endl;
-    //             errno = 0;
-    //             return;
-    //         }
-    //         if(int res = madvise(ptr,add.file_sz_,MADV_SEQUENTIAL);res==-1){
-    //             send_error(
-    //                 socket,
-    //                 proc,
-    //                 ErrorCode::INTERNAL_ERROR,
-    //                 server::Status::READY,
-    //                 err);
-    //             std::cout<<strerror(errno)<<std::endl;
-    //             errno = 0;
-    //             return;
-    //         }
-    //         for(uint64_t offset=0;offset<add.file_sz_;++offset){
-    //             file_add.offset_=offset;
-    //             file_add.assign_file_segment(ptr,8912);
-    //             proc->send_message<Server_MsgT::DATA_REPLY_FILEPART>(
-    //                 stop,
-    //                 socket,
-    //                 err,
-    //                 std::move(file_add));
-    //         }
-    //         munmap(ptr,add.file_sz_);
-    //         fs::remove_all(curdir);
-    //     }
-    // }
+    Extract hExtract;
+    auto init_h = [&hExtract](auto& form){
+        if constexpr(std::is_same_v<std::decay_t<decltype(form)>,std::monostate>){
+            return ErrorPrint::print_error(
+                ErrorCode::UNDEFINED_VALUE,
+                "extract form type",
+                AT_ERROR_ACTION::CONTINUE);
+        }
+        else{
+            return hExtract.set_by_request(form);
+        }
+    };
+    std::visit(init_h,
+        msg.form());
+    if(err)
+        return std::unexpected(std::make_error_code(std::errc::invalid_argument));
+    std::string file_namebase = msg.transaction().hash();
+    //main directory of current request with .zip file and cache-dir
+    fs::path curdir = ::app().config().system_config().cache_files_directory()/file_namebase;
+    fs::remove_all(curdir);
+    if(!fs::create_directories(curdir))
+        return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
+    //@todo change further to std::error_code
+    ErrorCode error_code;
+    //@todo make setting temporary dir by config
+    error_code = hExtract.set_out_path(curdir.c_str()); 
+    if(error_code==ErrorCode::NONE)
+        error_code = hExtract.execute();
+    else{
+        fs::remove_all(curdir);
+        return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+    }
+    
+    if(std::distance(fs::directory_iterator(curdir), fs::directory_iterator{})!=1) //only 1 zip file
+        return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
+    auto reply_msg = Message<Server_MsgT::EXTRACT>(
+                get_reply(msg.transaction()));
+    for(auto entry:fs::directory_iterator(curdir))
+    {
+        if(entry.is_regular_file() && entry.path().extension()==".zip"){
+            
+            reply_msg.file_size(entry.file_size());
+            reply_msg.filename(entry.path());
+            return reply_msg;
+        }
+        else return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+    }
+    return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+}
+
+std::expected<
+    Message<Server_MsgT::EXTRACT>,
+    std::error_code> __extract_process__(
+    std::stop_token stop,
+    ClientAppMsg appmsg) noexcept
+{   std::error_code err;
+    auto into = [&stop,&err](auto& in_app_msg) noexcept->
+            std::expected<
+            Message<Server_MsgT::EXTRACT>,
+            std::error_code>
+    {
+        if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
+            return std::unexpected(std::make_error_code(std::errc::bad_message));
+        }
+        else{
+            auto handle_msg = [&stop,&err]
+                <Client_MsgT::type MSG_T>
+                (const Message<MSG_T>& msg) noexcept ->
+                    std::expected<
+                    Message<Server_MsgT::EXTRACT>,
+                    std::error_code>
+            {
+                if constexpr (MSG_T==Client_MsgT::EXTRACT)
+                {
+                    auto result = extract_process(err,stop,msg);
+                    return result;
+                }
+                else return std::unexpected(std::make_error_code(std::errc::bad_message));
+            };
+            return handle_msg(in_app_msg);
+        }
+    };
+    return std::visit(into,appmsg);
 }
 
 void ServerConnectionProcess::__task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept{
@@ -310,9 +269,11 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         }
         break;
         case Client_MsgT::EXTRACT:{
-            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::EXTRACT>();
             if(msg_ref.has_value());
-                extract(err,msg_ref->get());
+                emplace_task<TaskMode::Thread>(err,
+                    __extract_process__,
+                        ClientAppMsg(msg_ref->get()));
             break;
         }
         case Client_MsgT::INDEX:{
@@ -320,14 +281,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             if(msg_ref.has_value())
                 emplace_task<TaskMode::Thread>(err,
                     __index_process__,
-                        msg_ref->get());
+                        ClientAppMsg(msg_ref->get()));
         }
         case Client_MsgT::INDEX_REF:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>();
             if(msg_ref.has_value())
                 emplace_task<TaskMode::Thread>(err,
                     __index_process__,
-                        msg_ref->get());
+                        ClientAppMsg(msg_ref->get()));
         }
     }
 }

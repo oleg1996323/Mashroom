@@ -13,7 +13,7 @@ target_link_libraries(Mashroom_messages_test PUBLIC GIAPI PUBLIC GTest::gtest Ma
 target_link_libraries(Mashroom_data_test PUBLIC GIAPI PUBLIC GTest::gtest Mashroom_lib)
 target_link_libraries(Mashroom_data_exchange_test PUBLIC GIAPI PUBLIC GTest::gtest Mashroom_lib)
 target_link_libraries(Mashroom_index_test PUBLIC GTest::gtest Mashroom_lib)
-target_link_libraries(Mashroom_parse_test PUBLIC GTest::gtest Mashroom_lib)
+target_link_libraries(Mashroom_parse_test PUBLIC GTest::gtest Mashroom_lib clip CLI11::CLI11)
 
 add_subdirectory(extract_test)
 

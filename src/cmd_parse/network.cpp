@@ -5,6 +5,7 @@
 namespace parse{
 
     Network::Network(CLI::App* app):app_(app){
+        app_->require_subcommand(1);
         CLI::App* launch_ = app_->add_subcommand(
                 "launch","");
         CLI::App* close_=app_->add_subcommand(

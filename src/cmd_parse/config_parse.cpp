@@ -10,26 +10,27 @@
 namespace parse{
     SystemConfig::SystemConfig(CLI::App* app):
     app_(app){
-        log_dir_=app_
-        ->add_option("--log-dir",
+        app_->require_option();
+        CLI::Option* log_dir_=app_
+        ->add_option("--log-dir",log_dir_val_,
         "the directory where log files will be placed")
         ->default_val(::app().config().system_config().
             session_logging_directory())
         ->capture_default_str();
-        config_dir_=app_
-        ->add_option("--config-dir",
+        CLI::Option* config_dir_=app_
+        ->add_option("--config-dir",config_dir_val_,
         "configurations directory")
         ->default_val(::app().config().system_config().
             configurations_directory().string())
         ->capture_default_str();
-        cache_files_dir_=app_
-        ->add_option("--cache-dir",
+        CLI::Option* cache_files_dir_=app_
+        ->add_option("--cache-dir",cache_files_dir_val_,
         "cache files directory")
         ->default_val(::app().config().system_config().
             cache_files_directory())
         ->capture_default_str();
-        network_files_dir_=app_
-        ->add_option("--network-dir",
+        CLI::Option* network_files_dir_=app_
+        ->add_option("--network-dir",network_files_dir_val_,
         "network files directory")
         ->default_val(::app().config().system_config().
             network_files_directory())
@@ -39,33 +40,32 @@ namespace parse{
         });
     }
     void SystemConfig::execute(){
-        if(log_dir_->count()){
+        if(app_->count("--log-dir")){
             ::app().config().system_config().
-            session_logging_directory(log_dir_->as<std::string>());
+            session_logging_directory(log_dir_val_);
         }
-        if(config_dir_->count()){
+        if(app_->count("--config-dir")){
             ::app().config().system_config().
-            configurations_directory(config_dir_->as<std::string>());
+            configurations_directory(config_dir_val_);
         }
-        if(cache_files_dir_->count()){
+        if(app_->count("--cache-dir")){
             ::app().config().system_config().
-            cache_files_directory(cache_files_dir_->as<std::string>());
+            cache_files_directory(cache_files_dir_val_);
         }
-        if(network_files_dir_->count()){
+        if(app_->count("--network-dir")){
             ::app().config().system_config().
-            network_files_directory(network_files_dir_->as<std::string>());
+            network_files_directory(network_files_dir_val_);
         }
     }
 
     NetworkConfig::NetworkConfig(CLI::App* app):
     app_(app)
     {
+        app_->require_subcommand(1);
         CLI::App* server_ = app_->add_subcommand("server","server configuration");
-        static ServerConfig server(server_);
-        server_->callback([](){server.execute();});
+        static std::unique_ptr<ServerConfig> server = std::make_unique<ServerConfig>(server_);
         CLI::App* client_ = app_->add_subcommand("client","client configuration");
-        static ClientConfig client(client_);
-        client_->callback([](){client.execute();});
+        static std::unique_ptr<ClientConfig> client = std::make_unique<ClientConfig>(client_);
         app_->callback([this](){
             this->execute();
         });
@@ -75,15 +75,16 @@ namespace parse{
 
     Configuration::Configuration(CLI::App* app):
     app_(app){
-        CLI::App* user=app_->add_subcommand(
+        app_->require_subcommand(1);
+        CLI::App* user_=app_->add_subcommand(
                 "user","user configuration");
-        static parse::UserConfig user_obj(user);
-        CLI::App* system=app_->add_subcommand(
+        static std::unique_ptr<parse::UserConfig> user_obj = std::make_unique<parse::UserConfig>(user_);
+        CLI::App* system_=app_->add_subcommand(
                 "system","system configuration");
-        static parse::SystemConfig system_obj(system);
-        CLI::App* network=app_->add_subcommand(
+        static std::unique_ptr<parse::SystemConfig> system_obj = std::make_unique<parse::SystemConfig>(system_);
+        CLI::App* network_=app_->add_subcommand(
                 "network","network configuration");
-        static parse::NetworkConfig network_obj(network);
+        static std::unique_ptr<parse::NetworkConfig> network_obj = std::make_unique<parse::NetworkConfig>(network_);
         app_->callback([this](){
             this->execute();
         });

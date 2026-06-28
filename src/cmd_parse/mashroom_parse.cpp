@@ -11,13 +11,14 @@
 #include "sys/error_code.h"
 #include "sys/error_print.h"
 #include "program/mashroom.h"
+#include <boost/algorithm/string.hpp>
 
 
 namespace parse{
     using namespace std::string_literals;
     Mashroom::Mashroom(CLI::App& app):
         app_(&app){
-        //app_->require_subcommand(1);
+        app_->require_subcommand(1);
         CLI::App* index_ = app_->add_subcommand("index",
             "read specified files and register "s+
             "the contained data properties and "+
@@ -44,6 +45,8 @@ namespace parse{
         static std::unique_ptr<parse::Network> network = std::make_unique<parse::Network>(server_);
         CLI::App* exit_ = app_->add_subcommand("exit","Exit from program");
         exit_->add_flag("--save","flag if saving is needed before exit")->expected(0,1);
+        app.set_help_all_flag("--help-all", "Expand all help");
+        app.add_flag("--version", "Get version");
         app_->callback([this](){
             this->execute();
         });
@@ -58,12 +61,25 @@ namespace parse{
             if(app_->get_subcommand("exit")->get_option("--save")->count())
                 ::Mashroom::instance().save();
             else{
-                std::cout<<"Save changes? (yes/no)"<<std::endl;
+                std::cout<<"Save changes? (YES/no)"<<std::endl;
                 std::string input;
-                std::getline(std::cin,input);
-                if(input=="yes"){
-                    ::Mashroom::instance().save();
-                    ::Application::config().save();
+                while(true){
+                    std::getline(std::cin,input);
+                    if(std::equal(  input.begin(),
+                                    input.end(),
+                                    "yes",
+                                    case_insensitive_char_compare) ||
+                                input.empty()){
+                        ::Mashroom::instance().save();
+                        ::Application::config().save();
+                    }
+                    else if(std::equal(  input.begin(),
+                                    input.end(),
+                                    "no",
+                                    case_insensitive_char_compare)){
+                        break;
+                    }
+                    else continue;
                 }
             }
             exit(0);

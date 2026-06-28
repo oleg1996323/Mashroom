@@ -205,3 +205,4 @@ namespace network{
 }
 
 static_assert(std::is_move_constructible_v<network::SystemMsg<network::Side::CLIENT>>);
+static_assert(std::is_constructible_v<network::ClientAppMsg,const network::Message<network::Client_MsgT::EXTRACT>&>);

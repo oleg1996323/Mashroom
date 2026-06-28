@@ -99,12 +99,19 @@ void Mashroom::__write_initial_data_file__(){
     dat_file.close();
 }
 ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
+    //needed reversing (see parse(...) functions in CLI11)
+    std::reverse(argv.begin(),argv.end());
     try {
         Mashroom::command_line().parse(std::move(argv));
     }
     catch(const CLI::CallForHelp& help){
         std::cout<<command_line().help()<<std::endl;
-    } catch (const CLI::ParseError &e) {
+    }catch(const CLI::CallForAllHelp& help){
+        std::cout<<command_line().help("",CLI::AppFormatMode::All)<<std::endl;
+    }catch(const CLI::CallForVersion& version){
+        
+    }
+    catch (const CLI::ParseError &e) {
         std::cout<<e.what()<<std::endl;
         return ErrorCode::COMMAND_INPUT_X1_ERROR;
     }

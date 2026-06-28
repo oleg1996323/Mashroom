@@ -2,8 +2,8 @@
 #include <memory>
 #include <string_view>
 #include <string>
-#include "log_err.h"
-#include "config.h"
+#include "sys/log_err.h"
+#include "sys/config.h"
 #include <CLI/CLI.hpp>
 
 class Config;

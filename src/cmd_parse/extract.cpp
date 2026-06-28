@@ -76,12 +76,12 @@ namespace parse{
             is not represented as a time series\
             this argument will be ignored for it.")->callback([this](){
                 std::error_code err;
-                return DateTimeDiff(err,std::chrono::years(0),
-                std::chrono::months(1),
-                std::chrono::days(0),
-                std::chrono::hours(0),
-                std::chrono::minutes(0),
-                std::chrono::seconds(0));});
+                return DateTimeDiff(err,std::chrono::years(years_),
+                std::chrono::months(months_),
+                std::chrono::days(days_),
+                std::chrono::hours(hours_),
+                std::chrono::minutes(minutes_),
+                std::chrono::seconds(seconds_));});
         auto group = time_interval_->add_option_group("time-units");
         group->add_option("--years",years_)->
         default_val(0)->capture_default_str();

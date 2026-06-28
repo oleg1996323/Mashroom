@@ -12,7 +12,7 @@ namespace network{
     {
         std::string filename_;
         uintmax_t file_sz_ = 0;      //size of file
-        Message() = default;
+        
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -23,13 +23,13 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
+        Message() = default;
         public:
         Message(Message<Server_MsgT::TRANSACTION>
             transaction) 
             noexcept:
             Message<Server_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const fs::path& file_path, server::Status status);
         Message(const Message& other):
         Message<Server_MsgT::TRANSACTION>(other),
         filename_(other.filename_),
@@ -37,7 +37,7 @@ namespace network{
         Message(Message&& other):
         Message<Server_MsgT::TRANSACTION>(std::move(other)),
         filename_(std::move(other.filename_)),
-        file_sz_(other.file_sz_){}
+        file_sz_(std::move(other.file_sz_)){}
         Message& operator=(const Message& other) {
             if(this!=&other){
                 Message<Server_MsgT::TRANSACTION>::operator=(other);
@@ -53,6 +53,18 @@ namespace network{
                 file_sz_ = std::move(other.file_sz_);
             }
             return *this;
+        }
+        void file_size(uintmax_t size) noexcept{
+            file_sz_=size;
+        }
+        uintmax_t file_size() const noexcept{
+            return file_sz_;
+        }
+        void filename(const std::string& filename) noexcept{
+            filename_=filename;
+        }
+        const std::string& filename() const noexcept{
+            return filename_;
         }
     };
 }

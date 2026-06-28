@@ -12,10 +12,10 @@
 namespace parse{
     class SystemConfig{
         CLI::App* app_;
-        CLI::Option* log_dir_;
-        CLI::Option* config_dir_;
-        CLI::Option* cache_files_dir_;
-        CLI::Option* network_files_dir_;
+        std::string log_dir_val_;
+        std::string config_dir_val_;
+        std::string cache_files_dir_val_;
+        std::string network_files_dir_val_;
         public:
         SystemConfig(CLI::App* app);
         void execute();

@@ -4,305 +4,263 @@
 namespace parse{
     ClientConfig::OptionsSetting::OptionsSetting(CLI::App* app):
     app_(app){
-        reuse_addr_=app->add_flag("--reuse_address")
-        ->default_val(false)
+        network::ConnectionOptions default_val;
+        CLI::Option* reuse_addr_=app->add_flag("--reuse_address")
+        ->default_val(default_val.reuse_address_.first)
         ->capture_default_str();
-        reuse_port_=app->add_flag("--reuse_port")
-        ->default_val(false)
+        CLI::Option* reuse_port_=app->add_flag("--reuse_port")
+        ->default_val(default_val.reuse_port_.first)
         ->capture_default_str();
-        broadcast_socket_=app->add_flag("--broadcast")
-        ->default_val(false)
+        CLI::Option* broadcast_socket_=app->add_flag("--broadcast")
+        ->default_val(default_val.broadcast_socket_.first)
         ->capture_default_str();
-        dont_route_=app->add_flag("--dont-route")
-        ->default_val(false)
+        CLI::Option* dont_route_=app->add_flag("--dont-route")
+        ->default_val(default_val.dont_route_.first)
         ->capture_default_str();
-        keep_alive_=app->add_flag("--keep-alive")
-        ->default_val(false)
+        CLI::Option* keep_alive_=app->add_flag("--keep-alive")
+        ->default_val(default_val.keep_alive_.first)
         ->capture_default_str();
-        linger_=app->add_option("--linger");
-        timeout_send_=app->add_option("--send-timeout")
-        ->default_val(timeval{.tv_sec=0,.tv_usec=0})
+        CLI::Option* linger_=app->add_option("--linger",options_.linger_.first)->
+        default_val(default_val.linger_.first)->
+        capture_default_str();
+        CLI::Option* timeout_send_=app->add_option("--send-timeout",options_.timeout_send_.first)
+        ->default_val(default_val.timeout_send_.first)
         ->capture_default_str();
-        timeout_recv_=app->add_option("--recv-timeout")
-        ->default_val(timeval{.tv_sec=0,.tv_usec=0})
+        CLI::Option* timeout_recv_=app->add_option("--recv-timeout",options_.timeout_input_.first)
+        ->default_val(default_val.timeout_input_.first)
         ->capture_default_str();
-        bufsiz_send_=app->add_option("--send-bufsiz")
-        ->default_val(default_bufsiz_send)
+        CLI::Option* bufsiz_send_=app->add_option("--send-bufsiz",options_.buffer_size_out_.first)
+        ->default_val(default_val.buffer_size_out_.first)
         ->capture_default_str();
-        bufsiz_recv_=app->add_option("--recv-bufsiz")
-        ->default_val(default_bufsiz_recv)
+        CLI::Option* bufsiz_recv_=app->add_option("--recv-bufsiz",options_.buffer_size_in_.first)
+        ->default_val(default_val.buffer_size_in_.first)
         ->capture_default_str();
+        app_->callback([this](){execute();});
     }
-    void ClientConfig::OptionsSetting::execute(network::ConnectionOptions& options){
-        if(reuse_addr_->count())
-            options.reuse_address_={true,{}};
-        if(reuse_port_->count())
-            options.reuse_port_={true,{}};
-        if(broadcast_socket_->count())
-            options.broadcast_socket_={true,{}};
-        if(dont_route_->count())
-            options.dont_route_={true,{}};
-        if(keep_alive_->count())
-            options.keep_alive_={true,{}};
-        if(linger_->count())
-            options.linger_={linger_->as<linger>(),{}};
-        if(timeout_send_->count())
-            options.timeout_send_={timeout_send_->as<timeval>(),{}};
-        if(timeout_recv_->count())
-            options.timeout_input_={timeout_recv_->as<timeval>(),{}};
-        if(bufsiz_send_->count())
-            options.buffer_size_out_={bufsiz_send_->as<int>(),{}};
-        if(bufsiz_recv_->count())
-            options.buffer_size_in_={bufsiz_recv_->as<int>(),{}};
-    }
+    void ClientConfig::OptionsSetting::execute(){}
     ClientConfig::Add::Add(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",name_val_,"network configuration name")
         ->required();
-        bind_address_=app_
-        ->add_option("--bind-addr",
+        CLI::Option* bind_address_=app_
+        ->add_option("--bind-addr",bind_address_val_,
         "specified binding address of client")
         ->default_val(std::nullopt) //automatic choice of network device by OS
         ->capture_default_str();
-        protocol_=app_
-        ->add_option("--proto",
+        CLI::Option* protocol_=app_
+        ->add_option("--proto",protocol_val_,
         "protocol of deploying client")
-        ->default_val(std::string(network::protocol::to_text(network::Protocol::TCP)))
+        ->default_val(network::Protocol::TCP)
         ->capture_default_str();
-        process_timeout_=app_
-        ->add_option("--timeout-processes",
+        CLI::Option* process_timeout_=app_
+        ->add_option("--timeout-processes",process_timeout_val_,
         "timeout of interconnection")
         ->default_val(-1)
         ->capture_default_str();
-        parallel_=app_
-        ->add_option("--jobs",
+        CLI::Option* parallel_=app_
+        ->add_option("--jobs",jobs_val_,
         "using CPU cores by deploying client")
         ->default_val(std::thread::hardware_concurrency())
         ->capture_default_str();
-        events_handled_=app_
-        ->add_option("--events-handle",
+        CLI::Option* events_handled_=app_
+        ->add_option("--events-handle",events_handled_val_,
         "maximum number of processed pended events")
         ->default_val(50)
         ->capture_default_str();
-        options_=app_
+        CLI::App* options_=app_
         ->add_subcommand("opt",
         "client options setting");
+        app_->callback([this](){execute();});
     }
 
     void ClientConfig::Add::execute(){
         using namespace std::string_literals;
-        std::string name = name_->as<std::string>();
-        if(name=="default")
+        if(name_val_=="default")
             throw std::runtime_error(
                 "not allowed to change \"default\" configuration");
         if(::app().config().user_config().contains(
-            name))
+            name_val_))
             throw std::runtime_error("network-configuration "s+
-                name+" already exists");
+                name_val_+" already exists");
         ::network::client::Settings settings_;
-        if(bind_address_->count()){
-            settings_.binded_addr_=
-            bind_address_->as<std::optional<network::Address>>();
+        if(app_->count("--bind-addr")){
+            settings_.binded_addr_=bind_address_val_;
         }
-        if(protocol_->count()){
-            settings_.protocol_=
-            protocol_->as<network::Protocol>();
+        if(app_->count("--proto")){
+            settings_.protocol_=protocol_val_;
         }
-        if(process_timeout_->count())
-            settings_.timeout_seconds_processes_=
-            process_timeout_->as<int32_t>();
-        if(parallel_->count()){
-            if(uint32_t jobs = parallel_->as<uint32_t>();
-                jobs>std::thread::hardware_concurrency())
+        if(app_->count("--timeout-processes"))
+            settings_.timeout_seconds_processes_=process_timeout_val_;
+        if(app_->count("jobs")){
+            if(jobs_val_>std::thread::hardware_concurrency())
                 settings_.num_threads_pool_=
                     std::thread::hardware_concurrency();
             else
-                settings_.num_threads_pool_=
-                parallel_->as<uint32_t>();
+                settings_.num_threads_pool_=jobs_val_;
         }
-        if(events_handled_->count())
-            settings_.number_events_=
-                events_handled_->as<uint32_t>();
-        if(options_->count()){
-            static OptionsSetting opt_settings(options_);
-            network::ConnectionOptions connopt;
-            opt_settings.execute(connopt);
+        if(app_->count("--events-handle"))
+            settings_.number_events_=events_handled_val_;
+        if(app_->count("opt")){
+            opt_settings->execute();
+            settings_.options_ = opt_settings->options();
         }
     }
 
     ClientConfig::Remove::Remove(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",name_val_,"network configuration name")
         ->required();
+        app_->callback([this](){execute();});
     }
 
     void ClientConfig::Remove::execute(){
         using namespace std::string_literals;
-        std::string name = name_->as<std::string>();
-        if(name=="default")
+        if(name_val_=="default")
             throw std::runtime_error(
                 "not allowed to change \"default\" configuration");
-        if(::app().config().client_config().contains(
-            name))
+        if(!::app().config().client_config().contains(
+            name_val_))
             throw std::runtime_error("network-configuration "s+
-                name+" don't exists");
-        ::app().config().client_config().remove(name);
+                name_val_+" don't exists");
+        ::app().config().client_config().remove(name_val_);
     }
 
     ClientConfig::Modify::Modify(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",name_val_,"network configuration name")
         ->required();
-        bind_address_=app_
-        ->add_option("--bind-addr",
+        CLI::Option* bind_address_=app_
+        ->add_option("--bind-addr",bind_address_val_,
         "specified binding address of client")
         ->default_val(std::nullopt) //automatic choice of network device by OS
         ->capture_default_str();
-        protocol_=app_
-        ->add_option("--proto",
+        CLI::Option* protocol_=app_
+        ->add_option("--proto",protocol_val_,
         "protocol of deploying client")
-        ->default_val(std::string(network::protocol::to_text(network::Protocol::TCP)))
+        ->default_val(network::Protocol::TCP)
         ->capture_default_str();
-        process_timeout_=app_
+        CLI::Option* process_timeout_=app_
         ->add_option("--timeout-processes",
+            process_timeout_val_,
         "timeout of interconnection")
         ->default_val(-1)
         ->capture_default_str();
-        parallel_=app_
-        ->add_option("--jobs",
+        CLI::Option* jobs_=app_
+        ->add_option("--jobs",jobs_val_,
         "using CPU cores by deploying client")
         ->default_val(std::thread::hardware_concurrency())
         ->capture_default_str();
-        events_handled_=app_
+        CLI::Option* events_handled_=app_
         ->add_option("--events-handle",
+                events_handled_val_,
         "maximum number of processed pended events")
         ->default_val(50)
         ->capture_default_str();
-        options_=app_
+        CLI::App* options_=app_
         ->add_subcommand("opt",
         "client options setting");
+        app_->callback([this](){execute();});
     }
 
     void ClientConfig::Modify::execute(){
         using namespace std::string_literals;
-        std::string name = name_->as<std::string>();
-        if(name=="default")
+        if(name_val_=="default")
             throw std::runtime_error(
                 "not allowed to change \"default\" configuration");
         if(::app().config().user_config().contains(
-            name))
+            name_val_))
             throw std::runtime_error("network-configuration "s+
-                name+" already exists");
+                name_val_+" already exists");
         ::network::client::Settings& settings_=*::app().config().
-            client_config().get_config(name);
-        if(bind_address_->count()){
-            settings_.binded_addr_=
-            bind_address_->as<std::optional<network::Address>>();
+            client_config().get_config(name_val_);
+        if(app_->count("--bind-addr")){
+            settings_.binded_addr_=bind_address_val_;
         }
-        if(protocol_->count()){
-            settings_.protocol_=
-            protocol_->as<network::Protocol>();
+        if(app_->count("--proto")){
+            settings_.protocol_=protocol_val_;
         }
-        if(process_timeout_->count())
-            settings_.timeout_seconds_processes_=
-            process_timeout_->as<int32_t>();
-        if(parallel_->count()){
-            if(uint32_t jobs = parallel_->as<uint32_t>();
-                jobs>std::thread::hardware_concurrency())
+        if(app_->count("--timeout-processes"))
+            settings_.timeout_seconds_processes_=process_timeout_val_;
+        if(app_->count("jobs")){
+            if(jobs_val_>std::thread::hardware_concurrency())
                 settings_.num_threads_pool_=
                     std::thread::hardware_concurrency();
             else
-                settings_.num_threads_pool_=
-                parallel_->as<uint32_t>();
+                settings_.num_threads_pool_=jobs_val_;
         }
-        if(events_handled_->count())
-            settings_.number_events_=
-                events_handled_->as<uint32_t>();
-        if(options_->count()){
-            static OptionsSetting opt_settings(options_);
-            opt_settings.execute(settings_.options_);
+        if(app_->count("--events-handle"))
+            settings_.number_events_=events_handled_val_;
+        if(app_->count("opt")){
+            opt_settings->execute();
+            settings_.options_ = opt_settings->options();
         }
     }
 
     ClientConfig::Load::Load(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",name_val_,"network configuration name")
         ->required();
-        path_=app_
+        CLI::Option* path_=app_
         ->add_option("--path",
-        "path of the loading file")
-        ->required()->default_str("<PATH>");
+                path_val_,
+                "path of the loading file")
+        ->required()->default_str("<PATH>")->
+        check(CLI::ExistingFile);
+        app_->callback([this](){execute();});
     }
 
     void ClientConfig::Load::execute(){
-        std::string name = name_->as<std::string>();
-        if(name=="default")
+        if(name_val_=="default")
             throw std::runtime_error(
                 "not allowed to change \"default\" configuration");
         if(!::app().config().user_config().contains(
-            name))
-            ::app().config().client_config().add_from_file(name,path_->
-                as<std::string>());
-        else ::app().config().client_config().modify_from_file(name,path_->
-                as<std::string>());
+            name_val_))
+            ::app().config().client_config().add_from_file(name_val_,path_val_);
+        else ::app().config().client_config().modify_from_file(name_val_,path_val_);
     }
 
     ClientConfig::Print::Print(CLI::App* app):
     app_(app){
-        name_ = app_
-        ->add_option("--name","network configuration name")
+        CLI::Option* name_ = app_
+        ->add_option("--name",
+                name_val_,
+                "network configuration name")
         ->required();
+        app_->callback([this](){execute();});
     }
 
     void ClientConfig::Print::execute(){
-        std::string name = name_->as<std::string>();
         if(!::app().config().client_config().contains(
-            name))
-            ::app().config().client_config().print(name,std::cout);
+            name_val_))
+            ::app().config().client_config().print(name_val_,std::cout);
     }
     
     ClientConfig::ClientConfig(CLI::App* app):
     app_(app)
     {
-        add_ = app_->add_subcommand("add","add new client configuration");
-        remove_ = app_->add_subcommand("remove","remove existing client configuration");
-        modify_ = app_->add_subcommand("modify","modify existing client configuration");
-        load_ = app_->add_subcommand("load","load client configuration from JSON file");
-        print_all_ = app_->add_subcommand("print-all","print all accessible client configurations");
-        print_named_ = app_->add_subcommand("print","print named client configuration (if exists)");
-        current_ = app_->add_subcommand(
+        app_->require_subcommand(1);
+        CLI::App* add_ = app_->add_subcommand("add","add new client configuration");
+        static std::unique_ptr<Add> add = std::make_unique<Add>(add_);
+        CLI::App* remove_ = app_->add_subcommand("remove","remove existing client configuration");
+        static std::unique_ptr<Remove> remove = std::make_unique<Remove>(remove_);
+        CLI::App* modify_ = app_->add_subcommand("modify","modify existing client configuration");
+        static std::unique_ptr<Modify> modify = std::make_unique<Modify>(modify_);
+        CLI::App* load_ = app_->add_subcommand("load","load client configuration from JSON file");
+        static std::unique_ptr<Load> load = std::make_unique<Load>(load_);
+        CLI::App* print_all_ = app_->add_subcommand("print-all","print all accessible client configurations");
+        CLI::App* print_named_ = app_->add_subcommand("print","print named client configuration (if exists)");
+        static std::unique_ptr<Print> print = std::make_unique<Print>(print_named_);
+        CLI::App* current_ = app_->add_subcommand(
             "current","print current active client configuration");
-        black_list_->add_subcommand("black-list","black list of hosts");
-        white_list_->add_subcommand("white-list","white list of hosts");
-
+        app_->callback([this](){execute();});
     }
     void ClientConfig::execute(){
-        if(app_->got_subcommand("add")){
-            static Add add(add_);
-            add.execute();
-        }
-        if(app_->got_subcommand("remove")){
-            static Remove remove(remove_);
-            remove.execute();
-        }
-        if(app_->got_subcommand("modify")){
-            static Modify modify(modify);
-            modify.execute();
-        }
-        if(app_->got_subcommand("load")){
-            static Load load(load_);
-            load.execute();
-        }
         if(app_->got_subcommand("print-all"))
             ::app().config().client_config().print_all(std::cout);
-        if(app_->got_subcommand("print")){
-            static Print print(print_all_);
-            print.execute();
-        }
         if(app_->got_subcommand("current"))
             ::app().config().client_config().print_current(std::cout);
     }

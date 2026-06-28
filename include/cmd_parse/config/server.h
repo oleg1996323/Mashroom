@@ -14,7 +14,10 @@ namespace parse{
             network::ConnectionOptions options_;
             public:
             OptionsSetting(CLI::App* app);
-            void execute(::network::ConnectionOptions& options);
+            void execute();
+            const network::ConnectionOptions& options() const noexcept{
+                return options_;
+            }
         };
 
         class Add{
@@ -27,6 +30,7 @@ namespace parse{
             network::Timeout process_timeout_val_;
             uint32_t jobs_val_;
             uint32_t events_handled_val_;
+            std::unique_ptr<OptionsSetting> opt_settings;
             public:
             Add(CLI::App* app);
             void execute();
@@ -34,7 +38,7 @@ namespace parse{
 
         class Remove{
             CLI::App* app_;
-            CLI::Option* name_;
+            std::string name_val_;
             public:
             Remove(CLI::App* app);
             void execute();
@@ -42,14 +46,14 @@ namespace parse{
 
         class Modify{
             CLI::App* app_;
-            // CLI::Option* name_;
-            // CLI::Option* host_;
-            // CLI::Option* port_;
-            // CLI::Option* protocol_;
-            // CLI::Option* process_timeout_;
-            // CLI::Option* parallel_;
-            // CLI::Option* events_handled_;
-            //CLI::App* options_;
+            std::string name_val_;
+            std::string host_val_;
+            uint32_t port_val_;
+            network::Protocol protocol_val_;
+            network::Timeout process_timeout_val_;
+            uint32_t jobs_val_;
+            uint32_t events_handled_val_;
+            std::unique_ptr<OptionsSetting> opt_settings;
             public:
             Modify(CLI::App* app);
             void execute();
@@ -57,8 +61,8 @@ namespace parse{
 
         class Load{
             CLI::App* app_;
-            // CLI::Option* name_;
-            // CLI::Option* path_;
+            std::string name_val_;
+            std::string path_val_;
             public:
             Load(CLI::App* app);
             void execute();
@@ -66,7 +70,7 @@ namespace parse{
 
         class Print{
             CLI::App* app_;
-            // CLI::Option* name_;
+            std::string name_val_;
             public:
             Print(CLI::App* app);
             void execute();
@@ -74,9 +78,7 @@ namespace parse{
 
         class BlackList{
             CLI::App* app_;
-            // CLI::Option* add_;
-            // CLI::Option* remove_;
-            // CLI::Option* print_;
+            std::string host_val_;
             public:
             BlackList(CLI::App* app);
             void execute();
@@ -84,24 +86,13 @@ namespace parse{
 
         class WhiteList{
             CLI::App* app_;
-            // CLI::Option* add_;
-            // CLI::Option* remove_;
-            // CLI::Option* print_;
+            std::string host_val_;
             public:
             WhiteList(CLI::App* app);
             void execute();
         };
         
         CLI::App* app_;
-        // CLI::App* add_;
-        // CLI::App* modify_;
-        // CLI::App* load_;
-        // CLI::App* remove_;
-        // CLI::App* print_all_;
-        // CLI::App* print_named_;
-        // CLI::App* current_;
-        // CLI::App* black_list_;
-        // CLI::App* white_list_;
         public:
         ServerConfig(CLI::App* app);
         void execute();
