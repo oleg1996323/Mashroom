@@ -98,12 +98,11 @@ namespace network{
             SERVER_STATUS,
             FILE_DATA,
             FILE_METADATA,
-            INDEX,
-            EXTRACT
+            INDEX
         };
 
         static constexpr size_t msg_number() noexcept{
-            return EXTRACT+1;
+            return INDEX+1;
         }
     };
 

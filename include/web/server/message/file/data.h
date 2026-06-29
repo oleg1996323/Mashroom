@@ -32,6 +32,12 @@ namespace network
         const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
             return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
         }
+        void data(std::vector<char> d) noexcept{
+            file_data_ = std::move(d);
+        }
+        const std::vector<char>& data() const noexcept{
+            return file_data_;
+        }
     };
 }
 

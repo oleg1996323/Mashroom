@@ -99,7 +99,7 @@ std::expected<
 }
 
 std::expected<
-    Message<Server_MsgT::EXTRACT>,
+    Message<Server_MsgT::FILE_METADATA>,
     std::error_code> extract_process(std::error_code& err,
         std::stop_token token,
         const Message<
@@ -140,7 +140,7 @@ std::expected<
     
     if(std::distance(fs::directory_iterator(curdir), fs::directory_iterator{})!=1) //only 1 zip file
         return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
-    auto reply_msg = Message<Server_MsgT::EXTRACT>(
+    auto reply_msg = Message<Server_MsgT::FILE_METADATA>(
                 get_reply(msg.transaction()));
     for(auto entry:fs::directory_iterator(curdir))
     {
@@ -156,14 +156,14 @@ std::expected<
 }
 
 std::expected<
-    Message<Server_MsgT::EXTRACT>,
+    Message<Server_MsgT::FILE_METADATA>,
     std::error_code> __extract_process__(
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
     auto into = [&stop,&err](auto& in_app_msg) noexcept->
             std::expected<
-            Message<Server_MsgT::EXTRACT>,
+            Message<Server_MsgT::FILE_METADATA>,
             std::error_code>
     {
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
@@ -174,7 +174,7 @@ std::expected<
                 <Client_MsgT::type MSG_T>
                 (const Message<MSG_T>& msg) noexcept ->
                     std::expected<
-                    Message<Server_MsgT::EXTRACT>,
+                    Message<Server_MsgT::FILE_METADATA>,
                     std::error_code>
             {
                 if constexpr (MSG_T==Client_MsgT::EXTRACT)
@@ -215,6 +215,24 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         }
         break;
         case Client_MsgT::TRANSACTION:
+        auto msg_ref = recv_hmsg_.get_message<Client_MsgT::TRANSACTION>();
+            if(msg_ref.has_value()){
+                const auto& msg_progress = msg_ref->get();
+                if(msg_progress.state()==Transaction::CANCEL){
+                    file_sender_.reset();
+                    waiting_.reset();
+                    io_context().serialize(Message<Server_MsgT::TRANSACTION>(get_reply(msg_progress)));
+                }
+                else if(msg_progress.state()==Transaction::ACCEPT){
+                    //todo accept
+                }
+            }
+            else{
+                __enqueue_error__(err,
+                    "progress message handling",
+                    server::Status::READY,
+                    ErrorCode::INTERNAL_ERROR);
+            }
         break;
         case Client_MsgT::PROGRESS:
         {

@@ -1,13 +1,16 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include "web/common/detail/transaction.h"
-#include <vector>
+#include <string>
+#include <cstdint>
 
-namespace network
-{
+namespace network{
     template<>
-    class Message<Server_MsgT::FILE_METADATA>:public Message<Server_MsgT::TRANSACTION>{
-        std::vector<char> file_data_;
+    class Message<network::Server_MsgT::FILE_METADATA>:public Message<Server_MsgT::TRANSACTION>
+    {
+        std::string filename_;
+        uintmax_t file_sz_ = 0;      //size of file
+        
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -25,28 +28,41 @@ namespace network
             noexcept:
             Message<Server_MsgT::TRANSACTION>(std::move(transaction))
         {}
-        Message(const Message& other) noexcept:
+        Message(const Message& other):
         Message<Server_MsgT::TRANSACTION>(other),
-        file_data_(other.file_data_){}
-        Message(Message&& other) noexcept:
+        filename_(other.filename_),
+        file_sz_(other.file_sz_){}
+        Message(Message&& other):
         Message<Server_MsgT::TRANSACTION>(std::move(other)),
-        file_data_(std::move(other.file_data_)){}
-        Message& operator=(const Message& other) noexcept{
+        filename_(std::move(other.filename_)),
+        file_sz_(std::move(other.file_sz_)){}
+        Message& operator=(const Message& other) {
             if(this!=&other){
                 Message<Server_MsgT::TRANSACTION>::operator=(other);
-                file_data_ = other.file_data_;
+                filename_ = other.filename_;
+                file_sz_ = other.file_sz_;
             }
             return *this;
         }
         Message& operator=(Message&& other) noexcept{
             if(this!=&other){
                 Message<Server_MsgT::TRANSACTION>::operator=(std::move(other));
-                file_data_ = std::move(other.file_data_);
+                filename_ = std::move(other.filename_);
+                file_sz_ = std::move(other.file_sz_);
             }
             return *this;
         }
-        const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
-            return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
+        void file_size(uintmax_t size) noexcept{
+            file_sz_=size;
+        }
+        uintmax_t file_size() const noexcept{
+            return file_sz_;
+        }
+        void filename(const std::string& filename) noexcept{
+            filename_=filename;
+        }
+        const std::string& filename() const noexcept{
+            return filename_;
         }
     };
 }
@@ -55,43 +71,65 @@ namespace serialization{
     using namespace network;
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,network::Message<network::Server_MsgT::FILE_METADATA>>{
-        using type = Message<network::Server_MsgT::FILE_METADATA>;
+        using type = network::Message<network::Server_MsgT::FILE_METADATA>;
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
-            return SerializationEC::NONE;
+            return serialize<NETWORK_ORDER>(msg,
+                buf,
+                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.filename_,
+                msg.file_sz_);
         }
     };
 
     template<bool NETWORK_ORDER>
     struct Deserialize<NETWORK_ORDER,network::Message<network::Server_MsgT::FILE_METADATA>>{
-        using type = Message<network::Server_MsgT::FILE_METADATA>;
+        using type = network::Message<network::Server_MsgT::FILE_METADATA>;
         SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
-            return SerializationEC::NONE;
+            return deserialize<NETWORK_ORDER>(msg,
+                buf,
+                static_cast<Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.filename_,
+                msg.file_sz_);
         }
     };
 
     template<>
-    struct Serial_size<Message<network::Server_MsgT::FILE_METADATA>>{
-        using type = Message<network::Server_MsgT::FILE_METADATA>;
+    struct Serial_size<network::Message<network::Server_MsgT::FILE_METADATA>>{
+        using type = network::Message<network::Server_MsgT::FILE_METADATA>;
         size_t operator()(const type& msg) const noexcept{
-            return 0;
+            return serial_size(
+                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.filename_,
+                msg.file_sz_);
         }
     };
 
     template<>
-    struct Min_serial_size<Message<network::Server_MsgT::FILE_METADATA>>{
-        using type = Message<network::Server_MsgT::FILE_METADATA>;
+    struct Min_serial_size<network::Message<network::Server_MsgT::FILE_METADATA>>{
+        using type = network::Message<network::Server_MsgT::FILE_METADATA>;
         static constexpr size_t value = []()
         {
-            return 0;
+            return min_serial_size<
+                Message<Server_MsgT::TRANSACTION>,
+                decltype(type::filename_),
+                decltype(type::file_sz_)>();
         }();
     };
 
     template<>
-    struct Max_serial_size<Message<network::Server_MsgT::FILE_METADATA>>{
-        using type = Message<network::Server_MsgT::FILE_METADATA>;
+    struct Max_serial_size<network::Message<network::Server_MsgT::FILE_METADATA>>{
+        using type = network::Message<network::Server_MsgT::FILE_METADATA>;
         static constexpr size_t value = []()
         {
-            return 0;
+            return max_serial_size<
+                Message<Server_MsgT::TRANSACTION>,
+                decltype(type::filename_),
+                decltype(type::file_sz_)>();
         }();
     };
 }
+
+static_assert(serialization::deserialize_concept<true,network::Message<network::Server_MsgT::FILE_METADATA>>);
+static_assert(serialization::deserialize_concept<false,network::Message<network::Server_MsgT::FILE_METADATA>>);
+static_assert(serialization::serialize_concept<true,network::Message<network::Server_MsgT::FILE_METADATA>>);
+static_assert(serialization::serialize_concept<false,network::Message<network::Server_MsgT::FILE_METADATA>>);

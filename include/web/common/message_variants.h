@@ -18,9 +18,9 @@
 
 //server messages
 #include "web/server/message/application/index.h"
-#include "web/server/message/application/extract.h"
 #include "web/server/message/file/data.h"
 #include "web/server/message/file/metadata.h"
+#include "web/server/message/file/data.h"
 #include "web/server/message/system/error.h"
 #include "web/server/message/system/version.h"
 #include "web/server/message/system/status.h"
@@ -72,14 +72,12 @@ namespace network{
                                     Message<Client_MsgT::EXTRACT>
                                     >,
                                     std::variant<std::monostate,
-                                    Message<Server_MsgT::INDEX>,
-                                    Message<Server_MsgT::EXTRACT>
+                                    Message<Server_MsgT::INDEX>
                                     >
                                     >;
     
     template<Side S,MESSAGE_ID<S>::type MSG>
-    constexpr bool is_app_message_v = (S==Side::SERVER?(MSG == Server_MsgT::INDEX ||
-                                    MSG == Server_MsgT::EXTRACT):
+    constexpr bool is_app_message_v = (S==Side::SERVER?(MSG == Server_MsgT::INDEX):
                                     (MSG == Client_MsgT::INDEX ||
                                     MSG == Client_MsgT::INDEX_REF ||
                                     MSG == Client_MsgT::EXTRACT));
@@ -179,7 +177,6 @@ namespace network{
         if constexpr (S==Side::SERVER)
             switch(id){
                 case Server_MsgT::INDEX:
-                case Server_MsgT::EXTRACT:
                     return true;
                     break;
                 default:

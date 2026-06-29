@@ -78,6 +78,9 @@ namespace network{
         Transaction state() const noexcept{
             return op_status_;
         }
+        void state(Transaction state) noexcept{
+            op_status_=state;
+        }
         const Message& transaction() const noexcept{
             return *this;
         }
