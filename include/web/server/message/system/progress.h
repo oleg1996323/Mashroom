@@ -57,6 +57,18 @@ namespace network{
         const Message<Server_MsgT::TRANSACTION>& transaction() const noexcept{
             return static_cast<const Message<Server_MsgT::TRANSACTION>&>(*this);
         }
+        void progress(float progress) noexcept{
+            progress_ = progress;
+        }
+        float progress() const noexcept{
+            return progress_;
+        }
+        void state(progress::State state) noexcept{
+            state_ = state;
+        }
+        progress::State state() const noexcept{
+            return state_;
+        }
     };
 }
 

@@ -38,6 +38,11 @@ namespace network{
                     stream_ = std::ifstream(meta_.filename());
                 else return;
             }
+            const Message<Server_MsgT::FILE_METADATA>& meta() 
+                const noexcept
+            {
+                return meta_;
+            }
             bool valid() const noexcept{
                 return stream_.is_open();
             }
@@ -99,7 +104,11 @@ namespace network{
                         std::make_error_code(
                             std::errc::operation_not_permitted));
             }
+            float progress() const noexcept{
+                return float(has_read())/size();
+            }
         };
+        
         MessageHandler<Side::CLIENT> recv_hmsg_;
         MessageHandler<Side::SERVER> send_hmsg_;
         std::optional<size_t> version_; //@todo
@@ -107,7 +116,7 @@ namespace network{
         std::optional<Client_MsgT> waiting_;
         std::unique_ptr<SendingFileState> file_sender_;
         void __task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept;
-        void __enqueue_error__(std::error_code& err,
+        void __emplace_error__(std::error_code& err,
                 std::string description,
                 server::Status status,
                 ErrorCode code) noexcept
@@ -119,9 +128,9 @@ namespace network{
                         std::move(description)),
                         status
                     );
-            io_context().serialize(reply);
+            io_context().send(err,reply);
         }
-        void __enqueue_error__(std::error_code& err,
+        void __emplace_error__(std::error_code& err,
                 std::string description,
                 server::Status status,
                 Message<Server_MsgT::TRANSACTION> transaction,

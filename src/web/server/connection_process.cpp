@@ -191,6 +191,13 @@ std::expected<
 }
 
 void ServerConnectionProcess::__task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept{
+    if(!version_ && msg_id!=Client_MsgT::ERROR && msg_id!=Client_MsgT::VERSION){
+        __emplace_error__(err,
+            "version interconnection not defined",
+            server::Status::READY,
+            ErrorCode::INVALID_CLIENT_REQUEST);
+        return;
+    }
     switch(msg_id){
         case Client_MsgT::CREDENTIALS:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::CREDENTIALS>();
@@ -199,10 +206,10 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 msg_credentials.login();
                 msg_credentials.password();//save in network config database
                 //@todo
-                io_context().serialize(Message<Server_MsgT::CREDENTIALS>(0,Data_a::DENIED,false));
+                send_hmsg_.emplace_message(Message<Server_MsgT::CREDENTIALS>(0,Data_a::DENIED,false));
             }
             else{
-                __enqueue_error__(err,
+                __emplace_error__(err,
                             "credentials message handling",
                             server::Status::READY,
                             ErrorCode::INTERNAL_ERROR);
@@ -211,46 +218,104 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         break;
         case Client_MsgT::SERVER_STATUS:
         {
-            io_context().serialize(Message<Server_MsgT::SERVER_STATUS>(server::Status::READY));
+            send_hmsg_.emplace_message(Message<Server_MsgT::SERVER_STATUS>(server::Status::READY));
         }
         break;
-        case Client_MsgT::TRANSACTION:
-        auto msg_ref = recv_hmsg_.get_message<Client_MsgT::TRANSACTION>();
-            if(msg_ref.has_value()){
-                const auto& msg_progress = msg_ref->get();
-                if(msg_progress.state()==Transaction::CANCEL){
-                    file_sender_.reset();
-                    waiting_.reset();
-                    io_context().serialize(Message<Server_MsgT::TRANSACTION>(get_reply(msg_progress)));
+        case Client_MsgT::TRANSACTION:{
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::TRANSACTION>();
+                if(msg_ref.has_value()){
+                    const auto& msg_progress = msg_ref->get();
+                    if(msg_progress.state()==Transaction::DECLINE){
+                        file_sender_.reset();
+                        waiting_.reset();
+                        send_hmsg_.emplace_message(Message<Server_MsgT::TRANSACTION>(get_reply(msg_progress)));
+                    }
+                    else if(msg_progress.state()==Transaction::ACCEPT &&
+                        file_sender_)
+                    {
+                        if(file_sender_->accepted())
+                            file_sender_->next();
+                        else
+                            err = file_sender_->accept();
+                    }
+                    else err.clear();
                 }
-                else if(msg_progress.state()==Transaction::ACCEPT){
-                    //todo accept
+                else{
+                    __emplace_error__(err,
+                        "progress message handling",
+                        server::Status::READY,
+                        ErrorCode::INTERNAL_ERROR);
                 }
-            }
-            else{
-                __enqueue_error__(err,
-                    "progress message handling",
-                    server::Status::READY,
-                    ErrorCode::INTERNAL_ERROR);
-            }
-        break;
+            break;
+        }
         case Client_MsgT::PROGRESS:
         {
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::PROGRESS>();
             if(msg_ref.has_value()){
                 const auto& msg_progress = msg_ref->get();
-                io_context().serialize(Message<Server_MsgT::PROGRESS>(get_reply(msg_progress)));
+                auto& transaction = msg_progress.transaction();
+                if(file_sender_ && has_task()){
+                    auto reply_progress_msg = Message<Server_MsgT::PROGRESS>(get_reply(msg_progress));
+                    if(file_sender_->meta().transaction().hash()==transaction.hash()){
+                        float prog = file_sender_->progress();
+                        if(1-prog>std::numeric_limits<float>::epsilon()){
+                            reply_progress_msg.progress(file_sender_->progress());
+                            reply_progress_msg.state(progress::State::SENDING);   
+                        }
+                        else{
+                            reply_progress_msg.progress(1);
+                            reply_progress_msg.state(progress::State::NOTHING);   
+                        }
+                        send_hmsg_.emplace_message(std::move(reply_progress_msg));
+                    }
+                    else if(false) //if transaction is equal to task transaction
+                    {
+
+                    }
+                    else{
+                         __emplace_error__(err,
+                        "transaction "+msg_progress.hash()+" not found",
+                        server::Status::READY,
+                        ErrorCode::INVALID_CLIENT_REQUEST);
+                    }
+                }
+                else{
+                    __emplace_error__(err,
+                    "transaction "+msg_progress.hash()+" not found",
+                    server::Status::READY,
+                    ErrorCode::INVALID_CLIENT_REQUEST);
+                }
             }
             else{
-                __enqueue_error__(err,
+                __emplace_error__(err,
                     "progress message handling",
                     server::Status::READY,
                     ErrorCode::INTERNAL_ERROR);
             }
         }
         break;
-        case Client_MsgT::ERROR:
-            //@todo
+        case Client_MsgT::ERROR:{
+            auto msg_ref = recv_hmsg_.get_message<Client_MsgT::ERROR>();
+            if(msg_ref.has_value()){
+                if(msg_ref && msg_ref->get().transaction().has_value()){
+                    auto& err_msg = msg_ref->get();
+                    auto& transaction = msg_ref->get().transaction().value();
+                    if(file_sender_ && file_sender_->meta().hash() == transaction.hash()){
+                        if(err_msg.error()!=ErrorCode())
+                            file_sender_.reset();
+                    }
+                }
+                else{
+                    //@todo
+                }
+            }
+            else{
+                __emplace_error__(err,
+                    "error message handling",
+                    server::Status::READY,
+                    ErrorCode::INTERNAL_ERROR);
+            }
+        }
         break;
         case Client_MsgT::VERSION:
         {
@@ -263,23 +328,23 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     {
                         Message<Server_MsgT::VERSION> reply(
                             app().config().system_config().version());
-                        io_context().serialize(reply);
+                        send_hmsg_.emplace_message(std::move(reply));
                     }
                     else {
                         Message<Server_MsgT::VERSION> reply(
                             msg_version.version());
-                        io_context().serialize(reply);
+                        send_hmsg_.emplace_message(std::move(reply));
                     }
                 }
                 else{
-                    __enqueue_error__(err,
+                    __emplace_error__(err,
                         "version message handling",
                         server::Status::READY,
                         ErrorCode::INTERNAL_ERROR);
                 }
             }
             else{
-                __enqueue_error__(err,
+                __emplace_error__(err,
                     "version interconnection already defined",
                     server::Status::READY,
                     ErrorCode::INVALID_CLIENT_REQUEST);
@@ -321,7 +386,7 @@ void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
     }
     if(auto msg_id = recv_hmsg_.message_type();
         msg_id.has_value()){
-        __task__(err,msg_id.value());
+        __task__(err,msg_id.value());            
     }
     return;
 }
@@ -331,6 +396,8 @@ void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
         err = std::make_error_code(std::errc::no_message);
         return;
     }
+    else
+        io_context().send(err,std::move(send_hmsg_));
     return;
 }
 
