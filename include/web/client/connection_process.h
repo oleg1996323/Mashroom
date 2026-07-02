@@ -7,7 +7,64 @@
 
 namespace network{
     class ClientConnectionProcess:public AbstractRequestableConnectionProcess{
-
+        class ReceivingFileState{
+            std::ofstream stream_;
+            Message<Server_MsgT::FILE_METADATA> meta_;
+            uint32_t has_received_=0;
+            public:
+            ReceivingFileState(
+                Message<Server_MsgT::FILE_METADATA> meta,
+                size_t size) noexcept:
+                meta_(meta)
+            {
+                if(fs::exists(meta_.filename()) || 
+                    fs::is_regular_file(meta_.filename()))
+                    stream_ = std::ofstream(meta_.filename());
+                else return;
+            }
+            const Message<Server_MsgT::FILE_METADATA>& meta() 
+                const noexcept
+            {
+                return meta_;
+            }
+            bool valid() const noexcept{
+                return stream_.is_open();
+            }
+            bool has_to_receive() const noexcept{
+                return has_received_<meta_.file_size();
+            }
+            size_t size() const noexcept{
+                return meta_.file_size();
+            }
+            size_t has_read() const noexcept{
+                return has_received_;
+            }
+            void cancel() noexcept{
+                meta_.state(Transaction::CANCEL);
+            }
+            std::error_code next(Message<Server_MsgT::FILE_DATA> msg) noexcept{
+                if(has_to_receive()){
+                    if((size()-has_received_)>=msg.data().size()){
+                        stream_.write(msg.data().data(),msg.data().size());
+                        return {};
+                    }
+                    else{
+                        return std::make_error_code(std::errc::file_too_large);
+                    }
+                }
+                else return std::make_error_code(
+                            std::errc::operation_not_permitted);
+            }
+            float progress() const noexcept{
+                return float(has_read())/size();
+            }
+        };
+        
+        MessageHandler<Side::SERVER> recv_hmsg_;
+        MessageHandler<Side::CLIENT> send_hmsg_;
+        std::optional<size_t> version_; //@todo
+        std::optional<Server_MsgT> waiting_;
+        std::unique_ptr<ReceivingFileState> file_recv_;
         void __reaction__(
                 std::error_code& err,
                 Client_MsgT::type client_msg,
@@ -56,7 +113,17 @@ namespace network{
 
             }
         }
-
+        void __emplace_error__(std::error_code& err,
+                std::string description,
+                ErrorCode code) noexcept
+        {
+            Message<Client_MsgT::ERROR> reply(
+                    code,
+                    ErrorPrint::message(
+                        code,
+                        std::move(description)));
+            io_context().send(err,reply);
+        }
         public:
         virtual ~ClientConnectionProcess() = default;
         

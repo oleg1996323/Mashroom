@@ -24,6 +24,9 @@ namespace network{
         Message& operator=(const Message& other) = default;
         Message& operator=(Message&& other) noexcept = default;
         Message() = default;
+        server::Status status() const noexcept{
+            return status_;
+        }
     };
 }
 

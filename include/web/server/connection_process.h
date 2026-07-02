@@ -151,7 +151,14 @@ namespace network{
         virtual void on_write(std::error_code& err) noexcept override;
         virtual void on_task_done(std::error_code& err) noexcept override;
         virtual void on_stop_requested(std::error_code& err) noexcept override;
-        
+        void at_fatal_error(std::error_code& err) noexcept override{
+            err.clear();
+            io_context().clear_buffers();
+            __emplace_error__(err,
+                "something gone wrong",
+                server::Status::READY,
+                ErrorCode::INTERNAL_ERROR);
+        }
         ServerConnectionProcess(
                 ConnectionHandle hconn,
                 std::error_code& err) noexcept:

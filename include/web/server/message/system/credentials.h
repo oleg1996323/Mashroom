@@ -5,7 +5,7 @@
 namespace network{
     template<>
     class Message<network::Server_MsgT::CREDENTIALS>{
-        uint16_t attempts_;
+        uint16_t attempts_=0;
         using AccessMode = Data_a;
         AccessMode access_ = AccessMode::PUBLIC;
         bool success_ = false;

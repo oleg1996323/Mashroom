@@ -242,7 +242,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 }
                 else{
                     __emplace_error__(err,
-                        "progress message handling",
+                        "transaction message handling",
                         server::Status::READY,
                         ErrorCode::INTERNAL_ERROR);
                 }
@@ -366,6 +366,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     __index_process__,
                         ClientAppMsg(msg_ref->get()));
         }
+        break;
         case Client_MsgT::INDEX_REF:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>();
             if(msg_ref.has_value())
@@ -373,6 +374,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     __index_process__,
                         ClientAppMsg(msg_ref->get()));
         }
+        break;
+        default:
+        __emplace_error__(
+            err,
+            "undefined message",
+            server::Status::READY,
+            ErrorCode::INVALID_CLIENT_REQUEST);
+        break;
     }
 }
 
@@ -396,8 +405,7 @@ void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
         err = std::make_error_code(std::errc::no_message);
         return;
     }
-    else
-        io_context().send(err,std::move(send_hmsg_));
+    else io_context().send(err,std::move(send_hmsg_));
     return;
 }
 
