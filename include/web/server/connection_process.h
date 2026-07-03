@@ -24,6 +24,7 @@ namespace network{
             Transaction state_=Transaction::NEW;
             public:
             SendingFileState(
+                Message<Server_MsgT::ERROR>& err,
                 Message<Server_MsgT::FILE_METADATA> meta,
                 uint32_t start,
                 uint32_t chunk,
@@ -34,8 +35,14 @@ namespace network{
             {
                 meta_.state(Transaction::NEW);
                 if(fs::exists(meta_.filename()) || 
-                    fs::is_regular_file(meta_.filename()))
+                    fs::is_regular_file(meta_.filename())){
                     stream_ = std::ifstream(meta_.filename());
+                    stream_.seekg(start_,std::ios::beg);
+                    if(stream_.fail()){
+                        err.description("unexpected internal error");
+                        err.error(ErrorCode::INTERNAL_ERROR);
+                    }
+                }
                 else return;
             }
             const Message<Server_MsgT::FILE_METADATA>& meta() 

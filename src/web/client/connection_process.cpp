@@ -76,30 +76,30 @@ namespace network{
             break;
             case Server_MsgT::TRANSACTION:{
                 auto msg_ref = recv_hmsg_.get_message<Server_MsgT::TRANSACTION>();
-                    if(msg_ref.has_value()){
-                        const auto& msg_transaction = msg_ref->get();
-                        if(msg_transaction.state()==Transaction::DECLINE ||
-                            msg_transaction.state()==Transaction::CANCEL){
-                            file_recv_.reset();
-                            waiting_.reset();
-                        }
-                        else if(msg_transaction.state()==Transaction::ACCEPT &&
-                            file_recv_)
-                        {
-                            if(file_recv_->accepted())
-                                file_recv_->next();
-                            else
-                                err = file_recv_->accept();
-                        }
-                        else err.clear();
+                if(msg_ref.has_value()){
+                    const auto& msg_transaction = msg_ref->get();
+                    if(msg_transaction.state()==Transaction::DECLINE ||
+                        msg_transaction.state()==Transaction::CANCEL){
+                        file_recv_.reset();
+                        waiting_.reset();
                     }
-                    else{
-                        __emplace_error__(err,
-                            "progress message handling",
-                            ErrorCode::INTERNAL_ERROR);
+                    else if(msg_transaction.state()==Transaction::ACCEPT &&
+                        file_recv_)
+                    {
+                        if(file_recv_->accepted())
+                            file_recv_->next();
+                        else
+                            err = file_recv_->accept();
                     }
-                break;
+                    else err.clear();
+                }
+                else{
+                    __emplace_error__(err,
+                        "progress message handling",
+                        ErrorCode::INTERNAL_ERROR);
+                }
             }
+            break;
             case Server_MsgT::PROGRESS:
             {
                 auto msg_ref = recv_hmsg_.get_message<Server_MsgT::PROGRESS>();

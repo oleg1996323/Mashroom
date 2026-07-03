@@ -68,51 +68,7 @@ namespace network{
         void __reaction__(
                 std::error_code& err,
                 Client_MsgT::type client_msg,
-                Server_MsgT::type server_msg) noexcept{
-            switch(client_msg){
-                case Client_MsgT::SERVER_STATUS:
-                    if(server_msg!=Server_MsgT::SERVER_STATUS){
-                        err=std::make_error_code(std::errc::bad_message);
-                        return;
-                    }
-                    else {
-                        err.clear();
-                        complete_current_request(err);
-                        make_active_request();
-                        return;
-                    }
-                    break;
-                case Client_MsgT::INDEX_REF:
-                    if(server_msg!=Server_MsgT::INDEX){
-                        err=std::make_error_code(std::errc::bad_message);
-                        return;
-                    }
-                    else {
-                        err.clear();
-                        complete_current_request(err);
-                        make_active_request();
-                        return;
-                    }
-                    break;
-                case Client_MsgT::INDEX:
-                    if(server_msg==Server_MsgT::INDEX){
-                        
-                    }
-                    else if(server_msg==Server_MsgT::FILE_METADATA){
-                        
-                    }
-                    else if(server_msg==Server_MsgT::FILE_DATA){
-
-                    }
-                    else{
-                        
-                        err=std::make_error_code(std::errc::bad_message);
-                        return;
-                    }
-                    break;
-
-            }
-        }
+                Server_MsgT::type server_msg) noexcept;
         void __emplace_error__(std::error_code& err,
                 std::string description,
                 ErrorCode code) noexcept
@@ -169,11 +125,7 @@ namespace network{
         virtual void on_bad_receive(std::error_code& err) noexcept{
 
         }
-        virtual void on_task_done(std::error_code& err) noexcept override{
-
-        }
-        virtual void on_stop_requested(std::error_code& err) noexcept override{
-
-        }
+        virtual void on_task_done(std::error_code& err) noexcept override;
+        virtual void on_stop_requested(std::error_code& err) noexcept override;
     };
 }

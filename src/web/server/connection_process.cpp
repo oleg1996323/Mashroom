@@ -354,7 +354,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         case Client_MsgT::EXTRACT:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::EXTRACT>();
             if(msg_ref.has_value());
-                emplace_task<TaskMode::Thread>(err,
+                emplace_task<TaskMode::Thread>([hconn=connection_handle()]() mutable
+                    {
+                        std::error_code err;
+                        hconn.execute_command(
+                            std::make_shared<Command<CommandType::TaskDone>>(hconn),
+                            err);
+                    },
+                    err,
                     __extract_process__,
                         ClientAppMsg(msg_ref->get()));
             break;
@@ -362,7 +369,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         case Client_MsgT::INDEX:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
             if(msg_ref.has_value())
-                emplace_task<TaskMode::Thread>(err,
+                emplace_task<TaskMode::Thread>([hconn=connection_handle()]() mutable
+                    {
+                        std::error_code err;
+                        hconn.execute_command(
+                            std::make_shared<Command<CommandType::TaskDone>>(hconn),
+                            err);
+                    },
+                    err,
                     __index_process__,
                         ClientAppMsg(msg_ref->get()));
         }
@@ -370,7 +384,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         case Client_MsgT::INDEX_REF:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX_REF>();
             if(msg_ref.has_value())
-                emplace_task<TaskMode::Thread>(err,
+                emplace_task<TaskMode::Thread>([hconn=connection_handle()]() mutable
+                    {
+                        std::error_code err;
+                        hconn.execute_command(
+                            std::make_shared<Command<CommandType::TaskDone>>(hconn),
+                            err);
+                    },
+                    err,
                     __index_process__,
                         ClientAppMsg(msg_ref->get()));
         }
