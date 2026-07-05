@@ -226,17 +226,15 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 if(msg_ref.has_value()){
                     const auto& msg_progress = msg_ref->get();
                     if(msg_progress.state()==Transaction::DECLINE){
-                        file_sender_.reset();
+                        file_sender_.erase(msg_progress.hash());
                         waiting_.reset();
                         send_hmsg_.emplace_message(Message<Server_MsgT::TRANSACTION>(get_reply(msg_progress)));
                     }
                     else if(msg_progress.state()==Transaction::ACCEPT &&
-                        file_sender_)
+                        file_sender_.contains(msg_progress.hash()))
                     {
-                        if(file_sender_->accepted())
-                            file_sender_->next();
-                        else
-                            err = file_sender_->accept();
+                        if(!file_sender_.at(msg_progress.hash()).accepted())
+                            err = file_sender_.at(msg_progress.hash()).accept();                            
                     }
                     else err.clear();
                 }
@@ -254,12 +252,13 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             if(msg_ref.has_value()){
                 const auto& msg_progress = msg_ref->get();
                 auto& transaction = msg_progress.transaction();
-                if(file_sender_ && has_task()){
+                if(file_sender_.contains(msg_progress.hash()) && has_task()){
                     auto reply_progress_msg = Message<Server_MsgT::PROGRESS>(get_reply(msg_progress));
-                    if(file_sender_->meta().transaction().hash()==transaction.hash()){
-                        float prog = file_sender_->progress();
+                    if(file_sender_.at(msg_progress.hash()).meta().transaction().hash()==transaction.hash()){
+                        float prog = file_sender_.at(msg_progress.hash()).progress();
                         if(1-prog>std::numeric_limits<float>::epsilon()){
-                            reply_progress_msg.progress(file_sender_->progress());
+                            reply_progress_msg.progress(file_sender_.
+                                at(msg_progress.hash()).progress());
                             reply_progress_msg.state(progress::State::SENDING);   
                         }
                         else{
@@ -300,9 +299,9 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 if(msg_ref && msg_ref->get().transaction().has_value()){
                     auto& err_msg = msg_ref->get();
                     auto& transaction = msg_ref->get().transaction().value();
-                    if(file_sender_ && file_sender_->meta().hash() == transaction.hash()){
+                    if(file_sender_.contains(transaction.hash())){
                         if(err_msg.error()!=ErrorCode())
-                            file_sender_.reset();
+                            file_sender_.erase(transaction.hash());
                     }
                 }
                 else{
@@ -404,6 +403,10 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             ErrorCode::INVALID_CLIENT_REQUEST);
         break;
     }
+    if(send_hmsg_.has_message()){
+        io_context().send(err,send_hmsg_);
+        send_hmsg_.clear();
+    }
 }
 
 void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
@@ -422,11 +425,11 @@ void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
 }
 
 void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
-    if(!send_hmsg_.has_message()){
-        err = std::make_error_code(std::errc::no_message);
-        return;
+    io_context().send_rest(err);
+    for(auto& [hash,fsender]:file_sender_){
+        if(fsender.accepted() && fsender.has_to_send())
+            fsender.next();
     }
-    else io_context().send(err,std::move(send_hmsg_));
     return;
 }
 

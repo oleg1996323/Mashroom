@@ -45,6 +45,9 @@ namespace network{
         uint64_t version() const noexcept{
             return version_;
         }
+        void version(uint64_t version) noexcept{
+            version_=version;
+        }
     };
 }
 

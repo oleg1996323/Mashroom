@@ -13,8 +13,7 @@ namespace network{
             uint32_t has_received_=0;
             public:
             ReceivingFileState(
-                Message<Server_MsgT::FILE_METADATA> meta,
-                size_t size) noexcept:
+                Message<Server_MsgT::FILE_METADATA> meta) noexcept:
                 meta_(meta)
             {
                 if(fs::exists(meta_.filename()) || 
@@ -42,7 +41,10 @@ namespace network{
             void cancel() noexcept{
                 meta_.state(Transaction::CANCEL);
             }
-            std::error_code next(Message<Server_MsgT::FILE_DATA> msg) noexcept{
+            bool canceled() const noexcept{
+                return meta_.state()==Transaction::CANCEL;
+            }
+            std::error_code next(const Message<Server_MsgT::FILE_DATA>& msg) noexcept{
                 if(has_to_receive()){
                     if((size()-has_received_)>=msg.data().size()){
                         stream_.write(msg.data().data(),msg.data().size());
@@ -63,11 +65,9 @@ namespace network{
         MessageHandler<Side::SERVER> recv_hmsg_;
         MessageHandler<Side::CLIENT> send_hmsg_;
         std::optional<size_t> version_; //@todo
-        std::optional<Server_MsgT> waiting_;
-        std::unique_ptr<ReceivingFileState> file_recv_;
+        std::unordered_map<std::string,ReceivingFileState> file_recv_;
         void __reaction__(
                 std::error_code& err,
-                Client_MsgT::type client_msg,
                 Server_MsgT::type server_msg) noexcept;
         void __emplace_error__(std::error_code& err,
                 std::string description,
@@ -83,49 +83,20 @@ namespace network{
         public:
         virtual ~ClientConnectionProcess() = default;
         
-        virtual void on_read(std::error_code& err) noexcept override{
-            if(!active_request(err) && make_active_request())
-                return;
-            else{
-                auto recv_res = io_context().receive(err,*active_request_->received());
-                if(recv_res==-1){
-                    handle_receive_error(err);
-                    return;
-                }
-                else{
-                    using send = Frame<std::monostate,MessageHandler<Side::CLIENT>,std::monostate>;
-                    using recv = Frame<std::monostate,MessageHandler<Side::SERVER>,std::monostate>;
-                    send* sent_;
-                    recv* recv_;
-                    if(auto msg_t = active_request_->received(recv_)->data_frame().message_type();
-                        msg_t.has_value())
-                    {
-                        active_request_->received(sent_)->data_frame().message_type();
-                    }
-
-                        
-                    io_context();
-                    active_request_->bytes_received(recv_res);
-                    if(active_request_->all_received(true)){
-                        make_active_request();
-                        return;
-                    }
-                    else return;
-                }
-            }
-        }
+        virtual void on_read(std::error_code& err) noexcept override;
 
         ClientConnectionProcess(
                 ConnectionHandle hconn,
-                std::error_code& err) noexcept:
-        AbstractRequestableConnectionProcess(hconn,err){}
-        virtual void on_bad_send(std::error_code& err) noexcept{
-
-        }
-        virtual void on_bad_receive(std::error_code& err) noexcept{
-
-        }
+                std::error_code& err) noexcept;
+        virtual void on_write(std::error_code& err) noexcept override;
         virtual void on_task_done(std::error_code& err) noexcept override;
         virtual void on_stop_requested(std::error_code& err) noexcept override;
+        virtual void on_push_request(std::error_code& err) noexcept override{
+            err.clear();
+            if(make_active_request()){
+                io_context().send(err,*active_request_->sent());
+            }
+        }
+        virtual void on_init_connection(std::error_code& err) noexcept override;
     };
 }

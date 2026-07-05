@@ -121,21 +121,23 @@ namespace network{
         std::optional<size_t> version_; //@todo
         std::optional<Data_a> access_;
         std::optional<Client_MsgT> waiting_;
-        std::unique_ptr<SendingFileState> file_sender_;
+        std::unordered_map<std::string,SendingFileState> file_sender_;
         void __task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept;
         void __emplace_error__(std::error_code& err,
                 std::string description,
                 server::Status status,
                 ErrorCode code) noexcept
         {
-            Message<Server_MsgT::ERROR> reply(
+            send_hmsg_.emplace_message(
+                Message<Server_MsgT::ERROR>(
                     code,
                     ErrorPrint::message(
                         code,
                         std::move(description)),
                         status
-                    );
-            io_context().send(err,reply);
+                ));
+            io_context().send(err,send_hmsg_);
+            send_hmsg_.clear();
         }
         void __emplace_error__(std::error_code& err,
                 std::string description,
@@ -143,15 +145,16 @@ namespace network{
                 Message<Server_MsgT::TRANSACTION> transaction,
                 ErrorCode code) noexcept
         {
-            Message<Server_MsgT::ERROR> reply(
+            send_hmsg_.emplace_message(Message<Server_MsgT::ERROR>(
                     ErrorCode::INTERNAL_ERROR,
                     ErrorPrint::message(
                         code,
                         std::move(description)),
                         std::move(transaction),
                         status
-                    );
-            io_context().serialize(reply);
+                    ));
+            io_context().send(err,send_hmsg_);
+            send_hmsg_.clear();
         }
         public:
         virtual void on_read(std::error_code& err) noexcept override;
@@ -171,12 +174,6 @@ namespace network{
                 std::error_code& err) noexcept:
             AbstractConnectionProcess(hconn,err){}
         ~ServerConnectionProcess() = default;
-        virtual void handle_event(
-                    Event event,
-                    std::error_code& err) noexcept
-        {
-            
-        }
         virtual bool requestable() const noexcept override{
             return false;
         }

@@ -3,13 +3,28 @@
 #include "network/commonsocket.h"
 #include "network/abstractprocess.h"
 #include "sys/application.h"
+#include "parsing.h"
+#include <boost/units/systems/information.hpp>
+#include <boost/units/systems/information/byte.hpp>
+#include <boost/units/quantity.hpp>
+#include "program/mashroom.h"
 
 namespace network{
     using namespace network;
-    void ClientConnectionProcess::__reaction__(std::error_code& err, 
-                network::Client_MsgT::type msg_id,
-                Server_MsgT::type server_msg) noexcept{
-        if(!version_ && msg_id!=Client_MsgT::ERROR && msg_id!=Client_MsgT::VERSION){
+    ClientConnectionProcess::ClientConnectionProcess(
+                ConnectionHandle hconn,
+                std::error_code& err) noexcept:
+        AbstractRequestableConnectionProcess(hconn,err){}
+
+    void ClientConnectionProcess::on_init_connection(std::error_code& err) noexcept{
+        err.clear();
+        send_hmsg_.emplace_message<Client_MsgT::VERSION>().version(
+            app().config().system_config().version());
+            io_context().send(err,send_hmsg_);
+    }
+    void ClientConnectionProcess::__reaction__(std::error_code& err,
+                Server_MsgT::type msg_id) noexcept{
+        if(!version_ && msg_id!=Server_MsgT::VERSION && msg_id!=Server_MsgT::ERROR){
             __emplace_error__(err,
                 "version interconnection not defined",
                 ErrorCode::INVALID_CLIENT_REQUEST);
@@ -78,18 +93,18 @@ namespace network{
                 auto msg_ref = recv_hmsg_.get_message<Server_MsgT::TRANSACTION>();
                 if(msg_ref.has_value()){
                     const auto& msg_transaction = msg_ref->get();
-                    if(msg_transaction.state()==Transaction::DECLINE ||
-                        msg_transaction.state()==Transaction::CANCEL){
-                        file_recv_.reset();
-                        waiting_.reset();
+                    if((msg_transaction.state()==Transaction::DECLINE ||
+                        msg_transaction.state()==Transaction::CANCEL) &&
+                        file_recv_.contains(msg_transaction.hash())){
+                        file_recv_.erase(msg_transaction.hash());
                     }
-                    else if(msg_transaction.state()==Transaction::ACCEPT &&
-                        file_recv_)
+                    else if(msg_transaction.state()==Transaction::ACCEPT)
                     {
-                        if(file_recv_->accepted())
-                            file_recv_->next();
-                        else
-                            err = file_recv_->accept();
+                        if(file_recv_.contains(msg_transaction.hash()))
+                            break;
+                        else __emplace_error__(err,
+                        "transaction "+msg_transaction.hash()+" not found",
+                        ErrorCode::RECEIVING_MESSAGE_ERROR);
                     }
                     else err.clear();
                 }
@@ -121,9 +136,9 @@ namespace network{
                     if(msg_ref && msg_ref->get().transaction().has_value()){
                         auto& err_msg = msg_ref->get();
                         auto& transaction = msg_ref->get().transaction().value();
-                        if(file_recv_ && file_recv_->meta().hash() == transaction.hash()){
+                        if(file_recv_.contains(transaction.hash())){
                             if(err_msg.error()!=ErrorCode())
-                                file_recv_.reset();
+                                file_recv_.erase(transaction.hash());
                         }
                     }
                     else{
@@ -143,7 +158,7 @@ namespace network{
                     auto msg_ref = recv_hmsg_.get_message<Server_MsgT::VERSION>();
                     if(msg_ref.has_value()){
                         const auto& msg_version = msg_ref->get();
-                        if(msg_version.version()>=
+                        if(msg_version.version()>
                             app().config().system_config().version())
                             __emplace_error__(err,"version error",ErrorCode::VERSION_ERROR_X1);
                         else version_ = msg_version.version();
@@ -162,57 +177,140 @@ namespace network{
             }
             break;
             case Server_MsgT::INDEX:{
-                auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
-                if(msg_ref.has_value())
-                    emplace_task<TaskMode::Thread>(err,
-                        __index_process__,
-                            ClientAppMsg(msg_ref->get()));
+                auto msg_ref = recv_hmsg_.get_message<Server_MsgT::INDEX>();
+                if(msg_ref.has_value()){
+                    for(auto& block:msg_ref->get().index_blocks()){
+                        auto in_block = [](auto& val){
+                            if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(val)>>)
+                                return;
+                            else Mashroom::instance().data().update_indexing(val);
+                        };
+                    }
+                }
+                else{
+                    __emplace_error__(err,
+                        "index message handling",
+                        ErrorCode::INTERNAL_ERROR);
+                }
             }
+            break;
             case Server_MsgT::FILE_METADATA:{
-
+                auto msg_meta = recv_hmsg_.get_message<Server_MsgT::FILE_METADATA>();
+                if(msg_meta.has_value()){
+                    auto& file_data = msg_meta->get();
+                    if(!file_recv_.contains(file_data.transaction().hash()) ||
+                        !file_recv_.at(file_data.transaction().hash()).canceled()){
+                            boost::units::information::bytes*file_data.file_size();
+                        uint16_t info_digit = uint16_t(std::log(file_data.file_size())/std::log(2))/10;
+                        uint16_t integer_val = file_data.file_size()/size_t(std::pow(1024,info_digit));
+                        uint16_t comma_val = info_digit>0?(file_data.file_size()-size_t(integer_val)*size_t(std::pow(1024,info_digit)))/
+                            size_t(std::pow(1024,info_digit-1)):0;
+                        std::cout<<"File:"<<file_data.filename()<<";size:"<<integer_val;
+                        if(comma_val!=0)
+                            std::cout<<"."<<comma_val;
+                        switch(info_digit){
+                            case 0:
+                                std::cout<<"B";
+                            break;
+                            case 1:
+                                std::cout<<"KB";
+                            break;
+                            case 2:
+                                std::cout<<"MB";
+                            break;
+                            case 3:
+                                std::cout<<"GB";
+                            break;
+                            case 4:
+                                std::cout<<"TB";
+                            break;
+                            case 5:
+                                std::cout<<"PB";
+                            break;
+                            default:
+                                __emplace_error__(err,
+                                "file metadata message handling",
+                                ErrorCode::INTERNAL_ERROR);
+                            break;
+                        }
+                        std::cout<<std::endl;
+                        std::cout<<"Accept? (YES/no):"<<std::endl;
+                        std::string input;
+                        while(true){
+                            std::getline(std::cin,input);
+                            if(std::equal(  input.begin(),
+                                            input.end(),
+                                            "yes",
+                                            case_insensitive_char_compare) ||
+                                        input.empty()){
+                                file_recv_.insert({file_data.transaction().hash(),ReceivingFileState(msg_meta->get())});
+                                Message<Client_MsgT::TRANSACTION> accept_msg;
+                                accept_msg.state(Transaction::ACCEPT);
+                                send_hmsg_.emplace_message(accept_msg);
+                            }
+                            else if(std::equal(  input.begin(),
+                                            input.end(),
+                                            "no",
+                                            case_insensitive_char_compare)){
+                                Message<Client_MsgT::TRANSACTION> cancel_msg;
+                                cancel_msg.state(Transaction::CANCEL);
+                                send_hmsg_.emplace_message(cancel_msg);
+                            }
+                            else continue;
+                        }
+                        
+                    }
+                    else  __emplace_error__(err,
+                        "transaction "+file_data.hash()+" already in process",
+                        ErrorCode::RECEIVING_MESSAGE_ERROR);
+                }
+                else{
+                    __emplace_error__(err,
+                        "file metadata message handling",
+                        ErrorCode::INTERNAL_ERROR);
+                }
             }
             break;
             case Server_MsgT::FILE_DATA:{
-                if(file_recv_){
-                    auto msg_file_data = recv_hmsg_.get_message<Server_MsgT::FILE_DATA>();
-                    if(msg_file_data.has_value()){
-                        auto& file_data = msg_file_data->get();
-                        if(file_data.transaction().hash()==file_recv_->meta().transaction().hash()){
-                            file_recv_->next();
-                        }
-                        else  __emplace_error__(err,
-                            "transaction "+file_data.hash()+" not found",
-                            ErrorCode::RECEIVING_MESSAGE_ERROR);
+                auto msg_file_data = recv_hmsg_.get_message<Server_MsgT::FILE_DATA>();
+                if(msg_file_data.has_value()){
+                    auto& file_data = msg_file_data->get();
+                    if(file_recv_.contains(file_data.transaction().hash()) &&
+                        !file_recv_.at(file_data.transaction().hash()).canceled())
+                    {
+                        file_recv_.at(file_data.transaction().hash()).next(file_data);
                     }
-                    else{
-                        __emplace_error__(err,
-                            "file data message handling",
-                            ErrorCode::INTERNAL_ERROR);
-                    }
+                    else  __emplace_error__(err,
+                        "transaction "+file_data.hash()+" not found",
+                        ErrorCode::RECEIVING_MESSAGE_ERROR);
                 }
-                else __emplace_error__(
-                    err,
-                    "unexpected message FILE_DATA",
-                    ErrorCode::RECEIVING_MESSAGE_ERROR);
+                else{
+                    __emplace_error__(err,
+                        "file data message handling",
+                        ErrorCode::INTERNAL_ERROR);
+                }
             }
             break;
         }
     }
 
     void ClientConnectionProcess::on_read(std::error_code& err) noexcept{
-        using namespace serialization;
-        err.clear();
-        io_context().receive(err,recv_hmsg_);
-        if(err) {
-            handle_receive_error(err);
-            return;
+            if(!active_request(err) && make_active_request())
+                return;
+            else{
+                auto recv_res = io_context().receive(err,recv_hmsg_);
+                if(recv_res>=0 && err){
+                    handle_receive_error(err);
+                    return;
+                }
+                else{
+                    if(auto msg_id = recv_hmsg_.message_type();
+                        msg_id.has_value())
+                    __reaction__(err,*msg_id);
+                    else __emplace_error__(err,"bad message received",ErrorCode::RECEIVING_MESSAGE_ERROR);
+                }
+            }
         }
-        if(auto msg_id = recv_hmsg_.message_type();
-            msg_id.has_value()){
-            __task__(err,msg_id.value());            
-        }
-        return;
-    }
 
     void ClientConnectionProcess::on_write(std::error_code& err) noexcept{
         if(!send_hmsg_.has_message()){

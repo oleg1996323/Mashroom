@@ -8,7 +8,6 @@
 
 class DataTestClass:public Data,public testing::Test{
     protected:
-    network::Server server_;
     std::string fn;
     std::vector<ptrdiff_t> pos_;
     std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
@@ -17,18 +16,21 @@ class DataTestClass:public Data,public testing::Test{
     DataTestClass():
     fn("data_file.g1bd")
     {
+        network::server::Settings settings_;
+        settings_.host_="127.0.0.1";
+        settings_.port_=32396;
+        settings_.num_threads_pool_=1;
+        settings_.options_.reuse_address_={true,{}};
+        settings_.options_.reuse_port_={true,{}};
+        settings_.options_.keep_alive_={true,{}};
+        app().config().server_config().add("test",std::move(settings_));
+        app().config().server_config().set_current("test");
         std::error_code err;
-        server_.configure(network::server::Settings(
-            "127.0.0.1",
-            "",
-            network::Protocol::TCP,
-            30,32396,
-            network::ConnectionOptions{
-                .reuse_address_={true,{}},
-                .reuse_port_{true,{}},
-                .keep_alive_={true,{}}}),err);
+        Mashroom::instance().server().configure(app().config().server_config().current_settings(),err);
         if(err!=std::error_code())
             throw std::runtime_error("config error");
+        Mashroom::instance().server().launch(err);
+        Mashroom::instance().server().set_processes_at_connections<network::ServerConnectionProcess>();
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> gribdata;
         grid::GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR> grid;
         grid.base_.dx=1;
@@ -75,7 +77,7 @@ class DataTestClass:public Data,public testing::Test{
 
 TEST_F(DataTestClass,Index_DataExchangeTest){
     std::error_code err;
-    network::Client client(err,10);
+    ASSERT_FALSE(err);
     auto additional = network::Message<network::Client_MsgT::INDEX_REF>();
     auto& parameters_struct = additional.add_index<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
     parameters_struct.forecast_preference(TimeForecast(TimeFrame::HOUR,
@@ -85,7 +87,12 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
                         Level::EQUAL);
     parameters_struct.grid_type_=RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR;
     std::error_code ec;
-    TimeSequence ts(utc_tp(),utc_tp::clock::now(),ec,days(1));
+    int32_t intervals = TimeSequence::full_number_of_intervals(
+        utc_tp_t<std::chrono::seconds>(),
+        std::chrono::floor<std::chrono::seconds>(utc_tp::clock::now()),
+        DateTimeDiff(ec,days(1)),ec);
+    ASSERT_TRUE(intervals>0);
+    TimeSequence ts(utc_tp(),DateTimeDiff(ec,days(1)),uint16_t(intervals));
     ASSERT_EQ(ec,std::error_code());
     {
         auto& ti = ts.get_interval();
@@ -93,24 +100,25 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
         parameters_struct.to_ = ti.to();
     }
     parameters_struct.tdiff_ = ts.time_duration();
-    network::ConnectionHandle hconn = client.connect(
+    network::ConnectionHandle hconn = Mashroom::instance().connect(ec,
         "127.0.0.1",
         32396,
-        network::Socket::Type::Stream,
-        network::Protocol::TCP,
-        {},ec);
+        app().config().client_config().current_settings());
     EXPECT_TRUE(hconn.is_valid_handler());
+    ASSERT_TRUE(hconn.add_process(std::make_unique<network::ClientConnectionProcess>(hconn,ec),ec));
+    ASSERT_FALSE(ec);
     network::Message<network::Client_MsgT::INDEX_REF> msg(std::move(additional));
     auto result = Mashroom::instance().request(
         hconn,
-        serialization::serial_size(msg),
+        std::monostate(),
         std::move(msg),
         std::monostate());
-    EXPECT_FALSE(result->error().has_value());
+    EXPECT_TRUE(result->wait_ready(30));
+    ASSERT_FALSE(result->error().has_value());
     auto add_data = [&](auto& block){
         using decay = std::decay_t<decltype(block)>;
         if constexpr(std::is_same_v<decay,std::monostate>){
-            assert(false);
+            assert(true);
         }
         else if constexpr (std::is_same_v<decay,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>){
             ASSERT_TRUE(true);
@@ -118,7 +126,11 @@ TEST_F(DataTestClass,Index_DataExchangeTest){
             // d.add_data(path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now()),block);
             // Mashroom::instance().data().update_indexing(std::move(d));
         }
+        else{
+            assert((std::is_same_v<decay,network::AppMsg<network::Side::SERVER>>));
+        }
     };
+    ASSERT_NE(result->received().get(),nullptr);
     std::visit(add_data,result->received()->data_frame().data());
     // ASSERT_TRUE(res)
     // EXPECT_EQ((std::get<std::vector<SearchDataResult<(Data_t)1U, (Data_f)1>>>(result.additional().blocks_).size()),1);    
@@ -147,6 +159,7 @@ TEST_F(DataTestClass,Extract_DataExchangeTest){
 
 int main(int argc,char* argv[]){
     {
+        Mashroom::instance();
         // Client client("127.0.0.1",32396);
         // auto additional = network::make_additional<Client_MsgT::INDEX_REF>();
         // auto& parameters_struct = additional.add_indexation_parameters_structure<Data_t::TIME_SERIES,Data_f::GRIB_v1>();

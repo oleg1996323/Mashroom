@@ -55,6 +55,9 @@ namespace network{
         void add_block(typename DataStruct<T,F>::find_all_t block) noexcept{
             blocks_.emplace_back().emplace<typename DataStruct<T,F>::find_all_t>(std::move(block));
         }
+        const std::vector<IndexResult>& index_blocks() const noexcept{
+            return blocks_;
+        }
     };
 }
 

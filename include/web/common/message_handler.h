@@ -46,11 +46,16 @@ namespace network{
         FRIEND_TEST(NetworkMesssageHandler,ClientSide);
         FRIEND_TEST(NetworkMesssageHandler,ServerSide);
         MessageHandler()=default;
-        MessageHandler(const MessageHandler&) = delete;
+        MessageHandler(const MessageHandler& other) noexcept:
+        data_(move(other.data_)){}
         MessageHandler(MessageHandler&& other) noexcept:
-        data_(move(other.data_))
-        {}
-        MessageHandler& operator=(const MessageHandler&) = delete;
+        data_(move(other.data_)){}
+        MessageHandler& operator=(const MessageHandler& other) noexcept{
+            if(this!=&other){
+                data_ = other.data_;
+            }
+            return *this;
+        }
         MessageHandler& operator=(MessageHandler&& other) noexcept{
             if(this!=&other)
                 data_ = std::move(other.data_);
