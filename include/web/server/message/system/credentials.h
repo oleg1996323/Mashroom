@@ -28,10 +28,30 @@ namespace network{
             attempts_(attempts),
             access_(access),
             success_(success){}
-        Message(const Message&) = default;
-        Message(Message&&) = default;
-        Message& operator=(const Message& other) = default;
-        Message& operator=(Message&& other) noexcept = default;
+        Message(const Message& other) noexcept:
+            attempts_(other.attempts_),
+            access_(other.access_),
+            success_(other.success_){}
+        Message(Message&& other) noexcept:
+            attempts_(other.attempts_),
+            access_(other.access_),
+            success_(other.success_){}
+        Message& operator=(const Message& other) noexcept{
+            if(this!=&other){
+                attempts_=other.attempts_;
+                access_=other.access_;
+                success_=other.success_;
+            }
+            return *this;
+        }
+        Message& operator=(Message&& other) noexcept{
+            if(this!=&other){
+                attempts_=other.attempts_;
+                access_=other.access_;
+                success_=other.success_;
+            }
+            return *this;
+        }
         AccessMode access() const noexcept{
             return access_;
         }

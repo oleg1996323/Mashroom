@@ -20,7 +20,16 @@ namespace network{
         err.clear();
         send_hmsg_.emplace_message<Client_MsgT::VERSION>().version(
             app().config().system_config().version());
-            io_context().send(err,send_hmsg_);
+        push_request(
+            std::make_shared<RequestCommandSpec<MessageHandler<Side::SERVER>,
+                std::monostate,
+                MessageHandler<Side::CLIENT>,
+                std::monostate>>(
+                    connection_handle(),
+                    std::monostate(),
+                    std::move(send_hmsg_),
+                    std::monostate()),err);
+        assert(!send_hmsg_.has_message());
     }
     void ClientConnectionProcess::__reaction__(std::error_code& err,
                 Server_MsgT::type msg_id) noexcept{
@@ -162,6 +171,9 @@ namespace network{
                             app().config().system_config().version())
                             __emplace_error__(err,"version error",ErrorCode::VERSION_ERROR_X1);
                         else version_ = msg_version.version();
+                        if(is_active_request())
+                            complete_current_request(err);
+                        assert(!is_active_request());
                     }
                     else{
                         __emplace_error__(err,
@@ -292,32 +304,64 @@ namespace network{
             }
             break;
         }
+
     }
 
     void ClientConnectionProcess::on_read(std::error_code& err) noexcept{
-            if(!active_request(err) && make_active_request())
-                return;
-            else{
-                auto recv_res = io_context().receive(err,recv_hmsg_);
-                if(recv_res>=0 && err){
-                    handle_receive_error(err);
-                    return;
+            auto recv_res = io_context().receive(err,recv_hmsg_);
+            if(err){
+                if(!handle_receive_error(err)){
+                    if(is_active_request())
+                        complete_current_request(err);
+                    recv_hmsg_.clear();
+                    io_context().clear_recv_buffer();
                 }
-                else{
-                    if(auto msg_id = recv_hmsg_.message_type();
-                        msg_id.has_value())
+                return;
+            }
+            else{
+                if(auto msg_id = recv_hmsg_.message_type();
+                    msg_id.has_value()){
                     __reaction__(err,*msg_id);
-                    else __emplace_error__(err,"bad message received",ErrorCode::RECEIVING_MESSAGE_ERROR);
+                    recv_hmsg_.clear();
+                    on_write(err);
+                }
+                else {
+                    __emplace_error__(err,"bad message received",ErrorCode::RECEIVING_MESSAGE_ERROR);
+                    if(is_active_request()){
+                        complete_current_request(std::make_error_code(std::errc::bad_message));
+                        on_write(err);
+                    }
                 }
             }
         }
 
     void ClientConnectionProcess::on_write(std::error_code& err) noexcept{
-        if(!send_hmsg_.has_message()){
-            err = std::make_error_code(std::errc::no_message);
+        auto sent = io_context().send_rest(err);
+        if(!handle_sending_error(err))
             return;
+        if(send_hmsg_.has_message()){
+            std::cout<<"client hmsg index to send: "<<*send_hmsg_.message_type()<<std::endl;
+            io_context().send(err,std::move(send_hmsg_));
+            send_hmsg_.clear();
+            handle_sending_error(err);
         }
-        else io_context().send(err,std::move(send_hmsg_));
+        else{
+            if(!next_request())
+                return;
+            else{
+                using send_t = Frame<std::monostate,MessageHandler<Side::CLIENT>,std::monostate>;
+                send_t* s;
+                send_hmsg_ = active_request_->sent(s)->data_frame();
+                assert(send_hmsg_.has_message() && send_hmsg_.message_type().has_value());
+                std::cout<<"client hmsg index to send: "<<*send_hmsg_.message_type()<<std::endl;
+                assert(send_hmsg_.has_message());
+                io_context().send(err,std::move(send_hmsg_));
+                send_hmsg_.clear();
+                assert(!send_hmsg_.has_message());
+                handle_sending_error(err);
+                return;
+            }
+        }
         return;
     }
 

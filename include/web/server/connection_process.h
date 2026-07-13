@@ -120,7 +120,7 @@ namespace network{
         MessageHandler<Side::SERVER> send_hmsg_;
         std::optional<size_t> version_; //@todo
         std::optional<Data_a> access_;
-        std::optional<Client_MsgT> waiting_;
+        std::optional<std::expected<MessageHandler<Side::SERVER>,std::error_code>> task_result_;
         std::unordered_map<std::string,SendingFileState> file_sender_;
         void __task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept;
         void __emplace_error__(std::error_code& err,

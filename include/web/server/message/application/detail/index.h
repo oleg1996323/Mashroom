@@ -3,6 +3,7 @@
 #include <variant>
 #include "data/datastruct.h"
 #include "data/def.h"
+#include "boost_functional/json.h"
 
 namespace network{
 
@@ -35,6 +36,16 @@ struct BaseIndexResult{
 
 using IndexResult = std::variant<std::monostate,
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>;
+}
+
+template<>
+std::expected<network::IndexResult,std::exception> from_json<network::IndexResult>(const boost::json::value& val){
+
+}
+
+template<>
+boost::json::value to_json(const network::IndexResult& val){
+    
 }
 
 namespace serialization{

@@ -63,14 +63,14 @@ template<Client_MsgT::type MSG_T>
 }
 
 std::expected<
-    Message<Server_MsgT::INDEX>,
+    MessageHandler<Side::SERVER>,
     std::error_code> __index_process__(
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
     auto into = [&stop,&err](auto& in_app_msg) noexcept->
             std::expected<
-            Message<Server_MsgT::INDEX>,
+            MessageHandler<Side::SERVER>,
             std::error_code>
     {
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
@@ -81,13 +81,14 @@ std::expected<
                 <Client_MsgT::type MSG_T>
                 (const Message<MSG_T>& msg) noexcept ->
                     std::expected<
-                    Message<Server_MsgT::INDEX>,
+                    MessageHandler<Side::SERVER>,
                     std::error_code>
             {
                 if constexpr (MSG_T==Client_MsgT::INDEX ||
                     MSG_T==Client_MsgT::INDEX_REF)
                 {
-                    auto result = index_process(err,stop,msg);
+                    MessageHandler<Side::SERVER> result;
+                    result.emplace_message(index_process(err,stop,msg));
                     return result;
                 }
                 else return std::unexpected(std::make_error_code(std::errc::bad_message));
@@ -99,7 +100,7 @@ std::expected<
 }
 
 std::expected<
-    Message<Server_MsgT::FILE_METADATA>,
+    MessageHandler<Side::SERVER>,
     std::error_code> extract_process(std::error_code& err,
         std::stop_token token,
         const Message<
@@ -140,15 +141,16 @@ std::expected<
     
     if(std::distance(fs::directory_iterator(curdir), fs::directory_iterator{})!=1) //only 1 zip file
         return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
-    auto reply_msg = Message<Server_MsgT::FILE_METADATA>(
-                get_reply(msg.transaction()));
+    MessageHandler<Side::SERVER> reply_hmsg;
+    auto& reply_msg = reply_hmsg.emplace_message(Message<Server_MsgT::FILE_METADATA>(
+                get_reply(msg.transaction())));
     for(auto entry:fs::directory_iterator(curdir))
     {
         if(entry.is_regular_file() && entry.path().extension()==".zip"){
             
             reply_msg.file_size(entry.file_size());
             reply_msg.filename(entry.path());
-            return reply_msg;
+            return reply_hmsg;
         }
         else return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
     }
@@ -156,14 +158,14 @@ std::expected<
 }
 
 std::expected<
-    Message<Server_MsgT::FILE_METADATA>,
+    MessageHandler<Side::SERVER>,
     std::error_code> __extract_process__(
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
     auto into = [&stop,&err](auto& in_app_msg) noexcept->
             std::expected<
-            Message<Server_MsgT::FILE_METADATA>,
+            MessageHandler<Side::SERVER>,
             std::error_code>
     {
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
@@ -174,7 +176,7 @@ std::expected<
                 <Client_MsgT::type MSG_T>
                 (const Message<MSG_T>& msg) noexcept ->
                     std::expected<
-                    Message<Server_MsgT::FILE_METADATA>,
+                    MessageHandler<Side::SERVER>,
                     std::error_code>
             {
                 if constexpr (MSG_T==Client_MsgT::EXTRACT)
@@ -191,7 +193,7 @@ std::expected<
 }
 
 void ServerConnectionProcess::__task__(std::error_code& err, network::Client_MsgT::type msg_id) noexcept{
-    if(!version_ && msg_id!=Client_MsgT::ERROR && msg_id!=Client_MsgT::VERSION){
+    if((!version_.has_value() && msg_id!=Client_MsgT::VERSION) && msg_id!=Client_MsgT::ERROR){
         __emplace_error__(err,
             "version interconnection not defined",
             server::Status::READY,
@@ -227,7 +229,6 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     const auto& msg_progress = msg_ref->get();
                     if(msg_progress.state()==Transaction::DECLINE){
                         file_sender_.erase(msg_progress.hash());
-                        waiting_.reset();
                         send_hmsg_.emplace_message(Message<Server_MsgT::TRANSACTION>(get_reply(msg_progress)));
                     }
                     else if(msg_progress.state()==Transaction::ACCEPT &&
@@ -325,11 +326,13 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     if(msg_version.version()>=
                         app().config().system_config().version())
                     {
+                        version_= app().config().system_config().version();
                         Message<Server_MsgT::VERSION> reply(
                             app().config().system_config().version());
                         send_hmsg_.emplace_message(std::move(reply));
                     }
                     else {
+                        version_= msg_version.version();
                         Message<Server_MsgT::VERSION> reply(
                             msg_version.version());
                         send_hmsg_.emplace_message(std::move(reply));
@@ -352,7 +355,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         break;
         case Client_MsgT::EXTRACT:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::EXTRACT>();
-            if(msg_ref.has_value());
+            if(msg_ref.has_value())
                 emplace_task<TaskMode::Thread>([hconn=connection_handle()]() mutable
                     {
                         std::error_code err;
@@ -363,8 +366,9 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     err,
                     __extract_process__,
                         ClientAppMsg(msg_ref->get()));
-            break;
+            
         }
+        break;
         case Client_MsgT::INDEX:{
             auto msg_ref = recv_hmsg_.get_message<Client_MsgT::INDEX>();
             if(msg_ref.has_value())
@@ -403,10 +407,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             ErrorCode::INVALID_CLIENT_REQUEST);
         break;
     }
-    if(send_hmsg_.has_message()){
-        io_context().send(err,send_hmsg_);
-        send_hmsg_.clear();
-    }
+    
 }
 
 void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
@@ -419,13 +420,22 @@ void ServerConnectionProcess::on_read(std::error_code& err) noexcept{
     }
     if(auto msg_id = recv_hmsg_.message_type();
         msg_id.has_value()){
-        __task__(err,msg_id.value());            
+        __task__(err,msg_id.value());    
+        on_write(err);        
     }
     return;
 }
 
 void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
     io_context().send_rest(err);
+    if(!handle_sending_error(err))
+        return;
+    if(send_hmsg_.has_message()){
+        io_context().send(err,send_hmsg_);
+        send_hmsg_.clear();
+    }
+    if(!handle_sending_error(err))
+        return;
     for(auto& [hash,fsender]:file_sender_){
         if(fsender.accepted() && fsender.has_to_send())
             fsender.next();
@@ -434,7 +444,31 @@ void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
 }
 
 void ServerConnectionProcess::on_task_done(std::error_code& err) noexcept{
-    
+    std::cout<<"Task done"<<std::endl;
+    if(auto task_result_ = task_->get_as<std::expected<network::MessageHandler<network::Side::SERVER>, std::error_code>>(err);
+        task_result_.has_value())
+    {
+        if(send_hmsg_.has_message()){
+            connection_handle().execute_command(
+                std::make_shared<Command<CommandType::TaskDone>>(connection_handle()),err);
+            std::cout<<"Busy. TaskDone trying again"<<std::endl;
+        }
+        else {
+            if(task_result_->has_value())
+                send_hmsg_ = std::move(task_result_->value());
+            else {
+                __emplace_error__(
+                task_result_->error(),
+                "operation error",
+                server::Status::READY,
+                ErrorCode::INTERNAL_ERROR);
+                task_result_.reset();
+                send_hmsg_.clear();
+            }
+        }
+        on_write(err);
+    }
+    else std::cout<<"Bad task result"<<std::endl;
 }
 void ServerConnectionProcess::on_stop_requested(std::error_code& err) noexcept{
 

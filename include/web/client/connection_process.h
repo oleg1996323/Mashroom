@@ -93,9 +93,12 @@ namespace network{
         virtual void on_stop_requested(std::error_code& err) noexcept override;
         virtual void on_push_request(std::error_code& err) noexcept override{
             err.clear();
-            if(make_active_request()){
-                io_context().send(err,*active_request_->sent());
+            if(next_request()){
+                using send_t = Frame<std::monostate,MessageHandler<Side::CLIENT>,std::monostate>;
+                send_t* s;
+                send_hmsg_ = active_request_->sent(s)->data_frame();
             }
+            on_write(err);
         }
         virtual void on_init_connection(std::error_code& err) noexcept override;
     };
