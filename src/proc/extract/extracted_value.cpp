@@ -1,6 +1,6 @@
 #include "proc/extract/extracted_value.h"
 
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 
 template<>
 boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val){

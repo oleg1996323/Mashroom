@@ -1,8 +1,7 @@
 #include "cmd_parse/config_parse.h"
 #include <thread>
 
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "proc/index.h"
 #include "sys/application.h"
 #include "sys/config.h"

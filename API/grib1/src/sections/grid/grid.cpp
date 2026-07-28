@@ -1,5 +1,67 @@
-#include "sections/grid/grid.h"
-#include "grib1_def.h"
+#include "grib1/sections/grid/grid.h"
+#include "grib1/def.h"
+#include "common/projections/definitions.h"
+
+void init_grids(){
+    projection::add_projection("albers",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",
+                            ALBERS_EQUAL_AREA));
+    projection::add_projection("cylindric",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                    "ECMWF",LAT_LON_GRID_EQUIDIST_CYLINDR));
+    projection::add_projection("cylindric",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",ROTATED_LAT_LON));
+    projection::add_projection("cylindric",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",STRETCHED_LAT_LON));
+    projection::add_projection("cylindric",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",STRETCHED_AND_ROTATED_LAT_LON));
+    projection::add_projection("gaussian",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",GAUSSIAN));
+    projection::add_projection("gaussian",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",ROTATED_GAUSSIAN_LAT_LON));
+    projection::add_projection("gaussian",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",STRETCHED_GAUSSIAN_LAT_LON));
+    projection::add_projection("gaussian",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",STRETCHED_ROTATED_GAUSSIAN_LAT_LON));
+    projection::add_projection("mercator",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",MERCATOR));
+    projection::add_projection("gnomonic",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",GNOMONIC));
+    projection::add_projection("lambert",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",LAMBERT));
+    projection::add_projection("millers",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",MILLERS_CYLINDR));
+    projection::add_projection("lambert conformal",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",OBLIQUE_LAMBERT_CONFORMAL));
+    projection::add_projection("polar stereograph",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",POLAR_STEREOGRAPH_PROJ));
+    projection::add_projection("simple polyconic",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",SIMPLE_POLYCONIC));
+    projection::add_projection("space view",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",SPACE_VIEW));
+    projection::add_projection("spherical harmonic coefficients",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",SPHERICAL_HARMONIC_COEFFICIENTS));
+    projection::add_projection("UTM",std::make_unique<
+                projection::Options<API_T::GRIB1>>(
+                            "ECMWF",UTM));
+}
 
 bool GridInfo::operator==(const GridInfo& other) const{
     if(type()!=other.type())
@@ -336,7 +398,7 @@ std::string_view grid_to_abbr(RepresentationType rep_t) noexcept{
     }
 }
 
-#include "sections/grid/json/json_add.h"
+#include "grib1/sections/grid/json/json_add.h"
 
 template<>
 std::expected<GridInfo,std::exception> from_json(const boost::json::value& val){

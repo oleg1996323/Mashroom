@@ -1,4 +1,4 @@
-#include "sections/grid/grid.h"
+#include "grib1/sections.h"
 #include <gtest/gtest.h>
 
 TEST(Serialization,Albers){

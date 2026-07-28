@@ -1,13 +1,12 @@
 #pragma once
-#include "error_print.h"
-#include "error_code.h"
+#include "error.h"
 
 #include "sys/config/network.h"
 #include "sys/config/user.h"
 #include "sys/config/system.h"
 namespace fs = std::filesystem;
 
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 
 class Config{   
     private:
@@ -35,11 +34,11 @@ class Config{
     sys::Config& system_config() noexcept{
         return sys_settings_;
     }
-    ErrorCode save() noexcept;
-    ErrorCode load() noexcept;
+    osterlib::ContextedError save() noexcept;
+    osterlib::ContextedError load() noexcept;
 };
 
 //config_file
 //1. user config commands
 //2. data saved by check_command
-//3. LogError info (directory)
+//3. osterlib::Log info (directory)

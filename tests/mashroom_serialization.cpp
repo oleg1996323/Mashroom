@@ -1,4 +1,4 @@
-#include "definitions/path_process.h"
+#include "Location.h"
 #include <gtest/gtest.h>
 #include "data/datastruct.h"
 #include <numeric>
@@ -37,8 +37,8 @@ TEST(Serialization, DataStruct_serialization){
     DateTimeDiff diff(err,std::chrono::days(1));
     TimeForecast tf(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,TimeForecast::period_t{.val=0},TimeForecast::period_t{.val=0});
     Level lvl(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
-    auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
-    path::Storage<false> path = path::Storage<false>::file("any_path"s+to_data_format_name(Data_f::GRIB_v1).data(),utc_tp::clock::now());
+    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
+    Location<false> path = Location<false>::file("any_path"s+to_data_format_name(Data_f::GRIB_v1).data(),utc_tp::clock::now());
     for(auto pos:buf_pos){
         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(std::move(grid_def),std::move(time),pos,300,228,tf,Organization::ECMWF,128,lvl,f_error);
         msgs.push_back(std::move(msg));
@@ -75,27 +75,27 @@ TEST(Serialization, DataStruct_serialization){
 TEST(Serialization, PathStorage){
     using namespace serialization;
     std::string path_tmp("a path to serialize");
-    auto path_view = path::Storage<true>::file(path_tmp);
+    auto location_view = Location<true>::file(path_tmp);
     std::vector<char> buf;
-    ASSERT_EQ(serialize<true>(path_view,buf),SerializationEC::NONE);
-    ASSERT_EQ(serial_size(path_view),serial_size(path_view.add_)+serial_size(path_view.path_)+sizeof(path_view.type_));
+    ASSERT_EQ(serialize<true>(location_view,buf),SerializationEC::NONE);
+    ASSERT_EQ(serial_size(location_view),serial_size(location_view.additional())+serial_size(location_view.path())+sizeof(location_view.type()));
     {
-        path::Storage<false> path;
+        Location<false> location;
         serialization::StreamSerializer ser;
         ser.push_view(buf);
-        ASSERT_EQ(deserialize<true>(path,ser),SerializationEC::NONE);
-        EXPECT_EQ(path,path_view);
+        ASSERT_EQ(deserialize<true>(location,ser),SerializationEC::NONE);
+        EXPECT_EQ(location,location_view);
     }
     {
         std::ofstream ofile("tmp",std::fstream::out|std::fstream::trunc);
-        ASSERT_EQ(serialize_to_file(path_view,ofile),serialization::SerializationEC::NONE);
+        ASSERT_EQ(serialize_to_file(location_view,ofile),serialization::SerializationEC::NONE);
         ofile.close();
-        path::Storage<false> path;
+        Location<false> location;
         std::ifstream ifile("tmp",std::fstream::in);
-        ASSERT_EQ(deserialize_from_file(path,ifile),serialization::SerializationEC::NONE);
+        ASSERT_EQ(deserialize_from_file(location,ifile),serialization::SerializationEC::NONE);
         ifile.close();
         std::filesystem::remove("tmp");
-        EXPECT_EQ(path,path_view);
+        EXPECT_EQ(location,location_view);
     }
 }
 
@@ -128,7 +128,7 @@ TEST(Serialization, PathStorage){
 //         str.resize(10);
 //         std::generate(str.begin(),str.end(),getRandomChar);
 //         for(int j=0;j<10;++j){
-//             auto& vector_seq = data[path::Storage<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
+//             auto& vector_seq = data[Location<false>::file(str)][std::make_shared<Grib1CommonDataProperties>(Organization::ECMWF,128,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
 //                                                                                     i+j*2+5*2,
 //                                                                                     Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0))];
 //             std::error_code err;

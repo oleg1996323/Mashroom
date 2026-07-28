@@ -3,7 +3,7 @@
 #include <variant>
 #include "data/datastruct.h"
 #include "data/def.h"
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 
 namespace network{
 
@@ -39,14 +39,11 @@ using IndexResult = std::variant<std::monostate,
 }
 
 template<>
-std::expected<network::IndexResult,std::exception> from_json<network::IndexResult>(const boost::json::value& val){
-
-}
+std::expected<network::IndexResult,std::exception> 
+    from_json<network::IndexResult>(const boost::json::value& val);
 
 template<>
-boost::json::value to_json(const network::IndexResult& val){
-    
-}
+boost::json::value to_json(const network::IndexResult& val);
 
 namespace serialization{
     template<bool NETWORK_ORDER,Data_t T, Data_f F>

@@ -1,5 +1,5 @@
-#include <sections/grid/space_view.h>
-#include <sections/grid/grid.h>
+#include <grib1/sections/grid/space_view.h>
+#include <grib1/sections/grid/grid.h>
 #include <format>
 #include <stdexcept>
 #include <cassert>

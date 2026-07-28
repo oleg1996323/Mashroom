@@ -8,10 +8,9 @@
 #include <map>
 #include <set>
 #include "data/def.h"
-#include "sys/error_print.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include "definitions/def.h"
-#include "definitions/path_process.h"
+#include "Location.h"
 #include <cstdint>
 #include "data/datastruct.h"
 
@@ -28,9 +27,9 @@ class Data:public __Data__{
 
     friend class DataTestClass;
     template<Data_f>
-    ErrorCode __read__(const fs::path& filename);
+    mashroom::errc __read__(const fs::path& filename);
     template<Data_f>
-    ErrorCode __write__(const fs::path& filename);
+    mashroom::errc __write__(const fs::path& filename);
 
     template <Data_f I>
     void __write_all__();
@@ -60,14 +59,14 @@ class Data:public __Data__{
     ~Data(){
         save();
     }
-    ErrorCode read(const fs::path& filename) noexcept;
-    ErrorCode write(const fs::path& filename) noexcept;
+    mashroom::errc read(const fs::path& filename) noexcept;
+    mashroom::errc write(const fs::path& filename) noexcept;
     bool unsaved() const{
         return !unsaved_.empty();
     }
 
     template<Data_t T,Data_f F>
-    const std::unordered_set<path::Storage<true>>& paths() const{
+    const std::unordered_set<Location<true>>& paths() const{
         return data_struct<T,F>().paths();
     }
     template<Data_t T,Data_f F>
@@ -85,78 +84,6 @@ class Data:public __Data__{
         return files_;
     }
 
-    template<Data_t T,Data_f F,typename... ARGS>
-    typename DataStruct<T,F>::match_files_t match_files(
-        ARGS&&... args
-    ) const{
-        return data_struct<T,F>().match_files(std::forward<ARGS>(args)...);
-    }
-
-    template<Data_t T,Data_f F,typename... ARGS>
-    typename DataStruct<T,F>::match_t match(ARGS&&... args){
-        return data_struct<T,F>(std::forward<ARGS>(args)...);
-    }
-
-    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_files_t match_files(
-        utc_tp last_update,
-        Coord pos,
-        Organization center,
-        const std::unordered_set<SearchParamTableVersion>& param_tables,
-        std::optional<utc_tp_t<std::chrono::seconds>> from,
-        std::optional<utc_tp_t<std::chrono::seconds>> to,
-        std::optional<DateTimeDiff> diff,
-        std::optional<TimeForecast> forecast_preferences,
-        std::optional<Level> level_,
-        std::optional<RepresentationType> rep_t
-        ) const{
-        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match_files(
-            last_update,pos,center,param_tables,from,to,diff,forecast_preferences,
-            level_,rep_t);
-    }
-
-    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::match_t match(
-        std::string_view path,
-        utc_tp last_update,
-        Coord pos,
-        Organization center,
-        const std::unordered_set<SearchParamTableVersion>& param_tables,
-        std::optional<utc_tp_t<std::chrono::seconds>> from,
-        std::optional<utc_tp_t<std::chrono::seconds>> to,
-        std::optional<DateTimeDiff> diff,
-        std::optional<TimeForecast> forecast_preferences,
-        std::optional<Level> level_,
-        std::optional<RepresentationType> rep_t
-        ) const{
-        return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match(
-            path,last_update,pos,center,param_tables,from,to,diff,forecast_preferences,
-            level_,rep_t);
-    }
-
-    template<Data_t T,Data_f F,typename... ARGS>
-    std::vector<SearchDataResult<T,F>> find_all(
-        ARGS&&... args
-    ) const{
-        return data_struct<T,F>().find_all(std::forward<ARGS>(args)...);
-    }
-
-    DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t find_all(
-        const std::unordered_set<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& cmn,
-        utc_tp last_update,
-        std::optional<Lat> top,
-        std::optional<Lat> bottom,
-        std::optional<Lon> left,
-        std::optional<Lon> right,
-        std::optional<utc_tp_t<std::chrono::seconds>> from,
-        std::optional<utc_tp_t<std::chrono::seconds>> to,
-        std::optional<DateTimeDiff> tdiff,
-        std::optional<std::pair<TimeForecast,TimeForecast::COMPARISION_TYPE>> forecast_preference,
-        std::optional<std::pair<Level,Level::COMPARISION_TYPE>> level,
-        std::optional<RepresentationType> grid_type) const{
-            return data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
-            find_all(cmn,last_update,top,bottom,left,right,
-                from,to,tdiff,forecast_preference,level,grid_type);
-    }
-
     template<Data_t T, Data_f F>
     void update_indexing(const DataStruct<T,F>& data){
         data_struct<T,F>().update_indexing(data);
@@ -170,7 +97,7 @@ class Data:public __Data__{
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
     }
     template<Data_t T, Data_f F>
-    void add_data(const path::Storage<false>& path,const std::vector<data::FileMsg<T,F>>& data){
+    void add_data(const Location<false>& path,const std::vector<data::FileMsg<T,F>>& data){
         std::error_code err;
         data_struct<T,F>().add_data(path,data,err);
         if(err==std::error_code()){
@@ -178,20 +105,4 @@ class Data:public __Data__{
             std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
         }
     }
-};
-
-template<Data_t T,Data_f F>
-struct DataMethodType{
-    template<typename... ARGS>
-    using match_files_t = std::invoke_result_t<decltype(&Data::match_files<T,F>),
-                                        Data*,
-                                        ARGS...>;
-    template<typename... ARGS>
-    using match_t = std::invoke_result_t<decltype(&Data::match<T,F>),
-                                        Data*,
-                                        ARGS...>;
-    template<typename... ARGS>
-    using find_all_t = std::invoke_result_t<decltype(&Data::find_all<T,F>),
-                                        Data*,
-                                        ARGS...>;
 };

@@ -1,9 +1,9 @@
 #pragma once
 #include <thread>
 #include <cstdint>
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 #include "sys/config/base_config.h"
-#include "network/clientsettings.h"
+#include "OsterLib/network/clientsettings.h"
 
 namespace network::client{
 

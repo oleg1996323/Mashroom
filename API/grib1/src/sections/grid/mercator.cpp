@@ -1,5 +1,5 @@
-#include <sections/grid/mercator.h>
-#include <sections/grid/grid.h>
+#include <grib1/sections/grid/mercator.h>
+#include <grib1/sections/grid/grid.h>
 #include <format>
 #include <cassert>
 

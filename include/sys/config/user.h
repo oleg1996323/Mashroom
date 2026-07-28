@@ -2,10 +2,10 @@
 #include <string>
 #include <string_view>
 #include <unordered_set>
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include <expected>
 #include "sys/outputdatafileformats.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include "base_config.h"
 
 namespace user{
@@ -44,7 +44,7 @@ namespace user{
     };
 }
 
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 
 template<>
 boost::json::value to_json(const user::Config& val);

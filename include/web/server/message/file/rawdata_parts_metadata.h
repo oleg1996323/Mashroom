@@ -1,0 +1,138 @@
+#pragma once
+#include "web/common/msgdef.h"
+#include "web/common/detail/transaction.h"
+#include <string>
+#include <cstdint>
+#include "OsterLib/boost_functional/crypto.h"
+
+namespace network{
+    template<>
+    class Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>:public Message<Server_MsgT::TRANSACTION>
+    {
+        crypto::SHA1 digest_;
+        uintmax_t data_size_ = 0;
+        
+        template<bool,auto>
+        friend struct serialization::Serialize;
+        template<bool,auto>
+        friend struct serialization::Deserialize;
+        template<auto>
+        friend struct serialization::Serial_size;
+        template<auto>
+        friend struct serialization::Min_serial_size;
+        template<auto>
+        friend struct serialization::Max_serial_size;
+        public:
+        Message() = default;
+        Message(Message<Server_MsgT::TRANSACTION>
+            transaction) 
+            noexcept:
+            Message<Server_MsgT::TRANSACTION>(std::move(transaction))
+        {}
+        Message(const Message& other):
+        Message<Server_MsgT::TRANSACTION>(other),
+        data_size_(other.data_size_){
+            std::memcpy(&digest_,&other.digest_,sizeof(digest_));
+        }
+        Message(Message&& other):
+        Message<Server_MsgT::TRANSACTION>(std::move(other)),
+        data_size_(std::move(other.data_size_)){
+            std::memcpy(&digest_,&other.digest_,sizeof(digest_));
+        }
+        Message& operator=(const Message& other) {
+            if(this!=&other){
+                Message<Server_MsgT::TRANSACTION>::operator=(other);
+                std::memcpy(&digest_,&other.digest_,sizeof(digest_));
+                data_size_ = other.data_size_;
+            }
+            return *this;
+        }
+        Message& operator=(Message&& other) noexcept{
+            if(this!=&other){
+                Message<Server_MsgT::TRANSACTION>::operator=(std::move(other));
+                std::memcpy(&digest_,&other.digest_,sizeof(digest_));
+                data_size_ = std::move(other.data_size_);
+            }
+            return *this;
+        }
+        void data_size(uintmax_t size) noexcept{
+            data_size_=size;
+        }
+        uintmax_t data_size() const noexcept{
+            return data_size_;
+        }
+        void digest(const crypto::SHA1& digest) noexcept{
+            std::memcpy(&digest_,&digest,sizeof(digest_));
+        }
+        const crypto::SHA1& digest() const noexcept{
+            return digest_;
+        }
+    };
+}
+
+namespace serialization{
+    using namespace network;
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>{
+        using type = network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
+            return serialize<NETWORK_ORDER>(msg,
+                buf,
+                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.digest_,
+                msg.data_size_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>{
+        using type = network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>;
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
+            return deserialize<NETWORK_ORDER>(msg,
+                buf,
+                static_cast<Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.digest_,
+                msg.data_size_);
+        }
+    };
+
+    template<>
+    struct Serial_size<network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>{
+        using type = network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>;
+        size_t operator()(const type& msg) const noexcept{
+            return serial_size(
+                static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
+                msg.digest_,
+                msg.data_size_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>{
+        using type = network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>;
+        static constexpr size_t value = []()
+        {
+            return min_serial_size<
+                Message<Server_MsgT::TRANSACTION>,
+                decltype(type::digest_),
+                decltype(type::data_size_)>();
+        }();
+    };
+
+    template<>
+    struct Max_serial_size<network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>{
+        using type = network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>;
+        static constexpr size_t value = []()
+        {
+            return max_serial_size<
+                Message<Server_MsgT::TRANSACTION>,
+                decltype(type::digest_),
+                decltype(type::data_size_)>();
+        }();
+    };
+}
+
+static_assert(serialization::deserialize_concept<true,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>);
+static_assert(serialization::deserialize_concept<false,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>);
+static_assert(serialization::serialize_concept<true,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>);
+static_assert(serialization::serialize_concept<false,network::Message<network::Server_MsgT::RAWDATA_PARTS_METADATA>>);

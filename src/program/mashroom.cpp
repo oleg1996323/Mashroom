@@ -33,8 +33,8 @@ void Mashroom::__read_initial_data_file__(){
     }
 
     if(!dat_file.is_open()){
-        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Mashroom module internal error",AT_ERROR_ACTION::CONTINUE);
-        ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(__filename__()).c_str());
+        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Mashroom module internal error",AT_ERROR_ACTION::CONTINUE);
+        ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(__filename__()).c_str());
     }
     json::stream_parser parser;
     json::error_code err_code;
@@ -43,7 +43,7 @@ void Mashroom::__read_initial_data_file__(){
         dat_file.read(buffer.data(),buffer.size());
         parser.write(buffer.data(),dat_file.gcount(),err_code);
         if(err_code)
-            ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,""s+(__filename__()).c_str()+" reading error",AT_ERROR_ACTION::ABORT);
+            ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,""s+(__filename__()).c_str()+" reading error",AT_ERROR_ACTION::ABORT);
     }
     if(!parser.done())
         return;
@@ -74,14 +74,14 @@ void Mashroom::__write_initial_data_file__(){
         if(!fs::exists(__filename__())){
             dat_file.open(__filename__(),std::ios::out);
             if(!dat_file.is_open()){
-                ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(__filename__()).c_str());
+                ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(__filename__()).c_str());
                 if(!fs::exists(__crash_dir__()))
                     if(!fs::create_directories(fs::path(std::getenv("HOME"))/"mashroom_crash"))
-                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
+                        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
                     dat_file.open(__crash_path__());
                     if(!dat_file.is_open())
-                        ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
-                    else ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"Data file saving error.\nThe data file will be saved to \""s+
+                        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
+                    else ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error.\nThe data file will be saved to \""s+
                         __crash_path__().c_str()+"\"",AT_ERROR_ACTION::ABORT);
             }
         }
@@ -98,7 +98,7 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
     dat_file.close();
 }
-ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
+mashroom::errc Mashroom::read_command(std::vector<std::string>&& argv){
     //needed reversing (see parse(...) functions in CLI11)
     std::reverse(argv.begin(),argv.end());
     try {
@@ -113,9 +113,9 @@ ErrorCode Mashroom::read_command(std::vector<std::string>&& argv){
     }
     catch (const CLI::ParseError &e) {
         std::cout<<e.what()<<std::endl;
-        return ErrorCode::COMMAND_INPUT_X1_ERROR;
+        return mashroom::errc::COMMAND_INPUT_X1_ERROR;
     }
-    return ErrorCode::NONE;
+    return mashroom::errc::NONE;
 }
 bool Mashroom::read_command(){
     try{

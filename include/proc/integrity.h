@@ -3,9 +3,8 @@
 #include <filesystem>
 #include <vector>
 #include <thread>
-#include "sys/error_print.h"
-#include "message.h"
-#include "types/time_period.h"
+#include "grib1/message.h"
+#include "OsterLib/types/time_period.h"
 #include "data/datastruct.h"
 
 using namespace std::chrono_literals;
@@ -18,7 +17,7 @@ struct std::incrementable_traits<std::chrono::time_point<Clock, Duration>> {
 
 struct ErrorFiles{
     fs::path name;
-    API::ErrorData::Code<API::GRIB1> code;
+    api::errc<API_T::GRIB1> code;
 };
 
 struct ProcessResult{
@@ -38,23 +37,23 @@ class Integrity:public AbstractSearchProcess{
     private:
     TimePeriod t_off_;
     int cpus = 1;
-    std::pair<std::unordered_set<DataStructVariation>,std::vector<std::pair<path::Storage<false>,API::ErrorData::Code<API::GRIB1>::value>>>  
-    __check_file_data_integrity__(const std::vector<fs::directory_entry>&,ErrorCode&,std::mutex*) noexcept;
-    void __check_metadata_integrity__(const std::unordered_set<DataStructVariation>&,ErrorCode&,std::mutex*) noexcept;
-    void __correct_indexation__(const std::unordered_set<DataStructVariation>&,ErrorCode&) noexcept;
+    std::pair<std::unordered_set<DataStructVariation>,std::vector<std::pair<Location<false>,std::error_code>>>  
+    __check_file_data_integrity__(const std::vector<fs::directory_entry>&,mashroom::errc&,std::mutex*) noexcept;
+    void __check_metadata_integrity__(const std::unordered_set<DataStructVariation>&,mashroom::errc&,std::mutex*) noexcept;
+    void __correct_indexation__(const std::unordered_set<DataStructVariation>&,mashroom::errc&) noexcept;
     
     public:
-    virtual ErrorCode execute() noexcept override final;
-    virtual ErrorCode properties_integrity() const noexcept override final{
+    virtual mashroom::errc execute() noexcept override final;
+    virtual mashroom::errc properties_integrity() const noexcept override final{
         if( props_.from_date_.has_value() &&
             props_.to_date_.has_value() && 
             is_correct_interval(*props_.from_date_,*props_.to_date_))
-                return ErrorPrint::print_error(ErrorCode::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
+                return ErrorPrint::print_error(mashroom::errc::INCORRECT_DATE_INTERVAL,"Date interval is defined incorrectly",AT_ERROR_ACTION::CONTINUE);
         if(!props_.position_.has_value())
-            return ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"Not defined",AT_ERROR_ACTION::CONTINUE);
+            return ErrorPrint::print_error(mashroom::errc::INCORRECT_COORD,"Not defined",AT_ERROR_ACTION::CONTINUE);
         if(!is_correct_pos(&props_.position_.value())) //actually for WGS84
-            return ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
-        return ErrorCode::NONE;
+            return ErrorPrint::print_error(mashroom::errc::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE);
+        return mashroom::errc::NONE;
     }
     void get_time_format() noexcept{
         std::string time_format_tmp;

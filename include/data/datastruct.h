@@ -28,7 +28,7 @@ std::variant<std::monostate,
         std::visit(add,*this);
     }
     template<Data_t T,Data_f F>
-    void add_data(const path::Storage<false>& file,const std::vector<data::FileMsg<T,F>>& other,std::error_code& err){
+    void add_data(const Location<false>& file,const std::vector<data::FileMsg<T,F>>& other,std::error_code& err){
         add_data(file,other,err);
     }
 };

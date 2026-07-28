@@ -2,11 +2,13 @@
 #include "web/common/msgdef.h"
 #include "web/common/message_handler.h"
 #include "web/common/connection_process.h"
-#include "network/abstractprocess.h"
-#include "network/worker/command.h"
+#include "OsterLib/network/abstractprocess.h"
+#include "OsterLib/network/worker/command.h"
 
 namespace network{
     class ClientConnectionProcess:public AbstractRequestableConnectionProcess{
+        using recv_t = Frame<std::monostate,MessageHandler<Side::SERVER>,std::monostate>;
+        using send_t = Frame<std::monostate,MessageHandler<Side::CLIENT>,std::monostate>;
         class ReceivingFileState{
             std::ofstream stream_;
             Message<Server_MsgT::FILE_METADATA> meta_;
@@ -71,14 +73,12 @@ namespace network{
                 Server_MsgT::type server_msg) noexcept;
         void __emplace_error__(std::error_code& err,
                 std::string description,
-                ErrorCode code) noexcept
+                mashroom::errc code) noexcept
         {
             Message<Client_MsgT::ERROR> reply(
                     code,
-                    ErrorPrint::message(
-                        code,
-                        std::move(description)));
-            io_context().send(err,reply);
+                    std::move(description));
+            io_context().send(err,[](const std::vector<char>&){},reply);
         }
         public:
         virtual ~ClientConnectionProcess() = default;

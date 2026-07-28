@@ -1,10 +1,9 @@
 #pragma once
 #include "web/common/msgdef.h"
 
-#include "web/common/detail/hash.h"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 
 namespace network{
     template<>

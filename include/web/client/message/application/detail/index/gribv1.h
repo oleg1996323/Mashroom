@@ -1,10 +1,9 @@
 #pragma once
 #include <variant>
 #include "web/common/msgdef.h"
-#include "API/grib1/include/code_tables.h"
-#include "API/grib1/include/sections/product/levels.h"
-#include "API/grib1/include/sections/product/time_forecast.h"
-#include "types/rect.h"
+#include "grib1/code_tables.h"
+#include "grib1/sections.h"
+#include "OsterLib/types/rect.h"
 #include "data/common_data_properties.h"
 #include <unordered_set>
 #include <optional>

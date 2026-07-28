@@ -1,6 +1,5 @@
 #pragma once
 #include "web/common/msgdef.h"
-#include "web/common/detail/hash.h"
 #include "web/common/detail/transaction.h"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -21,8 +20,8 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        Message() = default;
         public:
+        Message() = default;
         Message(Message<Server_MsgT::TRANSACTION>
             transaction) 
             noexcept:

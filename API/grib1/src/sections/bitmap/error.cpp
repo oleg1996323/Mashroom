@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "sections/bitmap/error_handle.h"
+#include "grib1/sections/bitmap/error_handle.h"
 
 int missing_points(unsigned char *bitmap, int n) {
 

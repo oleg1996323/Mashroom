@@ -1,6 +1,4 @@
-#include "sections/grid/grid.h"
-#include "sections/product/time_forecast.h"
-#include "sections/product/levels.h"
+#include "grib1/sections.h"
 #include <gtest/gtest.h>
 
 TEST(Grib1StructuresSerialization,GridSerialization_test){

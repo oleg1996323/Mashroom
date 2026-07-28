@@ -2,7 +2,7 @@
 #include <string_view>
 #include <vector>
 #include <string>
-#include "sys/error_code.h"
+#include "sys/error.h"
 #include "proc/index.h"
 #include <tuple>
 #include "cmd_parse/cmd_def.h"

@@ -2,8 +2,8 @@
 
 #include "data/common_data_properties.h"
 #include "extracted_value.h"
-#include "sections/grid/grid.h"
-#include "types/coord.h"
+#include "grib1/sections.h"
+#include "OsterLib/types/coord.h"
 #include <memory>
 #include <boost/functional/hash.hpp>
 
@@ -261,7 +261,7 @@ struct std::equal_to<procedures::extract::details::ExtractDataProperties<TYPE,FO
     }
 };
 
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>
@@ -351,7 +351,7 @@ namespace serialization{
     };
 }
 
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 #include <map>
 #include <vector>
 

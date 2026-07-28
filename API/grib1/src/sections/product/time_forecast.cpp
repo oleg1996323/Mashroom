@@ -1,4 +1,4 @@
-#include "sections/product/time_forecast.h"
+#include "grib1/sections/product/time_forecast.h"
 
 namespace time_forecast::details
 {
@@ -84,6 +84,36 @@ bool compare_intervaled(const TimeForecast& with_which_comparing,const TimeForec
 }
 
 template<TimeForecast::COMPARISION_TYPE TYPE>
+bool compare_unique(const TimeForecast& with_which_comparing,const TimeForecast& value) noexcept{
+    if constexpr (TYPE==TimeForecast::COMPARISION_TYPE::LESS){
+        if(!(with_which_comparing.get_P1().val<value.get_P1().val))
+            return false;
+    }
+    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::LESS_EQ){
+        if(!(with_which_comparing.get_P1().val<=value.get_P1().val))
+            return false;
+    }
+    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::EQUAL){
+        if(!(with_which_comparing.get_P1().val==value.get_P1().val))
+            return false;
+    }
+    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::GREATER_EQ){
+        if(!(with_which_comparing.get_P1().val>=value.get_P1().val))
+            return false;
+    }
+    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::GREATER){
+        if(!(with_which_comparing.get_P1().val>value.get_P1().val))
+            return false;
+    }
+    else static_assert(false,"Not implemented");
+    if(with_which_comparing.get_P2().val != 0 ||
+        value.get_P2().val != 0) {
+        return false;
+    }
+    return true;
+}
+
+template<TimeForecast::COMPARISION_TYPE TYPE>
 bool compare_fcst_analysis(const TimeForecast& with_which_comparing,const TimeForecast& value) noexcept{
     if(with_which_comparing.is_forecast()!=
         value.is_forecast()) {
@@ -110,8 +140,7 @@ bool compare_fcst_analysis(const TimeForecast& with_which_comparing,const TimeFo
         else static_assert(false,"Not implemented");
     }
     else {
-        if(!(with_which_comparing.get_P1().val<
-            value.get_P1().val)) {
+        if(!compare_unique<TYPE>(with_which_comparing,value)) {
             return false;
         }
     }
@@ -138,36 +167,6 @@ bool compare_fcst_analysis(const TimeForecast& with_which_comparing,const TimeFo
                 return false;
         }
         else static_assert(false,"Not implemented");
-    }
-    return true;
-}
-
-template<TimeForecast::COMPARISION_TYPE TYPE>
-bool compare_unique(const TimeForecast& with_which_comparing,const TimeForecast& value) noexcept{
-    if constexpr (TYPE==TimeForecast::COMPARISION_TYPE::LESS){
-        if(!(with_which_comparing.get_P1().val<value.get_P1().val))
-            return false;
-    }
-    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::LESS_EQ){
-        if(!(with_which_comparing.get_P1().val<=value.get_P1().val))
-            return false;
-    }
-    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::EQUAL){
-        if(!(with_which_comparing.get_P1().val==value.get_P1().val))
-            return false;
-    }
-    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::GREATER_EQ){
-        if(!(with_which_comparing.get_P1().val>=value.get_P1().val))
-            return false;
-    }
-    else if constexpr(TYPE==TimeForecast::COMPARISION_TYPE::GREATER){
-        if(!(with_which_comparing.get_P1().val>value.get_P1().val))
-            return false;
-    }
-    else static_assert(false,"Not implemented");
-    if(with_which_comparing.get_P2().val != 0 ||
-        value.get_P2().val != 0) {
-        return false;
     }
     return true;
 }

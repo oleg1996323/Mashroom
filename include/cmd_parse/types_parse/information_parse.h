@@ -6,8 +6,7 @@
 #include <boost/units/quantity.hpp>
 #include <algorithm>
 #include <array>
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include <boost/lexical_cast.hpp>
 
 using info_units = boost::units::information::hu::byte::info;
@@ -23,11 +22,11 @@ namespace parse{
         bool is_terabyte(std::string_view str) noexcept;
     }
 
-    std::expected<info_quantity,ErrorCode> info_unit(std::string_view str) noexcept;
+    std::expected<info_quantity,mashroom::errc> info_unit(std::string_view str) noexcept;
     
-    std::expected<double,ErrorCode> info_size(std::string_view str) noexcept;
+    std::expected<double,mashroom::errc> info_size(std::string_view str) noexcept;
 
-    std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept;
+    std::expected<info_quantity,mashroom::errc> info_size_unit(std::string_view str) noexcept;
 }
 
 #include <boost/regex.hpp>

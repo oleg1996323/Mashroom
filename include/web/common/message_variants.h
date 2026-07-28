@@ -3,7 +3,7 @@
 #include <expected>
 #include <set>
 #include <variant>
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 #include "msgdef.h"
 
 //client messages
@@ -20,12 +20,13 @@
 #include "web/server/message/application/index.h"
 #include "web/server/message/file/data.h"
 #include "web/server/message/file/metadata.h"
-#include "web/server/message/file/data.h"
 #include "web/server/message/system/error.h"
 #include "web/server/message/system/version.h"
 #include "web/server/message/system/status.h"
 #include "web/server/message/system/credentials.h"
 #include "web/server/message/system/progress.h"
+#include "web/server/message/file/rawdata_parts.h"
+#include "web/server/message/file/rawdata_parts_metadata.h"
 
 //common server-client messages
 #include "web/common/detail/transaction.h"
@@ -61,7 +62,9 @@ namespace network{
                                     std::variant<
                                     std::monostate,
                                     Message<Server_MsgT::FILE_METADATA>,
-                                    Message<Server_MsgT::FILE_DATA>
+                                    Message<Server_MsgT::FILE_DATA>,
+                                    Message<Server_MsgT::RAWDATA_PART>,
+                                    Message<Server_MsgT::RAWDATA_PARTS_METADATA>
                                     >
                                     >;
     template<Side S>
@@ -96,7 +99,9 @@ namespace network{
                                     MSG == Client_MsgT::PROGRESS));
     template<Side S,MESSAGE_ID<S>::type MSG>
     constexpr bool is_file_message_v = (S==Side::SERVER?(MSG == Server_MsgT::FILE_DATA ||
-                                    MSG == Server_MsgT::FILE_METADATA):
+                                    MSG == Server_MsgT::FILE_METADATA ||
+                                    MSG == Server_MsgT::RAWDATA_PART ||
+                                    MSG == Server_MsgT::RAWDATA_PARTS_METADATA):
                                     false);
 
     template<Side S>
@@ -161,6 +166,8 @@ namespace network{
             switch(id){
                 case Server_MsgT::FILE_DATA:
                 case Server_MsgT::FILE_METADATA:
+                case Server_MsgT::RAWDATA_PART:
+                case Server_MsgT::RAWDATA_PARTS_METADATA:
                     return true;
                     break;
                 default:

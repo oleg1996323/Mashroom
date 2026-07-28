@@ -28,7 +28,7 @@ namespace parse{
         std::array<std::string_view,5> units = {"B","KB","MB","GB","TB"};
     }
 
-    std::expected<info_quantity,ErrorCode> info_unit(std::string_view str) noexcept{
+    std::expected<info_quantity,mashroom::errc> info_unit(std::string_view str) noexcept{
         using namespace boost::units::information;
         using namespace detail;
         if(is_byte(str))
@@ -41,22 +41,22 @@ namespace parse{
             return bytes*(uint64_t(1)<<30);
         else if (is_terabyte(str))
             return bytes*(uint64_t(1)<<40);
-        else return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+        else return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
                         "doesn't match any information unit",AT_ERROR_ACTION::CONTINUE,str));
     }
     
-    std::expected<double,ErrorCode> info_size(std::string_view str) noexcept{
+    std::expected<double,mashroom::errc> info_size(std::string_view str) noexcept{
         using namespace boost::units::information;
         using namespace detail;
         auto parse_value = from_chars<double>(str);
         if(parse_value.has_value() && parse_value.value()>=0 && std::isinf(parse_value.value()))
             return parse_value.value();
-        else return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+        else return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
                         "doesn't match number (expected floating-point number)",
                         AT_ERROR_ACTION::CONTINUE,str));
     }
 
-    std::expected<info_quantity,ErrorCode> info_size_unit(std::string_view str) noexcept{
+    std::expected<info_quantity,mashroom::errc> info_size_unit(std::string_view str) noexcept{
         auto number_unit_separation = std::find_if(str.begin(),str.end(),[](const char ch) noexcept{
             return !std::isdigit(ch);
         });
@@ -70,7 +70,7 @@ namespace parse{
                 return std::unexpected(size.error());
             else{
                 if(std::isinf(size.value()))
-                    return std::unexpected(ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                    return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
                         "too huge value",AT_ERROR_ACTION::CONTINUE,std::string_view(str.begin(),number_unit_separation)));
                 return unit.value()*static_cast<double>(size.value());
             }

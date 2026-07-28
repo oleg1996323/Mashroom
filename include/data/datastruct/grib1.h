@@ -6,29 +6,33 @@
 #include <map>
 #include <vector>
 #include "data/common_data_properties.h"
-#include "API/grib1/include/sections/product/levels.h"
-#include "API/grib1/include/sections/product/time_forecast.h"
-#include "API/grib1/include/sections/grid/grid.h"
-#include "types/time_interval.h"
+#include "grib1/sections.h"
+#include "OsterLib/types/time_interval.h"
 #include <boost/functional/hash.hpp>
+#include "common/MessagePositionSizeInfo.h"
 
 using Grib1Data = DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>;
 
 template<>
 struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
+    struct TimeSequenceByMessages{
+        TimeSequence ts_;
+        std::deque<MessagePositionSizeInfo> mi_;
+    };
     struct IndexStructDeserialize{
         std::shared_ptr<GridInfo> grid_;
-        std::shared_ptr<path::Storage<false>> path_;
-        std::vector<std::pair<TimeSequence,std::deque<ptrdiff_t>>> ts_pos_;
+        std::shared_ptr<Location<false>> path_;
+        std::vector<TimeSequenceByMessages> ts_pos_;
         TimeForecast tf_;
         Grib1CommonDataProperties cmn_;
         Level lvl_;
     };
 
     struct IndexStruct{
+        
         std::weak_ptr<GridInfo> grid_;
-        std::weak_ptr<path::Storage<false>> path_;
-        std::vector<std::pair<TimeSequence,std::deque<ptrdiff_t>>> ts_pos_;
+        std::weak_ptr<Location<false>> path_;
+        std::vector<TimeSequenceByMessages> ts_pos_;
         TimeForecast tf_;
         Grib1CommonDataProperties cmn_;
         Level lvl_;
@@ -94,7 +98,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
             lvl_(other.lvl_){}
     };
     
-    std::unordered_map<std::shared_ptr<path::Storage<false>>,
+    std::unordered_map<std::shared_ptr<Location<false>>,
         std::unordered_set<std::weak_ptr<IndexStruct>,
         IndexStruct::Hash,IndexStruct::Equal>> paths_;
     std::unordered_map<std::shared_ptr<GridInfo>,
@@ -128,7 +132,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     index_(std::move(other.index_))
     {}
 
-    std::vector<std::pair<path::Storage<false>,std::vector<ptrdiff_t>>> match_files(
+    std::vector<std::pair<Location<true>,std::vector<MessagePositionSizeInfo>>> match_files(
         utc_tp last_update,
         Coord pos,
         Organization center,
@@ -141,7 +145,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         std::optional<RepresentationType> rep_t
         ) const;
 
-    std::vector<ptrdiff_t> match(
+    std::vector<MessagePositionSizeInfo> match(
         std::string_view path,
         utc_tp last_update,
         Coord,
@@ -156,6 +160,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     ) const;
 
     std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>find_all(
+        std::vector<std::pair<Location<true>,
+            std::vector<MessagePositionSizeInfo>>>& path_pos,
         const std::unordered_set<
             CommonDataProperties<Data_t::TIME_SERIES,
             Data_f::GRIB_v1>>& common,
@@ -199,6 +205,8 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         std::optional<RepresentationType>>;
     using find_all_t = std::invoke_result_t<decltype(&DataStruct::find_all),
         DataStruct*,
+        std::vector<std::pair<Location<true>,
+            std::vector<MessagePositionSizeInfo>>>&,
         const std::unordered_set<
         CommonDataProperties<Data_t::TIME_SERIES,
         Data_f::GRIB_v1>>&,
@@ -214,7 +222,7 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
         std::optional<std::pair<Level,Level::COMPARISION_TYPE>>,
         std::optional<RepresentationType>>;
 
-    void delete_index(const path::Storage<false>& path);
+    void delete_index(const Location<false>& path);
 
     void rewrite_index(const std::shared_ptr<IndexStruct>& data);
 
@@ -230,16 +238,20 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
     void update_indexing(const DataStruct& other){
         rewrite_indexes(other.index_);
     }
-    void add_data(const path::Storage<false>& path,
+    void add_data(const Location<false>& path,
         const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
         std::error_code& err);
 
-    void add_data(const path::Storage<false>& path,
+    void add_data(const Location<false>& path,
         const DataStruct<Data_t::TIME_SERIES,
         Data_f::GRIB_v1>::find_all_t& data);
 
     bool operator==(const DataStruct& other) const;
 };
+
+template<>
+boost::json::value to_json(const DataStruct<
+        Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t& val);
 
 namespace operators{
 
@@ -291,6 +303,61 @@ bool operator==(const CLASS1<DataStruct<Data_t::TIME_SERIES,
 }
 
 namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,Grib1Data::TimeSequenceByMessages>{
+        using type = Grib1Data::TimeSequenceByMessages;
+        SerializationEC operator()(const type& msg,
+            std::vector<char>& buf) const noexcept{
+                return serialize<NETWORK_ORDER>(msg,
+                    buf,
+                    msg.ts_,
+                    msg.mi_);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,Grib1Data::TimeSequenceByMessages>{
+        using type = Grib1Data::TimeSequenceByMessages;
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
+            return deserialize<NETWORK_ORDER>(msg,
+                    buf,
+                    msg.ts_,
+                    msg.mi_);
+        }
+    };
+
+    template<>
+    struct Serial_size<Grib1Data::TimeSequenceByMessages>{
+        using type = Grib1Data::TimeSequenceByMessages;
+        size_t operator()(const type& msg) const noexcept{
+            return serial_size(
+                    msg.ts_,
+                    msg.mi_);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<Grib1Data::TimeSequenceByMessages>{
+        using type = Grib1Data::TimeSequenceByMessages;
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<
+                decltype(type::ts_),
+                decltype(type::mi_)>();
+        }();
+    };
+
+    template<>
+    struct Max_serial_size<Grib1Data::TimeSequenceByMessages>{
+        using type = Grib1Data::TimeSequenceByMessages;
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<
+                decltype(type::ts_),
+                decltype(type::mi_)>();
+        }();
+    };
+
     template<bool NETWORK_ORDER>
     struct Serialize<NETWORK_ORDER,Grib1Data::IndexStruct>{
         using type = Grib1Data::IndexStruct;

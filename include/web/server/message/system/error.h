@@ -1,6 +1,6 @@
 #pragma once
 #include "web/common/msgdef.h"
-#include "sys/error_code.h"
+#include "sys/error.h"
 
 namespace network{
     template<>
@@ -8,7 +8,7 @@ namespace network{
         std::string description_;
         std::optional<Message<Server_MsgT::TRANSACTION>> transaction_;
         server::Status status_;
-        ErrorCode err_ = ErrorCode::NONE;
+        mashroom::errc err_;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -20,7 +20,7 @@ namespace network{
         template<auto>
         friend struct serialization::Max_serial_size;
         public:
-        Message(ErrorCode error_code,
+        Message(mashroom::errc error_code,
                     std::string description,
                     const Message<Server_MsgT::TRANSACTION>& transaction,
                     server::Status status):
@@ -28,7 +28,7 @@ namespace network{
                     transaction_(transaction),
                     status_(status),
                     err_(error_code){}
-        Message(ErrorCode error_code,
+        Message(mashroom::errc error_code,
                     std::string description,
                     server::Status status):
                     description_(description),
@@ -70,10 +70,10 @@ namespace network{
         const std::string& description() const noexcept{
             return description_;
         }
-        ErrorCode error() const noexcept{
+        mashroom::errc error() const noexcept{
             return err_;
         }
-        void error(ErrorCode err) noexcept{
+        void error(mashroom::errc err) noexcept{
             err_=err;
         }
         void description(std::string description) noexcept{

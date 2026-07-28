@@ -1,9 +1,9 @@
 #pragma once
 #include "data/def.h"
-#include "byte_order.h"
-#include "types/time_interval.h"
+#include "OsterLib/byte_order.h"
+#include "OsterLib/types/time_interval.h"
 #include <variant>
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 
 template<Data_t T,Data_f F>
 struct ExtractedValue;
@@ -142,7 +142,7 @@ namespace serialization{
     };
 }
 
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 
 template<>
 boost::json::value to_json(const ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);

@@ -9,11 +9,11 @@
 #include <map>
 #include <optional>
 #include <cstdint>
-#include "types/time_interval.h"
-#include "types/coord.h"
+#include "OsterLib/types/time_interval.h"
+#include "OsterLib/types/coord.h"
 #include "definitions/def.h"
-#include "definitions/path_process.h"
-#include "API/grib1/include/sections/grid/grid.h"
+#include "Location.h"
+#include "grib1/sections.h"
 template<Data_t TYPE,Data_f FORMAT>
 struct DataStruct;
 
@@ -53,6 +53,53 @@ struct SearchDataResult{
         return !(*this==other);
     }
 };
+
+template<>
+std::expected<find_data_info::details::Additional<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exception> 
+    from_json<find_data_info::details::Additional<Data_t::TIME_SERIES,Data_f::GRIB_v1>>(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const 
+        find_data_info::details::Additional<
+            Data_t::TIME_SERIES,Data_f::GRIB_v1>& val);
+
+template<Data_t TYPE,Data_f FORMAT>
+std::expected<SearchDataResult<TYPE,FORMAT>,std::exception> 
+    from_json(const boost::json::value& val)
+{
+    if(val.is_object()){
+        auto& obj = val.as_object();
+        if(!obj.contains("common"))
+            return std::unexpected(std::invalid_argument(
+            "missing \"common\" field at parsing json data of SearchDataResult type"));
+        if(!obj.contains("additional"))
+            return std::unexpected(std::invalid_argument(
+            "missing \"additional\" field at parsing json data of SearchDataResult type"));
+        SearchDataResult<TYPE,FORMAT> result;
+        if(auto cmn_parse = from_json<decltype(result.cmn_)>(obj.at("common"));
+                !cmn_parse.has_value())
+            return std::unexpected(cmn_parse.error());
+        else result.cmn_ = std::move(cmn_parse.value());
+        if(auto add_parse = from_json<decltype(result.add_)>(obj.at("additional"));
+                !add_parse.has_value())
+            return std::unexpected(add_parse.error());
+        else result.add_ = std::move(add_parse.value());
+        return result;
+    }
+    else if(val.is_null())
+        return SearchDataResult<TYPE,FORMAT>();
+    else return std::unexpected(std::invalid_argument(
+            "not object-type SearchDataResult at parsing json data"));
+}
+
+template<Data_t TYPE,Data_f FORMAT>
+boost::json::value to_json(const SearchDataResult<TYPE,FORMAT>& val)
+{
+    boost::json::object result;
+    result["common"]=to_json(val.cmn_);
+    result["additional"]=to_json(val.add_);
+    return result;
+}
 
 namespace serialization{
 

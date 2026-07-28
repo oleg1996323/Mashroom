@@ -1,5 +1,5 @@
-#include <sections/grid/gaussian.h>
-#include <sections/grid/grid.h>
+#include <grib1/sections/grid/gaussian.h>
+#include <grib1/sections/grid/grid.h>
 #include <format>
 #include <cassert>
 

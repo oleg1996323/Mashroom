@@ -2,11 +2,12 @@
 #include <filesystem>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include "definitions/def.h"
-#include "sys/error_code.h"
-#include "message.h"
+#include "sys/error.h"
+#include "grib1/message.h"
 #include "data/datastruct/searchdataresult.h"
-#include "definitions/path_process.h"
+#include "Location.h"
 #include <boost/units/systems/information/byte.hpp>
 #include <boost/units/systems/information/nat.hpp>
 #include "proc/index/indexdatafileformat.h"
@@ -21,8 +22,8 @@ using namespace std::string_literals;
 
 class Index{
 private:
-std::unordered_set<path::Storage<false>> in_path_;
-std::unordered_set<path::Storage<false>> written_;
+std::unordered_set<Location<false>> in_path_;
+std::unordered_set<Location<false>> written_;
 std::optional<fs::path> dest_directory_;
 info_quantity file_sz_limits_=static_cast<double>(std::numeric_limits<uint64_t>::max())*info_units{};
 int cpus = 1;
@@ -37,8 +38,8 @@ std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> __index_write_file__
 public:
 void execute() noexcept;
 
-ErrorCode add_in_path(const path::Storage<false>& path);
-ErrorCode set_dest_dir(std::string_view dest_directory);
+mashroom::errc add_in_path(const Location<false>& path);
+mashroom::errc set_dest_dir(std::string_view dest_directory);
 void set_output_format(IndexOutputFileFormat::token format){
     output_format_ = format;
 }

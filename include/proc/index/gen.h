@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "filesystem.h"
+#include "OsterLib/filesystem.h"
 #include "proc/index/indexdatafileformat.h"
-#include "types/time_interval.h"
-#include "sections/grid/grid.h"
+#include "OsterLib/types/time_interval.h"
+#include "grib1/sections.h"
 #include "proc/index/indexoutputfileformat.h"
 #include "proc/common/functional.h"
 #include "name_tokens.h"

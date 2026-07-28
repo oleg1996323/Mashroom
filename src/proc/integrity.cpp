@@ -11,20 +11,19 @@
 #include <ranges>
 #include <numeric>
 #include <format>
-#include "definitions/path_process.h"
+#include "Location.h"
 #include "web/client.h"
 #include "program/mashroom.h"
-#include "sys/error_print.h"
 #include "definitions/def.h"
-#include "grib1/include/message.h"
+#include "grib1/message.h"
 #include "data/msg.h"
 
 using namespace std::chrono;
 
-std::pair<std::unordered_set<DataStructVariation>,std::vector<std::pair<path::Storage<false>,API::ErrorData::Code<API::GRIB1>::value>>> 
-Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>& entries,ErrorCode& err, std::mutex* mute_at_print = nullptr) noexcept{
+std::pair<std::unordered_set<DataStructVariation>,std::vector<std::pair<Location<false>,API::ErrorData::Code<API::GRIB1>::value>>> 
+Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>& entries,mashroom::errc& err, std::mutex* mute_at_print = nullptr) noexcept{
     std::unordered_set<DataStructVariation> index_result;
-    std::vector<std::pair<path::Storage<false>,API::ErrorData::Code<API::GRIB1>::value>> errorness_files;
+    std::vector<std::pair<Location<false>,API::ErrorData::Code<API::GRIB1>::value>> errorness_files;
     for (const fs::directory_entry& entry : entries) {
         if (entry.is_regular_file() && entry.path().has_extension() && 
             (entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -42,18 +41,18 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
             if(error_f!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
                 if(mute_at_print){
                     std::lock_guard<std::mutex> locked(*mute_at_print);
-                    errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path().string()),error_f));
+                    errorness_files.push_back(std::make_pair(Location<false>::file(entry.path().string()),error_f));
                 }
                 else
-                    errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path().string()),error_f));
+                    errorness_files.push_back(std::make_pair(Location<false>::file(entry.path().string()),error_f));
                 continue;
             }
             std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> index_local;
             do{
                 const auto& msg = grib.message();
                 if(!msg.has_value()){
-                    err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
-                    errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path().string()),API::ErrorData::ErrorCode<API::GRIB1>::BAD_FILE_X1));
+                    err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+                    errorness_files.push_back(std::make_pair(Location<false>::file(entry.path().string()),API::ErrorData::mashroom::errc<API::GRIB1>::BAD_FILE_X1));
                     break;
                 }
                 data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
@@ -87,7 +86,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                 if(props_.to_date_<info.date || props_.from_date_>info.date)
                     continue;
                 if(error_f!=decltype(error_f)::NONE_ERR){
-                    errorness_files.push_back(std::make_pair(path::Storage<false>::file(entry.path()),error_f));
+                    errorness_files.push_back(std::make_pair(Location<false>::file(entry.path()),error_f));
                     continue;
                 }
                 {
@@ -102,7 +101,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                     }
                 }
             }while(grib.next_message());
-            if(!errorness_files.empty() && errorness_files.back().first.path_==entry.path())
+            if(!errorness_files.empty() && errorness_files.back().first.path()==entry.path())
                 continue;
             else{
                 if(index_local.empty())
@@ -110,7 +109,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                 if(auto found = index_result.find(std::make_pair<Data_f,Data_t>(Data_f::GRIB_v1,Data_t::TIME_SERIES));found!=index_result.end()){
                     std::error_code error_id;
                     const_cast<DataStructVariation&>(*found).add_data(
-                        path::Storage<false>::file(
+                        Location<false>::file(
                             entry.path().string(),
                             utc_tp::clock::now()),
                         index_local,error_id);
@@ -118,7 +117,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
                 else {
                     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> structure;
                     std::error_code error_id;
-                    structure.add_data(path::Storage<false>::file(entry.path().string(),utc_tp::clock::now()),index_local,error_id);
+                    structure.add_data(Location<false>::file(entry.path().string(),utc_tp::clock::now()),index_local,error_id);
                     index_result.insert(DataStructVariation(std::move(structure)));
                 }
             }
@@ -127,7 +126,7 @@ Integrity::__check_file_data_integrity__(const std::vector<fs::directory_entry>&
     return std::make_pair(std::move(index_result),std::move(errorness_files));
 }
 
-void Integrity::__check_metadata_integrity__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err,std::mutex* mute_at_print = nullptr) noexcept{
+void Integrity::__check_metadata_integrity__(const std::unordered_set<DataStructVariation>& data,mashroom::errc& err,std::mutex* mute_at_print = nullptr) noexcept{
     for(const auto& d:data){
         auto check_spec_data = [](const auto& spec_data){
             using T = std::decay_t<decltype(data)>;
@@ -142,21 +141,21 @@ void Integrity::__check_metadata_integrity__(const std::unordered_set<DataStruct
         };
     }
 }
-void Integrity::__correct_indexation__(const std::unordered_set<DataStructVariation>& data,ErrorCode& err) noexcept{
+void Integrity::__correct_indexation__(const std::unordered_set<DataStructVariation>& data,mashroom::errc& err) noexcept{
     //if set option then correct
 }
 
-ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in path not defined
+mashroom::errc Integrity::execute() noexcept{ //TODO: add search from match if in path not defined
     std::vector<fs::directory_entry> entries;
-    ErrorCode err;
-    for(auto& path:in_path_){
-        switch(path.type_){
+    mashroom::errc err;
+    for(auto& location:in_path_){
+        switch(location.type()){
             case path::TYPE::DIRECTORY:{
-                for(const fs::directory_entry& entry: fs::directory_iterator(path.path_))
+                for(const fs::directory_entry& entry: fs::directory_iterator(location.path()))
                     entries.push_back(entry);
                 {
                     auto result = __check_file_data_integrity__(entries,err);
-                    if(err==ErrorCode::NONE)
+                    if(err==mashroom::errc::NONE)
                         __check_metadata_integrity__(result.first,err);
 
                     //TODO:
@@ -185,9 +184,9 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
                 continue;
             }
             case path::TYPE::FILE:{
-                entries.push_back(fs::directory_entry(path.path_));
+                entries.push_back(fs::directory_entry(location.path()));
                 auto result = __check_file_data_integrity__(entries,err);
-                if(err==ErrorCode::NONE)
+                if(err==mashroom::errc::NONE)
                     __check_metadata_integrity__(result.first,err);
                 continue;
             }
@@ -200,17 +199,17 @@ ErrorCode Integrity::execute() noexcept{ //TODO: add search from match if in pat
     }
     std::ofstream missing_log(out_path_/missed_data,std::ios::out|std::ios::trunc);
     if(!missing_log.is_open()){
-        ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/missed_data).c_str());
-        return ErrorCode::CANNOT_OPEN_FILE_X1;
+        ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/missed_data).c_str());
+        return mashroom::errc::CANNOT_OPEN_FILE_X1;
     }
     std::ofstream accessible_data(out_path_/access_data,std::ios::out|std::ios::trunc);
     if(!accessible_data.is_open()){
-        ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/access_data).c_str());
-        return ErrorCode::CANNOT_OPEN_FILE_X1;
+        ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(out_path_/access_data).c_str());
+        return mashroom::errc::CANNOT_OPEN_FILE_X1;
     }
     
     if(missing_log.tellp()>0)
-        err = ErrorCode::INTEGRITY_VIOLATED;
+        err = mashroom::errc::INTEGRITY_VIOLATED;
     missing_log.close();
     return err;
 }

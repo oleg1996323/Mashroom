@@ -3,6 +3,8 @@
 #include "web/common/detail/transaction.h"
 #include <string>
 #include <cstdint>
+#include <boost/uuid/uuid.hpp>
+#include "OsterLib/boost_functional/crypto.h"
 
 namespace network{
     template<>
@@ -10,6 +12,7 @@ namespace network{
     {
         std::string filename_;
         uintmax_t file_sz_ = 0;      //size of file
+        crypto::SHA1 digest_;
         
         template<bool,auto>
         friend struct serialization::Serialize;
@@ -21,8 +24,8 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        Message() = default;
         public:
+        Message() = default;
         Message(Message<Server_MsgT::TRANSACTION>
             transaction) 
             noexcept:
@@ -64,6 +67,12 @@ namespace network{
         const std::string& filename() const noexcept{
             return filename_;
         }
+        void digest(const crypto::SHA1& digest) noexcept{
+            std::memcpy(&digest_,&digest,sizeof(digest));
+        }
+        const crypto::SHA1& digest() const noexcept{
+            return digest_;
+        }
     };
 }
 
@@ -77,7 +86,8 @@ namespace serialization{
                 buf,
                 static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
                 msg.filename_,
-                msg.file_sz_);
+                msg.file_sz_,
+                msg.digest_);
         }
     };
 
@@ -89,7 +99,8 @@ namespace serialization{
                 buf,
                 static_cast<Message<Server_MsgT::TRANSACTION>&>(msg),
                 msg.filename_,
-                msg.file_sz_);
+                msg.file_sz_,
+                msg.digest_);
         }
     };
 
@@ -100,7 +111,8 @@ namespace serialization{
             return serial_size(
                 static_cast<const Message<Server_MsgT::TRANSACTION>&>(msg),
                 msg.filename_,
-                msg.file_sz_);
+                msg.file_sz_,
+                msg.digest_);
         }
     };
 
@@ -112,7 +124,8 @@ namespace serialization{
             return min_serial_size<
                 Message<Server_MsgT::TRANSACTION>,
                 decltype(type::filename_),
-                decltype(type::file_sz_)>();
+                decltype(type::file_sz_),
+                decltype(type::digest_)>();
         }();
     };
 
@@ -124,7 +137,8 @@ namespace serialization{
             return max_serial_size<
                 Message<Server_MsgT::TRANSACTION>,
                 decltype(type::filename_),
-                decltype(type::file_sz_)>();
+                decltype(type::file_sz_),
+                decltype(type::digest_)>();
         }();
     };
 }

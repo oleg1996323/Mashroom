@@ -1,5 +1,4 @@
 #include "cmd_parse/index.h"
-#include "sys/error_print.h"
 #include "sys/application.h"
 #include "sys/config.h"
 #include "sys/outputdatafileformats.h"
@@ -69,10 +68,9 @@ namespace parse{
                 input_paths_->count())
         {
             int count = input_paths_val_.size();
-            for(auto& path:input_paths_val_){
-                if(auto err = index.add_in_path(path);
-                    err!=ErrorCode::NONE)
-                    ErrorPrint::print_error(err,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            for(auto& location:input_paths_val_){
+                if(auto err = index.add_in_path(location);err)
+                    ErrorPrint::print_error(err,"",AT_ERROR_ACTION::CONTINUE,location.path());
                 else --count;
             }
             if(count==input_paths_val_.size())

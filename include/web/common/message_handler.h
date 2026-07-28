@@ -2,10 +2,9 @@
 #include <variant>
 #include <utility>
 #include "message_variants.h"
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include <gtest/gtest.h>
-#include "variant.h"
+#include "OsterLib/variant.h"
 
 namespace network{
     #include <cstddef>
@@ -257,6 +256,8 @@ namespace serialization{
     };
 }
 
+static_assert(std::is_default_constructible_v<network::MessageHandler<network::Side::CLIENT>>);
+static_assert(std::is_default_constructible_v<network::MessageHandler<network::Side::SERVER>>);
 static_assert(serialization::min_serial_size<network::MessageHandler<network::Side::SERVER>>()>0);
 static_assert(serialization::max_serial_size<network::MessageHandler<network::Side::SERVER>>()>0);
 static_assert(serialization::min_serial_size<network::MessageHandler<network::Side::CLIENT>>()>0);

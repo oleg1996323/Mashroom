@@ -3,8 +3,8 @@
 #include <vector>
 #include <thread>
 #include "sys/application.h"
-#include "types/time_interval.h"
-#include "types/coord.h"
+#include "OsterLib/types/time_interval.h"
+#include "OsterLib/types/coord.h"
 #include "types_parse/center_parse.h"
 #include "types_parse/coord_parse.h"
 

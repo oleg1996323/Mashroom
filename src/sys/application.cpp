@@ -1,8 +1,9 @@
 #include "application.h"
+#include "OsterLib/log.h"
 
 Application::Application():
                 conf_(std::make_unique<Config>()),
-                logger_(std::make_unique<LogError>())
+                logger_(std::make_unique<osterlib::Log>())
 {}
 
 Application& Application::app(){
@@ -11,7 +12,7 @@ Application& Application::app(){
         app=std::make_unique<Application>();
     return *app;
 }
-LogError& Application::log(){
+osterlib::Log& Application::log(){
     return *(app().logger_);
 }
 Config& Application::config(){
@@ -25,6 +26,6 @@ Application& app(){
     return Application::app();
 }
 
-LogError& log(){
+osterlib::Log& log(){
     return app().log();
 }

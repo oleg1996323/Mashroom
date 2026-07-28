@@ -4,7 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <optional>
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 #include <netdb.h>
 #include <poll.h>
 #include <fcntl.h>
@@ -98,6 +98,8 @@ namespace network{
             SERVER_STATUS,
             FILE_DATA,
             FILE_METADATA,
+            RAWDATA_PART,
+            RAWDATA_PARTS_METADATA,
             INDEX
         };
 

@@ -13,15 +13,14 @@
 #include <netinet/in.h>
 #include "grib/index_data_info.h"
 #include "sublimed_info.h"
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 #include "def.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include "common_data_properties.h"
-#include "sections/grid/grid.h"
+#include "grib1/sections/grid/grid.h"
 #include "def.h"
 #include "msg.h"
-#include "sys/error_print.h"
-#include "sys/error_code.h"
+#include "sys/error.h"
 #include "data/def.h"
 using namespace std::string_literals;
 

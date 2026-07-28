@@ -8,8 +8,7 @@
 #include "cmd_parse/integrity.h"
 #include "cmd_parse/config_parse.h"
 #include "cmd_parse/network.h"
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "program/mashroom.h"
 #include <boost/algorithm/string.hpp>
 

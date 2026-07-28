@@ -1,20 +1,20 @@
 #include "proc/contains.h"
 #include "data/msg.h"
-#include "message.h"
+#include "grib1/message.h"
 #include "int_pow.h"
 #include <expected>
 
-// std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
+// std::expected<bool,mashroom::errc> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
 //     const CommonDataProperties& data,std::optional<RepresentationType> grid_type){
 //     HGrib1 grib;
 //     if(!is_correct_pos(&coord))
-//         return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
+//         return std::unexpected(ErrorPrint::print_error(mashroom::errc::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
 //     if(grib.open_grib(from)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
-//         return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
+//         return std::unexpected(ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
 //     do{
 //         const auto& msg = grib.message();
 //         if(!msg.has_value())
-//             return std::unexpected(ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE));
+//             return std::unexpected(ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE));
 //         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> info(	std::move(msg.value().get().section_2_.define_grid()),
 //                                     std::move(msg.value().get().section_1_.date()),
 //                                     grib.current_message_position(),
@@ -42,13 +42,13 @@
 //     }while(grib.next_message());
 // }
 
-// std::expected<bool,ErrorCode> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
+// std::expected<bool,mashroom::errc> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,
 //     Organization center, uint8_t table_version, uint8_t parameter,std::optional<RepresentationType> grid_type){
 //     HGrib1 grib;
 //     if(!is_correct_pos(&coord))
-//         return std::unexpected(ErrorPrint::print_error(ErrorCode::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
+//         return std::unexpected(ErrorPrint::print_error(mashroom::errc::INCORRECT_COORD,"",AT_ERROR_ACTION::CONTINUE));
 //     if(grib.open_grib(from)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR)
-//         return std::unexpected(ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
+//         return std::unexpected(ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,from.c_str()));
 //     do{
 //         const auto msg = grib.message();
 //         if(!msg.has_value())

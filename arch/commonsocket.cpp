@@ -1,5 +1,5 @@
 #include "commonsocket.h"
-#include "byte_order.h"
+#include "OsterLib/byte_order.h"
 
 namespace network{
     detail::SocketControlBlock::SocketControlBlock(int raw_socket_id,

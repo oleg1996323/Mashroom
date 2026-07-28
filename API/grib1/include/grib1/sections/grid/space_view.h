@@ -1,0 +1,96 @@
+#pragma once
+#include <cstdint>
+#include "grib1/code_tables.h"
+#include "def.h"
+#include "grid_base.h"
+
+namespace grid{
+template<>
+struct GridDefinition<RepresentationType::SPACE_VIEW>:
+    GridDefinitionBase<RepresentationType::SPACE_VIEW,GridModification::NONE>{
+    GridDefinition() = default;
+    GridDefinition(unsigned char* buffer);
+    GridDefinition(const GridDefinition& other):GridDefinitionBase(other){}
+    GridDefinition(GridDefinition&& other) noexcept:GridDefinitionBase(std::move(other)){}
+    GridDefinition& operator=(const GridDefinition& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(other);
+        }
+        return *this;
+    }
+    GridDefinition& operator=(GridDefinition&& other){
+        if(this!=&other){
+            GridDefinitionBase::operator=(std::move(other));
+        }
+        return *this;
+    }
+    bool operator==(const GridDefinition<RepresentationType::SPACE_VIEW>& other) const{
+        return GridDefinitionBase::operator==(other);
+    }
+    std::string print_grid_info() const;
+};
+}
+
+namespace serialization{
+    template<bool NETWORK_ORDER>
+    struct Serialize<NETWORK_ORDER,grid::GridBase<SPACE_VIEW>>{
+        using type = grid::GridBase<SPACE_VIEW>;
+        SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
+            return serialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
+                msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
+        }
+    };
+
+    template<bool NETWORK_ORDER>
+    struct Deserialize<NETWORK_ORDER,grid::GridBase<SPACE_VIEW>>{
+        using type = grid::GridBase<SPACE_VIEW>;
+        SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
+            return deserialize<NETWORK_ORDER>(msg,buf,msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
+                msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
+        }
+    };
+
+    template<>
+    struct Serial_size<grid::GridBase<SPACE_VIEW>>{
+        using type = grid::GridBase<SPACE_VIEW>;
+        size_t operator()(const type& msg) const noexcept{
+            return serial_size(msg.nx,msg.ny,msg.y,msg.x,msg.resolutionAndComponentFlags,msg.dx,msg.dy,
+                msg.xp,msg.yp,msg.scan_mode,msg.orientation_,msg.nr,msg.Xo,msg.Yo);
+        }
+    };
+
+    template<>
+    struct Min_serial_size<grid::GridBase<SPACE_VIEW>>{
+        using type = grid::GridBase<SPACE_VIEW>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return min_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y),decltype(type::x),
+                decltype(type::resolutionAndComponentFlags),decltype(type::dx),decltype(type::dy),
+                decltype(type::xp),decltype(type::yp),decltype(type::scan_mode),decltype(type::orientation_),
+                decltype(type::nr),decltype(type::Xo),decltype(type::Yo)>();
+        }();
+    };
+
+    template<>
+    struct Max_serial_size<grid::GridBase<SPACE_VIEW>>{
+        using type = grid::GridBase<SPACE_VIEW>;
+        static constexpr size_t value = []() ->size_t
+        {
+            return max_serial_size<decltype(type::nx),decltype(type::ny),decltype(type::y),decltype(type::x),
+                decltype(type::resolutionAndComponentFlags),decltype(type::dx),decltype(type::dy),
+                decltype(type::xp),decltype(type::yp),decltype(type::scan_mode),decltype(type::orientation_),
+                decltype(type::nr),decltype(type::Xo),decltype(type::Yo)>();
+        }();
+    };
+}
+
+#include "OsterLib/boost_functional/json.h"
+
+template<>
+std::expected<grid::GridBase<SPACE_VIEW>,std::exception> from_json<grid::GridBase<SPACE_VIEW>>(const boost::json::value& val);
+
+template<>
+boost::json::value to_json(const grid::GridBase<SPACE_VIEW>& val);
+
+static_assert(serialization::Min_serial_size<std::optional<grid::GridBase<SPACE_VIEW>>>::value==sizeof(bool));
+static_assert(serialization::Max_serial_size<std::optional<grid::GridBase<SPACE_VIEW>>>::value==sizeof(bool)+serialization::Max_serial_size<grid::GridBase<SPACE_VIEW>>::value);

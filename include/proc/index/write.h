@@ -9,21 +9,22 @@
 #include "data/msg.h"
 #include <filesystem>
 #include <algorithm>
-#include "API/grib1/include/paramtablev.h"
+#include "grib1/paramtableversion.h"
 #include "proc/index/gen.h"
 #include "proc/index/write/json.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 
 /**
  * @return Return the names of created files with registered grib data
  */ 
-bool write_json_file(const fs::path& path,
+osterlib::ContextedError write_json_file(const fs::path& path,
 					std::ranges::range auto&& data_){
 	std::ofstream file(path,std::ofstream::ate);
 	for(const auto& msg_info:data_){
 		if(!file.is_open()){
-			ErrorPrint::print_error(ErrorCode::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,path.c_str());
-			return false;
+			osterlib::ContextedError error(mashroom::errc::file_permission_denied);
+			error.with_field("file",path.string());
+			return error;
 		}
 		file<<to_json(msg_info);
 		file.flush();

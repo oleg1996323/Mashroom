@@ -1,5 +1,5 @@
-#include <sections/grid/lat_lon.h>
-#include <sections/grid/grid.h>
+#include <grib1/sections/grid/lat_lon.h>
+#include <grib1/sections/grid/grid.h>
 #include <format>
 GridDefinition<RepresentationType::LAT_LON_GRID_EQUIDIST_CYLINDR>::GridDefinition(unsigned char* buffer):
     GridDefinitionBase(buffer){}

@@ -2,9 +2,9 @@
 #include <variant>
 #include <cstdint>
 #include <cstddef>
-#include "types/time_interval.h"
-#include "API/grib1/include/properties.h"
-#include "serialization.h"
+#include "OsterLib/types/time_interval.h"
+#include "grib1/properties.h"
+#include "OsterLib/serialization.h"
 #include <optional>
 #include "web/common/msgdef.h"
 #include "data/def.h"

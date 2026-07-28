@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string_view>
-#include "sys/error_code.h"
+#include "sys/error.h"
 #include "proc/contains.h"
 #include "cmd_parse/cmd_def.h"
 namespace parse{

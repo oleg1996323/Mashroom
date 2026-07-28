@@ -2,10 +2,10 @@
 #include <thread>
 #include "cmd_def.h"
 #include "cmd_parse/functions.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "functions.h"
 #include "proc/extract.h"
-#include "code_tables/table_0.h"
+#include "grib1/code_tables.h"
 #include "out_format_parse.h"
 #include "types_parse/array_parse.h"
 

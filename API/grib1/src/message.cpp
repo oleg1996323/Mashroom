@@ -1,14 +1,35 @@
-#include "grib1/include/message.h"
+#include "grib1/message.h"
 #include "int_pow.h"
-#include "error_data.h"
-#include "common/error_data_print.h"
+#include "grib1/def.h"
+#include "grib1/error.h"
+
+using namespace osterlib;
+
+api::Message<API_T::GRIB1>::Message(unsigned char* buffer):section_0_(buffer),
+                                section_1_(buffer+sec_0_min_sz),
+                                section_2_(section_1_.section1Flags().sec2_inc?section_1_.buffer_+section_1_.section_length():nullptr),
+                                section_3_(section_1_.section1Flags().sec3_inc?
+                                            section_1_.buffer_+section_1_.section_length()+section_2_.section_length():nullptr),
+                                section_4_(section_1_.buffer_+section_1_.section_length()+section_2_.section_length()+section_3_.section_length())
+{
+    if(auto sz =sec_0_min_sz+
+            section_1_.section_length()+
+            section_2_.section_length()+
+            section_3_.section_length()+
+            section_4_.get_BDS_length()+4;
+        sz!=message_length())
+    {
+        err_ = osterlib::ContextedError(api::errc<API_T::GRIB1>::length_unconsistent);
+        err_.with_field("length",sz).with_field("expected",message_length());
+    }
+}
 
 //Bit 3 is set to 1 to indicate that the original data were integers; when this is the case any non-zero reference values should be rounded to an integer value prior to placing in the GRIB BDS
 //Bit 4 is set to 1 to indicate that bits 5 to 12 are contained in octet 14 of the data section.
 //Although GRIB is not capable of representing a matrix of data values at each grid point, the meaning of bit 6 is retained in anticipation of a future capability.
 //When secondary bit maps are present in the data (used in association with second order packing) this is indicated by setting bit 7 to 1.
 //When octet 14 contains the extended flag information octets 12 and 13 will also contain "special" information; the actual data will begin in a subsequent octet. See above.
-float API::Message<API::TYPES::GRIB1>::extract_value(int n){
+float api::Message<API_T::GRIB1>::extract_value(int n){
     double dec_scale = int_power(10.0,-section_1_.decimal_scale_factor());
     double scale = dec_scale*int_power(2.0, section_4_.scale_factor());
     uint8_t n_bit = section_4_.bit_per_value();
@@ -70,7 +91,7 @@ float API::Message<API::TYPES::GRIB1>::extract_value(int n){
     return UNDEFINED;
 }
 
-std::vector<float> API::Message<API::TYPES::GRIB1>::extract_all(){
+std::vector<float> api::Message<API_T::GRIB1>::extract_all(){
     Flag flags = section_4_.get_data_flag();
     std::vector<float> result;
 	if(!flags.complex_pack){
@@ -130,38 +151,38 @@ std::vector<float> API::Message<API::TYPES::GRIB1>::extract_all(){
     return result;
 }
 
-std::optional<std::reference_wrapper<API::Message<API::TYPES::GRIB1>>> 
-    API::HGrib1::message() const{
+std::optional<std::reference_wrapper<api::Message<API_T::GRIB1>>> 
+    api::HGrib1::message() const{
     if(msg_)
         return *msg_;
     else return std::nullopt;
 }
-ptrdiff_t API::HGrib1::current_message_position() const noexcept{
+uint64_t api::HGrib1::current_message_position() const noexcept{
     return static_cast<ptrdiff_t>(current_ptr_-__f_ptr);
 }
-std::optional<unsigned long> API::HGrib1::current_message_length() const noexcept{
+std::optional<unsigned long> api::HGrib1::current_message_length() const noexcept{
     if(msg_)
         return msg_->section_0_.message_length();
     else return std::nullopt;
 }
-bool API::HGrib1::next_message(){
+bool api::HGrib1::next_message(){
     if(msg_){
         if((current_ptr_-__f_ptr)+msg_->section_0_.message_length()<sz_){
             current_ptr_+=msg_->section_0_.message_length();
-            msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(current_ptr_);
+            msg_ = std::make_unique<Message<API_T::GRIB1>>(current_ptr_);
             return true;
         }
         return false;
     }
     return false;
 }
-std::optional<unsigned long> API::HGrib1::file_size() const noexcept{
+std::optional<unsigned long> api::HGrib1::file_size() const noexcept{
     if(msg_){
         return sz_;
     }
     return std::nullopt;
 }
-API::HGrib1::~HGrib1(){
+api::HGrib1::~HGrib1(){
     if(__f_ptr){
         assert(munmap(__f_ptr,sz_)==0);
         __f_ptr = nullptr;
@@ -171,18 +192,18 @@ API::HGrib1::~HGrib1(){
         file = -1;
     }
 }
-bool API::HGrib1::is_correct_format() const noexcept{
+bool api::HGrib1::is_correct_format() const noexcept{
     if(msg_ && sz_>=sec_0_min_sz)
         if(memcmp(msg_->section_0_.buf_,"GRIB",4))
             return true;
     return false;
 }
-std::optional<unsigned char> API::HGrib1::grib_version() const noexcept{
+std::optional<unsigned char> api::HGrib1::grib_version() const noexcept{
     if(is_correct_format())
         return msg_->section_0_.grib_version();
     else return std::nullopt;
 }
-API::ErrorData::Code<API_TYPE>::value API::HGrib1::open_grib(const fs::path& filename){
+ContextedError api::HGrib1::open_grib(const fs::path& filename){
     msg_ = nullptr;
     __f_ptr = nullptr;
     current_ptr_ = nullptr;
@@ -192,35 +213,50 @@ API::ErrorData::Code<API_TYPE>::value API::HGrib1::open_grib(const fs::path& fil
         file = -1;
     }
     file = open(filename.string().c_str(),O_RDONLY | O_DIRECT);
-    if(file==-1)
-        return API::ErrorData::Code<API_TYPE>::OPEN_ERROR_X1;
+    if(file==-1){
+        ContextedError error(api::errc<API_T::GRIB1>::open_error);
+        error.with_field("file",filename.string());
+        return error;
+    }
     sz_=lseek(file,0,SEEK_END);
     lseek(file,0,SEEK_SET);
     __f_ptr = (unsigned char*)mmap(NULL,sz_,PROT_READ,MAP_PRIVATE|MAP_LOCKED,file,0);
     madvise(__f_ptr, sz_, MADV_SEQUENTIAL);
-    if(!__f_ptr)
-        return API::ErrorData::Code<API_TYPE>::READ_POS_X1;
+    if(!__f_ptr){
+        ContextedError error(api::errc<API_T::GRIB1>::read_position);
+        error.with_field("file",filename.string());
+        return error;
+    }
     current_ptr_ = __f_ptr;
-    msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(__f_ptr);
+    msg_ = std::make_unique<Message<API_T::GRIB1>>(__f_ptr);
     try{
         const auto tmp = current_message_length();
         if(tmp.has_value()){
-            if(!memcmp(__f_ptr+current_message_length().value()-5,"7777",4))
-                return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::Code<API_TYPE>::MISS_END_SECTION_X1,"",filename.string());
+            if(!memcmp(__f_ptr+current_message_length().value()-5,"7777",4)){
+                ContextedError error(api::errc<API_T::GRIB1>::missed_end_section);
+                error.with_field("file",filename.string());
+                return error;
+            }
         }
-        else return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::ErrorCode<API_TYPE>::DATA_EMPTY_X1,"",filename.string());
+        else {
+            ContextedError error(api::errc<API_T::GRIB1>::data_empty);
+            error.with_field("file",filename.string());
+            return error;
+        }
     }
     catch(...){
-        return API::ErrorDataPrint::print_error<API_TYPE>(API::ErrorData::Code<API_TYPE>::BAD_FILE_X1,"",filename.string());
+        ContextedError error(api::errc<API_T::GRIB1>::bad_file);
+        error.with_field("file",filename.string());
+        return error;
     }
-    return API::ErrorData::Code<API_TYPE>::NONE_ERR;
+    return {};
 }
-bool API::HGrib1::set_message(ptrdiff_t pos) noexcept{
+bool api::HGrib1::set_message(uint64_t pos) noexcept{
     if(pos>=sz_)
         return false;
     else {
         current_ptr_ = __f_ptr + pos;
-        msg_ = std::make_unique<Message<API::TYPES::GRIB1>>(current_ptr_);
+        msg_ = std::make_unique<Message<API_T::GRIB1>>(current_ptr_);
     }
     return true;
 }

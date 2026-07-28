@@ -1,5 +1,5 @@
 #pragma once
-#include "types/coord.h"
+#include "OsterLib/types/coord.h"
 #include <vector>
 #include <CLI/CLI.hpp>
 

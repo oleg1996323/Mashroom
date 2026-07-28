@@ -1,27 +1,26 @@
 #pragma once
 #include <string_view>
 #include <optional>
-#include "code_tables/table_0.h"
-#include "code_tables/table_4.h"
-#include "sys/error_code.h"
-#include "sys/error_print.h"
-#include "sys/log_err.h"
+#include "grib1/code_tables.h"
+
+#include "sys/error.h"
 #include "sys/application.h"
 #include "definitions/def.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include <filesystem>
 #include <thread>
 #include <netdb.h>
-#include "definitions/path_process.h"
-#include "types/time_interval.h"
+#include <unordered_set>
+#include "Location.h"
+#include "OsterLib/types/time_interval.h"
 
 namespace fs = std::filesystem;
 
 class AbstractSearchProcess{
     protected:
     SearchProperties props_;
-    fs::path out_path_;
-    std::unordered_set<path::Storage<false>> in_path_;
+    std::filesystem::path out_path_;
+    std::unordered_set<Location<false>> in_path_;
     float progress_ = 0;
     int cpus = 1;
     public:
@@ -59,30 +58,29 @@ class AbstractSearchProcess{
         return *this;
     }
     virtual ~AbstractSearchProcess() = default;
-    ErrorCode add_in_path(std::string_view in_path){
-        if(!fs::exists(in_path))
-            return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,in_path.data());
-        if(fs::is_regular_file(in_path))
-            in_path_.insert(path::Storage<false>::file(in_path,std::chrono::system_clock::now()));
-        else if(fs::is_directory(in_path))
-            in_path_.insert(path::Storage<false>::directory(in_path,std::chrono::system_clock::now()));
+    mashroom::errc add_in_path(std::string_view in_path){
+        if(!std::filesystem::exists(in_path))
+            return mashroom::no_exists_path;
+        if(std::filesystem::is_regular_file(in_path))
+            in_path_.insert(Location<false>::file(in_path,std::chrono::system_clock::now()));
+        else if(std::filesystem::is_directory(in_path))
+            in_path_.insert(Location<false>::directory(in_path,std::chrono::system_clock::now()));
         else
-            return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_REGULAR_FILE_OR_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,in_path);
-        return ErrorCode::NONE;
+            return mashroom::not_file_or_directory;
+        return mashroom::errc::NONE;
     }
-    ErrorCode add_search_host(std::string_view host,uint16_t port){
+    mashroom::errc add_search_host(std::string_view host,uint16_t port){
         if(!gethostbyname(host.data()))
-            return ErrorPrint::print_error(ErrorCode::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,host);
-        in_path_.insert(path::Storage<false>::host(host,port,std::chrono::system_clock::now()));
-        return ErrorCode::NONE;
+            return ErrorPrint::print_error(mashroom::errc::INVALID_HOST_X1,"",AT_ERROR_ACTION::CONTINUE,host);
+        in_path_.insert(Location<false>::host(host,port,std::chrono::system_clock::now()));
+        return mashroom::errc::NONE;
     }
-    ErrorCode set_out_path(std::string_view out_path){
-        if(!fs::exists(out_path) && !fs::create_directories(out_path)){
-            log().record_log(ErrorCodeLog::CREATE_DIR_X1_DENIED,"",out_path.data());
-            return ErrorCode::INTERNAL_ERROR;
+    mashroom::errc set_out_path(std::string_view out_path){
+        if(!std::filesystem::exists(out_path) && !std::filesystem::create_directories(out_path)){
+            return mashroom::errc::create_directory_denied;
         }
         out_path_=out_path;
-        return ErrorCode::NONE;
+        return mashroom::errc::NONE;
     }
     void set_center(Organization center){
         props_.center_=center;
@@ -166,7 +164,7 @@ class AbstractSearchProcess{
      * the generated files requested by previously defined Properties
      * 
      */
-    const fs::path& out_path() const noexcept{
+    const std::filesystem::path& out_path() const noexcept{
         return out_path_;
     }
     std::optional<Coord> get_pos() const noexcept{
@@ -179,8 +177,8 @@ class AbstractSearchProcess{
         For example: Extract object needs defined Properties for correct matching of
         searched data.
     */ 
-    virtual ErrorCode properties_integrity() const noexcept = 0;
+    virtual mashroom::errc properties_integrity() const noexcept = 0;
 
     //
-    virtual ErrorCode execute() noexcept = 0;
+    virtual mashroom::errc execute() noexcept = 0;
 };

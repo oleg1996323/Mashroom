@@ -1,18 +1,14 @@
 #pragma once
-#include "byte_order.h"
+#include "OsterLib/byte_order.h"
 #include <unordered_map>
 #include <optional>
 #include <limits>
-#include "code_tables/table_4.h"
-#include "code_tables/table_0.h"
+#include "grib1/code_tables.h"
 #include <variant>
 #include <memory>
 #include <bitset>
 #include "data/def.h"
-#include "code_tables/table_2.h"
-#include "sections/product/levels.h"
-#include "code_tables/table_5.h"
-#include "sections/product/time_forecast.h"
+#include "grib1/sections.h"
 template<Data_t TYPE,Data_f FORMAT>
 struct CommonDataProperties;
 
@@ -241,7 +237,7 @@ struct std::equal_to<CommonDataProperties<TYPE,FORMAT>>
     }
 };
 
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 
 namespace serialization{
     template<bool NETWORK_ORDER>
@@ -287,7 +283,7 @@ namespace serialization{
     };
 }
 
-#include "boost_functional/json.h"
+#include "OsterLib/boost_functional/json.h"
 
 template<>
 boost::json::value to_json(const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props);
@@ -328,7 +324,7 @@ std::expected<CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>,std::exc
 //     }
 // };
 
-// #include "concepts.h"
+// #include "OsterLib/concepts.h"
 
 // template<Data_f FORMAT,Data_t TYPE,Grib1CommonDataProperties::SEARCH_MODE MODE = Grib1CommonDataProperties::SEARCH_MODE::BASIC>
 // struct EqualOption{

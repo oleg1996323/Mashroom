@@ -1,6 +1,6 @@
 #pragma once
 #include "web/common/msgdef.h"
-#include "sys/error_code.h"
+#include "sys/error.h"
 #ifdef DEBUG
 #include <gtest/gtest.h>
 #endif
@@ -10,7 +10,7 @@ namespace network{
     class Message<network::Client_MsgT::ERROR>{
         std::string description_;
         std::optional<Message<Client_MsgT::TRANSACTION>> transaction_;
-        ErrorCode err_ = ErrorCode::NONE;
+        mashroom::errc err_;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -31,12 +31,12 @@ namespace network{
             }
         #endif
         public:
-        Message(ErrorCode error_code,
+        Message(mashroom::errc error_code,
                     std::string description):
                     description_(description),
                     transaction_(std::nullopt),
                     err_(error_code){}
-        Message(ErrorCode error_code,
+        Message(mashroom::errc error_code,
                     std::string description,
                     const Message<Client_MsgT::TRANSACTION>& transaction):
                     description_(description),
@@ -73,10 +73,10 @@ namespace network{
         const std::string& description() const noexcept{
             return description_;
         }
-        ErrorCode error() const noexcept{
+        mashroom::errc error() const noexcept{
             return err_;
         }
-        void error(ErrorCode err) noexcept{
+        void error(mashroom::errc err) noexcept{
             err_=err;
         }
         void description(std::string description) noexcept{

@@ -1,14 +1,13 @@
 #pragma once
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "sys/log_err.h"
-#include "API/grib1/include/properties.h"
+#include "grib1/properties.h"
 #include "proc/extract/extracted_data.h"
 #include <thread>
-#include "types/time_period.h"
+#include "OsterLib/types/time_period.h"
 #include "sys/outputdatafileformats.h"
 #include "sys/application.h"
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 
 namespace procedures::extract{
 

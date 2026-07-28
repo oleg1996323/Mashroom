@@ -7,7 +7,7 @@
 #include <variant>
 #include <netdb.h>
 #include <future>
-#include "network/abstractclient.h"
+#include "OsterLib/network/abstractclient.h"
 
 namespace network{
     class Client:public AbstractClient{

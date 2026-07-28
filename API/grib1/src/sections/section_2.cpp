@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <iostream>
-#include "grib1_def.h"
-#include "sections/section_2.h"
-#include "sections/section_1.h"
+#include "grib1/def.h"
+#include "grib1/sections.h"
 
 #ifndef __cplusplus
 extern bool define_GDS(GridDescriptionSection* gds,char* buffer,size_t file_size);

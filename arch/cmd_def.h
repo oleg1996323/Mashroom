@@ -1,8 +1,8 @@
 #pragma once
 
 #ifndef GRIB
-#include "API/grib1/include/cast/center.h"
-#include "API/grib1/include/cast/grid.h"
+#include "grib1/cast/center.h"
+#include "grib1/cast/grid.h"
 #endif
 
 #ifndef MODE_ENUM

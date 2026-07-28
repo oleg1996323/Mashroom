@@ -8,6 +8,12 @@ target_link_libraries(grid_test PRIVATE gribAPI::v1 GTest::gtest)
 add_executable(grib1_serialization_test grib1_serialization_test.cpp)
 target_link_libraries(grib1_serialization_test PRIVATE gribAPI::v1 GTest::gtest)
 
+add_executable(grib1_error_test grib1_error_test.cpp)
+target_link_libraries(grib1_error_test PRIVATE gribAPI::v1 GTest::gtest)
+
 message(STATUS ${CMAKE_CURRENT_BINARY_DIR})
-gtest_discover_tests(grid_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-gtest_discover_tests(grib1_serialization_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+gtest_discover_tests(
+        grid_test 
+        grib1_serialization_test
+        grib1_error_test 
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

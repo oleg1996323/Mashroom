@@ -1,5 +1,5 @@
-#include "code_tables/table_3.h"
-#include "sections/product/levels.h"
+#include "grib1/code_tables.h"
+#include "grib1/sections/product/levels.h"
 
 namespace level::details
 {
@@ -150,7 +150,7 @@ boost::json::value to_json(const Level& val){
 }
 
 // #include <stdio.h>
-// #include "sections/section_1.h"
+// #include "grib1/sections/section_1.h"
 //@todo check and remove if necessary
 // void levels(int kpds6, int kpds7, int center, int verbose) {
 // 	int o11, o12;

@@ -3,28 +3,27 @@
 #include <fstream>
 #include <vector>
 #include "sys/application.h"
-#include "filesystem.h"
+#include "OsterLib/filesystem.h"
 #include "definitions/def.h"
-#include "message.h"
+#include "grib1/message.h"
 #include "program/mashroom.h"
-#include "definitions/path_process.h"
+#include "Location.h"
 #include <format>
-#include "error_data_print.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include "proc/index/write.h"
 #include "proc/index/gen.h"
 #include "proc/index/indexdatafileformat.h"
-#include "API/grib1/include/message.h"
+#include "grib1/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
-ErrorCode add_data(const DataStructVariation& data){
-	ErrorCode err;
+mashroom::errc add_data(const DataStructVariation& data){
+	mashroom::errc err;
 	auto lambda = [&err](const auto& val){
 		using T = std::decay_t<decltype(val)>;
 		if constexpr(std::is_same_v<std::monostate,T>){
-			err=ErrorCode::INVALID_ARGUMENT;
+			err=mashroom::errc::INVALID_ARGUMENT;
 			return;
 		}
 		else Mashroom::instance().data().update_indexing(val);
@@ -131,13 +130,13 @@ std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__index_write
 }
 
 void Index::execute() noexcept{
-	for(const path::Storage<false>& path:in_path_){
+	for(const Location<false>& location:in_path_){
 		try{
-		switch(path.type_){
+		switch(location.type()){
 			case path::TYPE::DIRECTORY:
-				if(!fs::is_directory(path.path_))
+				if(!fs::is_directory(location.path()))
 					return;
-				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(path.path_)){
+				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(location.path())){
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
 						std::cout<<entry.path()<<std::endl;
@@ -145,14 +144,14 @@ void Index::execute() noexcept{
 						if(!dest_directory_.has_value())
 							Mashroom::instance().data().
 							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
-								path::Storage<false>::file(entry.path(),utc_tp::clock::now()),
+								Location<false>::file(entry.path(),utc_tp::clock::now()),
 								__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path())); //@todo able to use different variant types
 						else{
 							auto write_index_result = __index_write_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path());
-							written_.insert(path::Storage<false>::file(write_index_result.first));
+							written_.insert(Location<false>::file(write_index_result.first));
 							Mashroom::instance().data().
 							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
-								path::Storage<false>::file(entry.path()),
+								Location<false>::file(entry.path()),
 								write_index_result.second); //@todo able to use different variant types
 						}
 					}
@@ -160,18 +159,18 @@ void Index::execute() noexcept{
 				}
 				break;
 			case path::TYPE::FILE:
-				Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path::Storage<false>::file(path.path_),
-						__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(path.path_)); //@todo able to use different variant types
+				Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(Location<false>::file(location.path()),
+						__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(location.path())); //@todo able to use different variant types
 				break;
 			case path::TYPE::HOST:
-				if(path.add_.is<path::TYPE::HOST>()){
-					std::cout<<"Indexing references from: "<<"host: "<<path.path_<<" port: "<<path.add_.get<path::TYPE::HOST>().port_<<std::endl;
+				if(location.additional().is<path::TYPE::HOST>()){
+					std::cout<<"Indexing references from: "<<"host: "<<location.path()<<" port: "<<location.additional().get<path::TYPE::HOST>().port_<<std::endl;
 					auto msg = network::Message<network::Client_MsgT::INDEX_REF>();
 					msg.add_index<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
 					std::error_code err;
 					network::ConnectionHandle hconn=Mashroom::instance().connect(err,
-						path.path_,
-						path.add_.get<path::TYPE::HOST>().port_,
+						location.path(),
+						location.additional().get<path::TYPE::HOST>().port_,
 						::app().config().client_config().current_settings());
 					auto instance = Mashroom::instance().request(
 						hconn,std::monostate(),std::move(msg),std::monostate());
@@ -182,13 +181,14 @@ void Index::execute() noexcept{
 					decltype(auto) msg_reply = instance->received()->data_frame();
 					if(err!=std::error_code())
 						return;
-					auto add_data = [&path](auto&& block){
+					auto add_data = [&location](auto&& block){
 						using decay = std::decay_t<decltype(block)>;
 						if constexpr(std::is_same_v<decay,std::monostate>)
 							return;
 						else if constexpr (std::is_same_v<decay,DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>){
 							DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> d;
-							d.add_data(path::Storage<false>::host(path.path_,path.add_.get<path::TYPE::HOST>().port_,utc_tp::clock::now()),block);
+							d.add_data(Location<false>::host(location.path(),
+								location.additional().get<path::TYPE::HOST>().port_,utc_tp::clock::now()),block);
 							Mashroom::instance().data().update_indexing(std::move(d));
 						}
 					};
@@ -211,35 +211,35 @@ void Index::execute() noexcept{
 	}
 }
 
-ErrorCode Index::add_in_path(const path::Storage<false>& path){
-    if(path.path_.empty())
-        return ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,"empty path",AT_ERROR_ACTION::CONTINUE);
-    switch(path.type_){
+std::error_code Index::add_in_path(const Location<false>& location){
+    if(location.path().empty())
+        return std::make_error_code(mashroom::errc::invalid_argument);
+    switch(location.type()){
         case path::TYPE::FILE:
-            if(!fs::exists(path.path_))
-                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else if(!fs::is_regular_file(path.path_))
-                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else in_path_.insert(path);
+            if(!fs::exists(location.path()))
+                return std::make_error_code(mashroom::errc::no_exists_path);
+            else if(!fs::is_regular_file(location.path()))
+                return std::make_error_code(mashroom::errc::not_file);
+            else in_path_.insert(location);
             break;
         case path::TYPE::DIRECTORY:
-            if(!fs::exists(path.path_))
-                return ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else if(!fs::is_directory(path.path_))
-                return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,path.path_);
-            else in_path_.insert(path);
+            if(!fs::exists(location.path()))
+                return std::make_error_code(mashroom::errc::no_exists_path);
+            else if(!fs::is_directory(location.path()))
+                return std::make_error_code(mashroom::errc::not_directory);
+            else in_path_.insert(location);
             break;
         case path::TYPE::HOST:
-            in_path_.insert(path); //will be checked later at process
+            in_path_.insert(location); //will be checked later at process
     }       
-    return ErrorCode::NONE;
+    return mashroom::errc::NONE;
 }
-ErrorCode Index::set_dest_dir(std::string_view dest_directory){
+mashroom::errc Index::set_dest_dir(std::string_view dest_directory){
     if(fs::path(dest_directory).has_extension())
-        return ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+        return ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
     if(!fs::exists(dest_directory))
         if(!fs::create_directories(dest_directory))
-            return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+            return ErrorPrint::print_error(mashroom::errc::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
     dest_directory_=dest_directory;
-    return ErrorCode::NONE;
+    return mashroom::errc::NONE;
 }

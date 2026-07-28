@@ -2,8 +2,8 @@
 #include <vector>
 #include "web/common/msgdef.h"
 #include "detail/index/base_index.h"
-#include "types/time_interval.h"
-#include "grib1/include/sections/grid/grid.h"
+#include "OsterLib/types/time_interval.h"
+#include "grib1/sections.h"
 #include "web/common/detail/transaction.h"
 #ifdef DEBUG
 #include <gtest/gtest.h>

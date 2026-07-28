@@ -1,5 +1,5 @@
 #pragma once
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 #include <CLI/CLI.hpp>
 
 namespace CLI {

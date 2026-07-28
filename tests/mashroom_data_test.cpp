@@ -27,7 +27,7 @@ class GribDataStruct:public testing::Test{
         grid.base_.x2=50;
         grid.base_.y1=50;
         grid.base_.y2=0;
-        auto any = path::Storage<false>::file("any_path.grib"s,utc_tp::clock::now());
+        auto any = Location<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
@@ -38,7 +38,7 @@ class GribDataStruct:public testing::Test{
             // for(int table_v = 128;table_v<229;table_v+=228-128)
             //     for(int param = 16;param<130;param+=16){
                     ptrdiff_t cur_pos = 1000*count++;
-                    auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
+                    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
                     auto err = std::error_code();
                     auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
@@ -60,13 +60,13 @@ TEST_F(GribDataStruct,AddDataToGrib1DataStructTest){
             ASSERT_EQ(ts.number_of_intervals(),30);
     }
     ASSERT_EQ(ds.by_intervals_.size(),1);
-    ASSERT_TRUE(ds.paths_.contains(path::Storage<false>::file("any_path.grib"s)));
+    ASSERT_TRUE(ds.paths_.contains(Location<false>::file("any_path.grib"s)));
 }
 
 class DataTestClass:public Data,public testing::Test{
     protected:
     std::string fn;
-    std::vector<ptrdiff_t> pos_;
+    std::vector<MessagePositionSizeInfo> pos_;
     std::unordered_set<SearchParamTableVersion> params{ SearchParamTableVersion{.param_=16,.t_ver_=128},
                                                     SearchParamTableVersion{.param_=48,.t_ver_=228}};
     public:
@@ -81,7 +81,7 @@ class DataTestClass:public Data,public testing::Test{
         grid.base_.x2=50;
         grid.base_.y1=50;
         grid.base_.y2=0;
-        auto any = path::Storage<false>::file("any_path.grib"s,utc_tp::clock::now());
+        auto any = Location<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
@@ -89,8 +89,8 @@ class DataTestClass:public Data,public testing::Test{
         {
             for(int table_v = 128;table_v<229;table_v+=228-128)
                 for(int param = 16;param<130;param+=16){
-                    ptrdiff_t cur_pos = 1000*count++;
-                    auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
+                    size_t cur_pos = 1000*count++;
+                    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
                     
                     auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
@@ -98,7 +98,7 @@ class DataTestClass:public Data,public testing::Test{
                                 Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
                     msg_data.push_back(std::move(msg));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
-                        pos_.push_back(cur_pos);
+                        pos_.push_back(MessagePositionSizeInfo{.begin_=cur_pos,.size_=1000});
                 }
         }
         gribdata.add_data(any,msg_data,err);
@@ -133,7 +133,7 @@ TEST_F(DataTestClass,InitTest){
             ASSERT_EQ(ts.number_of_intervals(),30);
     }
     ASSERT_EQ(dstruct.by_intervals_.size(),1);
-    ASSERT_TRUE(dstruct.paths_.contains(path::Storage<false>::file("any_path.grib"s)));
+    ASSERT_TRUE(dstruct.paths_.contains(Location<false>::file("any_path.grib"s)));
     int count = 0;
 }
 
@@ -218,7 +218,8 @@ TEST_F(DataTestClass,MatchTest){
                                     Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
                                     RepresentationType::GAUSSIAN);
     EXPECT_TRUE(matched_grib1.empty());
-    matched_grib1 = match("any_path.grib"s,
+    matched_grib1 = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().match(
+                                    "any_path.grib"s,
                                     utc_tp(),
                                     Coord{.lat_=25,.lon_=25},
                                     Organization::WMO,
@@ -273,19 +274,19 @@ class DataTestClass_1:public Data,public testing::Test{
         grid.base_.y1=50;
         grid.base_.y2=0;
         grid.base_.scan_mode.points_sub_j_dir=true;
-        path::Storage<false> any;
+        Location<false> any;
         auto time = utc_tp::clock::now();
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         for(int id = 1;id<=tables_by_id_.size();++id){
             uint64_t count = 0;
-            any = path::Storage<false>::file("any_path_"s+std::to_string(id)+".grib"s,time);
+            any = Location<false>::file("any_path_"s+std::to_string(id)+".grib"s,time);
             for(int d=0;d<=(sys_days(year(1990)/month(id+1)/day(1))-days(1)-sys_days(year(1990)/month(id)/day(1)))/days(1);++d)
             {
                 for(auto table:tables_by_id_[id-1].second)
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
-                        auto f_error = API::ErrorData::ErrorCode<API::TYPES::GRIB1>::NONE_ERR;
+                        auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
                         auto err = std::error_code();
                         auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990+id)/month(id)/day(1))+days(d),
                                     cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::UNINIT_REF_TIME,
@@ -349,7 +350,11 @@ TEST_F(DataTestClass_1,FindAllTest){
     cmn.emplace(Organization::ECMWF,211,63);
     cmn.emplace(Organization::ECMWF,180,3);
     cmn.emplace(Organization::WMO,1,17);
-    auto matched_data = find_all(cmn,utc_tp(),50,25,40,45,
+    std::vector<std::pair<Location<true>,
+        std::vector<MessagePositionSizeInfo>>> pos;
+    auto matched_data = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
+            find_all(   pos,
+                        cmn,utc_tp(),50,25,40,45,
                         sys_days(1991y/1/1),
                         sys_days(2000y/1/1),
                         DateTimeDiff(err,std::chrono::days(1)),
@@ -368,12 +373,12 @@ TEST_F(DataTestClass_1,FindAllTest){
     //                     Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),
     //                     utc_tp());
     // EXPECT_EQ(matched_data.size(),cmn_sz);
-    // EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).buf_pos_.size(),((sys_days(1990y/2/2)-sys_days(1990y/2/1))/days(1)+1)*2);
-    // ASSERT_TRUE(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).grid_data_.has_value());
-    // EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).grid_data_->index(),1);
-    // auto sequence = matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_;
+    // EXPECT_EQ(matched_data.at(Location<false>::file("any_path_2.grib"s,utc_tp())).buf_pos_.size(),((sys_days(1990y/2/2)-sys_days(1990y/2/1))/days(1)+1)*2);
+    // ASSERT_TRUE(matched_data.at(Location<false>::file("any_path_2.grib"s,utc_tp())).grid_data_.has_value());
+    // EXPECT_EQ(matched_data.at(Location<false>::file("any_path_2.grib"s,utc_tp())).grid_data_->index(),1);
+    // auto sequence = matched_data.at(Location<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_;
     // std::cout<<"Stored: from "<<sequence.get_interval().from()<<" to "<<sequence.get_interval().to()<<std::endl;
-    // EXPECT_EQ(matched_data.at(path::Storage<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_,TimeSequence(sys_days(1990y/2/1),sys_days(1990y/2/2),days(1)));
+    // EXPECT_EQ(matched_data.at(Location<false>::file("any_path_2.grib"s,utc_tp())).sequence_time_,TimeSequence(sys_days(1990y/2/1),sys_days(1990y/2/2),days(1)));
 }
 
 int main(int argc, char* argv[]){

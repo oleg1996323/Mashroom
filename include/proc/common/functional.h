@@ -1,6 +1,6 @@
 #pragma once
 #include <variant>
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 
 using TimePeriodRounded =   std::variant<std::chrono::year,
                             std::chrono::year_month,

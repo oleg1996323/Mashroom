@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include <unordered_set>
-#include "boost_functional/json.h"
-#include "network/serversettings.h"
+#include "OsterLib/boost_functional/json.h"
+#include "OsterLib/network/serversettings.h"
 #include "sys/config/base_config.h"
 
 namespace network::server{

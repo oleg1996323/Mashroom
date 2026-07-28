@@ -1,10 +1,11 @@
 #pragma once
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 #include "gribv1.h"
+#include <forward_list>
 
 namespace network{
     struct BaseIndexRequest{
-        std::vector<IndexParameters_t> parameters_;
+        std::forward_list<IndexParameters_t> parameters_;
         utc_tp last_update_;
         using data_t = decltype(parameters_);
         BaseIndexRequest() = default;
@@ -29,22 +30,30 @@ namespace network{
             }
             return *this;
         }
+        IndexParameters_t& add_index(IndexParameters_t index){
+            return parameters_.emplace_front(std::move(index));
+        }
+        void add_indexes(std::forward_list<IndexParameters_t> index){
+            return parameters_.splice_after(
+                    parameters_.before_begin(),
+                    std::move(index));
+        }
         template<Data_t T,Data_f F>
         IndexParameters<T,F>& add_index(IndexParameters<T,F> index){
-            return parameters_.emplace_back().
+            return parameters_.emplace_front().
                 emplace<IndexParameters<T,F>>(
                     std::forward<IndexParameters<T,F>>(index));
         }
         template<Data_t T,Data_f F>
         IndexParameters<T,F>& add_index(){
-            return parameters_.emplace_back().
+            return parameters_.emplace_front().
                 emplace<IndexParameters<T,F>>(
                     IndexParameters<T,F>());
         }
-        const std::vector<IndexParameters_t>& parameters() const noexcept{
+        const std::forward_list<IndexParameters_t>& parameters() const noexcept{
             return parameters_;
         }
-        void parameters(std::vector<IndexParameters_t> p) noexcept{
+        void parameters(std::forward_list<IndexParameters_t> p) noexcept{
             parameters_ = std::move(p);
         }
         utc_tp last_update() const noexcept{

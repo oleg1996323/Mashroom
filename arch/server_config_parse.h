@@ -1,6 +1,5 @@
 #pragma once
-#include "sys/error_code.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "sys/config.h"
 #include "sys/log_err.h"
 #include "cmd_parse/cmd_def.h"

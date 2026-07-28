@@ -12,22 +12,19 @@
 #include "proc/extract.h"
 #include <iostream>
 #include "proc/extract.h"
-#include "message.h"
+#include "grib1/message.h"
 #include "int_pow.h"
-#include "generated/code_tables/eccodes_tables.h"
-#include "API/common/error_data.h"
-#include "API/common/error_data_print.h"
 #include "proc/extract/gen.h"
 #include "proc/extract/write.h"
 #include "compressor.h"
 #include "sys/error_exception.h"
-#include "API/grib1/include/message.h"
+#include "grib1/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
 
-ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
-    ErrorCode err = ErrorCode::NONE;
+mashroom::errc Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
+    mashroom::errc err = mashroom::errc::NONE;
     std::unordered_set<fs::path> paths;
     try{
         switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
@@ -58,7 +55,7 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
             auto cmprs = cpp::zip_ns::Compressor::create_archive(out_path_,std::to_string(utc_tp::clock::now().time_since_epoch().count()));
             for(auto& path:paths){
                 if(!cmprs.add_file(out_path_,path))
-                    throw ErrorException(ErrorCode::INTERNAL_ERROR,std::string_view("archive creation failure"));
+                    throw ErrorException(mashroom::errc::INTERNAL_ERROR,std::string_view("archive creation failure"));
                 else continue;
             }
         }
@@ -66,25 +63,26 @@ ErrorCode Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FO
             return err.error();
         }
     }
-    return ErrorCode::NONE;
+    return mashroom::errc::NONE;
 }
 
-ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
-    API::HGrib1 grib;
+ExtractedData Extract::__extract__(const fs::path& file, mashroom::errc& err){
+    api::HGrib1 grib;
     ExtractedData result;
-    if(API::ErrorData::Code<API::GRIB1>::value err_data = grib.open_grib(file);err_data!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
-        err=ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(err_data,"",file.string()),AT_ERROR_ACTION::CONTINUE);
+    if(auto err_data = grib.open_grib(file);err_data.code()){
+        std::cout<<err_data.what();
+        err = err_data.code();
         return ExtractedData();
     }
     
     if(grib.file_size()==0){
-        err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+        err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
         return ExtractedData();
     }
     do{
         const auto& msg = grib.message();
         if(!msg.has_value()){
-            err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+            err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
             return ExtractedData();
         }
         if(msg->get().message_length()==0)
@@ -92,7 +90,7 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested()){
-            err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
+            err=ErrorPrint::print_error(mashroom::errc::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
             return ExtractedData();
         }
         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
@@ -142,7 +140,10 @@ ExtractedData Extract::__extract__(const fs::path& file, ErrorCode& err){
 }
 
 template<>
-ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs::path &file, const std::vector<ptrdiff_t>& positions, ErrorCode& err){
+ExtractedData Extract::__extract_spec__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
+        const fs::path &file,
+        const std::vector<MessagePositionSizeInfo>& positions,
+        mashroom::errc& err){
     API::HGrib1 grib;
     ExtractedData result;
     try{
@@ -154,15 +155,15 @@ ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs
     }
     
     if(grib.file_size()==0){
-        err = ErrorPrint::print_error(ErrorCode::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
+        err = ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
         return ExtractedData();
     }
     for(const auto& pos:positions){
-        if(pos<0 || !grib.set_message(pos))
+        if(pos.begin_<0 || !grib.set_message(pos.begin_))
             continue;
         const auto& msg = grib.message();
         if(!msg.has_value()){
-                err=ErrorPrint::print_error(ErrorCode::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+                err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
                 return ExtractedData();
         }
         if(msg->get().message_length()==0)
@@ -170,7 +171,7 @@ ExtractedData Extract::__extract__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(const fs
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested()){
-            err=ErrorPrint::print_error(ErrorCode::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
+            err=ErrorPrint::print_error(mashroom::errc::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
             return ExtractedData();
         }
         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(
@@ -213,67 +214,80 @@ using namespace std::string_literals;
 #include <format>
 #include <chrono>
 
-ErrorCode Extract::execute() noexcept{
+mashroom::errc Extract::execute() noexcept{
     ExtractedData result;
-    ErrorCode err;
+    mashroom::errc err;
     if(in_path_.empty()){
-        auto matched = Mashroom::instance().data().match_files<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
-                                                last_update_,
-                                                props_.position_.value(),
-                                                props_.center_.value(),
-                                                props_.parameters_,
-                                                props_.from_date_,
-                                                props_.to_date_,
-                                                props_.diff_,
-                                                props_.fcst_unit_,
-                                                props_.level_,
-                                                props_.grid_type_.value()
-                                                );
+        auto matched = Mashroom::instance().data().
+            data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
+            match_files(
+                last_update_,
+                props_.position_.value(),
+                props_.center_.value(),
+                props_.parameters_,
+                props_.from_date_,
+                props_.to_date_,
+                props_.diff_,
+                props_.fcst_unit_,
+                props_.level_,
+                props_.grid_type_.value()
+                );
         
-        for(auto& [path,positions]:matched){   
-            if(path.type_!=path::TYPE::FILE || !fs::is_regular_file(path.path_)){
-                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+        for(auto& [location,positions]:matched){   
+            if(location.type()!=path::TYPE::FILE || !fs::is_regular_file(location.path())){
+                ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,location.path());
                 continue;
             }
-            if(!fs::exists(path.path_)){
-                ErrorPrint::print_error(ErrorCode::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,path.path_);
+            if(!fs::exists(location.path())){
+                ErrorPrint::print_error(mashroom::errc::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,location.path());
                 continue;
             }
-            std::cout<<"Extracting from "<<path<<std::endl;
-            std::sort(positions.begin(),positions.end());
+            std::cout<<"Extracting from "<<location<<std::endl;
+            std::sort(positions.begin(),positions.end(),[](
+                const MessagePositionSizeInfo& lhs,
+                const MessagePositionSizeInfo& rhs)
+            {
+                return lhs.begin_<rhs.begin_;
+            });
             if(stop_token_.stop_requested())
-                return ErrorCode::INTERRUPTED;
-            __extract__(fs::path(path.path_),positions,err);
+                return mashroom::errc::INTERRUPTED;
+            __extract_spec__<
+                Data_t::TIME_SERIES,Data_f::GRIB_v1>(
+                    fs::path(location.path()),positions,err);
             if(stop_token_.stop_requested())
-                return ErrorCode::INTERRUPTED;
+                return mashroom::errc::INTERRUPTED;
         }
     }
     else{
-        for(const auto& path:in_path_){
-                Mashroom::instance().data().match(
-                                                path.path_,
-                                                last_update_,
-                                                props_.position_.value(),
-                                                props_.center_.value(),
-                                                props_.parameters_,
-                                                props_.from_date_,
-                                                props_.to_date_,
-                                                props_.diff_,
-                                                props_.fcst_unit_,
-                                                props_.level_,
-                                                props_.grid_type_.value()
-                                                );
-            __extract__(path.path_,err);
+        for(const auto& location:in_path_){
+                Mashroom::instance().data().
+                    data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
+                    match(
+                        location.path(),
+                        last_update_,
+                        props_.position_.value(),
+                        props_.center_.value(),
+                        props_.parameters_,
+                        props_.from_date_,
+                        props_.to_date_,
+                        props_.diff_,
+                        props_.fcst_unit_,
+                        props_.level_,
+                        props_.grid_type_.value()
+                        );
+            __extract__(location.path(),err);
         }
     }
     if(procedures::extract::get_result(result).empty())
-        return ErrorCode::NONE;
+        return mashroom::errc::NONE;
         
     __write_file__(result,output_format_);
-    return ErrorCode::NONE;
+    return mashroom::errc::NONE;
 }
 
-ExtractedData Extract::__extract__(const fs::path &file, const std::vector<ptrdiff_t>& positions,ErrorCode& err){
+ExtractedData Extract::__extract_common__(const fs::path &file,
+            const std::vector<MessagePositionSizeInfo>& positions,
+            mashroom::errc& err){
     ExtractedData result;
     auto auto_unpack = [this,&file,&result,&err,&positions](auto& data){
         using T = std::decay_t<decltype(data)>;
@@ -281,9 +295,9 @@ ExtractedData Extract::__extract__(const fs::path &file, const std::vector<ptrdi
             return ExtractedData();
         else {
             auto internal_auto_unpack=[this,&file,&result,&positions]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
-                ErrorCode err;
-                auto loc_result = std::move(__extract__<TYPE,FORMAT>(file,positions,err));
-                if(err!=ErrorCode::NONE)
+                mashroom::errc err;
+                auto loc_result = std::move(__extract_spec__<TYPE,FORMAT>(file,positions,err));
+                if(err!=mashroom::errc::NONE)
                     return ExtractedData();
                 else return loc_result;
             };

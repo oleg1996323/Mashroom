@@ -1,5 +1,5 @@
-#include <sections/grid/harmonic.h>
-#include <sections/grid/grid.h>
+#include <grib1/sections/grid/harmonic.h>
+#include <grib1/sections/grid/grid.h>
 #include <format>
 #include <cassert>
 #include <stdexcept>

@@ -8,14 +8,12 @@
 #include <cctype>
 #include <ranges>
 #include <fstream>
-#include "sys/error_code.h"
-#include "sys/err_msg.h"
-#include "sys/error_print.h"
+#include "sys/error.h"
 #include "sys/application.h"
 #include "data.h"
 #include "web/server.h"
 #include "web/client.h"
-#include "concepts.h"
+#include "OsterLib/concepts.h"
 #include <boost/algorithm/string.hpp>
 #include <CLI/CLI.hpp>
 
@@ -51,13 +49,13 @@ class Mashroom{
         }()){
         if(!fs::exists(data_dir_))
             if(!fs::create_directories(data_dir_))
-                ErrorPrint::print_error(ErrorCode::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,data_dir_.c_str());
+                ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,data_dir_.c_str());
         __read_initial_data_file__();
     }
     ~Mashroom(){
         save();
     }
-    static ErrorCode read_command(std::vector<std::string>&& argv);
+    static mashroom::errc read_command(std::vector<std::string>&& argv);
     bool read_command();
     network::ConnectionHandle connect(std::error_code& err,
         const std::string& host,
@@ -108,7 +106,7 @@ class Mashroom{
             else if(boost::iequals(buffer,std::string_view("no")))
                 return false;
             else{
-                ErrorPrint::print_error(ErrorCode::COMMAND_INPUT_X1_ERROR,
+                ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
                 "please write \"yes\" if you want to save changes; \
 else write \"no\"",
                 AT_ERROR_ACTION::CONTINUE,buffer);

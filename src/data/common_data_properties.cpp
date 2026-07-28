@@ -1,5 +1,5 @@
 #include "data/common_data_properties.h"
-#include "API/grib1/include/properties.h"
+#include "grib1/properties.h"
 
 template<>
 boost::json::value to_json(const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props){

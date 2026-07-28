@@ -1,4 +1,4 @@
-#include "sections/section_0.h"
+#include "grib1/sections.h"
 
 unsigned char IndicatorSection::grib_version() const noexcept{
     return buf_[7];

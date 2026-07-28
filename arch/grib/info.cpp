@@ -49,8 +49,7 @@ const GribProxyDataInfo::data_t& GribProxyDataInfo::data() const {
 void GribProxyDataInfo::swap(GribProxyDataInfo& other) noexcept{
     std::swap(info_,other.info_);
 }
-#include "sys/error_print.h"
-#include "sections/section_1.h"
+#include "grib1/sections/section_1.h"
 using namespace std::string_literals;
 
 SublimedGribDataInfo GribProxyDataInfo::sublime(){

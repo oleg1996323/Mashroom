@@ -65,6 +65,7 @@ set(CTEST_SOURCE_DIRECTORY ${CMAKE_BINARY_DIR})
 message(STATUS ${OSTERLIB_PATH})
 find_package(OsterLib CONFIG REQUIRED PATHS ${OSTERLIB_PATH})
 add_subdirectory(API)
+
 execute_process(COMMAND "git submodule update --remote --recursive")
 #build system module
 add_library(system SHARED ${Sys_SOURCES})
@@ -75,27 +76,28 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     message(STATUS "DEBUG defined")
     target_compile_definitions(system PUBLIC DEBUG)
 endif()
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::boost_functional OsterLib::network INTERFACE GIAPI)
+target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::boost_functional OsterLib::network)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
+                                    PRIVATE
                                     ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial GIAPI OsterLib::network system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial API_lib OsterLib::network system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})
 target_include_directories(clip PUBLIC 
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
                                     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmd_parse
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/external/CLI11
+                                    PRIVATE
                                     ${OsterLib_INCLUDE_DIRS})
-target_link_libraries(clip PUBLIC GIAPI OsterLib::types OsterLib::CLInput system Boost::json CLI11::CLI11 web)
+target_link_libraries(clip PUBLIC API_lib OsterLib::types OsterLib::CLInput system Boost::json CLI11::CLI11 web)
 
 #build main lib
 add_library(Mashroom_lib SHARED ${Mashroom_SOURCES})
-target_link_libraries(Mashroom_lib PUBLIC GIAPI
+target_link_libraries(Mashroom_lib PUBLIC API_lib
                     system
                     clip
                     web
@@ -104,16 +106,21 @@ target_link_libraries(Mashroom_lib PUBLIC GIAPI
                     OsterLib::bytes
                     OsterLib::utilities
                     OsterLib::compressor
-                    OsterLib::types
-                    Boost::program_options)
+                    OsterLib::types)
 target_include_directories(Mashroom_lib 
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include Oster_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR} 
-    INTERFACE OsterLib::network)
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR})
 
-get_target_property(network_TYPE OsterLib::network TYPE)
-message(STATUS "network TYPE: ${network_TYPE}")
-get_target_property(network_SOURCES OsterLib::network INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS ${network_SOURCES})
+get_target_property(MASHROOM_INC Mashroom_lib INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Mashroom include directories: ${MASHROOM_INC}")
+
+if(NOT TARGET API_lib)
+    message(FATAL "API_lib don't exists")
+else()
+    message(STATUS "API_lib exists")
+endif()
+
+get_target_property(API_lib_INCLUDES API_lib INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "API_lib includes: ${API_lib_INCLUDES}")
 
 add_executable(Mashroom ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(Mashroom PRIVATE Mashroom_lib)

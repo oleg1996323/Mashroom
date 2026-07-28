@@ -2,7 +2,7 @@
 #include "sys/config.h"
 #include "sys/application.h"
 #include <CLI/CLI.hpp>
-#include "network/connection_options.h"
+#include "OsterLib/network/connection_options.h"
 
 namespace parse{
     class ServerConfig{

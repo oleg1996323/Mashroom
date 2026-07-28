@@ -3,12 +3,10 @@
 #include <vector>
 #include "compressor.h"
 #include "proc/extract/gen.h"
-#include "API/grib1/include/sections/grid/grid.h"
+#include "grib1/sections.h"
 #include "proc/common/fs.h"
 #include "sys/error_exception.h"
-#include "concepts.h"
-#include "API/grib1/include/sections/product/time_forecast.h"
-#include "API/grib1/include/sections/product/levels.h"
+#include "OsterLib/concepts.h"
 
 using namespace procedures::extract;
 using namespace std::string_literals;
@@ -93,7 +91,7 @@ std::string get_file_header(const ExtractedData& result, const SearchProperties&
             for(auto& [props_values,value]:get_result(result)){
                 stream<<"#"<<number++<<":"<<"\n";
                 if(auto param_ptr = parameter_table(*props_values.cmn_.center_,*props_values.cmn_.table_version_,*props_values.cmn_.parameter_);param_ptr==nullptr)
-                    throw ErrorException(ErrorCode::INTERNAL_ERROR,
+                    throw ErrorException(mashroom::errc::INTERNAL_ERROR,
                         "undefined parameter table (center="s+std::to_string(static_cast<std::underlying_type_t<Organization>>(*props_values.cmn_.center_))+
                         ";table version="s+std::to_string(*props_values.cmn_.table_version_)+";parameter="+
                         std::to_string(*props_values.cmn_.parameter_)+")");
@@ -197,7 +195,7 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
     using printable_values_t = ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t;
     for(int row=0;row<max_length;++row){
         if(stop_token.stop_requested())
-            throw ErrorException(ErrorCode::INTERRUPTED,std::string_view("writting txt files"));
+            throw ErrorException(mashroom::errc::INTERRUPTED,std::string_view("writting txt files"));
         current_time = utc_tp_t<std::chrono::seconds>::max();
         for(int col=0;col<col_vals_.size();++col)
             if(rows[col]<col_vals_[col]->size())
@@ -267,7 +265,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
         if(!out.is_open())
-            throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
+            throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
         try{
             boost::json::object json;
             json["type"] = to_json(Data_t::TIME_SERIES);
@@ -284,7 +282,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
             if(out.fail() && !out.eof()){
                 if(out.is_open())
                     out.close();
-                else throw ErrorException(ErrorCode::INTERNAL_ERROR,std::string_view(),out_f_name.c_str());
+                else throw ErrorException(mashroom::errc::INTERNAL_ERROR,std::string_view(),out_f_name.c_str());
             }
             else{
                 paths.insert(out_f_name);
@@ -334,12 +332,12 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
             center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
         if(!out.is_open())
-            throw ErrorException(ErrorCode::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
+            throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
         try{
             if(auto ser_err = serialize_to_file(Data_t::TIME_SERIES,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
             if(auto ser_err = serialize_to_file(Data_f::GRIB_v1,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
             
             using result_t = std::decay_t<decltype(get_result(result))>;
             std::vector<std::pair<std::reference_wrapper<const result_t::key_type>,std::span<const result_t::mapped_type::value_type>>> result_separated;
@@ -352,7 +350,7 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
                     result_separated.push_back(std::make_pair(std::cref(cmn_data),values_view));
             }
             if(auto ser_err = serialize_to_file(result_separated,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(ErrorCode::SERIALIZATION_ERROR,""sv);
+                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
             paths.insert(out_f_name);
             out.close();
         }

@@ -1,7 +1,7 @@
 #pragma once
-#include "grib1/include/paramtablev.h"
-#include "properties.h"
+#include "grib1/paramtableversion.h"
+#include "grib1/properties.h"
 
-#include "types/time_interval.h"
+#include "OsterLib/types/time_interval.h"
 
 using TimeInterval = __time_interval__<std::chrono::seconds>;

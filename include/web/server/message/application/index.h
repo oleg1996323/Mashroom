@@ -1,7 +1,7 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include <optional>
-#include "serialization.h"
+#include "OsterLib/serialization.h"
 #include "web/server/message/application/detail/index.h"
 #include "web/common/detail/transaction.h"
 
@@ -10,6 +10,7 @@ namespace network{
     class Message<network::Server_MsgT::INDEX>:public Message<Server_MsgT::TRANSACTION>
     {
         std::vector<IndexResult> blocks_;
+        std::unique_ptr<Message<Server_MsgT::FILE_METADATA>> meta_;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -20,8 +21,8 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        Message() = default;
         public:
+        Message() = default;
         Message(Message<Server_MsgT::TRANSACTION>
             transaction) 
             noexcept:
@@ -58,6 +59,13 @@ namespace network{
         const std::vector<IndexResult>& index_blocks() const noexcept{
             return blocks_;
         }
+        void metadata(Message<Server_MsgT::FILE_METADATA>&& meta) noexcept{
+            meta_=std::make_unique<Message<Server_MsgT::FILE_METADATA>>(
+                    std::forward<Message<Server_MsgT::FILE_METADATA>>(meta));
+        }
+        const Message<Server_MsgT::FILE_METADATA>* metadata() const noexcept{
+            return meta_.get();
+        }
     };
 }
 
@@ -69,7 +77,8 @@ namespace serialization{
         SerializationEC operator()(const type& msg, std::vector<char>& buf) const noexcept{
             return serialize<NETWORK_ORDER>(msg,buf,
                     static_cast<const network::Message<network::Server_MsgT::TRANSACTION>&>(msg),
-                    msg.blocks_);
+                    msg.blocks_,
+                    msg.meta_);
         }
     };
 
@@ -79,7 +88,8 @@ namespace serialization{
         SerializationEC operator()(type& msg, StreamSerializer& buf) const noexcept{
             return deserialize<NETWORK_ORDER>(msg,buf,
                 static_cast<network::Message<network::Server_MsgT::TRANSACTION>&>(msg),
-                msg.blocks_);
+                msg.blocks_,
+                msg.meta_);
         }
     };
 
@@ -89,7 +99,8 @@ namespace serialization{
         size_t operator()(const type& msg) const noexcept{
             return serial_size(
                 static_cast<const network::Message<network::Server_MsgT::TRANSACTION>&>(msg),
-                msg.blocks_);
+                msg.blocks_,
+                msg.meta_);
         }
     };
 
@@ -100,7 +111,8 @@ namespace serialization{
         {
             return min_serial_size<
                 network::Message<network::Server_MsgT::TRANSACTION>,
-                decltype(type::blocks_)>();
+                decltype(type::blocks_),
+                decltype(type::meta_)>();
         }();
     };
 
@@ -111,7 +123,8 @@ namespace serialization{
         {
             return max_serial_size<
                 network::Message<network::Server_MsgT::TRANSACTION>,
-                decltype(type::blocks_)>();
+                decltype(type::blocks_),
+                decltype(type::meta_)>();
         }();
     };
 }

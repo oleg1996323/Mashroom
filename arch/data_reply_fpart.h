@@ -1,8 +1,8 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include <fstream>
-#include "network/utility.h"
-#include "sys/error_code.h"
+#include "OsterLib/network/utility.h"
+#include "sys/error.h"
 #include "web/server/message/file/data_reply_finfo.h"
 
 //#include "blake3.h"

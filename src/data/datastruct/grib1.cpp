@@ -1,6 +1,6 @@
 #include "data/datastruct/grib1.h"
 
-std::vector<std::pair<path::Storage<false>,std::vector<std::ptrdiff_t>>> Grib1Data::match_files(
+std::vector<std::pair<Location<true>,std::vector<MessagePositionSizeInfo>>> Grib1Data::match_files(
     utc_tp last_update,
     Coord pos,
     Organization center,
@@ -12,10 +12,10 @@ std::vector<std::pair<path::Storage<false>,std::vector<std::ptrdiff_t>>> Grib1Da
     std::optional<Level> level,
     std::optional<RepresentationType> rep_t
 ) const{
-    std::vector<std::pair<path::Storage<false>,std::vector<std::ptrdiff_t>>> result;
+    std::vector<std::pair<Location<true>,std::vector<MessagePositionSizeInfo>>> result;
     for(auto [path,idx]:paths_){
         if(path){
-            auto loc_res = match(path->path_,last_update,
+            auto loc_res = match(path->path(),last_update,
             pos,center,param_tables,from,to,diff,forecast_preferences,
             level,rep_t);
             if(!loc_res.empty())
@@ -26,7 +26,7 @@ std::vector<std::pair<path::Storage<false>,std::vector<std::ptrdiff_t>>> Grib1Da
 }
 
 //match data by specified file
-std::vector<ptrdiff_t> Grib1Data::match(
+std::vector<MessagePositionSizeInfo> Grib1Data::match(
         std::string_view path,
         utc_tp last_update,
         Coord pos,
@@ -41,19 +41,19 @@ std::vector<ptrdiff_t> Grib1Data::match(
     ) const
 {
     if(parameters.empty())
-        return std::vector<ptrdiff_t>();
+        return std::vector<MessagePositionSizeInfo>();
     auto check_update = [last_update](const auto& add_path){
         using type = std::decay_t<decltype(add_path)>;
         if constexpr(std::is_same_v<type,std::monostate>)
             return false;
         else return add_path.last_check_>=last_update;
     };
-    if(auto found_path = paths_.find(path::Storage<true>::file(path));found_path==paths_.end() ||
+    if(auto found_path = paths_.find(Location<true>::file(path));found_path==paths_.end() ||
             !found_path->first ||
-            !std::visit(check_update,found_path->first->add_))
-        return std::vector<ptrdiff_t>();
+            !std::visit(check_update,found_path->first->additional()))
+        return std::vector<MessagePositionSizeInfo>();
     else{
-        std::vector<ptrdiff_t> result;
+        std::vector<MessagePositionSizeInfo> result;
         std::vector<std::weak_ptr<IndexStruct>> ids(found_path->second.begin(),found_path->second.end());
         std::sort(ids.begin(),
                     ids.end(),
@@ -176,13 +176,19 @@ std::vector<ptrdiff_t> Grib1Data::match(
                 else continue;
             }
         }        
-        std::sort(result.begin(),result.end());
+        std::sort(result.begin(),result.end(),[](
+                const MessagePositionSizeInfo& pos_l,
+                const MessagePositionSizeInfo& pos_r){
+            return pos_l.begin_<pos_r.begin_;
+        });
         return result;
     }
 }
 
 std::vector<SearchDataResult<Data_t::TIME_SERIES,
     Data_f::GRIB_v1>> Grib1Data::find_all(
+        std::vector<std::pair<Location<true>,
+            std::vector<MessagePositionSizeInfo>>>& path_pos,
         const std::unordered_set<
                 CommonDataProperties<Data_t::TIME_SERIES,
                 Data_f::GRIB_v1>>& common,
@@ -209,7 +215,7 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
     };
     for(auto& [path,idx]:paths_){
         if(path){
-            if(!std::visit(check_update,path->add_))
+            if(!std::visit(check_update,path->additional()))
                 continue;
             for(auto& id:idx)
                 if(!id.expired())
@@ -235,7 +241,7 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
         if(idx_tmp.empty())
             return std::vector<SearchDataResult<Data_t::TIME_SERIES,Data_f::GRIB_v1>>();
     }
-    if(top.value() || bottom.value() || left.value() || right.value()){
+    if(top.has_value() || bottom.has_value() || left.has_value() || right.has_value()){
         for(auto& [grid,idx]:grids_){
             if(grid){
                 if(grid_type.has_value() && grid->type()!=*grid_type)
@@ -332,6 +338,9 @@ std::vector<SearchDataResult<Data_t::TIME_SERIES,
                 continue;
             to_add.add_.ts_=ts_tmp;
             result.push_back(to_add);
+            auto beg_end = interval_intersection_pos(ts_tmp.get_interval(),ts,err);
+            path_pos.push_back({*idx_lock->path_.lock(),
+                std::vector<MessagePositionSizeInfo>(pos.begin()+beg_end->first,pos.begin()+beg_end->second)});
         }
     }
     return result;
@@ -419,7 +428,7 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::rewrite_index(const std::s
     }
 }
 
-void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Storage<false>& path,
+void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<false>& path,
         const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
         std::error_code& err)
 {   
@@ -437,10 +446,9 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> tmp;
     for(auto& msg:grib_msg)
     {
-        if(msg.err_!=decltype(msg.err_)::NONE_ERR){
-            err=std::make_error_code(std::errc::bad_message);
+        if(err = std::make_error_code(msg.err_);
+            err)
             return;
-        }
         std::shared_ptr<IndexStruct> idx_tmp = std::make_shared<IndexStruct>();
         idx_tmp->cmn_=Grib1CommonDataProperties(
                 msg.center,msg.table_version,msg.parameter);
@@ -456,35 +464,34 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
             grid_tmp = msg.grid_data;
             idx_tmp->grid_ = grid_tmp;
         }
-        std::shared_ptr<path::Storage<false>> file;
+        std::shared_ptr<Location<false>> file;
         if(auto found_path = tmp.paths_.find(path);found_path!=tmp.paths_.end())
             idx_tmp->path_=found_path->first;
         else{
-            file = std::make_shared<path::Storage<false>>(path);
+            file = std::make_shared<Location<false>>(path);
             idx_tmp->path_ = file;
         }
         if(auto found = tmp.index_.find(*idx_tmp);found!=tmp.index_.end()){
             auto iter = (*found)->ts_pos_.begin();
-            auto tinterval_tmp = iter->first.get_interval();
-            DateTimeDiff diff_tmp = iter->first.time_duration();
+            auto tinterval_tmp = iter->ts_.get_interval();
+            DateTimeDiff diff_tmp = iter->ts_.time_duration();
             //trying push time_point to TimeSequence
             while(iter!=(*found)->ts_pos_.end() &&
-                    !iter->first.push_time_after(msg.date,err) &&
-                    err!=std::error_code() &&
-                    !iter->first.push_time_before(msg.date,err) &&
-                    err!=std::error_code()){
+                    !iter->ts_.push_time_after(msg.date,err) &&
+                    err &&
+                    !iter->ts_.push_time_before(msg.date,err) &&
+                    err){
                 ++iter;
                 if(iter!=(*found)->ts_pos_.end()){
-                    tinterval_tmp = iter->first.get_interval();
-                    DateTimeDiff diff_tmp = iter->first.time_duration();
+                    tinterval_tmp = iter->ts_.get_interval();
+                    DateTimeDiff diff_tmp = iter->ts_.time_duration();
                 }
             }
             //if not found pushing back in ts_pos a new pair of TimeSequence and GribMsg position
             if(iter==(*found)->ts_pos_.end()){
-                (*found)->ts_pos_.push_back(std::make_pair<TimeSequence,
-                    std::deque<ptrdiff_t>>(std::move(TimeSequence(msg.date)),
-                    {msg.buf_pos_}));
-                tmp.by_intervals_[(*found)->ts_pos_.back().first.get_interval()].insert(*found);
+                (*found)->ts_pos_.push_back(TimeSequenceByMessages{.ts_=std::move(TimeSequence(msg.date)),
+                    .mi_={MessagePositionSizeInfo{.begin_=msg.buf_pos_,.size_=size_t(msg.msg_sz_)}}});
+                tmp.by_intervals_[(*found)->ts_pos_.back().ts_.get_interval()].insert(*found);
             }
             //else firstly remove existing IndexStruct with previous TimeInterval from by_interval
             //then pushing time_point to TimeSequence
@@ -497,7 +504,7 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
                     if(found_interval->second.empty())
                         tmp.by_intervals_.erase(found_interval);
                 }
-                tmp.by_intervals_[iter->first.get_interval()].insert(*found);
+                tmp.by_intervals_[iter->ts_.get_interval()].insert(*found);
                 if(diff_tmp==DateTimeDiff()){
                     if(auto found_diff=tmp.by_diff_.find(diff_tmp);found_diff!=tmp.by_diff_.end()){
                         if(found_diff->second.contains(*found))
@@ -505,25 +512,24 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
                         if(found_diff->second.empty())
                             tmp.by_diff_.erase(found_diff);
                     }
-                    tmp.by_diff_[iter->first.time_duration()].insert(*found);
+                    tmp.by_diff_[iter->ts_.time_duration()].insert(*found);
                 }
-                iter->second.push_back(msg.buf_pos_);
+                iter->mi_.push_back({msg.buf_pos_,msg.msg_sz_});
             }
         }
         else{
-            idx_tmp->ts_pos_.push_back(std::make_pair<TimeSequence,
-                std::deque<ptrdiff_t>>(TimeSequence(msg.date),
-                {msg.buf_pos_}));
+            idx_tmp->ts_pos_.push_back(TimeSequenceByMessages{.ts_=msg.date,
+                .mi_={{msg.buf_pos_}}});
             tmp.rewrite_index(idx_tmp);
         }
     }
     update_indexing(tmp);
 }
 
-void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Storage<false>& path,
+void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<false>& path,
     const DataStruct<Data_t::TIME_SERIES,
     Data_f::GRIB_v1>::find_all_t& data){
-        auto file = std::make_shared<path::Storage<false>>(path);
+        auto file = std::make_shared<Location<false>>(path);
         for(const auto& found_data:data){
             std::shared_ptr<IndexStruct> id = 
                 std::make_shared<IndexStruct>();
@@ -532,8 +538,7 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const path::Stora
             id->lvl_=found_data.add_.lvl_;
             id->path_=file;
             id->tf_=found_data.add_.fcst_;
-            id->ts_pos_.push_back(std::make_pair(found_data.add_.ts_,
-                std::deque<ptrdiff_t>()));
+            id->ts_pos_.push_back(TimeSequenceByMessages{.ts_=found_data.add_.ts_});
             rewrite_index(id);
         }
 }
@@ -553,7 +558,7 @@ bool DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
         if (!path1 || !path2) {
             if ((!path1 && path2) || (path1 && !path2))
                 return false;
-        } else if (path1->path_ != path2->path_) {
+        } else if (path1->path() != path2->path()) {
             return false;
         }
         return tf_ == other.tf_ &&
@@ -561,7 +566,7 @@ bool DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
                lvl_ == other.lvl_;
     }
 void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
-    delete_index(const path::Storage<false>& path){
+    delete_index(const Location<false>& path){
     if(auto found = paths_.find(path);found!=paths_.end()){
         std::unordered_set<std::shared_ptr<IndexStruct>,
             IndexStruct::Hash,IndexStruct::Equal> removed;
@@ -673,7 +678,7 @@ size_t DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
         return 0;
     else
         hash_combine(hash,std::hash<std::string_view>()(
-            path_lock->path_));
+            path_lock->path()));
     if(!grid_lock)
         return 0;
     else
@@ -745,4 +750,17 @@ bool DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::
         const std::weak_ptr<IndexStruct>& rhs) const{
     if(lhs.expired()||rhs.expired())return false;
     return operator()(lhs.lock(),rhs.lock());
+}
+
+template<>
+boost::json::value to_json(const DataStruct<
+        Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t& val)
+{
+    boost::json::object result;
+    result["data type"]=to_data_type_name(Data_t::TIME_SERIES);
+    result["data format"]=to_data_format_name(Data_f::GRIB_v1);
+    auto& arr = result["data"].emplace_array();
+    for(auto& d:val)
+        arr.push_back(to_json(d));
+    return result;
 }

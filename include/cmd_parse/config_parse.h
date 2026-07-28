@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string_view>
-#include "sys/error_code.h"
+#include "sys/error.h"
 #include "cmd_parse/network.h"
 #include "sys/application.h"
 #include "config/server.h"

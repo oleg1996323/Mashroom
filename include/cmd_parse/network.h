@@ -1,7 +1,6 @@
 #pragma once
-#include "sys/error_code.h"
-#include "sys/error_print.h"
-#include "sys/log_err.h"
+#include "sys/error.h"
+#include "OsterLib/log.h"
 #include <set>
 #include <CLI/CLI.hpp>
 

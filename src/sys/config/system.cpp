@@ -1,6 +1,6 @@
 #include "config/system.h"
-#include "error_print.h"
-#include "filesystem.h"
+#include "sys/error.h"
+#include "OsterLib/filesystem.h"
 #ifdef _WIN32
 #include <shlobj.h>
 #include <windows.h>
@@ -78,36 +78,48 @@ const fs::path& Config::cache_files_directory() const noexcept{
     return cache_files_dir_;
 }
 
-ErrorCode Config::session_logging_directory(const fs::path& path) noexcept{
+osterlib::ContextedError Config::session_logging_directory(const fs::path& path) noexcept{
     if(!directory_accessible(path))
-        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+        return osterlib::ContextedError(
+            mashroom::errc::create_directory_denied).with_field(
+                "file",
+                path.string());
     else {
         log_dir_ = path;
-        return ErrorCode::NONE;
+        return {};
     }
 }
-ErrorCode Config::configurations_directory(const fs::path& path) noexcept{
+osterlib::ContextedError Config::configurations_directory(const fs::path& path) noexcept{
     if(!directory_accessible(path))
-        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+        return osterlib::ContextedError(
+            mashroom::errc::create_directory_denied).with_field(
+                "file",
+                path.string());
     else{
         config_dir_ = path;
-        return ErrorCode::NONE;
+        return {};
     }
 }
-ErrorCode Config::network_files_directory(const fs::path& path) noexcept{
+osterlib::ContextedError Config::network_files_directory(const fs::path& path) noexcept{
     if(!directory_accessible(path))
-        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+        return osterlib::ContextedError(
+            mashroom::errc::create_directory_denied).with_field(
+                "file",
+                path.string());
     else{
         network_files_dir_ = path;
-        return ErrorCode::NONE;
+        return {};
     }
 }
-ErrorCode Config::cache_files_directory(const fs::path& path) noexcept{
+osterlib::ContextedError Config::cache_files_directory(const fs::path& path) noexcept{
     if(!directory_accessible(path))
-        return ErrorPrint::print_error(ErrorCode::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,path.string());
+        return osterlib::ContextedError(
+            mashroom::errc::create_directory_denied).with_field(
+                "file",
+                path.string());
     else{
         cache_files_dir_ = path;
-        return ErrorCode::NONE;
+        return {};
     }
 }
 

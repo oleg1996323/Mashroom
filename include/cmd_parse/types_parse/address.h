@@ -1,6 +1,6 @@
 #pragma once
 #include <CLI/CLI.hpp>
-#include "network/address.h"
+#include "OsterLib/network/address.h"
 #include <regex>
 #include <string>
 

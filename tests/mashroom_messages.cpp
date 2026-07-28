@@ -71,19 +71,19 @@ class DataTestClass_1:public Data,public testing::Test{
         grid.base_.x2=50;
         grid.base_.y1=50;
         grid.base_.y2=0;
-        path::Storage<false> any;
+        Location<false> any;
         auto time = utc_tp::clock::now();
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
         for(int id = 1;id<=tables_by_id_.size();++id){
             uint64_t count = 0;
-            any = path::Storage<false>::file("any_path_"s+std::to_string(id)+".grib"s,time);
+            any = Location<false>::file("any_path_"s+std::to_string(id)+".grib"s,time);
             for(int d=0;d<=(sys_days(year(1990)/month(id+1)/day(1))-days(1)-sys_days(year(1990)/month(id)/day(1)))/days(1);++d)
             {
                 for(auto table:tables_by_id_[id-1].second)
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
-                        API::ErrorData::ErrorCode<API::TYPES::GRIB1> f_error;
+                        API::ErrorData::ErrorCode<API_T::GRIB1> f_error;
                         std::error_code err;
                         auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(id)/day(1))+days(d),
                                     cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),

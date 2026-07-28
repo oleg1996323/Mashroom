@@ -1,5 +1,5 @@
 #include "config/web/server.h"
-#include "network/definitions.h"
+#include "OsterLib/network/definitions.h"
 
 bool network::server::Config::push_to_black_list(const std::string& host) noexcept{
     if(!host.empty() && !black_list_.contains(host)){

@@ -20,8 +20,9 @@ namespace network{
         friend struct serialization::Min_serial_size;
         template<auto>
         friend struct serialization::Max_serial_size;
-        Message() = default;
+        
         public:
+        Message() = default;
         Message(uint16_t attempts,
                 AccessMode access,
                 bool success):

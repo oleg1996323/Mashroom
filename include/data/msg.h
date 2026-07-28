@@ -4,20 +4,16 @@
 #include <unordered_map>
 #include <algorithm>
 #include <chrono>
-#include "byte_order.h"
-#include "code_tables/table_0.h"
-#include "code_tables/table_2.h"
-#include "API/grib1/include/sections/product/levels.h"
-#include "code_tables/table_4.h"
-#include "code_tables/table_5.h"
-#include "sections/grid/grid.h"
+#include "OsterLib/byte_order.h"
+#include "grib1/code_tables.h"
+#include "grib1/sections.h"
 #include "def.h"
-#include "types/time_interval.h"
-#include "grib1_def.h"
-#include "boost_functional/json.h"
+#include "OsterLib/types/time_interval.h"
+#include "grib1/def.h"
+#include "grib1/error.h"
+#include "OsterLib/boost_functional/json.h"
 #include <stdexcept>
 #include <expected>
-#include "API/grib1/include/sections/product/time_forecast.h"
 
 namespace data{
 
@@ -31,14 +27,14 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
 {
     std::shared_ptr<GridInfo> grid_data;
     utc_tp_t<std::chrono::seconds> date;
-    ptrdiff_t buf_pos_;
+    size_t buf_pos_;
     TimeForecast t_unit;
     Organization center;
     Level level_;
     uint32_t msg_sz_ = 0;
     uint8_t parameter = 0;
     uint8_t table_version = 0;
-    API::ErrorData::Code<API::GRIB1>::value err_ = API::ErrorData::Code<API::GRIB1>::NONE_ERR;
+    api::errc<API_T::GRIB1> err_;
 
     FileMsg(GridInfo&& grid_data_,
         utc_tp_t<std::chrono::seconds>&& date_,
@@ -49,7 +45,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         Organization center_,
         uint8_t table_version_,
         Level level,
-        API::ErrorData::Code<API::GRIB1>::value err):
+        api::errc<API_T::GRIB1> err):
         grid_data(std::make_shared<GridInfo>(std::move(grid_data_))),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
@@ -69,7 +65,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         Organization center_,
         uint8_t table_version_,
         Level level,
-        API::ErrorData::Code<API::GRIB1>::value err):
+        api::errc<API_T::GRIB1> err):
         grid_data(std::make_shared<GridInfo>(grid_data_)),
         date(date_),
         buf_pos_(msg_buf_pos),

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "proc/extract/extracted_data.h"
-#include "types/time_interval.h"
-#include "types/time_period.h"
+#include "OsterLib/types/time_interval.h"
+#include "OsterLib/types/time_period.h"
 #include "properties.h"
 #include <random>
 

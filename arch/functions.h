@@ -5,13 +5,12 @@
 #include <charconv>
 #include <stdexcept>
 
-#include "types/coord.h"
-#include "sys/error_print.h"
-#include "types/time_interval.h"
+#include "OsterLib/types/coord.h"
+#include "sys/error.h"
+#include "OsterLib/types/time_interval.h"
 #include "definitions/def.h"
 #include <set>
 #include <type_traits>
-#include "sys/error_code.h"
 #include <expected>
 #include "parsing.h"
 #include <boost/program_options.hpp>

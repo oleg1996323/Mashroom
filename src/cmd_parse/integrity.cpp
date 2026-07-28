@@ -1,6 +1,5 @@
 #include "cmd_parse/integrity.h"
-#include "definitions/path_process.h"
-#include "sys/error_print.h"
+#include "Location.h"
 #include "sys/application.h"
 #include "sys/config.h"
 #include "sys/outputdatafileformats.h"
@@ -8,7 +7,7 @@
 
 namespace parse{
     Integrity::Integrity(CLI::App* cli):app_(cli){
-        ErrorCode err_;
+        mashroom::errc err_;
         jobs_ = app_->add_option("-j",
         "Number of used threads.\
         Number may be discarded to\

@@ -1,9 +1,9 @@
 #pragma once
 #include <fstream>
-#include "types/time_interval.h"
-#include "serialization.h"
-#include "sections/grid/grid.h"
-#include "byte_read.h"
+#include "OsterLib/types/time_interval.h"
+#include "OsterLib/serialization.h"
+#include "grib1/sections/grid/grid.h"
+#include "OsterLib/byte_read.h"
 #include "data/def.h"
 
 template<Data_t TYPE, Data_f FORMAT>

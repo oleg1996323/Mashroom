@@ -1,7 +1,7 @@
 #pragma once
 #include "web/common/msgdef.h"
-#include "types/time_interval.h"
-#include "serialization.h"
+#include "OsterLib/types/time_interval.h"
+#include "OsterLib/serialization.h"
 #include <optional>
 #include <boost/units/systems/information.hpp>
 #include <boost/units/systems/information/byte.hpp>
