@@ -68,13 +68,20 @@ namespace parse{
                 input_paths_->count())
         {
             int count = input_paths_val_.size();
+            osterlib::ContextedError ctx_err;
             for(auto& location:input_paths_val_){
-                if(auto err = index.add_in_path(location);err)
-                    ErrorPrint::print_error(err,"",AT_ERROR_ACTION::CONTINUE,location.path());
+                if(auto err = index.add_in_path(location);err){
+                    if(!ctx_err){
+                        ctx_err.error(err)
+                        .with_field("procedure","index")
+                        .with_field("at","add input path")
+                        .with_field("file",location.path());
+                    }
+                }
                 else --count;
             }
             if(count==input_paths_val_.size())
-                throw CLI::ValidationError("--input-paths","all paths are invalid");
+                throw ctx_err;
         }
         // if(auto format_ = app_->get_option("--format");
         //         format_->count())

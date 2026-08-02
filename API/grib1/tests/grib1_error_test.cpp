@@ -1,5 +1,5 @@
-#include "grib1_error.h"
-#include "common/common_error.h"
+#include "grib1/error.h"
+#include "common/error.h"
 #include <gtest/gtest.h>
 
 TEST(ContextErrorTest, CommonErrorTest){

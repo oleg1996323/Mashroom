@@ -30,16 +30,25 @@ int cpus = 1;
 IndexOutputFileFormat::token output_format_ = IndexOutputFileFormat::token::BINARY;
 bool host_ref_only_ = false;
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> __write_file__(const std::vector<data::FileMsg<TYPE,FORMAT>>& data);
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> 
+    __write_file__(
+            const std::vector<data::FileMsg<TYPE,FORMAT>>& data,
+            osterlib::ContextedError& ctx_err);
 template<Data_t TYPE,Data_f FORMAT>
-std::vector<data::FileMsg<TYPE,FORMAT>> __index_file__(const fs::path& file);
+std::vector<data::FileMsg<TYPE,FORMAT>> 
+    __index_file__(
+            const fs::path& file,
+			osterlib::ContextedError& ctx_err);
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> __index_write_file__(const fs::path& file);
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> 
+    __index_write_file__(
+            const fs::path& file,
+			osterlib::ContextedError& ctx_err);
 public:
 void execute() noexcept;
 
-mashroom::errc add_in_path(const Location<false>& path);
-mashroom::errc set_dest_dir(std::string_view dest_directory);
+std::error_code add_in_path(const Location<false>& path);
+std::error_code set_dest_dir(std::string_view dest_directory);
 void set_output_format(IndexOutputFileFormat::token format){
     output_format_ = format;
 }

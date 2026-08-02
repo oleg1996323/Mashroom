@@ -17,26 +17,30 @@
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
+using namespace osterlib;
 
-mashroom::errc add_data(const DataStructVariation& data){
-	mashroom::errc err;
-	auto lambda = [&err](const auto& val){
+
+ContextedError add_data(const DataStructVariation& data){
+	auto lambda = [](const auto& val){
 		using T = std::decay_t<decltype(val)>;
 		if constexpr(std::is_same_v<std::monostate,T>){
-			err=mashroom::errc::INVALID_ARGUMENT;
-			return;
+			ContextedError ctx_err(mashroom::errc::invalid_argument,
+				"monostate passed to visitor");
+			ctx_err.with_field("procedure","index");
+			return ctx_err;
 		}
-		else Mashroom::instance().data().update_indexing(val);
+		else return Mashroom::instance().data().update_indexing(val);
 	};
-	std::visit(lambda,data);
-	return err;
+	return std::visit(lambda,data);
 }
 
 /**
  * @return Return the names of created files with registered grib data
  */ 
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__write_file__(const std::vector<data::FileMsg<TYPE,FORMAT>>& data_){
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__write_file__(
+		const std::vector<data::FileMsg<TYPE,FORMAT>>& data_,
+		osterlib::ContextedError& ctx_err){
 	std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> result;
 	if(!fs::exists(dest_directory_.value()))
 		throw std::runtime_error("Unavailable write directory"s + dest_directory_->c_str());
@@ -77,7 +81,7 @@ std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__write_file_
 
 namespace fs = std::filesystem;
 
-std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API::HGrib1& grib_file_handler){
+std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(api::HGrib1& grib_file_handler){
 	std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> grib_msgs;
 	do{
 		auto msg = grib_file_handler.message();
@@ -91,7 +95,7 @@ std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API
 										msg.value().get().section_1_.center(),
 										msg.value().get().section_1_.table_version(),
 										msg.value().get().section_1_.level_data(),
-										msg->get().err_);
+										msg->get().err_.code());
 		}
 	}while(grib_file_handler.next_message());
 	return grib_msgs;
@@ -101,13 +105,15 @@ std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> process_file(API
  * @brief Execute message indexing of concrete file.
  */
 template<Data_t TYPE,Data_f FORMAT>
-std::vector<data::FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& file){
-	API::HGrib1 grib;
+std::vector<data::FileMsg<TYPE,FORMAT>> 
+		Index::__index_file__(
+			const fs::path& file,
+			osterlib::ContextedError& ctx_err){
+	api::HGrib1 grib;
 	std::vector<data::FileMsg<TYPE,FORMAT>> res;
-	using namespace API::ErrorData;
-	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+	if(ctx_err = grib.open_grib(file);!ctx_err){
 		data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
-		msg.err_=API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		msg.err_=ctx_err.code();
 		res.emplace_back(std::move(msg));
 		return res;
 	}
@@ -116,26 +122,29 @@ std::vector<data::FileMsg<TYPE,FORMAT>> Index::__index_file__(const fs::path& fi
 }
 
 template<Data_t TYPE,Data_f FORMAT>
-std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> Index::__index_write_file__(const fs::path& file){
-	API::HGrib1 grib;
+std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> 
+		Index::__index_write_file__(
+			const fs::path& file,
+			osterlib::ContextedError& ctx_err){
+	api::HGrib1 grib;
 	std::pair<fs::path,std::vector<data::FileMsg<TYPE,FORMAT>>> res;
-	using namespace API::ErrorData;
-	if(grib.open_grib(file)!=API::ErrorData::Code<API::GRIB1>::NONE_ERR){
+	if(ctx_err = grib.open_grib(file);!ctx_err){
 		data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg;
-		msg.err_= API::ErrorDataPrint::print_error<API::GRIB1>(Code<API::GRIB1>::OPEN_ERROR_X1,"",file.string());
+		msg.err_= ctx_err.code();
 		res.second.emplace_back(std::move(msg));
 		return res;
 	}
-	return __write_file__(process_file(grib));
+	return __write_file__(process_file(grib),ctx_err);
 }
 
 void Index::execute() noexcept{
 	for(const Location<false>& location:in_path_){
+		osterlib::ContextedError ctx_err;
 		try{
 		switch(location.type()){
 			case path::TYPE::DIRECTORY:
 				if(!fs::is_directory(location.path()))
-					return;
+					continue;
 				for(std::filesystem::directory_entry entry:std::filesystem::directory_iterator(location.path())){
 					if(entry.is_regular_file() && entry.path().has_extension() && 
 					(entry.path().extension() == ".grib" || entry.path().extension() == ".grb")) {
@@ -145,9 +154,10 @@ void Index::execute() noexcept{
 							Mashroom::instance().data().
 							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
 								Location<false>::file(entry.path(),utc_tp::clock::now()),
-								__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path())); //@todo able to use different variant types
+								__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path(),
+								ctx_err)); //@todo able to use different variant types
 						else{
-							auto write_index_result = __index_write_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path());
+							auto write_index_result = __index_write_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(entry.path(),ctx_err);
 							written_.insert(Location<false>::file(write_index_result.first));
 							Mashroom::instance().data().
 							add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
@@ -160,7 +170,7 @@ void Index::execute() noexcept{
 				break;
 			case path::TYPE::FILE:
 				Mashroom::instance().data().add_data<Data_t::TIME_SERIES,Data_f::GRIB_v1>(Location<false>::file(location.path()),
-						__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(location.path())); //@todo able to use different variant types
+						__index_file__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(location.path(),ctx_err)); //@todo able to use different variant types
 				break;
 			case path::TYPE::HOST:
 				if(location.additional().is<path::TYPE::HOST>()){
@@ -232,14 +242,14 @@ std::error_code Index::add_in_path(const Location<false>& location){
         case path::TYPE::HOST:
             in_path_.insert(location); //will be checked later at process
     }       
-    return mashroom::errc::NONE;
+    return {};
 }
-mashroom::errc Index::set_dest_dir(std::string_view dest_directory){
+std::error_code Index::set_dest_dir(std::string_view dest_directory){
     if(fs::path(dest_directory).has_extension())
-        return ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+        return std::make_error_code(mashroom::errc::not_directory);
     if(!fs::exists(dest_directory))
         if(!fs::create_directories(dest_directory))
-            return ErrorPrint::print_error(mashroom::errc::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,dest_directory);
+            return std::make_error_code(mashroom::errc::create_directory_denied);
     dest_directory_=dest_directory;
-    return mashroom::errc::NONE;
+    return {};
 }

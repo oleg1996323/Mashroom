@@ -1,6 +1,7 @@
 #pragma once
 #include "datastruct/grib1.h"
 #include <variant>
+#include "OsterLib/contexted_error.h"
 
 struct DataStructVariation:
 std::variant<std::monostate,
@@ -9,18 +10,34 @@ std::variant<std::monostate,
     using variant::variant;
     using variant::operator=;
     template<Data_t T,Data_f F>
-    void add_data(const DataStruct<T,F>& other,std::error_code& err){
-        auto add = [&err,&other](const auto& val){
+    void add_data(
+            const DataStruct<T,F>& other,
+            osterlib::ContextedError& ctx_err)
+    {
+        auto add = [&ctx_err,&other](const auto& val){
             using type = std::decay_t<decltype(val)>;
-            if constexpr(std::is_same_v<type,std::monostate>)
-                err=std::make_error_code(std::errc::invalid_argument);
+            if constexpr(std::is_same_v<type,std::monostate>){
+                ctx_err.error(std::errc::invalid_argument,
+                        "monostate passed to visitor");
+                ctx_err.with_field("at","data structure add data")
+                .with_field("type","time series")
+                .with_field("format","grib v1");
+            }
             else{
-                auto loc_add = [&err,&other]<Data_t TYPE,Data_f FORMAT>(DataStruct<TYPE,FORMAT>& this_data){
+                auto loc_add = [&ctx_err,&other]<Data_t TYPE,Data_f FORMAT>(DataStruct<TYPE,FORMAT>& this_data){
                     if constexpr(TYPE==T && F==FORMAT){
                         this_data.add_data(other);
-                        err.clear();
+                        ctx_err.clear();
                     }
-                    else err=std::make_error_code(std::errc::invalid_argument);
+                    else{
+                        ctx_err.error(std::errc::invalid_argument,
+                                "unknown data/format");
+                        ctx_err.with_field("at","data structure add data")
+                        .with_field("type",T)
+                        .with_field("format",F)
+                        .with_field("expected type","time series")
+                        .with_field("expected format","grib v1");
+                    }
                 };
                 loc_add(val);
             }
@@ -28,8 +45,11 @@ std::variant<std::monostate,
         std::visit(add,*this);
     }
     template<Data_t T,Data_f F>
-    void add_data(const Location<false>& file,const std::vector<data::FileMsg<T,F>>& other,std::error_code& err){
-        add_data(file,other,err);
+    void add_data(const Location<false>& file,
+            const std::vector<data::FileMsg<T,F>>& other,
+            osterlib::ContextedError& ctx_err)
+    {
+        add_data(file,other,ctx_err);
     }
 };
 

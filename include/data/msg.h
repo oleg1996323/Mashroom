@@ -34,7 +34,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
     uint32_t msg_sz_ = 0;
     uint8_t parameter = 0;
     uint8_t table_version = 0;
-    api::errc<API_T::GRIB1> err_;
+    std::error_code err_;
 
     FileMsg(GridInfo&& grid_data_,
         utc_tp_t<std::chrono::seconds>&& date_,
@@ -45,7 +45,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         Organization center_,
         uint8_t table_version_,
         Level level,
-        api::errc<API_T::GRIB1> err):
+        std::error_code err):
         grid_data(std::make_shared<GridInfo>(std::move(grid_data_))),
         date(std::move(date_)),
         buf_pos_(msg_buf_pos),
@@ -65,7 +65,7 @@ struct FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         Organization center_,
         uint8_t table_version_,
         Level level,
-        api::errc<API_T::GRIB1> err):
+        std::error_code err):
         grid_data(std::make_shared<GridInfo>(grid_data_)),
         date(date_),
         buf_pos_(msg_buf_pos),

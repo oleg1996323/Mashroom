@@ -74,6 +74,7 @@ class DataTestClass_1:public Data,public testing::Test{
         Location<false> any;
         auto time = utc_tp::clock::now();
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        osterlib::ContextedError ctx_err;
         auto err = std::error_code();
         for(int id = 1;id<=tables_by_id_.size();++id){
             uint64_t count = 0;
@@ -83,15 +84,13 @@ class DataTestClass_1:public Data,public testing::Test{
                 for(auto table:tables_by_id_[id-1].second)
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
-                        API::ErrorData::ErrorCode<API_T::GRIB1> f_error;
-                        std::error_code err;
                         auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(id)/day(1))+days(d),
                                     cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
-                                    tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                                    tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),err);
                         msg_data.push_back(std::move(msg));
                     }
             }
-            gribdata.add_data(any,msg_data,err);
+            gribdata.add_data(any,msg_data,ctx_err);
         }
         update_indexing(std::move(gribdata));
         for(auto& [fn,index_structs]:gribdata.paths_)

@@ -1,5 +1,5 @@
 #include "grib1/message.h"
-#include "int_pow.h"
+#include "OsterLib/int_pow.h"
 #include "grib1/def.h"
 #include "grib1/error.h"
 

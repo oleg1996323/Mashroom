@@ -10,12 +10,11 @@ file(GLOB_RECURSE COMMON_SOURCES
 add_library(common SHARED ${COMMON_SOURCES})
 target_link_libraries(common 
         PRIVATE
-        OsterLib::serial
         OsterLib::utilities
         OsterLib::types
         OsterLib::boost_functional)
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                    PRIVATE ${OsterLib_INCLUDE_DIRS}
+                                    ${OsterLib_INCLUDE_DIRS}
                                     )
 if(${TESTS_ON})
     enable_testing()

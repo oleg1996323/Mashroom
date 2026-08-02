@@ -3,7 +3,7 @@
 #include "grib1/cast/grid.h"
 
 
-#include "parsing.h"
+#include "OsterLib/parsing.h"
 #include "grib1/sections.h"
 
 template<>
@@ -20,17 +20,23 @@ RepresentationType boost::lexical_cast(const std::string& input){
     else return static_cast<RepresentationType>(grid_tmp.value());
 }
 
-std::expected<RepresentationType,mashroom::errc> parse::grid_notifier(const std::vector<std::string>& input) noexcept{
+std::expected<RepresentationType,osterlib::ContextedError> parse::grid_notifier(const std::vector<std::string>& input) noexcept{
     auto grids = multitoken_approx_match_grid(input);
     //if abbreviation
-    if(grids.empty())
-        return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
-                "not matched grid",AT_ERROR_ACTION::CONTINUE,input.front()));
+    if(grids.empty()){
+        osterlib::ContextedError ctx_err(mashroom::errc::command_input_error,"grid type not matched");
+        ctx_err.with_field("at","grid type resolver");
+        for(auto& arg_in:input)
+            ctx_err.with_field("input",arg_in);
+        return std::unexpected(std::move(ctx_err));
+    }
     else if(grids.size()==1)
         return grids.front();
     else{
-        std::cout<<"Matched more than 1 grid:"<<std::endl;
-        std::cout<<grid_to_txt(grids)<<std::endl;
-        return std::unexpected(mashroom::errc::INTERNAL_ERROR);
+        osterlib::ContextedError ctx_err(mashroom::errc::command_input_error,"matched more than 1 center");
+        ctx_err.with_field("at","grid type resolver");
+        for(auto& grid:grids)
+            ctx_err.with_field("matched",grid_to_text(grid));
+        return std::unexpected(std::move(ctx_err));
     }
 }

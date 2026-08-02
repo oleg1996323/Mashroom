@@ -5,7 +5,7 @@
 #include <fstream>
 #include <list>
 #include <vector>
-
+#include "sys/error.h"
 #include "OsterLib/network/abstractprocess.h"
 #include "web/common/message_handler.h"
 #include "web/common/connection_process.h"
@@ -28,7 +28,7 @@ namespace network{
     {
         public:
         class SendingFileState{
-            ::std::deque<std::pair<::std::string_view,
+            ::std::deque<std::pair<::std::string,
                 ::std::deque<MessagePositionSizeInfo>>> files_;
             Message<Server_MsgT::TRANSACTION> transaction_;
             ::std::ifstream stream_;
@@ -53,7 +53,7 @@ namespace network{
             {}
             SendingFileState(
                 ::std::error_code& err,
-                ::std::string_view filename,
+                ::std::string filename,
                 Message<Server_MsgT::TRANSACTION> transaction,
                 size_t start,
                 size_t size,
@@ -137,7 +137,7 @@ namespace network{
             }
             //push back filename and size+start position
             ::std::error_code append_filepart(
-                ::std::string_view filename,
+                ::std::string filename,
                 size_t start,
                 size_t size) noexcept
             {
@@ -148,7 +148,7 @@ namespace network{
                     size_+=size;
                     remain_+=size;
                     files_.push_back(std::make_pair(
-                            filename,
+                            std::move(filename),
                             ::std::deque<MessagePositionSizeInfo>{
                                 MessagePositionSizeInfo{.begin_=start,.size_=size}
                             }));
@@ -166,7 +166,7 @@ namespace network{
                     files_.rbegin(),
                     files_.rend(),
                     [&filename](
-                        const std::pair<std::string_view,
+                        const std::pair<std::string,
                         std::deque<MessagePositionSizeInfo>>& val)
                     {
                         return filename==val.first;
@@ -259,16 +259,16 @@ namespace network{
         void __emplace_error__(std::error_code& err,
                 std::string description,
                 server::Status status,
-                mashroom::errc code) noexcept
+                mashroom::network::errc code,
+                std::vector<osterlib::Field> fields = {}) noexcept
         {
-            send_hmsg_.emplace_message(
-                Message<Server_MsgT::ERROR>(
+            Message<Server_MsgT::ERROR> reply(
                     code,
-                    ErrorPrint::message(
-                        code,
-                        std::move(description)),
+                    std::move(description),
                         status
-                ));
+            );
+            reply.add_fields(std::move(fields));
+            send_hmsg_.emplace_message(std::move(reply));
             io_context().send(err,[](const std::vector<char>&){},send_hmsg_);
             send_hmsg_.clear();
         }
@@ -276,16 +276,17 @@ namespace network{
                 std::string description,
                 server::Status status,
                 Message<Server_MsgT::TRANSACTION> transaction,
-                mashroom::errc code) noexcept
+                mashroom::network::errc code,
+                std::vector<osterlib::Field> fields = {}) noexcept
         {
-            send_hmsg_.emplace_message(Message<Server_MsgT::ERROR>(
-                    mashroom::errc::INTERNAL_ERROR,
-                    ErrorPrint::message(
-                        code,
-                        std::move(description)),
-                        std::move(transaction),
-                        status
-                    ));
+            Message<Server_MsgT::ERROR> reply(
+                    code,
+                    std::move(description),
+                    std::move(transaction),
+                    status
+            );
+            reply.add_fields(std::move(fields));
+            send_hmsg_.emplace_message(std::move(reply));
             io_context().send(err,[](const std::vector<char>&){},send_hmsg_);
             send_hmsg_.clear();
         }
@@ -300,7 +301,7 @@ namespace network{
             __emplace_error__(err,
                 "something gone wrong",
                 server::Status::READY,
-                mashroom::errc::INTERNAL_ERROR);
+                mashroom::network::errc::internal_error);
         }
         ServerConnectionProcess(
                 ConnectionHandle hconn,

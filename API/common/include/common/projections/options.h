@@ -5,85 +5,60 @@
 #include <unordered_map>
 #include "common/api_types.h"
 #include <memory>
+#include <unordered_map>
+#include <variant>
+#include <vector>
+#include <utility>
+#include <OsterLib/boost_functional/json.h>
+#include <iostream>
+#include <boost/container_hash/hash.hpp>
+
+class AbstractProjection;
 
 namespace projection{
+    
     class CommonOptions{
-        protected:
-        static std::string empty_attr_;
+        public:
+        using attribute_t = boost::json::value;
         private:
-        uint32_t id_;
+        boost::json::object attributes_;
+        std::function<std::unique_ptr<AbstractProjection>(
+                const std::unordered_map<std::string,attribute_t>&)> proj_func_;
         public:
-        CommonOptions(uint32_t id) noexcept:
-        id_(id){}
-
-        CommonOptions(const CommonOptions& other):
-        id_(other.id_){}
-
-        CommonOptions(CommonOptions&& other) noexcept:
-        id_(other.id_){}
-        CommonOptions& operator=(const CommonOptions& other){
-            if(this!=&other){
-                id_=other.id_;;
-            }
-            return *this;
+        CommonOptions(std::string_view name,int64_t API_val){
+            add_attribute("name",name)
+            .add_attribute("API",API_val);
         }
-        CommonOptions& operator=(CommonOptions&& other) noexcept{
-            if(this!=&other){
-                std::swap(id_,other.id_);
-            }
-            return *this;
+        CommonOptions(const CommonOptions& other);
+        CommonOptions(CommonOptions&& other) noexcept;
+        CommonOptions& operator=(const CommonOptions& other);
+        CommonOptions& operator=(CommonOptions&& other) noexcept;
+        int64_t id() const noexcept;
+        bool contains(std::string_view name) const noexcept;
+        const attribute_t& attribute(std::string_view attr_name)const noexcept;
+        template<typename T>
+        CommonOptions& add_attribute(std::string_view attr_name,T value) 
+                noexcept(std::is_move_assignable_v<T>)
+        {
+            if(attr_name.empty() || attributes_.contains(attr_name))
+                return std::make_error_code(std::errc::invalid_argument);
+            else attributes_[attr_name]=to_json(value);
+            return {};
         }
-        uint32_t grid_id() const noexcept{
-            return id_;
+        const boost::json::object& attributes() const noexcept{
+            return attributes_;
         }
-        virtual const std::string& attribute(std::string_view)const noexcept{
-            return empty_attr_;
-        }
-        virtual size_t hash() const noexcept{
-            return std::hash<uint32_t>()(id_);
-        }
-        bool operator==(const CommonOptions& other) const noexcept{
-            return id_==other.id_;
+        CommonOptions& set_projection_maker(
+            std::function<std::unique_ptr<AbstractProjection>(
+                const std::unordered_map<std::string,attribute_t>&)>&& func) noexcept;
+        size_t hash() const noexcept;
+        bool operator==(const CommonOptions& other) const noexcept;
+        template<typename PROJ>
+        std::unique_ptr<PROJ> make_projection(
+            const std::unordered_map<std::string,attribute_t>& attributes) noexcept{
+            return std::unique_ptr<PROJ>(proj_func_(attributes).release());
         }
     };
-
-    class APIOptions:public CommonOptions{
-        API_T api_t;
-        public:
-        APIOptions(API_T api,
-            uint32_t id):
-            CommonOptions(id),
-            api_t(api){}
-    };
-
-    template<API_T T>
-    class Options;
-
-    #ifdef GRIB1API
-    template<>
-    class Options<API_T::GRIB1>:public APIOptions{
-        std::string center_;
-        public:
-        Options(
-            std::string center_name,
-            uint32_t id) noexcept:
-        APIOptions(API_T::GRIB1,id),
-        center_(std::move(center_name)){}
-        virtual const std::string& attribute(std::string_view name)const noexcept override{
-            if(name=="center")
-                return center_;
-            else return empty_attr_;
-        }
-        virtual size_t hash() const noexcept{
-            return std::hash<uint32_t>()(grid_id())<<
-                    (sizeof(size_t)-sizeof(grid_id()))^
-                    std::hash<std::string>()(center_);
-        }
-        bool operator==(const Options& other) const noexcept{
-            return center_==other.center_;
-        }
-    };
-    #endif
 };
 
 template<>

@@ -36,7 +36,7 @@ namespace network{
         if(!version_ && msg_id!=Server_MsgT::VERSION && msg_id!=Server_MsgT::ERROR){
             __emplace_error__(err,
                 "version interconnection not defined",
-                mashroom::errc::INVALID_CLIENT_REQUEST);
+                mashroom::network::errc::version_error);
             return;
         }
         switch(msg_id){
@@ -78,7 +78,7 @@ namespace network{
                 else{
                     __emplace_error__(err,
                                 "credentials message handling",
-                                mashroom::errc::INTERNAL_ERROR);
+                                mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -94,7 +94,7 @@ namespace network{
                 else{
                     __emplace_error__(err,
                                 "server status message handling",
-                                mashroom::errc::INTERNAL_ERROR);
+                                mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -113,14 +113,14 @@ namespace network{
                             break;
                         else __emplace_error__(err,
                         "transaction "+msg_transaction.hash()+" not found",
-                        mashroom::errc::RECEIVING_MESSAGE_ERROR);
+                        mashroom::network::errc::invalid_credentials);
                     }
                     else err.clear();
                 }
                 else{
                     __emplace_error__(err,
                         "progress message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -135,7 +135,7 @@ namespace network{
                 else{
                     __emplace_error__(err,
                         "progress message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -146,7 +146,7 @@ namespace network{
                         auto& err_msg = msg_ref->get();
                         auto& transaction = msg_ref->get().transaction().value();
                         if(file_recv_.contains(transaction.hash())){
-                            if(err_msg.error()!=mashroom::errc())
+                            if(err_msg.error()!=mashroom::network::errc())
                                 file_recv_.erase(transaction.hash());
                         }
                     }
@@ -157,7 +157,7 @@ namespace network{
                 else{
                     __emplace_error__(err,
                         "error message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -169,7 +169,7 @@ namespace network{
                         const auto& msg_version = msg_ref->get();
                         if(msg_version.version()>
                             app().config().system_config().version())
-                            __emplace_error__(err,"version error",mashroom::errc::VERSION_ERROR_X1);
+                            __emplace_error__(err,"version error",mashroom::network::errc::version_error);
                         else version_ = msg_version.version();
                         if(is_active_request())
                             complete_current_request(err);
@@ -178,13 +178,13 @@ namespace network{
                     else{
                         __emplace_error__(err,
                             "version message handling",
-                            mashroom::errc::INTERNAL_ERROR);
+                            mashroom::network::errc::internal_error);
                     }
                 }
                 else{
                     __emplace_error__(err,
                         "version interconnection already defined",
-                        mashroom::errc::INVALID_CLIENT_REQUEST);
+                        mashroom::network::errc::invalid_client_request);
                 }
             }
             break;
@@ -210,7 +210,7 @@ namespace network{
                 else{
                     __emplace_error__(err,
                         "index message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                     complete_current_request(err);
                 }
             }
@@ -251,7 +251,7 @@ namespace network{
                             default:
                                 __emplace_error__(err,
                                 "file metadata message handling",
-                                mashroom::errc::INTERNAL_ERROR);
+                                mashroom::network::errc::internal_error);
                             break;
                         }
                         std::cout<<std::endl;
@@ -283,12 +283,12 @@ namespace network{
                     }
                     else  __emplace_error__(err,
                         "transaction "+file_data.hash()+" already in process",
-                        mashroom::errc::RECEIVING_MESSAGE_ERROR);
+                        mashroom::network::errc::transaction_in_process);
                 }
                 else{
                     __emplace_error__(err,
                         "file metadata message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -303,12 +303,12 @@ namespace network{
                     }
                     else  __emplace_error__(err,
                         "transaction "+file_data.hash()+" not found",
-                        mashroom::errc::RECEIVING_MESSAGE_ERROR);
+                        mashroom::network::errc::transaction_not_found);
                 }
                 else{
                     __emplace_error__(err,
                         "file data message handling",
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             break;
@@ -331,7 +331,7 @@ namespace network{
                     on_write(err);
                 }
                 else {
-                    __emplace_error__(err,"bad message received",mashroom::errc::RECEIVING_MESSAGE_ERROR);
+                    __emplace_error__(err,"bad message received",mashroom::network::errc::receiving_message_error);
                     if(is_active_request()){
                         complete_current_request(std::make_error_code(std::errc::bad_message));
                         on_write(err);

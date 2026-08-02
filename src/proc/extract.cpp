@@ -13,18 +13,18 @@
 #include <iostream>
 #include "proc/extract.h"
 #include "grib1/message.h"
-#include "int_pow.h"
+#include "OsterLib/int_pow.h"
 #include "proc/extract/gen.h"
 #include "proc/extract/write.h"
-#include "compressor.h"
-#include "sys/error_exception.h"
+#include "OsterLib/compressor.h"
+#include "sys/error.h"
 #include "grib1/message.h"
 
 namespace fs = std::filesystem;
 using namespace std::chrono;
+using namespace osterlib;
 
-mashroom::errc Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
-    mashroom::errc err = mashroom::errc::NONE;
+ContextedError Extract::__write_file__(ExtractedData& result,OutputDataFileFormats FORMAT) const{
     std::unordered_set<fs::path> paths;
     try{
         switch(FORMAT&~OutputDataFileFormats::ARCHIVED){
@@ -47,26 +47,29 @@ mashroom::errc Extract::__write_file__(ExtractedData& result,OutputDataFileForma
             }
         }
     }
-    catch(const ErrorException& err){
-        return err.error();
+    catch(const ContextedError& err){
+        return err;
     }
     if((FORMAT&OutputDataFileFormats::ARCHIVED)!=0){
         try{
             auto cmprs = cpp::zip_ns::Compressor::create_archive(out_path_,std::to_string(utc_tp::clock::now().time_since_epoch().count()));
             for(auto& path:paths){
-                if(!cmprs.add_file(out_path_,path))
-                    throw ErrorException(mashroom::errc::INTERNAL_ERROR,std::string_view("archive creation failure"));
+                if(!cmprs.add_file(out_path_,path)){
+                    ContextedError ctx_err(mashroom::errc::internal_error,"archive creation failure");
+                    throw ctx_err.with_field("procedure","extract")
+                    .with_field("file",path.c_str());
+                }
                 else continue;
             }
         }
-        catch(const ErrorException& err){
-            return err.error();
+        catch(const ContextedError& err){
+            return err;
         }
     }
-    return mashroom::errc::NONE;
+    return {};
 }
 
-ExtractedData Extract::__extract__(const fs::path& file, mashroom::errc& err){
+ExtractedData Extract::__extract__(const fs::path& file, osterlib::ContextedError& err){
     api::HGrib1 grib;
     ExtractedData result;
     if(auto err_data = grib.open_grib(file);err_data.code()){
@@ -76,13 +79,15 @@ ExtractedData Extract::__extract__(const fs::path& file, mashroom::errc& err){
     }
     
     if(grib.file_size()==0){
-        err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+        err.error(api::errc<API_T::GRIB1>::data_empty);
+        err.with_field("procedure","extract").with_field("file",file.string());
         return ExtractedData();
     }
     do{
         const auto& msg = grib.message();
         if(!msg.has_value()){
-            err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
+            err.error(api::errc<API_T::GRIB1>::data_empty);
+            err.with_field("procedure","extract").with_field("file",file.string());
             return ExtractedData();
         }
         if(msg->get().message_length()==0)
@@ -90,8 +95,10 @@ ExtractedData Extract::__extract__(const fs::path& file, mashroom::errc& err){
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested()){
-            err=ErrorPrint::print_error(mashroom::errc::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
-            return ExtractedData();
+            err.error(mashroom::errc::interrupted);
+            err.with_field("procedure","extract");
+            ///@todo log
+            return {};
         }
         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
                                     msg->get().section_1_.reference_time(),
@@ -102,7 +109,7 @@ ExtractedData Extract::__extract__(const fs::path& file, mashroom::errc& err){
                                     msg->get().section_1_.center(),
                                     msg->get().section_1_.table_version(),
                                     msg->get().section_1_.level_data(),
-                                    msg->get().err_);
+                                    msg->get().err_.code());
         if(props_.center_.has_value() && msg_info.center!=props_.center_)
             continue;
         if(!props_.parameters_.empty() && !props_.parameters_.contains(SearchParamTableVersion{.param_=msg_info.parameter,.t_ver_=msg_info.table_version}))
@@ -143,8 +150,8 @@ template<>
 ExtractedData Extract::__extract_spec__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
         const fs::path &file,
         const std::vector<MessagePositionSizeInfo>& positions,
-        mashroom::errc& err){
-    API::HGrib1 grib;
+        osterlib::ContextedError& err){
+    api::HGrib1 grib;
     ExtractedData result;
     try{
         grib.open_grib(file);
@@ -155,24 +162,28 @@ ExtractedData Extract::__extract_spec__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
     }
     
     if(grib.file_size()==0){
-        err = ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,API::ErrorDataPrint::message<API::GRIB1>(API::ErrorData::Code<API::GRIB1>::DATA_EMPTY_X1,"",file.string()),AT_ERROR_ACTION::CONTINUE);
-        return ExtractedData();
+        err.error(api::errc<API_T::GRIB1>::data_empty);
+        err.with_field("procedure","extract").with_field("file",file.string());
+        return {};
     }
     for(const auto& pos:positions){
         if(pos.begin_<0 || !grib.set_message(pos.begin_))
             continue;
         const auto& msg = grib.message();
         if(!msg.has_value()){
-                err=ErrorPrint::print_error(mashroom::errc::DATA_NOT_FOUND,"Message undefined",AT_ERROR_ACTION::CONTINUE);
-                return ExtractedData();
+            err.error(mashroom::errc::data_not_found);
+            err.with_field("procedure","extract");
+            return {};
         }
         if(msg->get().message_length()==0)
             grib.next_message();
 
 		//ReturnVal result_date;
         if(stop_token_.stop_requested()){
-            err=ErrorPrint::print_error(mashroom::errc::INTERRUPTED,"Interrupted extraction",AT_ERROR_ACTION::CONTINUE);
-            return ExtractedData();
+            err.error(mashroom::errc::interrupted);
+            err.with_field("procedure","extract");
+            ///@todo log
+            return {};
         }
         data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg_info(
             msg->get().section2().has_value()?msg->get().section2()->get().define_grid():GridInfo{},
@@ -184,7 +195,7 @@ ExtractedData Extract::__extract_spec__<Data_t::TIME_SERIES,Data_f::GRIB_v1>(
             msg->get().section_1_.center(),
             msg->get().section_1_.table_version(),
             msg->get().section_1_.level_data(),
-            msg->get().err_);
+            msg->get().err_.code());
         
         if(msg_info.grid_data && msg_info.grid_data->has_grid()){
             auto add_value = [this,&msg_info,&msg]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE, FORMAT>& val){
@@ -214,9 +225,9 @@ using namespace std::string_literals;
 #include <format>
 #include <chrono>
 
-mashroom::errc Extract::execute() noexcept{
+osterlib::ContextedError Extract::execute() noexcept{
     ExtractedData result;
-    mashroom::errc err;
+    osterlib::ContextedError err;
     if(in_path_.empty()){
         auto matched = Mashroom::instance().data().
             data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().
@@ -235,11 +246,15 @@ mashroom::errc Extract::execute() noexcept{
         
         for(auto& [location,positions]:matched){   
             if(location.type()!=path::TYPE::FILE || !fs::is_regular_file(location.path())){
-                ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_FILE,"",AT_ERROR_ACTION::CONTINUE,location.path());
+                err.error(mashroom::errc::not_file);
+                err.with_field("procedure","extract").with_field("path",location.path());
+                ///@todo log if enabled
                 continue;
             }
             if(!fs::exists(location.path())){
-                ErrorPrint::print_error(mashroom::errc::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,location.path());
+                err.error(mashroom::errc::no_exists_path);
+                err.with_field("procedure","extract").with_field("file",location.path());
+                ///@todo log if enabled
                 continue;
             }
             std::cout<<"Extracting from "<<location<<std::endl;
@@ -249,13 +264,19 @@ mashroom::errc Extract::execute() noexcept{
             {
                 return lhs.begin_<rhs.begin_;
             });
-            if(stop_token_.stop_requested())
-                return mashroom::errc::INTERRUPTED;
+            if(stop_token_.stop_requested()){
+                err.error(mashroom::errc::interrupted);
+                err.with_field("procedure","extract");
+                return err;
+            }
             __extract_spec__<
                 Data_t::TIME_SERIES,Data_f::GRIB_v1>(
                     fs::path(location.path()),positions,err);
-            if(stop_token_.stop_requested())
-                return mashroom::errc::INTERRUPTED;
+            if(stop_token_.stop_requested()){
+                err.error(mashroom::errc::interrupted);
+                err.with_field("procedure","extract");
+                return err;
+            }
         }
     }
     else{
@@ -279,25 +300,87 @@ mashroom::errc Extract::execute() noexcept{
         }
     }
     if(procedures::extract::get_result(result).empty())
-        return mashroom::errc::NONE;
-        
-    __write_file__(result,output_format_);
-    return mashroom::errc::NONE;
+        return {};
+    return __write_file__(result,output_format_);
+}
+
+osterlib::ContextedError Extract::properties_integrity() const noexcept
+{
+    /*  input path and host are checked in AbstractSearchProcess corresponding methods
+        */
+    if (out_path_.empty()){
+        ContextedError ctx_msg(mashroom::errc::undefined_value);
+        ctx_msg.with_field("procedure","extract").with_field("value","out_path");
+        return ctx_msg;
+    }
+    if (!fs::exists(out_path_))
+    {
+        if (out_path_.has_extension()){
+            ContextedError ctx_msg(mashroom::errc::not_directory);
+            ctx_msg.with_field("procedure","extract").with_field("value",out_path_.c_str());
+            return ctx_msg;
+        }
+        else if (!fs::create_directories(out_path_)){
+            ContextedError ctx_msg(mashroom::errc::create_directory_denied);
+            ctx_msg.with_field("procedure","extract").with_field("value",out_path_.c_str());
+            return ctx_msg;
+        }
+    }
+    else
+    {
+        if (!fs::is_directory(out_path_)){
+            ContextedError ctx_msg(mashroom::errc::not_directory);
+            ctx_msg.with_field("procedure","extract").with_field("value",out_path_.c_str());
+            return ctx_msg;
+        }
+    }
+    if (props_.from_date_.has_value() && props_.to_date_.has_value() &&
+        !is_correct_interval(*props_.from_date_,*props_.to_date_)){
+        ContextedError ctx_msg(mashroom::errc::invalid_argument);
+        ctx_msg.with_field("procedure","extract").with_field("arg","date");
+        return ctx_msg;
+    }
+    else if (!props_.position_.has_value()){
+        ContextedError ctx_msg(mashroom::errc::undefined_value);
+        ctx_msg.with_field("procedure","extract").with_field("value","position");
+        return ctx_msg;
+    }
+    else if (!is_correct_pos(props_.position_.value())){
+        ContextedError ctx_msg(mashroom::errc::invalid_argument);
+        ctx_msg.with_field("procedure","extract").with_field("arg","coordinate");
+        return ctx_msg;
+    }
+    else if (!props_.grid_type_.has_value()){
+        ContextedError ctx_msg(mashroom::errc::undefined_value);
+        ctx_msg.with_field("procedure","extract").with_field("value","grid type");
+        return ctx_msg;
+    }
+    else if (props_.parameters_.empty()){
+        ContextedError ctx_msg(mashroom::errc::undefined_value);
+        ctx_msg.with_field("procedure","extract").with_field("value","search parameters");
+        return ctx_msg;
+    }
+    if (!props_.position_.has_value() || !props_.position_.value().is_correct_pos()) // actually for WGS84
+    {
+        ContextedError ctx_msg(mashroom::errc::invalid_argument);
+        ctx_msg.with_field("procedure","extract").with_field("arg","rect");
+        return ctx_msg;
+    }
+    return {};
 }
 
 ExtractedData Extract::__extract_common__(const fs::path &file,
             const std::vector<MessagePositionSizeInfo>& positions,
-            mashroom::errc& err){
+            osterlib::ContextedError& err){
     ExtractedData result;
     auto auto_unpack = [this,&file,&result,&err,&positions](auto& data){
         using T = std::decay_t<decltype(data)>;
         if constexpr(std::is_same_v<T,std::monostate>)
             return ExtractedData();
         else {
-            auto internal_auto_unpack=[this,&file,&result,&positions]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
-                mashroom::errc err;
+            auto internal_auto_unpack=[this,&file,&result,&positions,&err]<Data_t TYPE,Data_f FORMAT>(ExtractedValues<TYPE,FORMAT>& internal_data){
                 auto loc_result = std::move(__extract_spec__<TYPE,FORMAT>(file,positions,err));
-                if(err!=mashroom::errc::NONE)
+                if(err)
                     return ExtractedData();
                 else return loc_result;
             };

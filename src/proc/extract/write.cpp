@@ -1,16 +1,17 @@
 #include "proc/extract/write.h"
 #include <variant>
 #include <vector>
-#include "compressor.h"
+#include "OsterLib/compressor.h"
 #include "proc/extract/gen.h"
 #include "grib1/sections.h"
 #include "proc/common/fs.h"
-#include "sys/error_exception.h"
+#include "sys/error.h"
 #include "OsterLib/concepts.h"
 
 using namespace procedures::extract;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
+using namespace osterlib;
 
 bool extraction_empty(const ExtractedData& data) noexcept{
     auto is_empty = [](auto&& arg){
@@ -90,11 +91,14 @@ std::string get_file_header(const ExtractedData& result, const SearchProperties&
             size_t number = 1;
             for(auto& [props_values,value]:get_result(result)){
                 stream<<"#"<<number++<<":"<<"\n";
-                if(auto param_ptr = parameter_table(*props_values.cmn_.center_,*props_values.cmn_.table_version_,*props_values.cmn_.parameter_);param_ptr==nullptr)
-                    throw ErrorException(mashroom::errc::INTERNAL_ERROR,
-                        "undefined parameter table (center="s+std::to_string(static_cast<std::underlying_type_t<Organization>>(*props_values.cmn_.center_))+
-                        ";table version="s+std::to_string(*props_values.cmn_.table_version_)+";parameter="+
-                        std::to_string(*props_values.cmn_.parameter_)+")");
+                if(auto param_ptr = parameter_table(*props_values.cmn_.center_,*props_values.cmn_.table_version_,*props_values.cmn_.parameter_);param_ptr==nullptr){
+                    ContextedError ctx_err(mashroom::errc::undefined_value,"undefined parameter table");
+                    ctx_err.with_field("procedure","extract").with_field("at","file header")
+                    .with_field("center",std::to_string(static_cast<std::underlying_type_t<Organization>>(*props_values.cmn_.center_)))
+                    .with_field("table version",*props_values.cmn_.table_version_)
+                    .with_field("parameter",*props_values.cmn_.parameter_);
+                    throw ctx_err;
+                }
                 else
                     write_parameter<1>(stream,"name",param_ptr->name)<<"\n";
                 write_parameter<1>(stream,"indicator",*props_values.cmn_.parameter_)<<"\n";
@@ -167,12 +171,13 @@ std::string get_data_header(const ExtractedData& result, const SearchProperties&
     return stream.str();
 }
 
-std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path>
+     procedures::extract::write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path){
-    std::unordered_set<fs::path> paths;
+                        const std::filesystem::path& out_path){
+    std::unordered_set<std::filesystem::path> paths;
     if(extraction_empty(result))
         return paths;
     utc_tp_t<std::chrono::seconds> current_time = utc_tp_t<std::chrono::seconds>::max();
@@ -191,11 +196,16 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
     rows.resize(col_vals_.size());
     utc_tp_t<std::chrono::seconds> file_end_time = t_off+current_time;
     std::ofstream out;
-    fs::path out_f_name;
+    std::filesystem::path out_f_name;
     using printable_values_t = ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_t;
     for(int row=0;row<max_length;++row){
-        if(stop_token.stop_requested())
-            throw ErrorException(mashroom::errc::INTERRUPTED,std::string_view("writting txt files"));
+        if(stop_token.stop_requested()){
+            ContextedError ctx_err(mashroom::errc::interrupted);
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("time",std::format("{:%Y/%m/%d %H:%M:%S}",std::chrono::system_clock::now()));
+            throw ctx_err;
+        }
         current_time = utc_tp_t<std::chrono::seconds>::max();
         for(int col=0;col<col_vals_.size();++col)
             if(rows[col]<col_vals_[col]->size())
@@ -236,12 +246,13 @@ std::unordered_set<fs::path> procedures::extract::write_txt_file(const std::stop
     return paths;
 }
 
-std::unordered_set<fs::path> procedures::extract::write_json_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path>
+         procedures::extract::write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path){
-    std::unordered_set<fs::path> paths;
+                        const std::filesystem::path& out_path){
+    std::unordered_set<std::filesystem::path> paths;
     utc_tp_t<std::chrono::seconds> min_time = utc_tp_t<std::chrono::seconds>::max();
     utc_tp_t<std::chrono::seconds> max_time = utc_tp_t<std::chrono::seconds>::min();
     for(auto& [cmn_data,values]:get_result(result)){
@@ -254,7 +265,7 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
     utc_tp_t<std::chrono::seconds> lower_bound_time = min_time;
     utc_tp_t<std::chrono::seconds> upper_bound_time = t_off+min_time;
     std::ofstream out;
-    fs::path out_f_name;
+    std::filesystem::path out_f_name;
     while(true){
         if(lower_bound_time>max_time)
             break;
@@ -264,34 +275,40 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
         out_f_name/=generate_filename(OutputDataFileFormats::JSON_F,
             center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
-        if(!out.is_open())
-            throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
-        try{
-            boost::json::object json;
-            json["type"] = to_json(Data_t::TIME_SERIES);
-            json["format"] = to_json(Data_f::GRIB_v1);
-            json["data"] = boost::json::array();
-            boost::json::array& json_data = json["data"].as_array();
-            for(const auto& [cmn_data,values]:get_result(result)){
-                boost::json::object& current_data = json_data.emplace_back(boost::json::object()).as_object();
-                current_data["info"]=to_json(cmn_data);
-                current_data["values"]=to_json(std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
-                                                std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f))));
-            }
-            out<<json<<std::endl;
-            if(out.fail() && !out.eof()){
-                if(out.is_open())
-                    out.close();
-                else throw ErrorException(mashroom::errc::INTERNAL_ERROR,std::string_view(),out_f_name.c_str());
-            }
-            else{
-                paths.insert(out_f_name);
-                out.close();
-            }
+        if(!out.is_open()){
+            ContextedError ctx_err(mashroom::errc::file_writing_error,"cannot open file");
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("at","writing")
+            .with_field("mode","json")
+            .with_field("file",out_f_name.c_str());
         }
-        catch(const ErrorException& exc_err){
+        boost::json::object json;
+        json["type"] = to_json(Data_t::TIME_SERIES);
+        json["format"] = to_json(Data_f::GRIB_v1);
+        json["data"] = boost::json::array();
+        boost::json::array& json_data = json["data"].as_array();
+        for(const auto& [cmn_data,values]:get_result(result)){
+            boost::json::object& current_data = json_data.emplace_back(boost::json::object()).as_object();
+            current_data["info"]=to_json(cmn_data);
+            current_data["values"]=to_json(std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
+                                            std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f))));
+        }
+        out<<json<<std::endl;
+        if(out.fail() && !out.eof()){
+            if(out.is_open())
+                out.close();
+            else {
+                ContextedError ctx_err(mashroom::errc::file_writing_error);
+                ctx_err.with_field("file",out_f_name.c_str());
+                out.close();
+                std::filesystem::remove(out_f_name);
+                /// @todo log
+            };
+        }
+        else{
+            paths.insert(out_f_name);
             out.close();
-            fs::remove(out_f_name);
         }
         lower_bound_time = upper_bound_time;
         upper_bound_time = t_off+upper_bound_time;
@@ -299,14 +316,15 @@ std::unordered_set<fs::path> procedures::extract::write_json_file(const std::sto
     return paths;
 }
 
-std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path>
+         procedures::extract::write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path){
+                        const std::filesystem::path& out_path){
     using namespace serialization;
     using namespace std::string_view_literals;
-    std::unordered_set<fs::path> paths;
+    std::unordered_set<std::filesystem::path> paths;
     if(extraction_empty(result))
         return paths;
     utc_tp_t<std::chrono::seconds> min_time = utc_tp_t<std::chrono::seconds>::max();
@@ -321,7 +339,7 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
     utc_tp_t<std::chrono::seconds> lower_bound_time = min_time;
     utc_tp_t<std::chrono::seconds> upper_bound_time = t_off+min_time;
     std::ofstream out;
-    fs::path out_f_name;
+    std::filesystem::path out_f_name;
     while(true){
         if(lower_bound_time>max_time)
             break;
@@ -331,33 +349,51 @@ std::unordered_set<fs::path> procedures::extract::write_bin_file(const std::stop
         out_f_name/=generate_filename(OutputDataFileFormats::BIN_F,
             center_to_abbr(props.center_.value()),grid_to_abbr(props.grid_type_.value()),props.position_.value().lat_,props.position_.value().lon_,round_by_time_diff(t_off,lower_bound_time));
         make_and_open_file(out,out_f_name);
-        if(!out.is_open())
-            throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,std::string_view(),out_f_name.c_str());
-        try{
-            if(auto ser_err = serialize_to_file(Data_t::TIME_SERIES,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
-            if(auto ser_err = serialize_to_file(Data_f::GRIB_v1,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
-            
-            using result_t = std::decay_t<decltype(get_result(result))>;
-            std::vector<std::pair<std::reference_wrapper<const result_t::key_type>,std::span<const result_t::mapped_type::value_type>>> result_separated;
-            for(const auto& [cmn_data,values]:get_result(result)){
-                auto values_view = std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
-                        std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f)));
-                if(values_view.empty())
-                    continue;
-                else
-                    result_separated.push_back(std::make_pair(std::cref(cmn_data),values_view));
-            }
-            if(auto ser_err = serialize_to_file(result_separated,out);ser_err!=SerializationEC::NONE)
-                throw ErrorException(mashroom::errc::SERIALIZATION_ERROR,""sv);
-            paths.insert(out_f_name);
-            out.close();
+        if(!out.is_open()){
+            ContextedError ctx_err(mashroom::errc::file_writing_error,"cannot open file");
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("at","writing")
+            .with_field("mode","json")
+            .with_field("file",out_f_name.c_str());
+            throw ctx_err;
         }
-        catch(const ErrorException& exc_err){
+        if(auto ser_err = serialize_to_file(out,Data_t::TIME_SERIES,Data_f::GRIB_v1);ser_err!=SerializationEC::NONE){
+            ContextedError ctx_err(mashroom::errc::serialization_error);
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("at","writing")
+            .with_field("mode","bin")
+            .with_field("file",out_f_name.c_str());
             out.close();
-            fs::remove(out_f_name);
+            std::filesystem::remove(out_f_name);
+            continue;
+            /// @todo log
         }
+        using result_t = std::decay_t<decltype(get_result(result))>;
+        std::vector<std::pair<std::reference_wrapper<const result_t::key_type>,std::span<const result_t::mapped_type::value_type>>> result_separated;
+        for(const auto& [cmn_data,values]:get_result(result)){
+            auto values_view = std::span(  std::lower_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(lower_bound_time,0.f)),
+                    std::upper_bound(values.begin(),values.end(),ExtractedValue<Data_t::TIME_SERIES,Data_f::GRIB_v1>(upper_bound_time,0.f)));
+            if(values_view.empty())
+                continue;
+            else
+                result_separated.push_back(std::make_pair(std::cref(cmn_data),values_view));
+        }
+        if(auto ser_err = serialize_to_file(result_separated,out);ser_err!=SerializationEC::NONE){
+            ContextedError ctx_err(mashroom::errc::serialization_error);
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("at","writing")
+            .with_field("mode","bin")
+            .with_field("file",out_f_name.c_str());
+            out.close();
+            std::filesystem::remove(out_f_name);
+            continue;
+            /// @todo log
+        }
+        paths.insert(out_f_name);
+        out.close();
         lower_bound_time = upper_bound_time;
         upper_bound_time = t_off+upper_bound_time;
     }

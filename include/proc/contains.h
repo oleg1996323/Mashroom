@@ -40,22 +40,27 @@ class Contains:public AbstractSearchProcess,public AbstractThreadInterruptor{
     bool integral_only_; //search only integral time-series in searching time interval
 
     template<Data_t T,Data_f F>
-    mashroom::errc __execute__() noexcept;
+    osterlib::ContextedError __execute__() noexcept;
 
     public:
-    virtual mashroom::errc execute() noexcept override final{
+    virtual osterlib::ContextedError execute() noexcept override final{
         
     }
     void set_integral_only(bool integral);
-    virtual mashroom::errc properties_integrity() const noexcept override final{
-        if(out_path_.empty())
-            return ErrorPrint::print_error(mashroom::errc::UNDEFINED_VALUE,"output directory",AT_ERROR_ACTION::CONTINUE);
-        return mashroom::errc::NONE;
+    virtual osterlib::ContextedError properties_integrity() const noexcept override final{
+        if(out_path_.empty()){
+            osterlib::ContextedError ctx_err(mashroom::errc::undefined_value);
+            ctx_err
+            .with_field("procedure","contains")
+            .with_field("at","properties integrity")
+            .with_field("value","output directory");
+        }
+        return {};
     }
 };
 
 template<>
-inline mashroom::errc Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>() noexcept{
+inline osterlib::ContextedError Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>() noexcept{
     if(     !props_.center_.has_value() && 
                 props_.fcst_unit_.has_value() && 
                 !props_.from_date_.has_value() && 
@@ -88,7 +93,7 @@ inline mashroom::errc Contains::__execute__<Data_t::TIME_SERIES,Data_f::GRIB_v1>
         else{
             assert(false);
         }
-        return mashroom::errc::NONE;
+        return {};
 }
 
 // std::expected<bool,mashroom::errc> contains(const fs::path& from,const utc_tp& date ,const Coord& coord,

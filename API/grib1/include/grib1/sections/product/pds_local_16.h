@@ -1,5 +1,5 @@
 #pragma once
-#include "product/local.h"
+#include "grib1/sections/product/local.h"
 //https://codes.ecmwf.int/grib/format/grib1/local/2/
 #ifdef __cplusplus
 template<>

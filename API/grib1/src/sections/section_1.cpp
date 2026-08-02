@@ -1,7 +1,7 @@
 #include "grib1/sections.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "generated/code_tables/eccodes_tables.h"
+#include "grib1/generated/code_tables/eccodes_tables.h"
 #include "grib1/code_tables.h"
 #include "grib1/paramtableversion.h"
 

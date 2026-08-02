@@ -3,7 +3,7 @@
 #include "grib1/code_tables.h"
 #include "def.h"
 #include <span>
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 
 namespace grid{
 /** @brief Spherical harmonic grid

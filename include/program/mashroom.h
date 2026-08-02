@@ -27,16 +27,10 @@ class Mashroom{
     fs::path data_dir_;
     network::Server server_;
     network::Client client_;
-    void __read_initial_data_file__();
-    void __write_initial_data_file__();
+    osterlib::ContextedError __read_initial_data_file__() noexcept;
+    osterlib::ContextedError __write_initial_data_file__() noexcept;
     fs::path __filename__() const{
         return data_dir_/mashroom_data_info;
-    }
-    fs::path __crash_dir__() const{
-        return fs::path(std::getenv("HOME"))/"mashroom_crash";
-    }
-    fs::path __crash_path__() const{
-        return __crash_dir__()/mashroom_data_info;
     }
     public:
     Mashroom():
@@ -48,14 +42,17 @@ class Mashroom{
                 app().config().client_config().current_settings().number_events_);
         }()){
         if(!fs::exists(data_dir_))
-            if(!fs::create_directories(data_dir_))
-                ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,data_dir_.c_str());
+            if(!fs::create_directories(data_dir_)){
+                osterlib::ContextedError ctx_error(mashroom::errc::not_directory);
+                ctx_error.with_field("dir",data_dir_.c_str());
+                std::cout<<ctx_error.what()<<std::endl;
+            }
         __read_initial_data_file__();
     }
     ~Mashroom(){
         save();
     }
-    static mashroom::errc read_command(std::vector<std::string>&& argv);
+    static std::error_code read_command(std::vector<std::string>&& argv);
     bool read_command();
     network::ConnectionHandle connect(std::error_code& err,
         const std::string& host,
@@ -106,10 +103,12 @@ class Mashroom{
             else if(boost::iequals(buffer,std::string_view("no")))
                 return false;
             else{
-                ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
-                "please write \"yes\" if you want to save changes; \
-else write \"no\"",
-                AT_ERROR_ACTION::CONTINUE,buffer);
+                osterlib::ContextedError ctx_error(mashroom::errc::command_input_error,"unknown input");
+                ctx_error.with_field("input",buffer);
+                std::cout<<ctx_error.what()<<std::endl;
+                std::cout<<
+                "write \"yes\" if you want to save changes; \
+else write \"no\""<<std::endl;
             }
             return true;
         }

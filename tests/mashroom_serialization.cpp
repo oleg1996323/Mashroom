@@ -33,21 +33,22 @@ TEST(Serialization, DataStruct_serialization){
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> ids;
     std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msgs;
     utc_tp_t<std::chrono::seconds> time = std::chrono::sys_days(1990y/1/1);
+    osterlib::ContextedError ctx_err;
     std::error_code err;
     DateTimeDiff diff(err,std::chrono::days(1));
     TimeForecast tf(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,TimeForecast::period_t{.val=0},TimeForecast::period_t{.val=0});
     Level lvl(LevelsTags::GROUND_OR_WATER_SURFACE,10,0);
-    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
+    osterlib::ContextedError f_error;
     Location<false> path = Location<false>::file("any_path"s+to_data_format_name(Data_f::GRIB_v1).data(),utc_tp::clock::now());
     for(auto pos:buf_pos){
-        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(std::move(grid_def),std::move(time),pos,300,228,tf,Organization::ECMWF,128,lvl,f_error);
+        data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(std::move(grid_def),std::move(time),pos,300,228,tf,Organization::ECMWF,128,lvl,f_error.code());
         msgs.push_back(std::move(msg));
         time=diff+time;
     }
-    ids.add_data(path,msgs,err);
+    ids.add_data(path,msgs,ctx_err);
     for(auto& [cmn,d]:ids.common_)
         std::cout<<to_json(cmn)<<std::endl;
-    ASSERT_TRUE(err==std::error_code());
+    ASSERT_TRUE(!err && !ctx_err);
     {
         DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> to_check;
         serialization::StreamSerializer ser;

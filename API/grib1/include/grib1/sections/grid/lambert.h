@@ -1,5 +1,5 @@
 #pragma once
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 
 namespace grid{
     template<>

@@ -1,85 +1,116 @@
 #include "program/data.h"
-#include "sys/error_exception.h"
+#include "sys/error.h"
 
 template<>
-mashroom::errc Data::__read__<Data_f::GRIB_v1>(const fs::path& fn){
+osterlib::ContextedError Data::__read__<Data_f::GRIB_v1>(const fs::path& fn){
     using namespace serialization;
     std::ifstream file(fn,std::ios::binary);
+    if(!fs::exists(fn))
+        return osterlib::ContextedError(
+                mashroom::errc::no_exists_path)
+                .with_field("path",fn.c_str());
     if(!file.is_open())
-        return ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,fn.c_str());
+        return osterlib::ContextedError(
+                mashroom::errc::file_permission_denied)
+                .with_field("file",fn.c_str());
     auto& ds = data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>();
-    deserialize_from_file(ds,file);
+    auto ser_res = deserialize_from_file(ds,file);
+    if(ser_res!=SerializationEC::NONE)
+        return osterlib::ContextedError(
+                mashroom::errc::deserialization_error)
+                .with_field("path",fn.c_str());
     file.close();
-    return mashroom::errc::NONE;
+    return {};
 }
 
 template<>
-mashroom::errc Data::__write__<Data_f::GRIB_v1>(const fs::path& dir){
+osterlib::ContextedError Data::__write__<Data_f::GRIB_v1>(const fs::path& dir){
     using namespace serialization;
-    if(!fs::create_directories(dir) && !fs::is_directory(dir))
-        return ErrorPrint::print_error(mashroom::errc::X1_IS_NOT_DIRECTORY,"",AT_ERROR_ACTION::ABORT,dir.c_str());
+    if(!fs::create_directories(dir) && !fs::is_directory(dir)){
+        return osterlib::ContextedError(
+                mashroom::errc::not_directory)
+                .with_field("path",dir.c_str());
+    }
     fs::path save_file = dir/filename_by_format(Data_f::GRIB_v1);
     std::cout<<"Saved data file: "<<save_file<<std::endl;
     std::ofstream file(save_file,std::ios::binary);
     SerializationEC err = serialize_to_file(data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>(),file);
     if(err==SerializationEC::NONE)
         files_[Data_f::GRIB_v1]=save_file;
-    else return ErrorPrint::print_error(mashroom::errc::SERIALIZATION_ERROR,"grib data",AT_ERROR_ACTION::CONTINUE);
+    else return osterlib::ContextedError(
+                mashroom::errc::serialization_error,"grib data")
+                .with_field("path",dir.c_str());
     file.close();
-    return mashroom::errc::NONE;
+    return {};
 }
-mashroom::errc Data::read(const fs::path& filename) noexcept{
-    mashroom::errc err = mashroom::errc::NONE;
+osterlib::ContextedError Data::read(const fs::path& filename) noexcept{
     if(fs::exists(filename)){
         if(auto fmts = utility_token(filename.extension().string());!fmts.has_value())
-            return ErrorPrint::print_error(mashroom::errc::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
+            return osterlib::ContextedError(
+                mashroom::errc::file_corrupted,"unknown format")
+                .with_field("file",filename.c_str());
         else{
             switch (fmts.value())
             {
             case Data_f::GRIB_v1:{
-                return __read__<Data_f::GRIB_v1>(filename);err==mashroom::errc::NONE;
+                return __read__<Data_f::GRIB_v1>(filename);
                 break;
             }
             default:
-                return ErrorPrint::print_error(mashroom::errc::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
+                return osterlib::ContextedError(
+                mashroom::errc::file_corrupted,"unknown format")
+                .with_field("file",filename.c_str());
                 break;
             }
         }
     }
-    else return ErrorPrint::print_error(mashroom::errc::FILE_X1_DONT_EXISTS,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
+    else return osterlib::ContextedError(
+                mashroom::errc::no_exists_path)
+                .with_field("path",filename.c_str());
 }
-mashroom::errc Data::write(const fs::path& filename) noexcept{
+osterlib::ContextedError Data::write(const fs::path& filename) noexcept{
     if(!filename.has_extension())
-        return ErrorPrint::print_error(mashroom::errc::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.extension().c_str());
+        return osterlib::ContextedError(
+                mashroom::errc::file_corrupted,"unknown format")
+                .with_field("file",filename.c_str())
+                .with_field("extension",filename.extension().c_str());
     std::vector<Data_f> fmts;
     if(auto fmt_tmp = extension_to_tokens(filename.extension().c_str());!fmt_tmp.has_value())
-        return ErrorPrint::print_error(mashroom::errc::UNKNOWN_X1_FORMAT_FILE,"",AT_ERROR_ACTION::CONTINUE,filename.extension().c_str());
+        return osterlib::ContextedError(
+                mashroom::errc::file_corrupted,"unknown format")
+                .with_field("file",filename.c_str())
+                .with_field("extension",filename.extension().c_str());
     else fmts = fmt_tmp.value();
     std::ofstream file;
     if(!fs::exists(filename)){
         if(!fs::exists(filename.parent_path()))
-            if(!fs::create_directories(filename.parent_path())){
-                return ErrorPrint::print_error(mashroom::errc::CREATE_DIR_X1_DENIED,"",AT_ERROR_ACTION::CONTINUE,filename.parent_path().c_str());
-            }
+            if(!fs::create_directories(filename.parent_path()))
+                return osterlib::ContextedError(
+                mashroom::errc::create_directory_denied)
+                .with_field("dir",filename.parent_path().c_str());
     }
     file.open(filename,std::ios::trunc|std::ios::out);
     if(!file.is_open())
-        return ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,filename.c_str());
+        return osterlib::ContextedError(
+                mashroom::errc::file_permission_denied)
+                .with_field("file",filename.c_str());
     for(Data_f fmt:fmts){
         switch (fmt)
         {
         case FORMAT::GRIB_v1:{
             __write__<Data_f::GRIB_v1>(filename);
             unsaved_.erase(fmt);
-            return mashroom::errc::NONE;
+            return {};
             break;
         }
         default:
-            return ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Invalid file input",AT_ERROR_ACTION::CONTINUE);
+            return osterlib::ContextedError(
+                mashroom::errc::internal_error,"invalid file input")
+                .with_field("file",filename.c_str());
             break;
         }
     }
-    return mashroom::errc::NONE;
+    return {};
 }
 
 #include <format>

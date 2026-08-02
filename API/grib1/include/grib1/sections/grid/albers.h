@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "grib1/code_tables.h"
 #include "def.h"
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 #include <vector>
 
 #ifdef __cplusplus

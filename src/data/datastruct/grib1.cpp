@@ -430,7 +430,7 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::rewrite_index(const std::s
 
 void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<false>& path,
         const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
-        std::error_code& err)
+        osterlib::ContextedError& ctx_err)
 {   
     if(!std::is_sorted(grib_msg.begin(),grib_msg.end(),[]
     (const data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>& lhs,
@@ -439,15 +439,17 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<fa
             return lhs.date<rhs.date;
         }))
     {
-        err = std::make_error_code(std::errc::invalid_argument);
+        ctx_err.error(mashroom::errc::invalid_argument,"not sorted messages by time")
+        .with_field("at","DataStruct add data")
+        .with_field("type","time series")
+        .with_field("format","grib v1");
         return;
     }
     
     DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1> tmp;
     for(auto& msg:grib_msg)
     {
-        if(err = std::make_error_code(msg.err_);
-            err)
+        if(msg.err_)
             return;
         std::shared_ptr<IndexStruct> idx_tmp = std::make_shared<IndexStruct>();
         idx_tmp->cmn_=Grib1CommonDataProperties(
@@ -475,6 +477,7 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<fa
             auto iter = (*found)->ts_pos_.begin();
             auto tinterval_tmp = iter->ts_.get_interval();
             DateTimeDiff diff_tmp = iter->ts_.time_duration();
+            std::error_code err;
             //trying push time_point to TimeSequence
             while(iter!=(*found)->ts_pos_.end() &&
                     !iter->ts_.push_time_after(msg.date,err) &&
@@ -528,7 +531,8 @@ void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<fa
 
 void DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::add_data(const Location<false>& path,
     const DataStruct<Data_t::TIME_SERIES,
-    Data_f::GRIB_v1>::find_all_t& data){
+        Data_f::GRIB_v1>::find_all_t& data,
+    osterlib::ContextedError& ctx_err){
         auto file = std::make_shared<Location<false>>(path);
         for(const auto& found_data:data){
             std::shared_ptr<IndexStruct> id = 

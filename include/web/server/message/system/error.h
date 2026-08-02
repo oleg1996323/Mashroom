@@ -1,14 +1,16 @@
 #pragma once
 #include "web/common/msgdef.h"
 #include "sys/error.h"
+#include "OsterLib/contexted_error.h"
 
 namespace network{
     template<>
     class Message<network::Server_MsgT::ERROR>{
         std::string description_;
+        std::vector<osterlib::Field> fields_;
         std::optional<Message<Server_MsgT::TRANSACTION>> transaction_;
         server::Status status_;
-        mashroom::errc err_;
+        mashroom::network::errc err_;
         template<bool,auto>
         friend struct serialization::Serialize;
         template<bool,auto>
@@ -20,7 +22,7 @@ namespace network{
         template<auto>
         friend struct serialization::Max_serial_size;
         public:
-        Message(mashroom::errc error_code,
+        Message(mashroom::network::errc error_code,
                     std::string description,
                     const Message<Server_MsgT::TRANSACTION>& transaction,
                     server::Status status):
@@ -28,7 +30,7 @@ namespace network{
                     transaction_(transaction),
                     status_(status),
                     err_(error_code){}
-        Message(mashroom::errc error_code,
+        Message(mashroom::network::errc error_code,
                     std::string description,
                     server::Status status):
                     description_(description),
@@ -70,11 +72,30 @@ namespace network{
         const std::string& description() const noexcept{
             return description_;
         }
-        mashroom::errc error() const noexcept{
+        mashroom::network::errc error() const noexcept{
             return err_;
         }
-        void error(mashroom::errc err) noexcept{
+        void error(mashroom::network::errc err) noexcept{
             err_=err;
+        }
+        void add_field(std::string key,std::string value) noexcept{
+            fields_.push_back(osterlib::Field(std::move(key),std::move(value)));
+        }
+        void add_field(osterlib::Field field) noexcept{
+            fields_.push_back(std::move(field));
+        }
+        void add_fields(std::vector<osterlib::Field> fields) noexcept{
+            if(fields.empty())
+                fields_.swap(fields);
+            else fields_.insert(fields_.end(),
+                std::make_move_iterator(fields.begin()),
+                std::make_move_iterator(fields.end()));
+        }
+        osterlib::ContextedError contexted_error() const noexcept{
+            osterlib::ContextedError result(err_,description_);
+            for(auto& field:fields_)
+                result.with_field(field.key(),field.value());
+            return result;
         }
         void description(std::string description) noexcept{
             description_=std::move(description);

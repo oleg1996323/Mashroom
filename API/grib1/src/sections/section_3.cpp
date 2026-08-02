@@ -1,4 +1,5 @@
 #include "grib1/sections.h"
+#include "grib1/sections/bitmap/def.h"
 
 #ifdef __cplusplus
 #include <fstream>

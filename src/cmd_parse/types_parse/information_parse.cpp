@@ -1,6 +1,7 @@
 #include "types_parse/information_parse.h"
 #include <boost/regex.hpp>
-#include "parsing.h"
+#include "OsterLib/parsing.h"
+#include "sys/error.h"
 
 namespace parse{
     namespace detail{
@@ -28,7 +29,7 @@ namespace parse{
         std::array<std::string_view,5> units = {"B","KB","MB","GB","TB"};
     }
 
-    std::expected<info_quantity,mashroom::errc> info_unit(std::string_view str) noexcept{
+    std::expected<info_quantity,osterlib::ContextedError> info_unit(std::string_view str) noexcept{
         using namespace boost::units::information;
         using namespace detail;
         if(is_byte(str))
@@ -41,22 +42,32 @@ namespace parse{
             return bytes*(uint64_t(1)<<30);
         else if (is_terabyte(str))
             return bytes*(uint64_t(1)<<40);
-        else return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
-                        "doesn't match any information unit",AT_ERROR_ACTION::CONTINUE,str));
+        else{
+            osterlib::ContextedError ctx_err(mashroom::errc::command_input_error,
+                    "information unit not matched");
+            ctx_err.with_field("at","info unit resolver")
+            .with_field("input",str);
+            return std::unexpected(std::move(ctx_err));
+        }
     }
     
-    std::expected<double,mashroom::errc> info_size(std::string_view str) noexcept{
+    std::expected<double,osterlib::ContextedError> info_size(std::string_view str) noexcept{
         using namespace boost::units::information;
         using namespace detail;
         auto parse_value = from_chars<double>(str);
         if(parse_value.has_value() && parse_value.value()>=0 && std::isinf(parse_value.value()))
             return parse_value.value();
-        else return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
-                        "doesn't match number (expected floating-point number)",
-                        AT_ERROR_ACTION::CONTINUE,str));
+        else{
+            osterlib::ContextedError ctx_err(mashroom::errc::command_input_error,
+                    "information unit's number not matched");
+            ctx_err.with_field("at","info size resolver")
+            .with_field("input",str)
+            .with_field("expect","float");
+            return std::unexpected(std::move(ctx_err));
+        }
     }
 
-    std::expected<info_quantity,mashroom::errc> info_size_unit(std::string_view str) noexcept{
+    std::expected<info_quantity,osterlib::ContextedError> info_size_unit(std::string_view str) noexcept{
         auto number_unit_separation = std::find_if(str.begin(),str.end(),[](const char ch) noexcept{
             return !std::isdigit(ch);
         });
@@ -69,9 +80,13 @@ namespace parse{
             if(!size.has_value())
                 return std::unexpected(size.error());
             else{
-                if(std::isinf(size.value()))
-                    return std::unexpected(ErrorPrint::print_error(mashroom::errc::COMMAND_INPUT_X1_ERROR,
-                        "too huge value",AT_ERROR_ACTION::CONTINUE,std::string_view(str.begin(),number_unit_separation)));
+                if(std::isinf(size.value())){
+                    osterlib::ContextedError ctx_err(mashroom::errc::command_input_error,
+                            "too huge value");
+                    ctx_err.with_field("at","info size-unit resolver")
+                    .with_field("input",std::string_view(str.begin(),number_unit_separation));
+                    return std::unexpected(std::move(ctx_err));
+                }
                 return unit.value()*static_cast<double>(size.value());
             }
         }

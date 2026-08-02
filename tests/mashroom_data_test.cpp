@@ -30,6 +30,7 @@ class GribDataStruct:public testing::Test{
         auto any = Location<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        osterlib::ContextedError ctx_err;
         auto err = std::error_code();
         auto param=16;
         auto table_v=228;
@@ -38,18 +39,16 @@ class GribDataStruct:public testing::Test{
             // for(int table_v = 128;table_v<229;table_v+=228-128)
             //     for(int param = 16;param<130;param+=16){
                     ptrdiff_t cur_pos = 1000*count++;
-                    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
-                    auto err = std::error_code();
                     auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,
-                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),err);
                     msg_data.push_back(std::move(msg));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
                         pos_.push_back(cur_pos);
                 //}
         }
-        ds.add_data(any,msg_data,err);
+        ds.add_data(any,msg_data,ctx_err);
     }
 };
 
@@ -85,23 +84,22 @@ class DataTestClass:public Data,public testing::Test{
         uint64_t count = 0;
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
         auto err = std::error_code();
+        osterlib::ContextedError ctx_err;
         for(int d=0;d<=(sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1);++d)
         {
             for(int table_v = 128;table_v<229;table_v+=228-128)
                 for(int param = 16;param<130;param+=16){
-                    size_t cur_pos = 1000*count++;
-                    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
-                    
+                    size_t cur_pos = 1000*count++;                    
                     auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,
-                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),err);
                     msg_data.push_back(std::move(msg));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
                         pos_.push_back(MessagePositionSizeInfo{.begin_=cur_pos,.size_=1000});
                 }
         }
-        gribdata.add_data(any,msg_data,err);
+        gribdata.add_data(any,msg_data,ctx_err);
         for(auto id:data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().index_){
             for(auto& [ts,pos]:id->ts_pos_)
                 assert(ts.number_of_intervals()==31);
@@ -277,6 +275,7 @@ class DataTestClass_1:public Data,public testing::Test{
         Location<false> any;
         auto time = utc_tp::clock::now();
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        osterlib::ContextedError ctx_err;
         auto err = std::error_code();
         for(int id = 1;id<=tables_by_id_.size();++id){
             uint64_t count = 0;
@@ -286,12 +285,10 @@ class DataTestClass_1:public Data,public testing::Test{
                 for(auto table:tables_by_id_[id-1].second)
                     for(int param = 16+id;param<130+id;param+=16+id){
                         ptrdiff_t cur_pos = 1000*count++;
-                        auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
-                        auto err = std::error_code();
                         auto msg = data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>(GridInfo(grid),sys_days(year(1990+id)/month(id)/day(1))+days(d),
                                     cur_pos,1000+2000*id,param,TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::UNINIT_REF_TIME,
                                         {static_cast<uint8_t>(6+id)},{static_cast<uint8_t>(0)}),
-                                    tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                                    tables_by_id_[id-1].first,table,Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),err);
                         // std::cout<<(cmn_search_1.contains(Grib1CommonDataProperties(msg.center,msg.table_version,msg.parameter))?
                         //                 "Contains":"Does not contains")<<std::endl;
                         if(msg.date>=from_1 && msg.date<=to_1 && TimeForecast::compare(TimeForecast::LESS,msg.t_unit,tf_1,err) &&
@@ -321,7 +318,7 @@ class DataTestClass_1:public Data,public testing::Test{
                     }
             }
         }
-        gribdata.add_data(any,msg_data,err);
+        gribdata.add_data(any,msg_data,ctx_err);
         for(auto id:data_struct<Data_t::TIME_SERIES,Data_f::GRIB_v1>().index_){
             for(auto& [ts,pos]:id->ts_pos_)
                 assert(ts.number_of_intervals()==0);

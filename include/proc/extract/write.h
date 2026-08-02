@@ -1,6 +1,5 @@
 #pragma once
 #include "sys/error.h"
-#include "sys/log_err.h"
 #include "grib1/properties.h"
 #include "proc/extract/extracted_data.h"
 #include <thread>
@@ -8,6 +7,8 @@
 #include "sys/outputdatafileformats.h"
 #include "sys/application.h"
 #include "OsterLib/serialization.h"
+#include "OsterLib/contexted_error.h"
+#include <expected>
 
 namespace procedures::extract{
 
@@ -34,22 +35,24 @@ inline const auto& get_result(const ExtractedData& result){
     };
     return std::visit(get,result);
 }
-
-std::unordered_set<fs::path> write_txt_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path>
+        write_txt_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path);
+                        const std::filesystem::path& out_path);
 
-std::unordered_set<fs::path> write_json_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path> 
+        write_json_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path);
+                        const std::filesystem::path& out_path);
 
-std::unordered_set<fs::path> write_bin_file(const std::stop_token& stop_token,
+std::unordered_set<std::filesystem::path> 
+        write_bin_file(const std::stop_token& stop_token,
                         ExtractedData& result,
                         const SearchProperties& props,
                         const DateTimeDiff& t_off,
-                        const fs::path& out_path);
+                        const std::filesystem::path& out_path);
 }

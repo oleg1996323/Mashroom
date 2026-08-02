@@ -30,7 +30,8 @@ namespace mashroom{
             file_corrupted,
             version_error,
             file_reading_error,
-            file_writing_error
+            file_writing_error,
+            invalid_host
         };
         virtual const char * name() const noexcept override{
             return "Mashroom error";
@@ -113,6 +114,9 @@ namespace mashroom{
                 break;
             case code::file_writing_error:
                 return "file writing error";
+                break;
+            case code::invalid_host:
+                return "invalid host";
                 break;
             default:
                 return "unknown";

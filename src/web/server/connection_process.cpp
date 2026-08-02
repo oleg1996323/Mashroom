@@ -5,9 +5,15 @@
 #include "program/mashroom.h"
 #include "sys/application.h"
 #include "sys/config.h"
+#include "OsterLib/contexted_error.h"
 #include "common/MessagePositionSizeInfo.h"
+#include <optional>
 
 using namespace network;
+
+constexpr size_t threaded_min_number_sizes = 10000000;
+constexpr size_t threaded_min_number_files = 10000;
+constexpr size_t max_file_part = 8192*100;
 
 using FilePathsPositionsSizes = std::vector<std::pair<Location<true>,
             std::vector<MessagePositionSizeInfo>>>;
@@ -72,70 +78,66 @@ void
     else static_assert(false);
 };
 
-template<Client_MsgT::type MSG_T>
-task_index_result_t index_process(std::error_code& err,
-        FilePathsPositionsSizes& pos,
-        std::stop_token token,
-        const Message<MSG_T>& msg,
-        bool send_file)
-{
-    static_assert((MSG_T==Client_MsgT::INDEX || MSG_T==Client_MsgT::INDEX_REF),
-        "only client index message may be accepted");
-    const auto& transaction = get_reply(msg.transaction());
-    ::Message<Server_MsgT::INDEX> rep_msg(transaction);
-    auto find_data_proxy = [&](const auto& val){
-        if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(val)>>){
-            find_data(pos,msg,rep_msg,val);
-        }
-        else return;
-    };
-    for(const auto& param : msg.parameters_){
-        if(token.stop_requested()){
-            task_index_result_t result{
-                .msg_=::Message<Server_MsgT::INDEX>(transaction),
-                .add_=std::nullopt};
-            result.msg_.state(Transaction::CANCEL);
-            return result;
-        }
-        std::visit(find_data_proxy,param);
-    }
-    if(send_file)
-        return task_index_result_t{.msg_=std::move(rep_msg),.add_=std::move(pos)};
-    else return task_index_result_t{.msg_=std::move(rep_msg),.add_=std::nullopt};
-}
-
 std::expected<
     task_result_t,
-    std::error_code> __index_process__(
+    osterlib::ContextedError> __index_process__(
     std::stop_token stop,
     ClientAppMsg appmsg,
     bool send_file) noexcept
 {   
-    std::error_code err;
-    auto into = [&stop,&err,send_file](auto& in_app_msg) noexcept->
+    auto into = [&stop,send_file](auto& in_app_msg) noexcept->
             std::expected<
             task_result_t,
-            std::error_code>
+            osterlib::ContextedError>
     {
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
-            return std::unexpected(std::make_error_code(std::errc::bad_message));
+            return std::unexpected(
+                    osterlib::ContextedError(
+                        mashroom::errc::invalid_argument,"monostate passed to visitor"));
         }
         else{
-            auto handle_msg = [&stop,&err,send_file]
+            auto handle_msg = [&stop,send_file]
                 <Client_MsgT::type MSG_T>
                 (const Message<MSG_T>& msg) noexcept ->
                     std::expected<
                     task_result_t,
-                    std::error_code>
+                    osterlib::ContextedError>
             {
                 if constexpr (MSG_T==Client_MsgT::INDEX ||
                     MSG_T==Client_MsgT::INDEX_REF)
                 {
                     FilePathsPositionsSizes pos;
                     MessageHandler<Side::SERVER> result;
-                    return index_process(err,pos,stop,msg,send_file);
+                    const auto& transaction = get_reply(msg.transaction());
+                    ::Message<Server_MsgT::INDEX> rep_msg(transaction);
+                    auto find_data_proxy = [&](const auto& val) noexcept{
+                        if constexpr (!std::is_same_v<std::monostate,std::decay_t<decltype(val)>>){
+                            find_data(pos,msg,rep_msg,val);
+                        }
+                        else return;
+                    };
+                    for(const auto& param : msg.parameters_){
+                        if(stop.stop_requested()){
+                            task_index_result_t result{
+                                .msg_=::Message<Server_MsgT::INDEX>(transaction),
+                                .add_=std::nullopt};
+                            result.msg_.state(Transaction::CANCEL);
+                            return result;
+                        }
+                        std::visit(find_data_proxy,param);
+                    }
+                    if(send_file)
+                        return task_index_result_t{.msg_=std::move(rep_msg),.add_=std::move(pos)};
+                    else return task_index_result_t{.msg_=std::move(rep_msg),.add_=std::nullopt};
                 }
-                else return std::unexpected(std::make_error_code(std::errc::bad_message));
+                else{
+                    osterlib::ContextedError ctx_err(
+                        mashroom::errc::invalid_argument,
+                        "invalid message tag");
+                    ctx_err.with_field("procedure","index")
+                    .with_field("tag",MSG_T);
+                    return std::unexpected(std::move(ctx_err));
+                }
             };
             return handle_msg(in_app_msg);
         }
@@ -143,92 +145,135 @@ std::expected<
     return std::visit(into,appmsg);
 }
 
+namespace details{
+
 std::expected<
-    MessageHandler<Side::SERVER>,
-    std::error_code> extract_process(std::error_code& err,
+    task_file_metadata_result_t,
+    osterlib::ContextedError> extract_process_internal(
         std::stop_token token,
         const Message<
         Client_MsgT::EXTRACT>& msg)
 {
     Extract hExtract;
     auto init_h = [&hExtract](auto& form){
-        if constexpr(std::is_same_v<std::decay_t<decltype(form)>,std::monostate>){
-            return ErrorPrint::print_error(
-                mashroom::errc::UNDEFINED_VALUE,
-                "extract form type",
-                AT_ERROR_ACTION::CONTINUE);
-        }
-        else{
-            return hExtract.set_by_request(form);
-        }
+        if constexpr(std::is_same_v<std::decay_t<decltype(form)>,std::monostate>)
+            return osterlib::ContextedError(mashroom::errc::invalid_argument,"monostate passed to visitor")
+                    .with_field("procedure","extract")
+                    .with_field("at","resolve extract form");
+        else return hExtract.set_by_request(form);
     };
-    std::visit(init_h,
-        msg.form());
-    if(err)
-        return std::unexpected(std::make_error_code(std::errc::invalid_argument));
+    osterlib::ContextedError ctx_err = std::visit(init_h,msg.form());
+    if(ctx_err)
+        return std::unexpected(std::move(ctx_err));
     std::string file_namebase = msg.transaction().hash();
     //main directory of current request with .zip file and cache-dir
     fs::path curdir = ::app().config().system_config().cache_files_directory()/file_namebase;
     fs::remove_all(curdir);
-    if(!fs::create_directories(curdir))
-        return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
-    //@todo change further to std::error_code
-    mashroom::errc error_code;
-    //@todo make setting temporary dir by config
-    error_code = hExtract.set_out_path(curdir.c_str()); 
-    if(error_code==mashroom::errc::NONE)
-        error_code = hExtract.execute();
-    else{
-        fs::remove_all(curdir);
-        return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+    if(!fs::create_directories(curdir)){
+        ctx_err.error(mashroom::errc::create_directory_denied)
+        .with_field("procedure","extract")
+        .with_field("dir",curdir.c_str());
+        return std::unexpected(std::move(ctx_err));
     }
+    //@todo make setting temporary dir by config 
+    if(auto code = hExtract.set_out_path(curdir.c_str());code){
+        fs::remove_all(curdir);
+        ctx_err.error(code)
+        .with_field("procedure","extract")
+        .with_field("dir",curdir.c_str());
+        return std::unexpected(std::move(ctx_err));
+    }
+    else ctx_err = hExtract.execute();
+    if(ctx_err)
+        return std::unexpected(std::move(ctx_err));
     
     if(std::distance(fs::directory_iterator(curdir), fs::directory_iterator{})!=1) //only 1 zip file
-        return std::unexpected(std::make_error_code(std::errc::no_such_file_or_directory));
-    MessageHandler<Side::SERVER> reply_hmsg;
-    auto& reply_msg = reply_hmsg.emplace_message(Message<Server_MsgT::FILE_METADATA>(
-                get_reply(msg.transaction())));
+    {
+        ctx_err.error(mashroom::errc::internal_error,"more than package file in destination directory")
+        .with_field("procedure","extract");
+        return std::unexpected(std::move(ctx_err));
+    }
+    task_file_metadata_result_t result{.msg_ = Message<Server_MsgT::FILE_METADATA>(
+                    get_reply(msg.transaction())),
+                .add_=ServerConnectionProcess::SendingFileState(
+                    get_reply(msg.transaction()),max_file_part)};
     for(auto entry:fs::directory_iterator(curdir))
     {
-        if(entry.is_regular_file() && entry.path().extension()==".zip"){
-            
-            reply_msg.file_size(entry.file_size());
-            reply_msg.filename(entry.path());
-            return reply_hmsg;
+        if(entry.is_regular_file())
+        {
+            if(entry.path().extension()==".zip"){    
+                result.msg_.file_size(entry.file_size());
+                result.msg_.filename(entry.path());
+                result.add_.append_filepart(
+                        entry.path().string(),
+                        0,
+                        fs::file_size(entry.path()));
+                return result;
+            }
+            else{
+                ctx_err.error(mashroom::errc::unknown_file_format,"not zip format");
+                ctx_err.with_field("procedure","extract")
+                .with_field("file",entry.path().c_str());
+                return std::unexpected(std::move(ctx_err));
+            }
         }
-        else return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+        else{
+            ctx_err.error(mashroom::errc::not_file);
+            ctx_err.with_field("procedure","extract")
+                .with_field("path",entry.path().c_str());
+            return std::unexpected(std::move(ctx_err));
+        }
     }
-    return std::unexpected(std::make_error_code(std::errc::operation_not_permitted));
+    ctx_err.error(mashroom::errc::not_file_or_directory,"empty directory");
+    ctx_err.with_field("procedure","extract")
+        .with_field("dir",curdir.c_str());
+    return std::unexpected(std::move(ctx_err));
+}
 }
 
 std::expected<
-    MessageHandler<Side::SERVER>,
-    std::error_code> __extract_process__(
+    task_result_t,
+    osterlib::ContextedError> __extract_process__(
     std::stop_token stop,
     ClientAppMsg appmsg) noexcept
 {   std::error_code err;
     auto into = [&stop,&err](auto& in_app_msg) noexcept->
             std::expected<
-            MessageHandler<Side::SERVER>,
-            std::error_code>
+            task_result_t,
+            osterlib::ContextedError>
     {
+        osterlib::ContextedError ctx_err;
         if constexpr(std::is_same_v<std::monostate,std::decay_t<decltype(in_app_msg)>>){
-            return std::unexpected(std::make_error_code(std::errc::bad_message));
+            ctx_err.error(mashroom::errc::not_file_or_directory,
+                    "monostate passed to visitor");
+            ctx_err.with_field("procedure","extract")
+                .with_field("at","resolve message handler category");
+            return std::unexpected(std::move(ctx_err));
         }
         else{
-            auto handle_msg = [&stop,&err]
+            auto handle_msg = [&stop,&ctx_err]
                 <Client_MsgT::type MSG_T>
                 (const Message<MSG_T>& msg) noexcept ->
                     std::expected<
-                    MessageHandler<Side::SERVER>,
-                    std::error_code>
+                    task_result_t,
+                    osterlib::ContextedError>
             {
                 if constexpr (MSG_T==Client_MsgT::EXTRACT)
                 {
-                    auto result = extract_process(err,stop,msg);
-                    return result;
+                    if(std::expected<task_file_metadata_result_t,
+                        osterlib::ContextedError> result = 
+                            details::extract_process_internal(stop,msg);result)
+                        return task_result_t(std::move(result.value()));
+                    else return std::unexpected(std::move(result.error()));
                 }
-                else return std::unexpected(std::make_error_code(std::errc::bad_message));
+                else{
+                    ctx_err.error(
+                        mashroom::errc::invalid_argument,
+                        "invalid message tag");
+                    ctx_err.with_field("procedure","extract")
+                    .with_field("tag",MSG_T);
+                    return std::unexpected(std::move(ctx_err));
+                }
             };
             return handle_msg(in_app_msg);
         }
@@ -282,7 +327,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
         __emplace_error__(err,
             "version interconnection not defined",
             server::Status::READY,
-            mashroom::errc::INVALID_CLIENT_REQUEST);
+            mashroom::network::errc::invalid_client_request);
         return;
     }
     switch(msg_id){
@@ -299,7 +344,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 __emplace_error__(err,
                             "credentials message handling",
                             server::Status::READY,
-                            mashroom::errc::INTERNAL_ERROR);
+                            mashroom::network::errc::internal_error);
             }
         }
         break;
@@ -328,7 +373,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     __emplace_error__(err,
                         "transaction message handling",
                         server::Status::READY,
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             break;
         }
@@ -361,21 +406,21 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                          __emplace_error__(err,
                         "transaction "+msg_progress.hash()+" not found",
                         server::Status::READY,
-                        mashroom::errc::INVALID_CLIENT_REQUEST);
+                        mashroom::network::errc::invalid_client_request);
                     }
                 }
                 else{
                     __emplace_error__(err,
                     "transaction "+msg_progress.hash()+" not found",
                     server::Status::READY,
-                    mashroom::errc::INVALID_CLIENT_REQUEST);
+                    mashroom::network::errc::invalid_client_request);
                 }
             }
             else{
                 __emplace_error__(err,
                     "progress message handling",
                     server::Status::READY,
-                    mashroom::errc::INTERNAL_ERROR);
+                    mashroom::network::errc::internal_error);
             }
         }
         break;
@@ -386,7 +431,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     auto& err_msg = msg_ref->get();
                     auto& transaction = msg_ref->get().transaction().value();
                     if(file_sender_.contains(transaction.hash())){
-                        if(err_msg.error()!=mashroom::errc())
+                        if(err_msg.error()!=mashroom::network::errc())
                             file_sender_.erase(transaction.hash());
                     }
                 }
@@ -398,7 +443,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                 __emplace_error__(err,
                     "error message handling",
                     server::Status::READY,
-                    mashroom::errc::INTERNAL_ERROR);
+                    mashroom::network::errc::internal_error);
             }
         }
         break;
@@ -427,14 +472,14 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
                     __emplace_error__(err,
                         "version message handling",
                         server::Status::READY,
-                        mashroom::errc::INTERNAL_ERROR);
+                        mashroom::network::errc::internal_error);
                 }
             }
             else{
                 __emplace_error__(err,
                     "version interconnection already defined",
                     server::Status::READY,
-                    mashroom::errc::INVALID_CLIENT_REQUEST);
+                    mashroom::network::errc::invalid_client_request);
             }
         }
         break;
@@ -483,7 +528,7 @@ void ServerConnectionProcess::__task__(std::error_code& err, network::Client_Msg
             err,
             "undefined message",
             server::Status::READY,
-            mashroom::errc::INVALID_CLIENT_REQUEST);
+            mashroom::network::errc::invalid_client_request);
         break;
     }
     
@@ -522,12 +567,8 @@ void ServerConnectionProcess::on_write(std::error_code& err) noexcept{
     return;
 }
 
-constexpr size_t threaded_min_number_sizes = 10000000;
-constexpr size_t threaded_min_number_files = 10000;
-constexpr size_t max_file_part = 8192*100;
-
-std::expected<task_rawdata_parts_result_t,
-    std::error_code> prepare_index_metadata(
+std::expected<task_result_t,
+    osterlib::ContextedError> prepare_index_metadata(
         std::stop_token stop,
         Message<Server_MsgT::TRANSACTION> transaction,
         FilePathsPositionsSizes fpps) noexcept{
@@ -556,8 +597,13 @@ std::expected<task_rawdata_parts_result_t,
                             to_read = size-i;
                         file.read(buf.data(),to_read);
                         if(file.fail())
+                        {
+                            ;
                             return std::unexpected(
-                                std::make_error_code(std::errc::io_error));
+                                osterlib::ContextedError(mashroom::errc::file_reading_error)
+                                    .with_field("at","prepare index metadata")
+                                    .with_field("file",fn.path()));
+                        }
                         else s.process_bytes(buf.data(),to_read);
                     }
                 }
@@ -565,11 +611,15 @@ std::expected<task_rawdata_parts_result_t,
                     std::vector<char> buf(size);
                     file.read(buf.data(),size);
                     if(file.fail())
+                    {
                         return std::unexpected(
-                            std::make_error_code(std::errc::io_error));
+                            osterlib::ContextedError(mashroom::errc::file_reading_error)
+                        .with_field("at","prepare index metadata")
+                        .with_field("file",fn.path()));
+                    }
                     else s.process_bytes(buf.data(),size);
                 }
-                result.add_.append_filepart(fn.path(),pos,size);
+                result.add_.append_filepart(fn.path().data(),pos,size);
             }
         }
     }
@@ -577,14 +627,14 @@ std::expected<task_rawdata_parts_result_t,
     crypto::SHA1 digest;
     s.get_digest(digest);
     result.msg_.digest(digest);
-    return result;
+    return task_result_t(std::move(result));
 }
 
 void ServerConnectionProcess::on_task_done(std::error_code& err) noexcept{
     std::cout<<"Task done"<<std::endl;
     std::unique_ptr<network::AbstractTaskHandler> task(task_.release());
-    if(auto task_result_ = const_cast<std::expected<task_result_t, std::error_code> *>(
-            task->get_as_ptr<std::expected<task_result_t, std::error_code>>(err));
+    if(auto task_result_ = const_cast<std::expected<task_result_t, osterlib::ContextedError> *>(
+            task->get_as_ptr<std::expected<task_result_t, osterlib::ContextedError>>(err));
         task_result_!=nullptr)
     {
         if(send_hmsg_.has_message()){
@@ -637,7 +687,7 @@ void ServerConnectionProcess::on_task_done(std::error_code& err) noexcept{
                 err,
                 "operation error",
                 server::Status::READY,
-                mashroom::errc::INTERNAL_ERROR);
+                mashroom::network::errc::internal_error);
                 send_hmsg_.clear();
             }
         }
@@ -648,3 +698,9 @@ void ServerConnectionProcess::on_task_done(std::error_code& err) noexcept{
 void ServerConnectionProcess::on_stop_requested(std::error_code& err) noexcept{
 
 }
+
+static_assert(std::is_constructible_v<std::expected<task_result_t, osterlib::ContextedError>,
+        const std::expected<task_result_t, osterlib::ContextedError>&>);
+
+static_assert(std::is_default_constructible_v<task_result_t>);
+static_assert(std::is_default_constructible_v<std::expected<task_result_t, osterlib::ContextedError>>);

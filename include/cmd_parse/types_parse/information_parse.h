@@ -22,11 +22,11 @@ namespace parse{
         bool is_terabyte(std::string_view str) noexcept;
     }
 
-    std::expected<info_quantity,mashroom::errc> info_unit(std::string_view str) noexcept;
+    std::expected<info_quantity,osterlib::ContextedError> info_unit(std::string_view str) noexcept;
     
-    std::expected<double,mashroom::errc> info_size(std::string_view str) noexcept;
+    std::expected<double,osterlib::ContextedError> info_size(std::string_view str) noexcept;
 
-    std::expected<info_quantity,mashroom::errc> info_size_unit(std::string_view str) noexcept;
+    std::expected<info_quantity,osterlib::ContextedError> info_size_unit(std::string_view str) noexcept;
 }
 
 #include <boost/regex.hpp>

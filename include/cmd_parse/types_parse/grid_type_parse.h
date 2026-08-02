@@ -12,5 +12,5 @@ RepresentationType lexical_cast(const std::string& input);
 }
 
 namespace parse{
-    std::expected<RepresentationType,mashroom::errc> grid_notifier(const std::vector<std::string>& input) noexcept;
+    std::expected<RepresentationType,osterlib::ContextedError> grid_notifier(const std::vector<std::string>& input) noexcept;
 }

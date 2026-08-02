@@ -19,7 +19,9 @@ namespace mashroom::network{
             serialization_error,
             server_error,
             buffer_low_size,
-            version_error
+            version_error,
+            transaction_in_process,
+            transaction_not_found
         };
         virtual const char * name() const noexcept override{
             return "common API error";
@@ -83,6 +85,7 @@ namespace mashroom::network{
             return inst;
         }
     };
+    using errc = ErrorCategory::code;
 }
 namespace std{
     template<> struct is_error_code_enum<

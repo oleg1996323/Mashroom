@@ -138,7 +138,7 @@ class DataTestClass:public testing::Test{
         app().config().server_config().set_current("test");
         std::error_code err;
         Mashroom::instance().server().configure(app().config().server_config().current_settings(),err);
-        if(err!=std::error_code())
+        if(err)
             throw std::runtime_error("config error");
         Mashroom::instance().server().launch(err);
         Mashroom::instance().server().set_processes_at_connections<network::ServerConnectionProcess>();
@@ -155,6 +155,7 @@ class DataTestClass:public testing::Test{
         Location<false> any = Location<false>::file("any_path.grib"s,utc_tp::clock::now());
         uint64_t count = 0;
         std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>> msg_data;
+        osterlib::ContextedError ctx_err;
         auto& result = std::get<DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t>(
             expected_result.emplace_back(DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>::find_all_t()));
         for(int d=0;d<=(sys_days(year(1990)/month(1)/day(31))-sys_days(year(1990)/month(1)/day(1)))/days(1);++d)
@@ -162,20 +163,18 @@ class DataTestClass:public testing::Test{
             for(int table_v = 128;table_v<229;table_v+=228-128)
                 for(int param = 16;param<130;param+=16){
                     ptrdiff_t cur_pos = 1000*count++;
-                    auto f_error = API::ErrorData::ErrorCode<API_T::GRIB1>::NONE_ERR;
-                    auto err = std::error_code();
                     data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1> msg(GridInfo(grid),sys_days(year(1990)/month(1)/day(1))+days(d),
                                 cur_pos,1000,param,
                                 TimeForecast(TimeFrame::HOUR,TimeRangeIndicator::INIT_REF_TIME,{0},{0}),
                                 Organization::ECMWF,table_v,
-                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),f_error);
+                                Level(LevelsTags::GROUND_OR_WATER_SURFACE,10,0),err);
 
                     msg_data.push_back(std::move(msg));
                     if(params.contains(SearchParamTableVersion{.param_=static_cast<uint8_t>(param),.t_ver_=static_cast<uint8_t>(table_v)}))
                         pos_.push_back(cur_pos);
                 }
         }
-        gribdata.add_data(any,msg_data,err);
+        gribdata.add_data(any,msg_data,ctx_err);
         Mashroom::instance().data().update_indexing(std::move(gribdata));
         std::ofstream stream(fn,std::ofstream::trunc|std::ofstream::out);
         serialization::serialize_to_file(gribdata,stream);

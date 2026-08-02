@@ -11,7 +11,7 @@
 #include "polar.h"
 #include "polyconic.h"
 #include "lambert.h"
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 #include "json/json_base.h"
 #include <variant>
 

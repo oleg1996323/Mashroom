@@ -1,7 +1,7 @@
 #include "proc/contains.h"
 #include "data/msg.h"
 #include "grib1/message.h"
-#include "int_pow.h"
+#include "OsterLib/int_pow.h"
 #include <expected>
 
 // std::expected<bool,mashroom::errc> contains(const fs::path& from,const std::chrono::system_clock::time_point& date ,const Coord& coord,

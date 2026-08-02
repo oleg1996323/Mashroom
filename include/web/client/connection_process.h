@@ -4,6 +4,7 @@
 #include "web/common/connection_process.h"
 #include "OsterLib/network/abstractprocess.h"
 #include "OsterLib/network/worker/command.h"
+#include "web/error.h"
 
 namespace network{
     class ClientConnectionProcess:public AbstractRequestableConnectionProcess{
@@ -73,11 +74,13 @@ namespace network{
                 Server_MsgT::type server_msg) noexcept;
         void __emplace_error__(std::error_code& err,
                 std::string description,
-                mashroom::errc code) noexcept
+                mashroom::network::errc code,
+                std::vector<osterlib::Field> fields = {}) noexcept
         {
             Message<Client_MsgT::ERROR> reply(
                     code,
                     std::move(description));
+            reply.add_fields(std::move(fields));
             io_context().send(err,[](const std::vector<char>&){},reply);
         }
         public:

@@ -76,7 +76,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     message(STATUS "DEBUG defined")
     target_compile_definitions(system PUBLIC DEBUG)
 endif()
-target_link_libraries(system PUBLIC OsterLib::bytes OsterLib::serial OsterLib::boost_functional OsterLib::network)
+target_link_libraries(system PUBLIC OsterLib::boost_functional OsterLib::network)
 #build web part
 add_library(web SHARED ${Network_SOURCES})
 target_include_directories(web PUBLIC 
@@ -84,7 +84,7 @@ target_include_directories(web PUBLIC
                                     PRIVATE
                                     ${OsterLib_INCLUDE_DIRS})
 
-target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types OsterLib::serial API_lib OsterLib::network system)
+target_link_libraries(web PUBLIC OsterLib::boost_functional OsterLib::types API_lib OsterLib::network system)
 
 #build command line interpreter parse (CLIp)
 add_library(clip SHARED ${CLparse_SOURCES})
@@ -101,9 +101,7 @@ target_link_libraries(Mashroom_lib PUBLIC API_lib
                     system
                     clip
                     web
-                    OsterLib::serial
                     OsterLib::boost_functional
-                    OsterLib::bytes
                     OsterLib::utilities
                     OsterLib::compressor
                     OsterLib::types)

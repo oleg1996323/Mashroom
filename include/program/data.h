@@ -27,9 +27,9 @@ class Data:public __Data__{
 
     friend class DataTestClass;
     template<Data_f>
-    mashroom::errc __read__(const fs::path& filename);
+    osterlib::ContextedError __read__(const fs::path& filename);
     template<Data_f>
-    mashroom::errc __write__(const fs::path& filename);
+    osterlib::ContextedError __write__(const fs::path& filename);
 
     template <Data_f I>
     void __write_all__();
@@ -59,8 +59,8 @@ class Data:public __Data__{
     ~Data(){
         save();
     }
-    mashroom::errc read(const fs::path& filename) noexcept;
-    mashroom::errc write(const fs::path& filename) noexcept;
+    osterlib::ContextedError read(const fs::path& filename) noexcept;
+    osterlib::ContextedError write(const fs::path& filename) noexcept;
     bool unsaved() const{
         return !unsaved_.empty();
     }
@@ -85,24 +85,27 @@ class Data:public __Data__{
     }
 
     template<Data_t T, Data_f F>
-    void update_indexing(const DataStruct<T,F>& data){
+    osterlib::ContextedError update_indexing(const DataStruct<T,F>& data){
         data_struct<T,F>().update_indexing(data);
         unsaved_.insert(F);
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+        return {};
     }
     template<Data_t T, Data_f F>
-    void update_indexing(DataStruct<T,F>&& data){
+    osterlib::ContextedError update_indexing(DataStruct<T,F>&& data){
         data_struct<T,F>().update_indexing(std::move(data));
         unsaved_.insert(F);
         std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
+        return {};
     }
     template<Data_t T, Data_f F>
-    void add_data(const Location<false>& path,const std::vector<data::FileMsg<T,F>>& data){
-        std::error_code err;
-        data_struct<T,F>().add_data(path,data,err);
-        if(err==std::error_code()){
+    osterlib::ContextedError add_data(const Location<false>& path,const std::vector<data::FileMsg<T,F>>& data){
+        osterlib::ContextedError ctx_err;
+        data_struct<T,F>().add_data(path,data,ctx_err);
+        if(!ctx_err){
             unsaved_.insert(F);
             std::cout<<"Unsaved files: "<<unsaved_.size()<<std::endl;
         }
+        return {};
     }
 };

@@ -5,7 +5,7 @@
 #include <ranges>
 #include "program/mashroom.h"
 #include "cmd_parse/mashroom_parse.h"
-#include "CLI/CLInavig.h"
+#include "OsterLib/CLI/CLInavig.h"
 
 static int progress_line = 6;
 

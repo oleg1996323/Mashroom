@@ -1,5 +1,4 @@
 #include "proc/extract/read.h"
-#include "sys/error_exception.h"
 #include "sys/error.h"
 #include <fstream>
 #include "data/def.h"
@@ -11,7 +10,10 @@
 #include "boost/algorithm/string.hpp"
 #include "OsterLib/serialization.h"
 #include "OsterLib/boost_functional/json.h"
+#include "OsterLib/contexted_error.h"
 
+
+using namespace osterlib;
 
 class TimeForecastProxy:public TimeForecast{
     template<typename... STRUCT_TOKENS, typename... ARGS>
@@ -56,34 +58,63 @@ namespace fs = std::filesystem;
 namespace txt::details{    
 
     template<typename T>
-    T get_txt_token(const String auto& buffer,const char* token,const fs::path& filename){
+    T get_txt_token(
+                const String auto& buffer,
+                const char* token,
+                const fs::path& filename){
         using namespace std::string_literals;
         if constexpr (!std::is_same_v<void,T> && !std::is_void_v<T>){
             auto not_indent = find_first_no_of(buffer,"\t ");
-            if(not_indent==std::string::npos)
-                throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "invalid token (token \""s+token+"\")",filename.c_str());
+            if(not_indent==std::string::npos){
+                ContextedError ctx_err(mashroom::errc::file_corrupted);
+                ctx_err
+                .with_field("procedure","extract")
+                .with_field("at","get_txt_token")
+                .with_field("file",filename.c_str())
+                .with_field("token",token);
+                throw ctx_err;
+            }
+                
             T result;
             if(!std::string_view(buffer).substr(not_indent).starts_with(token+":"s)){
-                throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "invalid token (token \""s+token+"\")",filename.c_str());
+                ContextedError ctx_err(mashroom::errc::file_corrupted);
+                ctx_err
+                .with_field("procedure","extract")
+                .with_field("at","get_txt_token")
+                .with_field("file",filename.c_str())
+                .with_field("token",token);
+                throw std::unexpected(ctx_err);
             }
             auto value_str = std::string_view(buffer).substr(not_indent+std::strlen(token)+1);
             if constexpr (IsTimePoint<T>){
                 std::istringstream stream(value_str.data());
                 stream>>std::chrono::parse("{:%Y/%m/%d %H:%M:%S}",result);
-                if(stream.fail())
-                    throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "time type (token \""s+token+"\")",filename.c_str());
+                if(stream.fail()){
+                    ContextedError ctx_err(mashroom::errc::file_corrupted);
+                    ctx_err
+                    .with_field("procedure","extract")
+                    .with_field("at","get_txt_token")
+                    .with_field("file",filename.c_str())
+                    .with_field("token",token)
+                    .with_field("type","timepoint");
+                    throw std::unexpected(ctx_err);
+                }
                 else return result;
             }
             else if constexpr(IsDuration<T>){
                 std::string back_sign;
                 std::istringstream stream(value_str.data());
                 stream>>result>>back_sign;
-                if(stream.fail())
-                    throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "duration type (token \""s+token+"\")",filename.c_str());
+                if(stream.fail()){
+                    ContextedError ctx_err(mashroom::errc::file_corrupted);
+                    ctx_err
+                    .with_field("procedure","extract")
+                    .with_field("at","get_txt_token")
+                    .with_field("file",filename.c_str())
+                    .with_field("token",token)
+                    .with_field("type","duration");
+                    throw ctx_err;
+                }
                 if(back_sign.size()==1){
                     switch (*back_sign.c_str())
                     {
@@ -99,26 +130,56 @@ namespace txt::details{
                     case 'd':
                         result = std::chrono::days(result);
                         break;
-                    default:
-                        throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "duration type (token \""s+token+"\")",filename.c_str());
-                        break;
+                    default:{
+                        ContextedError ctx_err(mashroom::errc::file_corrupted);
+                        ctx_err
+                        .with_field("procedure","extract")
+                        .with_field("at","get_txt_token")
+                        .with_field("file",filename.c_str())
+                        .with_field("token",token)
+                        .with_field("type","duration");
+                        throw ctx_err;
+                    }
                     }
                 }
-                else throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "duration type (token \""s+token+"\")",filename.c_str()); 
+                else {
+                    ContextedError ctx_err(mashroom::errc::file_corrupted);
+                    ctx_err
+                    .with_field("procedure","extract")
+                    .with_field("at","get_txt_token")
+                    .with_field("file",filename.c_str())
+                    .with_field("token",token)
+                    .with_field("type","duration");
+                    throw ctx_err;
+                }
             }
             else if constexpr(std::is_integral_v<T>){
                 if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),result).ec == std::error_code{})
                     return result;
-                else throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "integer type (token \""s+token+"\")",filename.c_str());
+                else {
+                    ContextedError ctx_err(mashroom::errc::file_corrupted);
+                    ctx_err
+                    .with_field("procedure","extract")
+                    .with_field("at","get_txt_token")
+                    .with_field("file",filename.c_str())
+                    .with_field("token",token)
+                    .with_field("type","integer");
+                     throw ctx_err;
+                }
             }
             else if constexpr(std::is_floating_point_v<T>){
                 if(std::from_chars(value_str.data(),value_str.data()+value_str.size(),result).ec == std::error_code{})
                     return result;
-                else throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                        "floating point type (token \""s+token+"\")",filename.c_str());
+                else {
+                    ContextedError ctx_err(mashroom::errc::file_corrupted);
+                    ctx_err
+                    .with_field("procedure","extract")
+                    .with_field("at","get_txt_token")
+                    .with_field("file",filename.c_str())
+                    .with_field("token",token)
+                    .with_field("type","float");
+                    throw ctx_err;
+                }
             }
             else if constexpr(std::is_enum_v<T>){
                 result = static_cast<T>(get_txt_token<std::underlying_type_t<T>>(buffer,token,filename));
@@ -137,14 +198,24 @@ namespace txt::details{
     template<typename T>
     T get_txt_token(std::istream& stream,const char* token,const fs::path& filename){
         std::string buffer;
-        if(!std::getline(stream,buffer))
-            throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,
-                "",filename.c_str());
+        if(!std::getline(stream,buffer)){
+            ContextedError ctx_err(mashroom::errc::file_reading_error);
+            ctx_err
+            .with_field("procedure","extract")
+            .with_field("at","get_txt_token");
+            throw ctx_err;
+        }
         else return get_txt_token<T>(buffer,token,filename);
     }
 
     template<typename... STRUCT_TOKENS, typename... ARGS>
-    std::istream& get_txt_structure(std::istream& stream, std::tuple<STRUCT_TOKENS...> struct_tokens,const char* token, ARGS&... args, const fs::path& filename){
+    std::istream& get_txt_structure(
+            std::istream& stream,
+            std::tuple<STRUCT_TOKENS...> struct_tokens,
+            const char* token,
+            ARGS&... args,
+            const fs::path& filename)
+    {
         static_assert(sizeof...(STRUCT_TOKENS)>0 && sizeof...(STRUCT_TOKENS)==sizeof...(args));
         std::string buffer;
         get_txt_token<void>(stream,token,filename);
@@ -255,20 +326,36 @@ namespace txt::details{
                 uint32_t current = 0;
                 std::string buffer;
                 for(size_t i = 0;i<number_of_parameters;++i){
-                    if(!std::getline(file,buffer) || 
-                        !buffer.starts_with("#") ||
-                        !buffer.ends_with(":"))
-                        throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                            "parameter numeration",
-                            filename.c_str());
+                    if(!std::getline(file,buffer)){ 
+                        ContextedError ctx_err(mashroom::errc::file_reading_error);
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read header")
+                            .with_field("file",filename.c_str());
+                        throw ctx_err;
+                    }
                     else{
+                        if(!buffer.starts_with("#") ||
+                        !buffer.ends_with(":")){
+                            ContextedError ctx_err(mashroom::errc::file_corrupted);
+                                ctx_err.with_field("procedure","extract")
+                                .with_field("at","read header")
+                                .with_field("file",filename.c_str())
+                                .with_field("token","header")
+                                .with_field("type","parameter numeration");
+                            throw ctx_err;
+                        }
                         std::string_view sub(buffer);
                         sub = sub.substr(1,sub.size()-2);
                         if(std::from_chars(sub.begin(),sub.end(),current).ec!=std::errc() ||
-                            current!=i+1)
-                            throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,
-                            "parameter numeration",
-                            filename.c_str());
+                            current!=i+1){
+                            ContextedError ctx_err(mashroom::errc::file_corrupted);
+                                ctx_err.with_field("procedure","extract")
+                                .with_field("at","read header")
+                                .with_field("file",filename.c_str())
+                                .with_field("token","header")
+                                .with_field("type","parameter numeration");
+                            throw ctx_err;
+                        }
                     }
                     auto cmn = get_common_data_properties<FORMAT,TYPE>(file,filename);
                     auto add = get_additional_data_properties<FORMAT,TYPE>(file,filename);
@@ -291,14 +378,32 @@ namespace txt::details{
             if constexpr(TYPE==Data_t::TIME_SERIES){
                 ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> result;
                 if(header_info.version_==1){
-                    if(!std::getline(stream,buffer) && buffer!="\\data")
-                        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"",filename.c_str());
-                    if(!std::getline(stream,buffer))
-                        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"",filename.c_str());
+                    if(!std::getline(stream,buffer) && buffer!="\\data"){ 
+                        ContextedError ctx_err(mashroom::errc::file_reading_error);
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read data")
+                            .with_field("file",filename.c_str());
+                        throw ctx_err;
+                    }
+                    if(!std::getline(stream,buffer)){ 
+                        ContextedError ctx_err(mashroom::errc::file_reading_error);
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read data")
+                            .with_field("file",filename.c_str());
+                        throw ctx_err;
+                    }
                     std::vector<std::string> data_head_names = split_ignore<std::vector<std::string>>(buffer,separator);
                     //check if all parameters names are correctly defined and ordered
                     if(header_info.param_info_.size()!=data_head_names.size()-1) //because data_head_names includes "Time"
-                        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"invalid parameters number",filename.c_str());
+                    { 
+                        ContextedError ctx_err(
+                            mashroom::errc::file_reading_error,
+                            "invalid parameters number");
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read data")
+                            .with_field("file",filename.c_str());
+                        throw ctx_err;
+                    }
                     for(size_t i=0;i<header_info.param_info_.size();++i){
                         const CommonDataProperties<Data_t::TIME_SERIES,Data_f::GRIB_v1>& props = header_info.param_info_.at(i).cmn_;
                         if(auto p_ptr = parameter_table(props.center_.value(),props.table_version_.value(),props.parameter_.value());p_ptr==nullptr)
@@ -308,8 +413,14 @@ namespace txt::details{
                             //         ";table version="s+std::to_string(*props.table_version_)+";parameter="+
                             //         std::to_string(*props.parameter_)+")",filename.c_str());
                         else{
-                            if(data_head_names[i+1]!=std::string_view(p_ptr->name)){
-                                throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"incorrect order of parameters in data section",filename.c_str());
+                            if(data_head_names[i+1]!=std::string_view(p_ptr->name)){ 
+                                ContextedError ctx_err(
+                                    mashroom::errc::file_reading_error,
+                                    "incorrect order of parameters in data section");
+                                    ctx_err.with_field("procedure","extract")
+                                    .with_field("at","read data")
+                                    .with_field("file",filename.c_str());
+                                throw ctx_err;
                             }
                         }
                     }
@@ -319,30 +430,64 @@ namespace txt::details{
                         if(stream.fail()){
                             if(stream.eof())
                                 return result;
-                            else
-                                throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,
-                                    "incorrect time format",filename.c_str());
+                            else{ 
+                                ContextedError ctx_err(
+                                    mashroom::errc::file_reading_error,
+                                    "incorrect time format");
+                                    ctx_err.with_field("procedure","extract")
+                                    .with_field("at","read data")
+                                    .with_field("file",filename.c_str());
+                                throw ctx_err;
+                            }
                         }
-                        if(getline(stream,buffer).fail())
-                            throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"at reading data values",filename.c_str());
+                        if(getline(stream,buffer).fail()){ 
+                            ContextedError ctx_err(
+                                mashroom::errc::file_reading_error,
+                                "at reading data values");
+                                ctx_err.with_field("procedure","extract")
+                                .with_field("at","read data")
+                                .with_field("file",filename.c_str());
+                            throw ctx_err;
+                        }
                         std::vector<std::string> values_str = split_ignore<std::vector<std::string>>(buffer,separator);
-                        if(values_str.size()<header_info.param_info_.size())
-                            throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"incorrect number of values in data section's string",filename.c_str()); 
+                        if(values_str.size()<header_info.param_info_.size()){ 
+                            ContextedError ctx_err(
+                                mashroom::errc::file_reading_error,
+                                "incorrect number of values in data section's string");
+                                ctx_err.with_field("procedure","extract")
+                                .with_field("at","read data")
+                                .with_field("file",filename.c_str());
+                            throw ctx_err;
+                        }
                         size_t number_vals = data_head_names.size()-1;
                         for(int i=0;i<number_vals;++i){
                             if(values_str.at(i)=="NaN")
                                 continue;
                             else {
                                 typename ExtractedValue<Data_t::TIME_SERIES,FORMAT>::value_t value_parse;
-                                if(std::from_chars(values_str.at(i).data(),values_str.at(i).data()+values_str.at(i).size(),value_parse).ec!=std::errc())
-                                    throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"invalid reading value as floating point",filename.c_str());
+                                if(std::from_chars(values_str.at(i).data(),values_str.at(i).data()+values_str.at(i).size(),value_parse).ec!=std::errc()){ 
+                                    ContextedError ctx_err(
+                                        mashroom::errc::file_reading_error,
+                                        "invalid reading value as floating point");
+                                        ctx_err.with_field("procedure","extract")
+                                        .with_field("at","read data")
+                                        .with_field("file",filename.c_str());
+                                    throw ctx_err;
+                                }
                                 result[header_info.param_info_.at(i)].push_back(ExtractedValue<Data_t::TIME_SERIES,FORMAT>(time,value_parse));
                             }
                         }
                     }
                 }
-                else throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,
-                                        "incorrect time format",filename.c_str());
+                else { 
+                    ContextedError ctx_err(
+                        mashroom::errc::file_reading_error,
+                        "incorrect time format");
+                        ctx_err.with_field("procedure","extract")
+                        .with_field("at","read data")
+                        .with_field("file",filename.c_str());
+                    throw ctx_err;
+                }
             }
             else static_assert(false,"Not implemented");
         }
@@ -354,15 +499,28 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,const fs::path& fi
     Data_f data_format;
     Data_t data_type;
     if(fs::exists(filename)){
-        if(!fs::is_regular_file(filename))
-            throw ErrorException(mashroom::errc::X1_IS_NOT_FILE,"",filename.c_str());
+        if(!fs::is_regular_file(filename)){ 
+            ContextedError ctx_err(
+                mashroom::errc::not_file);
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read txt file")
+                .with_field("file",filename.c_str());
+            throw ctx_err;
+        }
         std::ifstream file(filename,std::ifstream::in);
         if(file.is_open()){
             ExtractedData data;
             std::string buffer;
             if((!std::getline(file,buffer) || buffer!="Mashroom") && 
-                (!std::getline(file,buffer) || buffer!="\\header"))
-                throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,std::string_view("header not defined"),filename.c_str());
+                (!std::getline(file,buffer) || buffer!="\\header")){ 
+                    ContextedError ctx_err(
+                        mashroom::errc::file_corrupted,
+                        "header not defined");
+                        ctx_err.with_field("procedure","extract")
+                        .with_field("at","read txt file")
+                        .with_field("file",filename.c_str());
+                    throw ctx_err;
+                }
             while(std::getline(file,buffer) && !buffer.starts_with("type:")){}
 
             switch (procedures::extract::txt::details::get_txt_token<Data_t>(buffer,"type",filename))
@@ -377,8 +535,16 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,const fs::path& fi
                     }
                     //case ...@todo
                     default:
-                        throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,std::string_view("header not defined"),filename.c_str());
-                        break;
+                    { 
+                        ContextedError ctx_err(
+                            mashroom::errc::file_corrupted,
+                            "header not defined");
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read txt file")
+                            .with_field("file",filename.c_str());
+                        throw ctx_err;
+                    }
+                    break;
                 }
                 
                 break;
@@ -390,19 +556,37 @@ ExtractedData read_txt_file(const std::stop_token& stop_token,const fs::path& fi
             case Data_t::GRID:
                 break;
             default:
-                throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,std::string_view("header not defined"),filename.c_str());
+                { 
+                    ContextedError ctx_err(
+                        mashroom::errc::file_corrupted,
+                        "header not defined");
+                        ctx_err.with_field("procedure","extract")
+                        .with_field("at","read txt file")
+                        .with_field("file",filename.c_str());
+                    throw ctx_err;
+                }
                 break;
             }
             
             //visitor
             return data;
         }
-        else{
-            throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,std::string_view(""),filename.c_str());
+        else{ 
+            ContextedError ctx_err(
+                mashroom::errc::file_permission_denied);
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read txt file")
+                .with_field("file",filename.c_str());
+            throw ctx_err;
         }
     }
     else{
-        throw ErrorException(mashroom::errc::FILE_X1_DONT_EXISTS,std::string_view(""),filename.c_str());
+        ContextedError ctx_err(
+            mashroom::errc::no_exists_path);
+            ctx_err.with_field("procedure","extract")
+            .with_field("at","read txt file")
+            .with_field("file",filename.c_str());
+        throw ctx_err;
     }
 }
 
@@ -412,14 +596,29 @@ T get_json_token(boost::json::value json,const char* token,const fs::path& filen
     using namespace std::string_literals;
     using namespace std::string_view_literals;
     //ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1>::value_type
-    if(auto ptr = json.find_pointer(token,err);ptr==nullptr)
-        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,"json file doesn't contains token "s+token,filename.c_str());
+    if(auto ptr = json.find_pointer(token,err);ptr==nullptr){
+        ContextedError ctx_err(
+            mashroom::errc::file_reading_error,
+            "json file doesn't contains token");
+            ctx_err.with_field("procedure","extract")
+            .with_field("at","get json token")
+            .with_field("file",filename.c_str())
+            .with_field("format","json")
+            .with_field("token",token);
+        throw ctx_err;
+    }
     else {
-        if(auto data_from_json = from_json<T>(*ptr);!data_from_json.has_value())
-            throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,
-                "invalid value in json file"s+
-                token+":"+data_from_json.error().what(),
-                filename.c_str());
+        if(auto data_from_json = from_json<T>(*ptr);!data_from_json.has_value()){
+            ContextedError ctx_err(
+                mashroom::errc::file_reading_error,
+                "invalid value in json file");
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","get json token")
+                .with_field("file",filename.c_str())
+                .with_field("format","json")
+                .with_field("token",token);
+            throw ctx_err;
+        }
         else return data_from_json.value();
     }
 }
@@ -432,14 +631,22 @@ ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& f
     if(auto json_tmp = parse_json_from_file(filename);  !json_tmp.has_value() ||
                                                     !json_tmp->is_object() || 
                                                     !json_tmp->as_object().contains("type") || 
-                                                    !json_tmp->as_object().contains("format"))
-        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,""sv,filename.c_str());
+                                                    !json_tmp->as_object().contains("format")){
+        ContextedError ctx_err(
+            mashroom::errc::file_reading_error,
+            "missing json tokens");
+            ctx_err.with_field("procedure","extract")
+            .with_field("at","read json file")
+            .with_field("file",filename.c_str())
+            .with_field("token","type")
+            .with_field("token","format");
+        throw ctx_err;
+    }
     else json = json_tmp.value();
     
-    try{
-        Data_f fmt = get_json_token<Data_f>(json,"/format",filename);
-        Data_t type = get_json_token<Data_t>(json,"/type",filename);
-        switch(fmt){
+    Data_f fmt = get_json_token<Data_f>(json,"/format",filename);
+    Data_t type = get_json_token<Data_t>(json,"/type",filename);
+    switch(fmt){
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
@@ -447,17 +654,27 @@ ExtractedData read_json_file(const std::stop_token& stop_token,const fs::path& f
                     return values;
                 }
                 default:{
-                    throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
+                    ContextedError ctx_err(
+                        mashroom::errc::file_corrupted,
+                        "invalid data type");
+                        ctx_err.with_field("procedure","extract")
+                        .with_field("at","read json file")
+                        .with_field("file",filename.c_str())
+                        .with_field("value",type);
+                    throw ctx_err;
                 }
             }
         }
         default:{
-            throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data format"sv,filename.c_str());
+            ContextedError ctx_err(
+                mashroom::errc::file_corrupted,
+                "invalid data format");
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read json file")
+                .with_field("file",filename.c_str())
+                .with_field("value",fmt);
+            throw ctx_err;
         }
-    }
-    }
-    catch(const ErrorException& err){
-        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,""sv,filename.c_str());
     }
 }
 
@@ -466,34 +683,80 @@ ExtractedData read_bin_file(const std::stop_token& stop_token,const fs::path& fi
     using namespace std::string_view_literals;
     std::ifstream file(filename,std::ifstream::in);
     if(!file.is_open()){
-        if(!fs::exists(filename))
-            throw ErrorException(mashroom::errc::FILE_X1_DONT_EXISTS,""sv,filename.c_str());
-        else if(!fs::is_regular_file(filename))
-            throw ErrorException(mashroom::errc::X1_IS_NOT_FILE,""sv,filename.c_str());
-        else throw ErrorException(mashroom::errc::CANNOT_OPEN_FILE_X1,""sv,filename.c_str());
+        if(!fs::exists(filename)){
+            ContextedError ctx_err(
+                mashroom::errc::no_exists_path);
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read bin file")
+                .with_field("file",filename.c_str());
+            throw ctx_err;
+        }
+        else if(!fs::is_regular_file(filename)){
+            ContextedError ctx_err(
+                mashroom::errc::not_file);
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read bin file")
+                .with_field("file",filename.c_str());
+            throw ctx_err;
+        }
+        else {
+            ContextedError ctx_err(
+                mashroom::errc::file_permission_denied);
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read bin file")
+                .with_field("file",filename.c_str());
+            throw ctx_err;
+        }
     }
     Data_f fmt;
     Data_t type;
-    if(auto ser_err = deserialize_from_file(type,file);ser_err!=SerializationEC::NONE)
-        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,""sv,filename.c_str());
-    if(auto ser_err = deserialize_from_file(fmt,file);ser_err!=SerializationEC::NONE)
-        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,""sv,filename.c_str());
+    if(auto ser_err = deserialize_from_file(file,type,fmt);ser_err!=SerializationEC::NONE){
+        ContextedError ctx_err(
+            mashroom::errc::deserialization_error);
+            ctx_err.with_field("procedure","extract")
+            .with_field("at","read bin file")
+            .with_field("file",filename.c_str())
+            .with_field("token","type")
+            .with_field("token","format");
+        throw ctx_err;
+    }
     switch(fmt){
         case Data_f::GRIB_v1:{
             switch(type){
                 case Data_t::TIME_SERIES:{
                     ExtractedValues<Data_t::TIME_SERIES,Data_f::GRIB_v1> values;
-                    if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE)
-                        throw ErrorException(mashroom::errc::FILE_X1_READING_ERROR,""sv,filename.c_str());
+                    if(auto ser_err = deserialize_from_file(values,file);ser_err!=SerializationEC::NONE){
+                        ContextedError ctx_err(
+                            mashroom::errc::deserialization_error);
+                            ctx_err.with_field("procedure","extract")
+                            .with_field("at","read bin file")
+                            .with_field("file",filename.c_str())
+                            .with_field("token","extracted values");
+                        throw ctx_err;
+                    }
                     else return values;
                 }
                 default:{
-                    throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data type"sv,filename.c_str());
+                    ContextedError ctx_err(
+                        mashroom::errc::file_corrupted,
+                        "invalid data type");
+                        ctx_err.with_field("procedure","extract")
+                        .with_field("at","read bin file")
+                        .with_field("file",filename.c_str())
+                        .with_field("value",type);
+                    throw ctx_err;
                 }
             }
         }
         default:{
-            throw ErrorException(mashroom::errc::FILE_X1_CORRUPTED_OR_INVALID_FORMAT,"data format"sv,filename.c_str());
+            ContextedError ctx_err(
+                mashroom::errc::file_corrupted,
+                "invalid data format");
+                ctx_err.with_field("procedure","extract")
+                .with_field("at","read bin file")
+                .with_field("file",filename.c_str())
+                .with_field("value",fmt);
+            throw ctx_err;
         }
     }
     // deserialize_from_file()

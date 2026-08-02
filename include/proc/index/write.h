@@ -30,5 +30,5 @@ osterlib::ContextedError write_json_file(const fs::path& path,
 		file.flush();
 	}
 	file.close();
-	return true;
+	return {};
 }

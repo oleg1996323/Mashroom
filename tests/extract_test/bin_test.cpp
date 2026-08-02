@@ -8,7 +8,8 @@ TEST_F(Grib1Fixture,extract_test){
     try{
         std::error_code err;
         auto paths = procedures::extract::write_bin_file(std::stop_token(),data(),props(),DateTimeDiff(err,std::chrono::months(1)),"test_generated_files");
-        ASSERT_EQ(paths.size(),1);
+        ASSERT_TRUE(paths.has_value());
+        ASSERT_EQ(paths->size(),1);
         auto read_data = procedures::extract::read_bin_file(std::stop_token(),*paths.begin());
         ASSERT_EQ(read_data,data());
         fs::remove_all("test_generated_files");

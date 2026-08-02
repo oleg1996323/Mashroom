@@ -4,7 +4,7 @@
 #include "def.h"
 #include "stdexcept"
 #include <cassert>
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 
 namespace grid{
 

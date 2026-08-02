@@ -235,16 +235,18 @@ struct DataStruct<Data_t::TIME_SERIES,Data_f::GRIB_v1>{
             rewrite_index(data);
         }
     }
-    void update_indexing(const DataStruct& other){
+    osterlib::ContextedError update_indexing(const DataStruct& other){
         rewrite_indexes(other.index_);
+        return {};
     }
     void add_data(const Location<false>& path,
         const std::vector<data::FileMsg<Data_t::TIME_SERIES,Data_f::GRIB_v1>>& grib_msg,
-        std::error_code& err);
+        osterlib::ContextedError& ctx_err);
 
     void add_data(const Location<false>& path,
         const DataStruct<Data_t::TIME_SERIES,
-        Data_f::GRIB_v1>::find_all_t& data);
+            Data_f::GRIB_v1>::find_all_t& data,
+        osterlib::ContextedError& ctx_err);
 
     bool operator==(const DataStruct& other) const;
 };

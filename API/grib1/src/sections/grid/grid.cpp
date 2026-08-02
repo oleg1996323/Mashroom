@@ -4,60 +4,115 @@
 
 void init_grids(){
     projection::add_projection("albers",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",
-                            ALBERS_EQUAL_AREA));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",ALBERS_EQUAL_AREA)));
     projection::add_projection("cylindric",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                    "ECMWF",LAT_LON_GRID_EQUIDIST_CYLINDR));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",LAT_LON_GRID_EQUIDIST_CYLINDR)));
     projection::add_projection("cylindric",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",ROTATED_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",ROTATED_LAT_LON)));
     projection::add_projection("cylindric",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",STRETCHED_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",STRETCHED_LAT_LON)));
     projection::add_projection("cylindric",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",STRETCHED_AND_ROTATED_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",STRETCHED_AND_ROTATED_LAT_LON)));
     projection::add_projection("gaussian",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",GAUSSIAN));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",GAUSSIAN)));
     projection::add_projection("gaussian",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",ROTATED_GAUSSIAN_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",ROTATED_GAUSSIAN_LAT_LON)));
     projection::add_projection("gaussian",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",STRETCHED_GAUSSIAN_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",STRETCHED_GAUSSIAN_LAT_LON)));
     projection::add_projection("gaussian",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",STRETCHED_ROTATED_GAUSSIAN_LAT_LON));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",STRETCHED_ROTATED_GAUSSIAN_LAT_LON)));
     projection::add_projection("mercator",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",MERCATOR));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",MERCATOR)));
     projection::add_projection("gnomonic",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",GNOMONIC));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",GNOMONIC)));
     projection::add_projection("lambert",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",LAMBERT));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",LAMBERT)));
     projection::add_projection("millers",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",MILLERS_CYLINDR));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",MILLERS_CYLINDR)));
     projection::add_projection("lambert conformal",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",OBLIQUE_LAMBERT_CONFORMAL));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",OBLIQUE_LAMBERT_CONFORMAL)));
     projection::add_projection("polar stereograph",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",POLAR_STEREOGRAPH_PROJ));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",POLAR_STEREOGRAPH_PROJ)));
     projection::add_projection("simple polyconic",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",SIMPLE_POLYCONIC));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",SIMPLE_POLYCONIC)));
     projection::add_projection("space view",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",SPACE_VIEW));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",SPACE_VIEW)));
+    projection::add_projection("spherical harmonic",std::make_unique<
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",SPHERICAL_HARMONIC_COEFFICIENTS)));
     projection::add_projection("spherical harmonic coefficients",std::make_unique<
-                projection::Options<API_T::GRIB1>>(
-                            "ECMWF",SPHERICAL_HARMONIC_COEFFICIENTS));
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",SPHERICAL_HARMONIC_COEFFICIENTS)));
+    projection::add_projection("rotated spherical harmonic coefficients",std::make_unique<
+                projection::CommonOptions>(projection::CommonOptions()
+                            .add_attribute("center","ECMWF")
+                            .add_attribute("API","grib v1")
+                            .add_attribute("ID",ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS)));
+    projection::add_projection("stretched spherical harmonic coefficients",std::make_unique<
+            projection::CommonOptions>(projection::CommonOptions()
+                        .add_attribute("center","ECMWF")
+                        .add_attribute("API","grib v1")
+                        .add_attribute("ID",STRETCHED_SPHERICAL_HARMONIC_COEFFICIENTS)));
+    projection::add_projection("stretched rotated spherical harmonic coefficients",std::make_unique<
+        projection::CommonOptions>(projection::CommonOptions()
+                    .add_attribute("center","ECMWF")
+                    .add_attribute("API","grib v1")
+                    .add_attribute("ID",STRETCHED_ROTATED_SPHERICAL_HARMONIC_COEFFICIENTS)));                            
     projection::add_projection("UTM",std::make_unique<
                 projection::Options<API_T::GRIB1>>(
                             "ECMWF",UTM));

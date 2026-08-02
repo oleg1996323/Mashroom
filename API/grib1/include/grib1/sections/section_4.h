@@ -2,8 +2,8 @@
 #include "grib1/code_tables.h"
 #include "section_3.h"
 #include "def.h"
-#include "grid/def.h"
-#include "grid/grid.h"
+#include "grib1/sections/grid/def.h"
+#include "grib1/sections/grid/grid.h"
 #include "binary/def.h"
 #include "OsterLib/types/coord.h"
 

@@ -1,3 +1,3 @@
 #pragma once
-#include "product/local.h"
+#include "grib1/sections/product/local.h"
 

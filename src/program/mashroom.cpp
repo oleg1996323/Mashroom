@@ -5,8 +5,7 @@
 #include "cmd_parse/mashroom_parse.h"
 #include "web/server.h"
 #include "sys/config.h"
-#include "sys/log_err.h"
-#include "CLI/CLInavig.h"
+#include "OsterLib/CLI/CLInavig.h"
 #include <CLI/CLI.hpp>
 #include <boost/program_options.hpp>
 
@@ -19,13 +18,17 @@ CLI::App& Mashroom::command_line() noexcept{
     return *cli;
 }
 
-void Mashroom::__read_initial_data_file__(){
+osterlib::ContextedError Mashroom::__read_initial_data_file__() noexcept{
     using namespace boost;
     std::fstream dat_file;
     if(!fs::exists(__filename__())){
         std::cout<<"Creating and openning file: "<<__filename__()<<std::endl;
         dat_file.open(__filename__(),std::ios::trunc|std::ios::out);
-        return;
+        if(!dat_file.is_open())
+            return osterlib::ContextedError(mashroom::errc::file_permission_denied)
+                .with_field("at","read initial data file")
+                .with_field("file",__filename__().c_str());
+        else return {};
     }
     else{
         std::cout<<"Openning file: "<<__filename__()<<std::endl;
@@ -33,8 +36,11 @@ void Mashroom::__read_initial_data_file__(){
     }
 
     if(!dat_file.is_open()){
-        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Mashroom module internal error",AT_ERROR_ACTION::CONTINUE);
-        ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::ABORT,(__filename__()).c_str());
+        osterlib::ContextedError ctx_err(mashroom::errc::internal_error,"openning data file error");
+        ctx_err.with_field("at","Mashroom initialization")
+        .with_field("file",__filename__().c_str());
+        std::cerr<<ctx_err.what()<<std::endl;
+        exit((int)mashroom::errc::internal_error);
     }
     json::stream_parser parser;
     json::error_code err_code;
@@ -42,11 +48,21 @@ void Mashroom::__read_initial_data_file__(){
     while(dat_file.good()){
         dat_file.read(buffer.data(),buffer.size());
         parser.write(buffer.data(),dat_file.gcount(),err_code);
-        if(err_code)
-            ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,""s+(__filename__()).c_str()+" reading error",AT_ERROR_ACTION::ABORT);
+        if(err_code){
+            osterlib::ContextedError ctx_err(mashroom::errc::file_reading_error);
+            ctx_err.with_field("at","Mashroom initialization")
+            .with_field("file",__filename__().c_str());
+            std::cerr<<ctx_err.what()<<std::endl;
+            exit((int)mashroom::errc::file_reading_error);
+        }
     }
-    if(!parser.done())
-        return;
+    if(!parser.done()){
+        osterlib::ContextedError ctx_err(mashroom::errc::file_reading_error);
+        ctx_err.with_field("at","Mashroom initialization")
+        .with_field("file",__filename__().c_str());
+        std::cerr<<ctx_err.what()<<std::endl;
+        return ctx_err;
+    }
     else
         parser.finish();
     json::value root = parser.release();
@@ -65,24 +81,20 @@ void Mashroom::__read_initial_data_file__(){
         data_.read(filename);
     }
     dat_file.close();
+    return {};
 }
 using namespace std::string_literals;
-void Mashroom::__write_initial_data_file__(){
+osterlib::ContextedError Mashroom::__write_initial_data_file__() noexcept{
     using namespace boost;
     std::fstream dat_file(__filename__(),std::fstream::out | std::fstream::trunc);
     if(!dat_file.is_open())
         if(!fs::exists(__filename__())){
             dat_file.open(__filename__(),std::ios::out);
             if(!dat_file.is_open()){
-                ErrorPrint::print_error(mashroom::errc::CANNOT_OPEN_FILE_X1,"",AT_ERROR_ACTION::CONTINUE,(__filename__()).c_str());
-                if(!fs::exists(__crash_dir__()))
-                    if(!fs::create_directories(fs::path(std::getenv("HOME"))/"mashroom_crash"))
-                        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
-                    dat_file.open(__crash_path__());
-                    if(!dat_file.is_open())
-                        ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error",AT_ERROR_ACTION::ABORT);
-                    else ErrorPrint::print_error(mashroom::errc::INTERNAL_ERROR,"Data file saving error.\nThe data file will be saved to \""s+
-                        __crash_path__().c_str()+"\"",AT_ERROR_ACTION::ABORT);
+                osterlib::ContextedError ctx_err(mashroom::errc::file_permission_denied,"openning data file error");
+                ctx_err.with_field("at","Mashroom saving")
+                .with_field("file",__filename__().c_str());
+                std::cerr<<ctx_err.what()<<std::endl;
             }
         }
     json::value val;
@@ -98,7 +110,7 @@ void Mashroom::__write_initial_data_file__(){
     std::cout<<val.as_object()<<std::endl;
     dat_file.close();
 }
-mashroom::errc Mashroom::read_command(std::vector<std::string>&& argv){
+std::error_code Mashroom::read_command(std::vector<std::string>&& argv){
     //needed reversing (see parse(...) functions in CLI11)
     std::reverse(argv.begin(),argv.end());
     try {
@@ -113,9 +125,13 @@ mashroom::errc Mashroom::read_command(std::vector<std::string>&& argv){
     }
     catch (const CLI::ParseError &e) {
         std::cout<<e.what()<<std::endl;
-        return mashroom::errc::COMMAND_INPUT_X1_ERROR;
+        return std::make_error_code(mashroom::errc::command_input_error);
     }
-    return mashroom::errc::NONE;
+    catch(const osterlib::ContextedError& err){
+        std::cout<<err.what()<<std::endl;
+        return err.code();
+    }
+    return {};
 }
 bool Mashroom::read_command(){
     try{

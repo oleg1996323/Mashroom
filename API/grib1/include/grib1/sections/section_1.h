@@ -6,13 +6,13 @@
 #include "def.h"
 #include "OsterLib/byte_read.h"
 #include "grib1/code_tables.h"
-#include "product/levels.h"
-#include "product/def.h"
+#include "grib1/sections/product/levels.h"
+#include "grib1/sections/product/def.h"
 #include <chrono>
 #include <span>
 #include "OsterLib/types/time_interval.h"
 #include "OsterLib/types/time_period.h"
-#include "product/time_forecast.h"
+#include "grib1/sections/product/time_forecast.h"
 
 /* #define LEN_HEADER_PDS (28+42+100) */
 #define LEN_HEADER_PDS (28+8)

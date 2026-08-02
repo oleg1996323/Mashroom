@@ -3,7 +3,7 @@
 #include <span>
 #include <cmath>
 #include "def.h"
-#include "grid_base.h"
+#include "grib1/sections/grid/grid_base.h"
 
 namespace grid{
 

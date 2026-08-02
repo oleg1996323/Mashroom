@@ -5,7 +5,7 @@
 #include "OsterLib/ibmtofloat.h"
 #include "def.h"
 #include "grib1/code_tables.h"
-#include "grid_additional.h"
+#include "grib1/sections/grid/grid_additional.h"
 
 namespace grid{
 

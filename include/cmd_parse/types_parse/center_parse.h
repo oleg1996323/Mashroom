@@ -14,5 +14,5 @@
 #include <expected>
 
 namespace parse{
-    std::expected<Organization,mashroom::errc> center_notifier(const std::vector<std::string>& input) noexcept;
+    std::expected<Organization,osterlib::ContextedError> center_notifier(const std::vector<std::string>& input) noexcept;
 }

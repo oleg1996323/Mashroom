@@ -125,12 +125,14 @@ namespace parse{
         }
         if(auto parameters_ = app_->get_option("--parameters");
                 parameters_->count()){
+            osterlib::ContextedError ctx_err;
             for(std::string_view parameter:parameters_val_)
                 extract.add_set_of_parameters(
                     parse::parameter_tv::param_by_tv_abbr(
                     extract.get_center().value(),
                     std::ranges::split_view(parameter,' ')|
-                    std::ranges::to<std::vector<std::string>>()));
+                    std::ranges::to<std::vector<std::string>>(),
+                    ctx_err));
         }
         if(auto collections_=app_->get_option("--collection");
                 collections_->count()){

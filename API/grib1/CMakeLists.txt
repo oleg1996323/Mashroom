@@ -66,14 +66,13 @@ target_sources(grib1API PRIVATE ${GENERATED_SOURCE} ${TABLE_0_H})
 
 target_link_libraries(grib1API 
         PUBLIC common 
-        PRIVATE OsterLib::bytes
-        OsterLib::serial
+        PRIVATE
         OsterLib::utilities
         OsterLib::types
         OsterLib::boost_functional)
 target_include_directories(grib1API 
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${OsterLib_INCLUDE_DIRS})
+        ${OsterLib_INCLUDE_DIRS})
 
 if(${TESTS_ON})
     enable_testing()
