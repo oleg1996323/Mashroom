@@ -42,7 +42,23 @@ namespace projection{
         {
             if(attr_name.empty() || attributes_.contains(attr_name))
                 return std::make_error_code(std::errc::invalid_argument);
-            else attributes_[attr_name]=to_json(value);
+            else{
+                if(attr_name=="timepoint"){
+                    if constexpr(std::is_convertible_v<T,std::string_view>){
+                        std::chrono::sys_seconds tp;
+                        std::istringstream iss(value.c_str());
+                        iss>>std::chrono::parse("%Y-%m-%dT%H:%M:%SZ",tp);
+                        if(iss.fail())
+                            return std::unexpected(std::make_error_code(std::errc::invalid_argument));
+                        else options->set_attribute("timepoint",tp.time_since_epoch());
+                    }
+                    else if constexpr(std::is_same_v<T,int64_t>){
+                        attributes_[attr_name]=to_json(value);
+                    }
+                    else static_assert("timepoint may be staticly initialized by string_view-convertible type or by int64_t");
+                }
+                else attributes_[attr_name]=to_json(value);
+            }
             return {};
         }
         const boost::json::object& attributes() const noexcept{
