@@ -1,7 +1,7 @@
 #pragma once
 #include "OsterLib/types/coord.h"
 
-namespace projection::modificator{
+namespace grid::modificator{
 
 constexpr Lat yp_default = 0.;
 constexpr Lon xp_default = 0.;

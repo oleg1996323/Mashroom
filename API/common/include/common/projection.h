@@ -1,0 +1,11 @@
+#pragma once
+#include "projections/albers.h"
+#include "projections/equidistconic.h"
+#include "projections/custom.h"
+#include "projections/cylindric.h"
+#include "projections/gauss-kruger.h"
+#include "projections/gnomonic.h"
+#include "projections/lambert.h"
+#include "projections/mercator.h"
+#include "projections/miller.h"
+#include "projections/spacial.h"

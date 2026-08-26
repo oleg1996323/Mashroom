@@ -1,7 +1,7 @@
 #pragma once
 #include "OsterLib/types/coord.h"
 
-namespace projection::modificator{
+namespace grid::modificator{
     class AbstractStretch{
         public:
         AbstractStretch() = default;

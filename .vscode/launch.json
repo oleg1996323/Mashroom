@@ -4,13 +4,13 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/home/oster/Mashroom/build/Debug/bin/Mashroom_data_exchange_test",
+        "program": "/home/oster/Mashroom/build/Debug/bin/polygon_test",
         "args": ["launch"],
         "stopAtEntry": false,
         "cwd": "${cwd}",
         "externalConsole": false,
         "MIMode": "gdb",
-        "miDebuggerPath": "/home/oster/binutils-gdb/install/bin/gdb",
+        "miDebuggerPath": "/home/oster/binutils-gdb/gdb-install/bin/gdb",
         "environment": [
             {
                 "name": "LD_LIBRARY_PATH",
