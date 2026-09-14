@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.26)
 project("Common purpose API part" VERSION 0.0.1)
 
+set(CMAKE_CXX_STANDARD 23)
+
 find_package(OsterLib CONFIG REQUIRED)
 
 file(GLOB_RECURSE COMMON_SOURCES 

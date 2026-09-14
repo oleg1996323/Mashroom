@@ -4,41 +4,18 @@
         "major": 3,
         "minor": 20
     },
+    "include": ["CMakeUserPresets.json"],
     "configurePresets": [
         {
-            "$comment": [
-                "Configuration for basic building and intalling by Unix Makefiles in Unix systems"
-            ],
-            "name": "default",
-            "description": "Default build",
-            "binaryDir": "${sourceDir}/build",
-            "cmakeExecutable": "cmake",
+            "name": "default-debug",
+            "inherits": ["conan-debug"],
+            "displayName": "Configuration-Debug",
+            "$comment": "Configuration for basic building and installing by Ninja in Unix systems",
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER": "$env{HOME}/gcc/gcc-install/bin/g++",
                 "CMAKE_C_COMPILER": "$env{HOME}/gcc/gcc-install/bin/gcc",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "OSTERLIB_PATH": "$env{HOME}/OsterLib-install"
-            }
-        },
-        {
-            "name": "Ninja",
-            "inherits": "default",
-            "displayName": "Ninja Configuration-Debug",
-            "$comment": "Configuration for basic building and installing by Ninja in Unix systems",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "$env{HOME}/Mashroom-install"
-            }
-        },
-        {
-            "name": "Makefiles",
-            "inherits": "default",
-            "displayName": "Makefiles Configuration-Debug",
-            "$comment": "Configuration for basic building and installing by Unix Makefiles in Unix systems",
-            "generator": "Unix Makefiles",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
+                "OSTERLIB_PATH": "$env{HOME}/OsterLib-install",
                 "CMAKE_INSTALL_PREFIX": "$env{HOME}/Mashroom-install"
             }
         }
@@ -46,17 +23,15 @@
     "buildPresets": [
         {
             "name": "default",
-            "displayName": "Build",
-            "jobs": 6
+            "displayName": "default",
+            "inherits":["conan-debug"]
         },
         {
-            "name": "Build",
-            "description": "Ninja build",
-            "displayName": "Ninja build",
-            "configurePreset": "Ninja",
-            "inherits": [
-                "default"
-            ]
+            "name": "default-debug",
+            "description": "default Build-Debug",
+            "displayName": "Build-Debug(default)",
+            "configurePreset": "default-debug",
+            "inherits": ["default"]
         }
     ]
 }

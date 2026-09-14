@@ -10,6 +10,59 @@
 #include <iostream>
 
 class Polygon{
+    struct CompareByX{
+        bool operator()(const std::pair<const Coord*,const Coord*>& lhs,
+            const std::pair<const Coord*,const Coord*>& rhs) const noexcept{
+            double minX_lhs = std::min(lhs.first->lon_,lhs.second->lon_);
+            double minX_rhs = std::min(rhs.first->lon_,rhs.second->lon_);
+            double dx_lhs = lhs.second->lon_-lhs.first->lon_;
+            double dx_rhs = rhs.second->lon_-rhs.first->lon_;
+            if(dx_lhs>dx_rhs)
+                return false;
+            else if(dx_lhs==dx_rhs)
+                return minX_lhs<=minX_rhs;
+            else return true;
+        }
+        bool operator()(const std::pair<const Coord*,const Coord*>& lhs,
+            const Line& rhs) const noexcept{
+            double minX_lhs = std::min(lhs.first->lon_,lhs.second->lon_);
+            double minX_rhs = std::min(rhs.X1(),rhs.X2());
+            double dx_lhs = lhs.second->lon_-lhs.first->lon_;
+            double dx_rhs = rhs.X2()-rhs.X1();
+            if(dx_lhs>dx_rhs)
+                return false;
+            else if(dx_lhs==dx_rhs)
+                return minX_lhs<=minX_rhs;
+            else return true;
+        }
+        bool operator()(const Line& lhs,
+            const std::pair<const Coord*,const Coord*>& rhs) const noexcept{
+            double minX_rhs = std::min(rhs.first->lon_,rhs.second->lon_);
+            double minX_lhs = std::min(lhs.X1(),lhs.X2());
+            double dx_rhs = rhs.second->lon_-rhs.first->lon_;
+            double dx_lhs = lhs.X2()-lhs.X1();
+            if(dx_lhs>dx_rhs)
+                return false;
+            else if(dx_lhs==dx_rhs)
+                return minX_lhs<=minX_rhs;
+            else return true;
+        }
+    };
+    struct CompareByY{
+        bool operator()(const std::pair<const Coord*,const Coord*>& lhs,
+                const std::pair<const Coord*,const Coord*>& rhs) const noexcept{
+            double minY_lhs = std::min(lhs.first->lat_,lhs.second->lat_);
+            double minY_rhs = std::min(rhs.first->lat_,rhs.second->lat_);
+            double dy_lhs = std::abs(lhs.first->lat_-lhs.second->lat_);
+            double dy_rhs = std::abs(rhs.first->lat_-rhs.second->lat_);
+            if(dy_lhs>dy_rhs)
+                return false;
+            else if(dy_lhs==dy_rhs)
+                return minY_lhs<=minY_rhs;
+            else return true;
+        }
+    };
+
     std::vector<Coord> vertices_;
     std::vector<uint64_t> minX_;
     std::vector<uint64_t> maxX_;
@@ -63,8 +116,44 @@ class Polygon{
         else maxY_.push_back(new_pos);
     }
 
+    static bool vertices_comparator(
+            const Coord& lhs_first,const Coord& lhs_second, 
+            const Coord& rhs_first,const Coord& rhs_second) noexcept{
+        // std::cout<<"lhs:("<<lhs_first.lon_<<","<<lhs_first.lat_<<")"<<\
+        //     " - ("<<lhs_second.lon_<<","<<lhs_second.lat_<<")"<<std::endl;
+        // std::cout<<"rhs:("<<rhs_first.lon_<<","<<rhs_first.lat_<<")"<<\
+        //     " - ("<<rhs_second.lon_<<","<<rhs_second.lat_<<")"<<std::endl;
+        // double minX_lhs = std::min(lhs_first.lon_,lhs_second.lon_);
+        // double minX_rhs = std::min(rhs_first.lon_,rhs_second.lon_);
+        // double minY_lhs = std::min(lhs_first.lat_,lhs_second.lat_);
+        // double minY_rhs = std::min(rhs_first.lat_,rhs_second.lat_);
+        // double maxX_lhs = std::max(lhs_first.lon_,lhs_second.lon_);
+        // double maxX_rhs = std::max(rhs_first.lon_,rhs_second.lon_);
+        // double maxY_lhs = std::max(lhs_first.lat_,lhs_second.lat_);
+        // double maxY_rhs = std::max(rhs_first.lat_,rhs_second.lat_);
+        // double dx_lhs = std::abs(lhs_first.lon_-lhs_second.lon_);
+        // double dx_rhs = std::abs(rhs_first.lon_-rhs_second.lon_);
+        // double dy_lhs = std::abs(lhs_first.lat_-lhs_second.lat_);
+        // double dy_rhs = std::abs(rhs_first.lat_-rhs_second.lat_);
+        double defX_lhs = (std::max(lhs_first.lon_,lhs_second.lon_)-
+                            std::min(lhs_first.lon_,lhs_second.lon_))*
+                            lhs_second.lon_-lhs_first.lon_;
+        double defX_rhs = (std::max(rhs_first.lon_,rhs_second.lon_)-
+                            std::min(rhs_first.lon_,rhs_second.lon_))*
+                            rhs_second.lon_-rhs_first.lon_;
+        double defY_lhs = -(std::max(lhs_first.lat_,lhs_second.lat_)-
+                            std::min(lhs_first.lat_,lhs_second.lat_))*
+                            lhs_second.lat_-lhs_first.lat_;
+        double defY_rhs = -(std::max(rhs_first.lat_,rhs_second.lat_)-
+                            std::min(rhs_first.lat_,rhs_second.lat_))*
+                            rhs_second.lat_-rhs_first.lat_;
+        return defX_lhs+defY_lhs<defX_rhs+defY_rhs;
+    }
+
     std::vector<std::pair<Coord,std::pair<const Coord*,const Coord*>>> line_intersections(const Line& cut_line) const noexcept{
-        auto init_set = [](const std::vector<Coord>& vertices){
+        auto init_set = [this,&cut_line]<typename Comparator>(
+                const std::vector<Coord>& vertices,
+                const Comparator& comp){
             std::vector<std::pair<const Coord*,const Coord*>> result;
             result.reserve(vertices.size());
             for(uint64_t i = 0;i<vertices.size();++i){
@@ -72,69 +161,42 @@ class Polygon{
                     &vertices[i],&(vertices[(i+1)%vertices.size()])});
             }
             std::sort(result.begin(),result.end(),
-            []( const std::pair<const Coord*,const Coord*>& lhs,
+            [&comp]( const std::pair<const Coord*,const Coord*>& lhs,
                 const std::pair<const Coord*,const Coord*>& rhs){
-                std::cout<<"lhs:("<<lhs.first->lon_<<","<<lhs.first->lat_<<")"<<\
-                    " - ("<<lhs.second->lon_<<","<<lhs.second->lat_<<")"<<std::endl;
-                std::cout<<"rhs:("<<rhs.first->lon_<<","<<rhs.first->lat_<<")"<<\
-                    " - ("<<rhs.second->lon_<<","<<rhs.second->lat_<<")"<<std::endl;
-                double minX_lhs = std::min(lhs.first->lon_,lhs.second->lon_);
-                double minX_rhs = std::min(rhs.first->lon_,rhs.second->lon_);
-                double minY_lhs = std::min(lhs.first->lat_,lhs.second->lat_);
-                double minY_rhs = std::min(rhs.first->lat_,rhs.second->lat_);
-                std::cout<<"min lhs:("<<minX_lhs<<","<<minY_lhs<<")"<<std::endl;
-                std::cout<<"min rhs:("<<minX_rhs<<","<<minY_rhs<<")"<<std::endl;
-                if(minX_lhs<
-                    minX_rhs &&
-                    lhs.second->lon_-lhs.first->lon_<=
-                    rhs.second->lon_-rhs.first->lon_)
-                    return true;
-                if(minX_lhs==
-                    minX_rhs && 
-                    minY_lhs<
-                    minY_rhs &&
-                    lhs.second->lat_-lhs.first->lat_<=
-                    rhs.second->lat_-rhs.first->lat_)
-                    return true;
-                return false;
+                return vertices_comparator(*lhs.first,*lhs.second,*rhs.first,*rhs.second);
             });
             return result;
         };
-        std::vector<std::pair<const Coord*,const Coord*>> X_other(init_set(vertices_));
+        std::vector<std::pair<const Coord*,const Coord*>> by_X(init_set(vertices_,CompareByX()));
         std::vector<std::pair<Coord,std::pair<const Coord*,const Coord*>>> intersections;
         std::cout<<"sorted: ";
-        for(auto& vert:X_other)
+        for(auto& vert:by_X)
             std::cout<<"{("<<vert.first->lon_<<","<<vert.first->lat_<<")-("<<\
                 vert.second->lon_<<","<<vert.second->lat_<<")}"<<std::endl;
-        auto lower = std::lower_bound(X_other.begin(),X_other.end(),cut_line,
+        auto lower_x = std::lower_bound(by_X.begin(),by_X.end(),cut_line,
             [](const std::pair<const Coord*,const Coord*>& e, const Line& value) 
-                {
-                    double X_edge = std::min(e.first->lon_,e.second->lon_);
-                    double X_intersect_line = std::min(value.X1(),value.X2());
-                    double Y_edge = std::min(e.first->lat_,e.second->lat_);
-                    double Y_intersect_line = std::min(value.Y1(),value.Y2());
-                    if(X_edge<=X_intersect_line && Y_edge<=Y_intersect_line)
-                        return true;
-                    return false;
-                });
-        auto upper = std::upper_bound(X_other.begin(),X_other.end(),cut_line,
+            {
+                return vertices_comparator(*e.first,*e.second,
+                        Coord{.lat_=value.Y1(),.lon_=value.X1()},
+                        Coord{.lat_=value.Y2(),.lon_=value.X2()});
+            });
+        auto upper_x = std::upper_bound(by_X.begin(),by_X.end(),cut_line,
             [](const Line& value,const std::pair<const Coord*,const Coord*>& e) 
-                {
-                    double X_edge = std::min(e.first->lon_,e.second->lon_);
-                    double X_intersect_line = std::max(value.X1(),value.X2());
-                    double Y_edge = std::min(e.first->lat_,e.second->lat_);
-                    double Y_intersect_line = std::max(value.Y1(),value.Y2());
-                    if(X_intersect_line<X_edge)
-                        return true;
-                    if(X_edge==X_intersect_line&& Y_intersect_line<Y_edge)
-                        return true;
-                    return false; 
-                });
-        std::cout<<"lower: ("<<lower->first->lon_<<","<<lower->first->lat_<<")-("<<\
-                lower->second->lon_<<","<<lower->second->lat_<<")"<<std::endl;
-        std::cout<<"upper: ("<<upper->first->lon_<<","<<upper->first->lat_<<")-("<<\
-                upper->second->lon_<<","<<upper->second->lat_<<")"<<std::endl;
-        for(auto& line:std::ranges::subrange(lower,upper)){
+            {
+                return vertices_comparator(*e.first,*e.second,
+                        Coord{.lat_=value.Y1(),.lon_=value.X1()},
+                        Coord{.lat_=value.Y2(),.lon_=value.X2()});
+            });
+        if(lower_x!=by_X.end())
+        std::cout<<"lower: ("<<lower_x->first->lon_<<","<<lower_x->first->lat_<<")-("<<\
+                lower_x->second->lon_<<","<<lower_x->second->lat_<<")"<<std::endl;
+        else std::cout<<"lower: end"<<std::endl;
+        
+        if(upper_x!=by_X.end())
+        std::cout<<"upper: ("<<upper_x->first->lon_<<","<<upper_x->first->lat_<<")-("<<\
+                upper_x->second->lon_<<","<<upper_x->second->lat_<<")"<<std::endl;
+        else std::cout<<"upper_x: end"<<std::endl;
+        for(auto& line:std::ranges::subrange(lower_x,upper_x)){
             if(auto intersection = 
                 cut_line.intersection(
                     Line(   line.first->lon_,
@@ -174,6 +236,27 @@ class Polygon{
             vertices_=std::move(other.vertices_);
         }
         return *this;
+    }
+    bool operator==(const Polygon& other) const noexcept{
+        if(vertices_.size()!=other.vertices_.size())
+            return false;
+        if(minX_.empty()){
+            if(other.minX_.empty())
+                return true;
+            else return false;
+        }
+        else{
+            for(uint64_t start_this = minX_.front(),start_other = other.minX_.front();
+                start_this!=minX_.front();start_this=(start_this+1)%other.vertices_.size()){
+                if(vertices_[start_this]!=other.vertices_[start_other])
+                    return false;
+                }
+            return true;
+        }
+    }
+    double area() const noexcept{
+        // for(auto& [lat,lon]:vertices_)
+            //реализовать через трапеции
     }
     void append(Coord coord) noexcept{
         update_minX(coord.lon_,vertices_.size());
@@ -390,36 +473,46 @@ class Polygon{
             }
             return result;
         }(intersections);
-        for(uint64_t id_side1=0;id_side1<sided_intersections.size();id_side1+=2){
+        for(uint64_t id_side1=0;id_side1<sided_intersections.size();++id_side1){
             Polygon new_pg;
-            for(uint64_t id = sided_intersections[id_side1].first;id<=sided_intersections[id_side1].second;++id){
+            for(uint64_t id = sided_intersections[id_side1].first;
+                    id<=sided_intersections[id_side1].second;
+                    ++id){
+                uint64_t next_id = (id+1+sided_intersections[id_side1].second)%sided_intersections[id_side1].second;
+                new_pg.append(Coord{.lat_=intersections[id].first.lat_,.lon_=intersections[id].first.lon_});
                 if(id%2==0)
-                    new_pg.append(Coord{.lat_=intersections[id].first.lat_,.lon_=intersections[id].first.lon_});
+                    continue;
                 else{
                     uint64_t vertice_id;
                     const Coord* expected;
                     if(is_forward){
                         if(erase_left_side){
-                            vertice_id = intersections[id].second.second-vertices_.data();
-                            expected = intersections[id+1].second.first;
+                            vertice_id = intersections[id].second.first-vertices_.data();
+                            expected = intersections[next_id].second.first;
                         }
                         else{
-                            vertice_id = intersections[id].second.first-vertices_.data();
-                            expected = intersections[id+1].second.second;
+                            vertice_id = intersections[id].second.second-vertices_.data();
+                            expected = intersections[next_id].second.second;
                         }
                     }
                     else{
                         if(erase_left_side){
                             vertice_id = intersections[id].second.first-vertices_.data();
-                            expected = intersections[id+1].second.second;
+                            expected = intersections[next_id].second.second;
                         }
                         else{
                             vertice_id = intersections[id].second.second-vertices_.data();
-                            expected = intersections[id+1].second.first;
+                            expected = intersections[next_id].second.first;
                         }
                     }
-                    for(;&vertices_[vertice_id]!=expected;vertice_id=(vertice_id+inc+vertices_.size())%vertices_.size())
-                        new_pg.append(vertices_[vertice_id]);
+
+                    for(;;){
+                        if(&vertices_[vertice_id]!=expected){
+                            new_pg.append(vertices_[vertice_id]);
+                            vertice_id=(vertice_id+inc+vertices_.size())%vertices_.size();
+                        }
+                        else break;
+                    }
                 }
             }
             result.push_back(new_pg);

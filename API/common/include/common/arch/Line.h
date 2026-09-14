@@ -120,19 +120,11 @@ class Line{
     static std::optional<std::pair<double,double>> intersection(
             double X11,double Y11,double X12,double Y12,
             double X21,double Y21,double X22,double Y22) noexcept{
-        double k1 = k(X11,Y11,X12,Y12);
-        double k2 = k(X21,Y21,X22,Y22);
-        if(std::abs(k1-k2)<std::numeric_limits<double>::epsilon())
+        double denominator = (Y22 - Y21) * (X12 - X11) - (X22 - X21) * (Y12 - Y11);
+        if(denominator==0)
             return std::nullopt;
-        else{
-            double X10 = Y11 - k1*X11;
-            double X20 = Y21 - k2*X21;
-            double X = (X20-X10)/(k1-k2);
-            if(std::max(X11,X12)-X<std::max(X11,X12)+std::numeric_limits<double>::epsilon() &&
-                X-std::min(X11,X12)>std::min(X11,X12)-std::numeric_limits<double>::epsilon())
-                return std::make_pair(X,k1*X+X10);
-            else return std::nullopt;
-        }
+        double u_a = ((X22 - X21) * (Y11 - Y21) - (Y22 - Y21) * (X11 - X21)) / denominator;
+        return std::make_pair(X11+u_a*(X12-X11),Y11+u_a*(Y12 - Y11));
     }
     std::optional<std::pair<double,double>> intersection(
             double X1,double Y1,double X2,double Y2) const noexcept{

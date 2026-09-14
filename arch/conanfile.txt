@@ -1,0 +1,14 @@
+[requires]
+zlib/1.3.2
+boost/1.91.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[options]
+zlib/*:shared=False
+boost/*:shared=False
+
+[layout]
+cmake_layout
