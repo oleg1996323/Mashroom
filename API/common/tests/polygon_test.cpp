@@ -230,21 +230,29 @@ bg::model::multi_polygon<bg::model::polygon<Coord,true>> dissolve(const bg::mode
     return result;
 }
 
-void cut(const bg::model::multi_linestring<bg::model::linestring<Coord>>& polyline,
-    const bg::model::polygon<Coord,true>& pg){
-    for(auto& line:polyline){
+bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestring<Coord>& polyline,
+    const bg::model::polygon<Coord,true>& pg,
+    bool left_forward //оставляем слева и сверху по ходу полилинии (либо квадранты?)
+    ){
+    bg::model::multi_polygon<bg::model::polygon<Coord>> result;
+    for(auto seg_pl = bg::segments_begin(polyline);
+         seg_pl != bg::segments_end(polyline); ++seg_pl){
         bg::model::polygon<Coord,true> new_pg;
         typedef bg::detail::overlay::turn_info<Coord> turn_info;
         std::vector<turn_info> turns;
         bg::detail::self_get_turn_points::no_interrupt_policy policy;
+        bg::model::linestring<Coord> seg_ls;
+        seg_ls.push_back(*seg_pl->first);
+        seg_ls.push_back(*seg_pl->second);
         bg::get_turns<false,false,bg::detail::overlay::assign_null_policy>(
-            //bg::model::polygon<Coord,true>,bg::model::linestring<Coord>,2,2
-            line,pg,bg::strategies::relate::services::default_strategy<bg::model::linestring<Coord>,bg::model::polygon<Coord,true>>::type(),turns,policy);
+            seg_ls,
+            pg,bg::strategies::relate::services::default_strategy<bg::model::linestring<Coord>,
+                bg::model::polygon<Coord,true>>::type(),turns,policy);
         std::vector<turn_info> by_coord_turns(turns);
         std::sort(by_coord_turns.begin(),by_coord_turns.end(),
             [](const turn_info& lhs,const turn_info& rhs)
             {
-                return lhs.point.lat_<rhs.point.lat_; 
+                return lhs.point.lat_>rhs.point.lat_; 
             });
         
         for(auto& turn:turns){
@@ -253,200 +261,146 @@ void cut(const bg::model::multi_linestring<bg::model::linestring<Coord>>& polyli
             std::cout<<"polygon segment: "<<turn.operations[1].seg_id.segment_index<<std::endl;
         }
         std::cout<<std::endl;
-        uint64_t turns_offset = std::min_element(turns.begin(),turns.end(),
+        uint64_t turns_offset = std::max_element(turns.begin(),turns.end(),
             [](const turn_info& lhs,const turn_info& rhs)
         {
-            return lhs.operations[1].seg_id.segment_index<
-                rhs.operations[1].seg_id.segment_index;
+            return lhs.point.lat_<
+                rhs.point.lat_;
         })-turns.begin();
         uint64_t turn_id = turns_offset;
+        //на случай, если несколько точек пересечения в одной координате
+        uint64_t current_oppening_id= turn_id;
+        std::vector<std::pair<uint64_t,uint64_t>> passed;
+        bool dy_positive = seg_pl->first->lat_<seg_pl->second->lat_;
+        bool dy_zero = seg_pl->first->lat_==seg_pl->second->lat_;
+        bool dx_positive = seg_pl->first->lon_<seg_pl->second->lon_;
+        bool dx_zero = seg_pl->first->lon_==seg_pl->second->lon_;
+        int8_t inc;
+        int8_t point_id = left_forward?0:1;
+        if(left_forward){
+            if(dy_positive)
+                inc = 1;
+            else{
+                if(dy_zero && !dx_positive)
+                    inc = 1;
+                else
+                    inc = -1;
+            }
+        }
+        else{
+            if(!dy_positive)
+                inc = 1;
+            else{
+                if(dy_zero && dx_positive)
+                    inc = 1;
+                else
+                    inc = -1;
+            }
+        }
         while(true){
-            auto& openning_point = turns[turn_id].point;
+            auto& openning_point = turns[current_oppening_id].point;
             std::cout<<"openning point: ("<<openning_point.lon_<< \
                 ", "<<openning_point.lat_<<");"<<std::endl;
             new_pg.outer().push_back(openning_point);
-            uint64_t closing_id = std::lower_bound(by_coord_turns.begin(),by_coord_turns.end(),openning_point,
+            auto next_by_coord = (std::lower_bound(by_coord_turns.begin(),by_coord_turns.end(),openning_point,
                 [](const turn_info& t,const Coord& point)
             {
                 if(point.lat_==t.point.lat_)
-                    return t.point.lon_<point.lon_;
-                return t.point.lat_<point.lat_;
-            }) - by_coord_turns.begin()+1;
-            if(closing_id==by_coord_turns.size())
-                break;
-            auto& closing_point = turns[closing_id].point;
-            std::cout<<"openning id="<<openning_id<<"; closing id="<<closing_id<<std::endl;
-            std::cout<<"Search openning from ("<<closing_point.lon_<<", "<<\
-                closing_point.lat_<<")"<<std::endl;
-            openning_id = find_next(turns,closing_id);
-            //если полигон замыкается на начальной точке пересечения
-            if(intersection_info.back().turns.front()==openning_id){
-                //добавляем 
-                if(!passed.empty())
-                    intersection_info.emplace_back().turns.push_back(passed.back().first);
-                else break;
-            }
-            //если точки пересечения не смежные, то вставляем пропущенные
-            if(((openning_id-closing_id+turns.size())%turns.size())>1){
-                passed.push_back({
-                    (closing_id+1)%turns.size(),
-                    (openning_id-1+turns.size())%turns.size()});
-            }
-            else{
-                intersection_info.back().turns.push_back(openning_id);
-                closing_id = (openning_id+1+turns.size())%turns.size();
-            }
-            std::cout<<"Current state:"<<std::endl;
-            for(auto& i:intersection_info.back().turns){
-                auto& turn = turns[i].point;
-                std::cout<<"("<<turn.lon_<<", "<<turn.lat_<<");";
-            }
-            std::cout<<std::endl;
-        }
-
-
-
-
-        bool in = false;
-        bool reverse_side = false;
-        if(turns.front().point.lon_==turns.back().point.lon_ &&
-            turns.front().point.lat_==turns.back().point.lat_)
-            return;
-        
-        const bool dx_positive = turns[turns_offset].point.lon_<
-            turns[(turns_offset-1+turns.size())%turns.size()].point.lon_;
-        const bool dy_positive = turns[turns_offset].point.lat_<
-            turns[(turns_offset-1+turns.size())%turns.size()].point.lat_;
-        std::function<bool(bool is_in, const Coord &first, const Coord &second)> codirected;
-        //проверяет сонаправленность точек песечения в соответствии с положительностью/отрицательностью dx и dy
-        codirected = [&codirected,dx_positive,dy_positive](bool is_in,const Coord& first,const Coord& second) ->bool
-        {
-            if(!is_in)
-                if(dy_positive){
-                    if(first.lat_<=second.lat_){
-                        if(dx_positive)
-                            return first.lon_<=second.lon_;
-                        else return first.lon_>=second.lon_;
-                    }
-                    else return false;
-                }
-                else{
-                    if(first.lat_>=second.lat_){
-                        if(dx_positive)
-                            return first.lon_<=second.lon_;
-                        else return first.lon_>=second.lon_;
-                    }
-                    else return false;
-                }
-            else return codirected(!is_in,first,second);
-        };
-        //находит следующее пересечение, с которым будет соединение
-        auto find_next = [&codirected,&turns_offset]
-            (const std::vector<turn_info>& t,uint64_t current) mutable
-        {
-            for(uint64_t next = (current+1)%t.size();
-                ;
-                next=(next+1)%t.size())
+                    return t.point.lon_>point.lon_;
+                return t.point.lat_>point.lat_;
+            })-by_coord_turns.begin()+1)%by_coord_turns.size();
+            uint64_t closing_id = std::lower_bound(turns.begin(),turns.end(),by_coord_turns[next_by_coord],
+                [](const turn_info& t,const turn_info& turn)
             {
-                if((current-turns_offset+t.size())%t.size()<
-                    (next-turns_offset+t.size())%t.size()){
-                    if(codirected(true,t[current].point,t[next].point))
-                        return next;
-                }
-                else if((current-turns_offset+t.size())%t.size()>
-                    (next-turns_offset+t.size())%t.size()){
-                    if(codirected(true,t[next].point,t[current].point))
-                        return next;
-                }
-                else assert(false);
-            }
-            return uint64_t(0);
-        };
-        struct SidedIntersectionInfo{
-            std::vector<uint64_t> turns;
-            bool left = false;
-            bool linked = false;
-        };
-        bool left_side = true;
-        std::vector<SidedIntersectionInfo> intersection_info;
-        std::vector<std::pair<uint64_t,uint64_t>> passed;
-        uint64_t turn_id = turns_offset;
-        // //индекс сегмента совпадает с индексом вершины
-        // auto first_intersection = turns[turn_id].operations[1].seg_id.segment_index;
-        // //индекс сегмента на 1 больше индекса вершины
-        // auto second_intersection = turns[(turn_id+1)%turns.size()].operations[1].seg_id.segment_index;
-        intersection_info.emplace_back().turns.push_back(turn_id);
-        uint64_t openning_id = turn_id;
-        uint64_t closing_id = (openning_id+1+turns.size())%turns.size();
-        
-        while(true){
-            intersection_info.back().turns.push_back(closing_id);
+                return t.operations[1].seg_id.segment_index<turn.operations[1].seg_id.segment_index;
+            }) - turns.begin();
             auto& closing_point = turns[closing_id].point;
-            std::cout<<"openning id="<<openning_id<<"; closing id="<<closing_id<<std::endl;
-            std::cout<<"Search openning from ("<<closing_point.lon_<<", "<<\
-                closing_point.lat_<<")"<<std::endl;
-            openning_id = find_next(turns,closing_id);
-            //если полигон замыкается на начальной точке пересечения
-            if(intersection_info.back().turns.front()==openning_id){
-                //добавляем 
-                if(!passed.empty())
-                    intersection_info.emplace_back().turns.push_back(passed.back().first);
-                else break;
+            new_pg.outer().push_back(closing_point);
+            std::cout<<"closing point: ("<<closing_point.lon_<< \
+                ", "<<closing_point.lat_<<");"<<std::endl;
+            std::cout<<"Search openning"<<std::endl;
+            //берем индекс сегмента закрывающего пересечения
+            uint64_t search_open_id = turns[closing_id].operations[1].seg_id.segment_index;            
+            while(true){
+                search_open_id = (search_open_id+inc+pg.outer().size())%pg.outer().size();
+                uint64_t index_point = (search_open_id+point_id)%pg.outer().size();
+                //ищем, есть ли данный индекс сегмента в пересечениях
+                auto found_segment = std::lower_bound(turns.begin(),turns.end(),search_open_id,
+                    [](const turn_info& t,uint64_t id)
+                {
+                    return t.operations[1].seg_id.segment_index<id;
+                });
+                //если есть и точно соответствует
+                if( found_segment!=turns.end()
+                    && found_segment->operations[1].seg_id.segment_index==search_open_id){
+                        //если точка не равна замыкающей точке
+                    if(pg.outer().at(index_point)!=closing_point){
+                        std::cout<<"Inserted point:"<<std::endl;
+                        std::cout<<"("<<pg.outer().at(index_point).lon_<<", "<< \
+                        pg.outer().at(index_point).lat_<<");"<<std::endl;
+                        new_pg.outer().push_back(pg.outer().at(index_point));
+                    }
+                    //вернулись на начальную точку (проверить, не меняется ли turn_id в верхем цикле)
+                    if(turn_id == found_segment-turns.begin()){
+                        //если между закрывающим пересечением и найденным открывающим пересечением
+                        //есть еще одно пересечение, то регистрируем его
+                        if((turn_id-closing_id+turns.size())%turns.size()>1)
+                            passed.push_back(std::make_pair(std::max(
+                                (turn_id-1+turns.size())%turns.size(),(closing_id+1)%turns.size()),
+                                std::min(
+                                (turn_id-1+turns.size())%turns.size(),(closing_id+1)%turns.size())));
+                        std::cout<<"Current state:"<<std::endl;
+                        for(auto& vertice:new_pg.outer()){
+                            std::cout<<"("<<vertice.lon_<<", "<<vertice.lat_<<");";
+                        }
+                        std::cout<<std::endl;
+                        //замыкаем полигон
+                        new_pg.outer().push_back(turns[turn_id].point);
+                        //вставляем полигон в пул полигонов
+                        result.push_back(std::move(new_pg));
+                        //ищем следующий после индекса закрывающего пересечения индекс (поиск по координате)
+                        next_by_coord = (std::lower_bound(by_coord_turns.begin(),by_coord_turns.end(),closing_point,
+                            [](const turn_info& t,const Coord& point)
+                        {
+                            if(point.lat_==t.point.lat_)
+                                return t.point.lon_>point.lon_;
+                            return t.point.lat_>point.lat_;
+                        })-by_coord_turns.begin()+1)%by_coord_turns.size();
+                        turn_id = std::lower_bound(turns.begin(),turns.end(),by_coord_turns[next_by_coord],
+                            [](const turn_info& t,const turn_info& turn)
+                        {
+                            return t.operations[1].seg_id.segment_index<turn.operations[1].seg_id.segment_index;
+                        }) - turns.begin();
+                        current_oppening_id = turn_id;
+                        //если вернулись на самую верхнюю точку - обрезка завершена. Возвращаем пул полигонов
+                        if(turn_id == turns_offset)
+                            if(passed.empty())
+                                return result; //вернуть пул полигонов. Изменить сигнатуру функции
+                            else{
+                                search_open_id = passed.back().first;
+                                break;
+                            }
+                        break;
+                    }
+                    //если не замкнули полигон
+                    else{
+                        current_oppening_id = found_segment-turns.begin();
+                        break;
+                    }
+                }
+                //это просто вершина
+                else{
+                    if(pg.outer().at(index_point)!=closing_point){
+                        std::cout<<"Inserted point:"<<std::endl;
+                        std::cout<<"("<<pg.outer().at(index_point).lon_<<", "<< \
+                        pg.outer().at(index_point).lat_<<");"<<std::endl;
+                        new_pg.outer().push_back(pg.outer().at(index_point));
+                    }
+                }                
             }
-            //если точки пересечения не смежные, то вставляем пропущенные
-            if(((openning_id-closing_id+turns.size())%turns.size())>1){
-                passed.push_back({
-                    (closing_id+1)%turns.size(),
-                    (openning_id-1+turns.size())%turns.size()});
-            }
-            else{
-                intersection_info.back().turns.push_back(openning_id);
-                closing_id = (openning_id+1+turns.size())%turns.size();
-            }
-            std::cout<<"Current state:"<<std::endl;
-            for(auto& i:intersection_info.back().turns){
-                auto& turn = turns[i].point;
-                std::cout<<"("<<turn.lon_<<", "<<turn.lat_<<");";
-            }
-            std::cout<<std::endl;
         }
-
-        auto& out_ring = pg.outer();
-        auto& in_ring = pg.inners();
-        uint64_t passed_next;
-        //id - это индекс пересечения
-        for(uint64_t id=0;id<turns.size();++id){
-            uint64_t current_id = id%turns.size();
-            //индекс сегмента совпадает с индексом вершины
-            auto first_point = turns[current_id].operations[1].seg_id.segment_index;
-            //индекс сегмента на 1 больше индекса вершины
-            auto second_point = turns[(current_id+1)%turns.size()].operations[1].seg_id.segment_index;
-            //вставляется точка пересечения (вход в полигон)
-            new_pg.outer().push_back(turns[current_id].point);
-            //следующий индекс точки пересечения
-            //обходит все точки пересечения, которые пересекают полигон с другой стороны
-            auto next_id = find_next(turns,current_id);
-            //добавить в коллекцию пропущенные точки пересечения (сделать вектор пар)
-            //вставляется следующая точка пересечения (выход из полигона)
-            new_pg.outer().push_back(turns[next_id].point);
-            passed_next=second_point;
-            if(id!=turns.size())
-                id=next_id;
-            //поиск следующей точки пересечения и входа в полигон
-            //cur - это текущая вершина полигона
-            for(uint64_t cur=(turns[next_id].operations[1].seg_id.segment_index+1)%out_ring.size()/*+1 или -1*/;
-                cur!=(turns[(next_id+1+turns.size())%turns.size()].operations[1].seg_id.segment_index+1)%out_ring.size();
-                cur=(cur+1)%out_ring.size())
-                    //если 
-                    if(new_pg.outer().back()!=out_ring[cur])
-                        new_pg.outer().push_back(out_ring[cur]);
-        }
-        bg::correct(new_pg);
-        pg.outer().swap(new_pg.outer());
     }
-    for(auto& [lat,lon]:pg.outer())
-        std::cout<<"("<<lon<<","<<lat<<")";
-    std::cout<<std::endl;
+    return result;
 }
 
 TEST(polygon,cut_test){
@@ -500,7 +454,7 @@ TEST(polygon,cut_test){
         //      3
         //
         using line_t = bg::model::linestring<Coord>;
-        bg::model::multi_linestring<bg::model::linestring<Coord>> polyline = {
+        bg::model::linestring<Coord> polyline = {
             line_t{{.lat_=-1, .lon_=7},
             {.lat_=21, .lon_=7}}
         };
@@ -551,7 +505,15 @@ TEST(polygon,cut_test){
         //     std::cout<<"polygon segment: "<<turn.operations[1].seg_id.segment_index<<std::endl;
         // }
         std::cout<<std::endl;
-        cut(polyline,pg);
+        auto res = cut(polyline,pg, false);
+        for(auto it_pg = res.begin();it_pg!=res.end();++it_pg){
+            std::cout<<"Polygon ["<<it_pg-res.begin()<<"]\n";
+            bg::correct(*it_pg);
+            for(auto& vertice:it_pg->outer()){
+                std::cout<<"("<<vertice.lon_<<", "<<vertice.lat_<<");";
+            }
+            std::cout<<std::endl;
+        }
         // typedef bg::detail::overlay::turn_info<Coord> turn_info;
         // std::vector<turn_info> turns;
         // bg::detail::self_get_turn_points::no_interrupt_policy policy;
