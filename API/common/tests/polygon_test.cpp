@@ -270,7 +270,7 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
         uint64_t turn_id = turns_offset;
         //на случай, если несколько точек пересечения в одной координате
         uint64_t current_oppening_id= turn_id;
-        std::vector<std::pair<uint64_t,uint64_t>> passed;
+        std::vector<uint64_t> passed;
         bool dy_positive = seg_pl->first->lat_<seg_pl->second->lat_;
         bool dy_zero = seg_pl->first->lat_==seg_pl->second->lat_;
         bool dx_positive = seg_pl->first->lon_<seg_pl->second->lon_;
@@ -309,6 +309,7 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
                     return t.point.lon_>point.lon_;
                 return t.point.lat_>point.lat_;
             })-by_coord_turns.begin()+1)%by_coord_turns.size();
+            uint64_t closing_by_coord = next_by_coord;
             uint64_t closing_id = std::lower_bound(turns.begin(),turns.end(),by_coord_turns[next_by_coord],
                 [](const turn_info& t,const turn_info& turn)
             {
@@ -333,7 +334,8 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
                 //если есть и точно соответствует
                 if( found_segment!=turns.end()
                     && found_segment->operations[1].seg_id.segment_index==search_open_id){
-                        //если точка не равна замыкающей точке
+                    uint64_t found_id = static_cast<uint64_t>(found_segment-turns.begin());
+                    //если точка не равна замыкающей точке
                     if(pg.outer().at(index_point)!=closing_point){
                         std::cout<<"Inserted point:"<<std::endl;
                         std::cout<<"("<<pg.outer().at(index_point).lon_<<", "<< \
@@ -341,14 +343,7 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
                         new_pg.outer().push_back(pg.outer().at(index_point));
                     }
                     //вернулись на начальную точку (проверить, не меняется ли turn_id в верхем цикле)
-                    if(turn_id == found_segment-turns.begin()){
-                        //если между закрывающим пересечением и найденным открывающим пересечением
-                        //есть еще одно пересечение, то регистрируем его
-                        if((turn_id-closing_id+turns.size())%turns.size()>1)
-                            passed.push_back(std::make_pair(std::max(
-                                (turn_id-1+turns.size())%turns.size(),(closing_id+1)%turns.size()),
-                                std::min(
-                                (turn_id-1+turns.size())%turns.size(),(closing_id+1)%turns.size())));
+                    if(turn_id == found_id){
                         std::cout<<"Current state:"<<std::endl;
                         for(auto& vertice:new_pg.outer()){
                             std::cout<<"("<<vertice.lon_<<", "<<vertice.lat_<<");";
@@ -358,14 +353,7 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
                         new_pg.outer().push_back(turns[turn_id].point);
                         //вставляем полигон в пул полигонов
                         result.push_back(std::move(new_pg));
-                        //ищем следующий после индекса закрывающего пересечения индекс (поиск по координате)
-                        next_by_coord = (std::lower_bound(by_coord_turns.begin(),by_coord_turns.end(),closing_point,
-                            [](const turn_info& t,const Coord& point)
-                        {
-                            if(point.lat_==t.point.lat_)
-                                return t.point.lon_>point.lon_;
-                            return t.point.lat_>point.lat_;
-                        })-by_coord_turns.begin()+1)%by_coord_turns.size();
+                        //откуда next_by_coord
                         turn_id = std::lower_bound(turns.begin(),turns.end(),by_coord_turns[next_by_coord],
                             [](const turn_info& t,const turn_info& turn)
                         {
@@ -377,14 +365,54 @@ bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestr
                             if(passed.empty())
                                 return result; //вернуть пул полигонов. Изменить сигнатуру функции
                             else{
-                                search_open_id = passed.back().first;
+                                search_open_id = passed.back();
+                                passed.pop_back();
                                 break;
                             }
                         break;
                     }
                     //если не замкнули полигон
                     else{
-                        current_oppening_id = found_segment-turns.begin();
+                        //проверить входит ли эта точка в passed. Если да, то исключить
+                        //не добавлять те точки, которые были обработаны сначала
+
+
+                        //ищем позицию найденного пересечения по координатам
+                        uint64_t found_by_coord = std::lower_bound(
+                            by_coord_turns.begin(),
+                            by_coord_turns.end(),
+                            found_segment->point,
+                            [](const turn_info& t,const Coord& point)
+                            {
+                                if(point.lat_==t.point.lat_)
+                                    return t.point.lon_>point.lon_;
+                                return t.point.lat_>point.lat_;
+                            })-by_coord_turns.begin();
+                        //если между закрывающим пересечением и найденным открывающим пересечением
+                        //есть еще одно пересечение, то регистрируем его
+                        if(found_by_coord-closing_by_coord>1){
+                            uint64_t after_closing_passed = std::lower_bound(turns.begin(),turns.end(),
+                                by_coord_turns[(found_by_coord+1)%by_coord_turns.size()],
+                                [](const turn_info& t,const turn_info& turn){
+                                    if(turn.point.lat_==t.point.lat_)
+                                        return t.point.lon_>turn.point.lon_;
+                                    return t.point.lat_>turn.point.lat_;
+                                })-turns.begin();
+                            std::cout<<"Found passed point between: ("<< \
+                                found_segment->point.lon_<<", "<<found_segment->point.lat_<<");("<< \
+                                closing_point.lon_<<", "<<closing_point.lat_<<")"<<std::endl;
+                            auto cont = std::span(by_coord_turns.cbegin()+closing_by_coord+1,by_coord_turns.cbegin()+found_by_coord);
+                            for(uint64_t i = found_by_coord-1;
+                                    i>closing_by_coord;
+                                    --i)
+                                passed.push_back(i);
+                            std::cout<<"Passed points:"<<std::endl;
+                            for(auto& id:std::span(passed.begin(),passed.end())){
+                                std::cout<<"("<<by_coord_turns[id].point.lon_<<","<<by_coord_turns[id].point.lat_<<")";
+                            }
+                            std::cout<<std::endl;
+                        }
+                        current_oppening_id = found_id;
                         break;
                     }
                 }
@@ -505,7 +533,7 @@ TEST(polygon,cut_test){
         //     std::cout<<"polygon segment: "<<turn.operations[1].seg_id.segment_index<<std::endl;
         // }
         std::cout<<std::endl;
-        auto res = cut(polyline,pg, false);
+        auto res = cut(polyline,pg, true);
         for(auto it_pg = res.begin();it_pg!=res.end();++it_pg){
             std::cout<<"Polygon ["<<it_pg-res.begin()<<"]\n";
             bg::correct(*it_pg);
