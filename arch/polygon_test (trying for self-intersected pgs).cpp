@@ -263,6 +263,26 @@ std::vector<turn_info> get_self_turns(
     return result;
 }
 
+enum class SIDE{
+    ON = 1,
+    LEFT = (1<<1),
+    RIGHT = (1<<2),
+    LEFT_ON = LEFT|ON,
+    RIGHT_ON = RIGHT|ON
+};
+
+SIDE point_side(const Coord& first,const Coord& second, const Coord& point){
+    int side_int = bg::strategy::side::side_by_triangle<>::apply(first, second, point);
+    SIDE result;
+    if(side_int<0)
+        result=static_cast<SIDE>(static_cast<size_t>(result)|static_cast<size_t>(SIDE::LEFT));
+    if(side_int==0)
+        result=static_cast<SIDE>(static_cast<size_t>(result)|static_cast<size_t>(SIDE::ON));
+    if(side_int>0)
+        result=static_cast<SIDE>(static_cast<size_t>(result)|static_cast<size_t>(SIDE::RIGHT));
+    return result;
+}
+
 int8_t increment(const Coord& first,const Coord& second,bool left_forward){
     bool dy_positive = first.lat_<second.lat_;
     bool dy_zero = first.lat_==second.lat_;
@@ -291,6 +311,8 @@ int8_t increment(const Coord& first,const Coord& second,bool left_forward){
     }
     return inc;
 }
+
+
 
 uint64_t define_turn_id_by_coord(const std::vector<turn_info>& turns_by_coord,const Coord& from){
     uint64_t next_by_coord = std::lower_bound(turns_by_coord.begin(),turns_by_coord.end(),from,
@@ -321,6 +343,102 @@ std::vector<turn_info>::const_iterator find_turn_by_segment_id(const std::vector
     });
     return result;
 }
+
+void observe_to_next_intersection(
+    uint64_t from,
+    const bg::model::polygon<Coord,true>& polygon,
+    const segment_t& intersecting_segment,
+    const std::vector<turn_info>& turns,
+    const std::vector<turn_info>& self_turns,
+    bool from_in_self_intersection,
+    bool& to_in_self_intersection,
+    bool left_forward){
+    for(uint64_t seg = (turns[from].operations[1].seg_id.segment_index+1)%polygon.outer().size();
+            seg<=turns[(from+1)%turns.size()].operations[1].seg_id.segment_index;
+            seg=(seg+1)%polygon.outer().size())
+    {
+        auto found = find_turn_by_segment_id(turns,seg);
+        auto found_self = find_turn_by_segment_id(self_turns,seg);
+        if(found_self!=self_turns.end()){
+            if(found!=turns.end()){
+                SIDE side = point_side(intersecting_segment.first,intersecting_segment.second,found_self->point);
+                if(left_forward){
+                    switch(side){
+                        case SIDE::LEFT:
+                        case SIDE::LEFT_ON:
+                        case SIDE::ON:
+                            to_in_self_intersection=!to_in_self_intersection;
+                    }
+                }
+                else{
+                    switch(side){
+                        case SIDE::RIGHT:
+                        case SIDE::RIGHT_ON:
+                        case SIDE::ON:
+                            to_in_self_intersection=!to_in_self_intersection;
+                    }
+                }
+                return;
+            }
+            else to_in_self_intersection = !to_in_self_intersection;
+        }
+    }
+}
+
+size_t number_vertices_between_intersections(const std::vector<turn_info>& turns,uint64_t from,uint64_t to){
+    size_t result = 0;
+    for(uint64_t second = to,
+                first = (second-1+turns.size())%turns.size();
+                second>from;
+                second=(second-1+turns.size())%turns.size(),
+                first=(first-1+turns.size())%turns.size())
+    {
+        result+=
+            turns[second].operations[1].seg_id.segment_index-
+            turns[first].operations[1].seg_id.segment_index;
+    }
+    return result;
+}
+
+void insert_to_next_intersection (
+        const bg::model::polygon<Coord>& initial_pg,
+        bg::model::polygon<Coord>& modified_pg,
+        const std::vector<turn_info>& turns,
+        uint64_t from_id,
+        uint64_t to_id,
+        int8_t point_id,
+        bool in_self_isection_from,
+        bool in_self_isection_to)
+{
+    uint64_t segments_sz = turns[(to_id)%turns.size()].operations[1].seg_id.segment_index - 
+            turns[from_id].operations[1].seg_id.segment_index;
+    if(in_self_isection_from!=in_self_isection_to){
+        size_t before_resize = modified_pg.outer().size();
+        uint64_t number_vertices = number_vertices_between_intersections(turns,from_id,to_id);
+        turns[(from_id+1)%turns.size()].operations[1].seg_id.segment_index - 
+                turns[from_id].operations[1].seg_id.segment_index;
+        modified_pg.outer().resize(modified_pg.outer().size()+segments_sz+to_id-from_id+1);
+        modified_pg.outer().at(modified_pg.outer().size()-1-segments_sz)=turns[from_id].point;
+        modified_pg.outer().back() = turns[(from_id+1)%turns.size()].point;
+        
+        //последовательная вставка пересечения to_id, вершин между пересечениями и пересечения from_id
+        for(uint64_t second = to_id,
+                    first = (second-1+turns.size())%turns.size();
+                    second>from_id;
+                    second=(second-1+turns.size())%turns.size(),
+                    first=(first-1+turns.size())%turns.size())
+        {
+            uint64_t start_seg = turns[second].operations[1].seg_id.segment_index;
+            modified_pg.outer().at(start_seg-1)=turns[first].point;
+            for(size_t i = start_seg;i>before_resize;--i)
+                modified_pg.outer().at(i)=initial_pg.outer().at(start_seg+point_id);
+        }
+    }
+    else {
+        // next_id = (from_id+1)%turns.size();
+        // modified_pg.outer().push_back(turns[next_id].point);
+    }
+};
 
 void print(const std::vector<turn_info>& turns){
     uint64_t i = 0;       
@@ -365,109 +483,103 @@ void print(const bg::model::polygon<Coord,CLOCKWISE>& pg){
     else std::cout<<"NaN"<<std::endl;
 }
 
-template<typename T>
-uint64_t next_id_of_ring(const std::vector<T>& ring,uint64_t id,uint8_t inc){
-    return (id+inc+ring.size())%ring.size();
-}
-
 bg::model::multi_polygon<bg::model::polygon<Coord>> cut(const bg::model::linestring<Coord>& polyline,
     const bg::model::polygon<Coord,true>& pg,
     bool left_forward //оставляем слева и сверху по ходу полилинии (либо квадранты?)
     ){
     bg::model::multi_polygon<bg::model::polygon<Coord>> result;
     for(uint64_t first = 0,second=(first+1)%polyline.size();
-         second<polyline.size(); ++first, second=first+1){
-        std::vector<turn_info> turns = get_turns(segment_t(polyline[first],polyline[second]),pg);
+        second<polyline.size(); ++first, second=first+1)
+    {
+        std::vector<bg::model::polygon<Coord>> pgs_in_process;
+        bg::model::polygon<Coord,true>& new_pg = pgs_in_process.emplace_back();
+        segment_t intersecting_segment(polyline[first],polyline[second]);
+        std::vector<turn_info> turns = get_turns(intersecting_segment,pg);
+        std::vector<turn_info> self_turns = get_self_turns(pg);
+        self_turns.reserve(self_turns.size()*2);
+        for(auto& t:self_turns){
+            turn_info tmp_turn = t;
+            std::swap(tmp_turn.operations[0],tmp_turn.operations[1]);
+            self_turns.push_back(std::move(tmp_turn));
+        }
+        std::sort(self_turns.begin(),self_turns.end(),[](const turn_info& lhs,const turn_info& rhs){
+            return lhs.operations[0].seg_id.segment_index<rhs.operations[1].seg_id.segment_index;
+        });
+        
         print(turns);
-        std::vector<turn_info> by_coord_turns(turns);
-        bool in_self_intersection = false;
-        std::sort(by_coord_turns.begin(),by_coord_turns.end(),
+        print(self_turns);
+        uint64_t turns_offset = std::max_element(turns.begin(),turns.end(),
             [](const turn_info& lhs,const turn_info& rhs)
-            {
-                return lhs.point.lat_>rhs.point.lat_; 
-            });
-        std::vector<std::vector<uint64_t>> pgs_turns;
-        std::vector<std::vector<uint64_t>> pgs_turns_in_process;
-        pgs_turns_in_process.reserve(5);
-        for(uint64_t first = 0, second=first+1;second<=turns.size();
-            first+=2,second+=2)
         {
-            uint64_t turn_id_1 = define_turn_id(turns,by_coord_turns[first]);
-            uint64_t turn_id_2 = define_turn_id(turns,by_coord_turns[second]);
-            const turn_info& turn_1 = turns[turn_id_1];
-            const turn_info& turn_2 = turns[turn_id_2];
-            if((turn_id_2+1)%turns.size()==turn_id_1){
-                pgs_turns.emplace_back().push_back(turn_id_1);
-                pgs_turns.back().push_back(turn_id_2);
-                print(turn_1.point,"inserted openning point");
-                print(turn_2.point,"inserted closing point");
-                continue;
-            }
-            if(!pgs_turns_in_process.empty() && !pgs_turns_in_process.back().empty()){
-                if((turn_id_2+1)%turns.size()==pgs_turns_in_process.back().front())
-                {
-                    pgs_turns.emplace_back(pgs_turns_in_process.back());
-                    pgs_turns.back().push_back(turn_id_1);
-                    pgs_turns.back().push_back(turn_id_2);
-                    print(turn_1.point,"inserted openning point");
-                    print(turn_2.point,"inserted closing point");
-                    pgs_turns_in_process.pop_back();
-                    std::cout<<"polygon completed"<<std::endl;
-                }
-                else if( pgs_turns_in_process.back().back()==(turn_id_1-1+turns.size())%turns.size()){
-                    pgs_turns_in_process.back().push_back(turn_id_1);
-                    pgs_turns_in_process.back().push_back(turn_id_2);
-                    print(turn_1.point,"inserted openning point");
-                    print(turn_2.point,"inserted closing point");
+            return lhs.point.lat_<
+                rhs.point.lat_;
+        })-turns.begin();
+        uint64_t turn_id = turns_offset;
+        //на случай, если несколько точек пересечения в одной координате
+        uint64_t current_oppening_id= turn_id;
+        int8_t inc = increment(polyline[first],polyline[second],left_forward);
+        int8_t point_id = left_forward?0:1;
+        bool in_self_isection_open = false;
+        bool in_self_isection_close = false;
+        while(true){
+            auto& openning_point = turns[current_oppening_id].point;
+            print(openning_point,"openning point");
+            new_pg.outer().push_back(openning_point);
+            uint64_t next_point_id = (current_oppening_id+1)%turns.size();
+            Coord next_point = turns[next_point_id].point;
+            //поиск замыкающего пересечения
+            //если in_self_intersection, то искать следующее пересечение, которое !in_self_intersection; делаем resize и помещаем все вершины между пересечениями
+            observe_to_next_intersection(current_oppening_id,pg,intersecting_segment,turns,self_turns,in_self_isection_open,in_self_isection_close,left_forward);
+            if(in_self_isection_close!=in_self_isection_open){
+                if(next_point.lat_>=openning_point.lat_ && next_point.lon_>=openning_point.lon_){
+                    new_pg.outer().push_back(next_point);
                 }
                 else{
+                    new_pg = pgs_in_process.emplace_back();
                     std::cout<<"new polygon detected"<<std::endl;
-                    pgs_turns_in_process.emplace_back().push_back(turn_id_1);
-                    pgs_turns_in_process.back().push_back(turn_id_2);
-                    print(turn_1.point,"inserted openning point");
-                    print(turn_2.point,"inserted closing point");
+                    current_oppening_id = next_point_id;
+                    continue;
                 }
             }
             else{
-                std::cout<<"new polygon detected"<<std::endl;
-                pgs_turns_in_process.emplace_back().push_back(turn_id_1);
-                pgs_turns_in_process.back().push_back(turn_id_2);
-                print(turn_1.point,"inserted openning point");
-                print(turn_2.point,"inserted closing point");
-            }
-            //искать пары и записывать для каждого полигона
-            //затем линейно пройтись first до second по вершинам сегментов и составить последовательно полигоны
-        }
-        int8_t inc = increment(polyline[first],polyline[second],left_forward);
-        int8_t point_id = left_forward?1:0;
-        for(const auto& pg_turns:pgs_turns){
-            std::cout<<"new polygon"<<std::endl;
-            bg::model::polygon<Coord,true>& new_pg = result.emplace_back();
-            for(uint64_t i=0;i<pg_turns.size();++i){
-                //открывающий
-                if(i%2==0){
-                    print(turns[pg_turns[i]].point,"inserted vertice");
-                    new_pg.outer().push_back(turns[pg_turns[i]].point);
+                if(next_point.lat_<=openning_point.lat_ && next_point.lon_<=openning_point.lon_){
+                    new_pg.outer().push_back(next_point);
                 }
                 else{
-                    print(turns[pg_turns[i]].point,"inserted vertice");
-                    new_pg.outer().push_back(turns[pg_turns[i]].point);
-                    uint64_t next_i = (i+1)%pg_turns.size();
-                    uint64_t next_seg = (turns[pg_turns[next_i]].\
-                            operations[1].seg_id.segment_index+point_id)%pg.outer().size();
-                    for(uint64_t j = (turns[pg_turns[i]].operations[1].seg_id.segment_index+point_id)%pg.outer().size();
-                        j!=next_seg;
-                        j=(j+1)%pg.outer().size())
-                    {
-                        print(pg.outer().at(j),"inserted vertice");
-                        new_pg.outer().push_back(pg.outer().at(j));
-                    }
-                    if(new_pg.outer().front()==turns[pg_turns[next_i]].point){
-                        print(new_pg.outer().front(),"inserted vertice");
-                        new_pg.outer().push_back(new_pg.outer().front());
-                    }
+                    new_pg = pgs_in_process.emplace_back();
+                    std::cout<<"new polygon detected"<<std::endl;
+                    current_oppening_id = next_point_id;
+                    continue;
                 }
             }
+            print(next_point,"closing point");
+            next_point_id = (next_point_id+1)%turns.size();
+            next_point = turns[next_point_id].point;
+            //поиск нового открывающего пересечения
+            if(in_self_isection_close!=in_self_isection_open){
+                if(next_point.lat_>=openning_point.lat_ && next_point.lon_>=openning_point.lon_)
+                    break;
+                else{
+                    new_pg = pgs_in_process.emplace_back();
+                    std::cout<<"new polygon detected"<<std::endl;
+                    current_oppening_id = next_point_id;
+                    continue;
+                }
+            }
+            else{
+                if(next_point.lat_<=openning_point.lat_ && next_point.lon_<=openning_point.lon_)
+                    new_pg.outer().push_back(next_point);
+                else{
+                    new_pg = pgs_in_process.emplace_back();
+                    std::cout<<"new polygon detected"<<std::endl;
+                    current_oppening_id = next_point_id;
+                    continue;
+                }
+            }
+            current_oppening_id = next_point_id;
+            print(next_point,"openning point");
+            //insert_to_next_intersection(pg,new_pg,turns,current_oppening_id,point_id,in_self_isection_open,in_self_isection_close);
+            //print(new_pg);
         }
     }
     return result;
@@ -533,7 +645,7 @@ TEST(polygon,cut_test){
         external.push_back({.lat_=0,.lon_=0});
         external.push_back({.lat_=0,.lon_=10});
         external.push_back({.lat_=3,.lon_=10});
-        external.push_back({.lat_=3,.lon_=5});
+        external.push_back({.lat_=-1,.lon_=5});
         external.push_back({.lat_=5.5,.lon_=5});
         external.push_back({.lat_=5.5,.lon_=10});
         external.push_back({.lat_=5,.lon_=10});
@@ -542,14 +654,11 @@ TEST(polygon,cut_test){
         external.push_back({.lat_=4,.lon_=11});
         external.push_back({.lat_=7,.lon_=11});
         external.push_back({.lat_=9,.lon_=10});
-        external.push_back({.lat_=9,.lon_=6.5});
-        external.push_back({.lat_=10,.lon_=6.5});
-        external.push_back({.lat_=10,.lon_=8});
-        external.push_back({.lat_=10.5,.lon_=8});
-        external.push_back({.lat_=10.5,.lon_=6});
         external.push_back({.lat_=8,.lon_=6});
+        external.push_back({.lat_=9,.lon_=6});
         external.push_back({.lat_=8,.lon_=9});
-        external.push_back({.lat_=5.75,.lon_=9});
+        external.push_back({.lat_=7,.lon_=3});
+        external.push_back({.lat_=5.75,.lon_=6.5});
         external.push_back({.lat_=5.75,.lon_=8});
         external.push_back({.lat_=6.75,.lon_=8});
         external.push_back({.lat_=6.75,.lon_=6.75});
@@ -562,21 +671,22 @@ TEST(polygon,cut_test){
         external.push_back({.lat_=6.375,.lon_=7.25});
         external.push_back({.lat_=6.375,.lon_=6.5});
         external.push_back({.lat_=7,.lon_=6.5});
-        external.push_back({.lat_=7,.lon_=3});
+        external.push_back({.lat_=7,.lon_=9});
         external.push_back({.lat_=8,.lon_=3});
         external.push_back({.lat_=12,.lon_=7});
         external.push_back({.lat_=12,.lon_=10});
         external.push_back({.lat_=16,.lon_=10});
         external.push_back({.lat_=16,.lon_=5});
         external.push_back({.lat_=18,.lon_=5});
-        external.push_back({.lat_=18,.lon_=10});
         external.push_back({.lat_=20,.lon_=10});
+        external.push_back({.lat_=18,.lon_=10});
         external.push_back({.lat_=20,.lon_=3});
         external.push_back({.lat_=14,.lon_=3});
         external.push_back({.lat_=14,.lon_=8});
         external.push_back({.lat_=13,.lon_=8});
         external.push_back({.lat_=13,.lon_=0});
         external.push_back({.lat_=0,.lon_=0});
+
         bg::correct(pg);
         //assert(bg::is_valid(pg)); @todo dissolve self-intersections
         typedef bg::detail::overlay::turn_info<Coord> turn_info;
