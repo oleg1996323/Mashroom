@@ -271,36 +271,68 @@ int8_t increment(const Coord& first,const Coord& second,bool left_forward){
     bool dx_positive = first.lon_<second.lon_;
     bool dx_zero = first.lon_==second.lon_;
     int8_t inc;
-    if(left_forward){
-        if(dy_positive)
-            inc = 1;
-        else{
-            if(dy_zero && !dx_positive)
-                inc = 1;
-            else
+    if constexpr (CLOCKWISE){
+        if(left_forward){
+            if(dy_positive)
                 inc = -1;
+            else{
+                if(dy_zero && dx_positive)
+                    inc = -1;
+                else
+                    inc = 1;
+            }
+        }
+        else{
+            if(dy_positive)
+                inc = 1;
+            else{
+                if(dy_zero && dx_positive)
+                    inc = 1;
+                else
+                    inc = -1;
+            }
         }
     }
     else{
-        if(!dy_positive)
-            inc = 1;
-        else{
-            if(dy_zero && dx_positive)
-                inc = 1;
-            else
+        if(left_forward){
+            if(dy_positive)
                 inc = -1;
+            else{
+                if(dy_zero && dx_positive)
+                    inc = -1;
+                else
+                    inc = 1;
+            }
+        }
+        else{
+            if(dy_positive)
+                inc = 1;
+            else{
+                if(dy_zero && dx_positive)
+                    inc = 1;
+                else
+                    inc = -1;
+            }
         }
     }
     return inc;
 }
 
+template<bool CLOCKWISE>
 uint64_t define_turn_id_by_coord(const std::vector<turn_info>& turns_by_coord,const Coord& from){
     uint64_t next_by_coord = std::lower_bound(turns_by_coord.begin(),turns_by_coord.end(),from,
         [](const turn_info& t,const Coord& point)
     {
-        if(point.lat_==t.point.lat_)
-            return t.point.lon_>point.lon_;
-        return t.point.lat_>point.lat_;
+        if constexpr(!CLOCKWISE){
+            if(point.lat_==t.point.lat_)
+                return t.point.lon_>point.lon_;
+            return t.point.lat_>point.lat_;
+        }
+        else{
+            if(point.lat_==t.point.lat_)
+                return t.point.lon_<point.lon_;
+            return t.point.lat_<point.lat_;
+        }
     })-turns_by_coord.begin();
     return next_by_coord;
 }
@@ -375,118 +407,170 @@ uint64_t next_id_of_ring(const std::vector<T>& ring,uint64_t id,uint8_t inc){
 
 //@todo проверить ккасается ли секущая вершины
 template<bool CLOCKWISE>
-bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> cut(const bg::model::linestring<Coord>& polyline,
+bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> cut_impl(
+    const boost::geometry::model::referring_segment<const Coord>& segment,
     const bg::model::polygon<Coord,CLOCKWISE>& pg,
-    bool left_forward //оставляем слева и сверху по ходу полилинии (либо квадранты?)
+    bool left_forward
     ){
     bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> result;
-    for(uint64_t first = 0,second=(first+1)%polyline.size();
-         second<polyline.size(); ++first, second=first+1){
-        std::vector<turn_info> turns = get_turns(segment_t(polyline[first],polyline[second]),pg);
-        //print(turns);
-        std::vector<turn_info> by_coord_turns(turns);
-        bool in_self_intersection = false;
-        std::sort(by_coord_turns.begin(),by_coord_turns.end(),
-            [](const turn_info& lhs,const turn_info& rhs)
-            {
-                if(std::abs(lhs.point.lat_-rhs.point.lat_)< \
-                    std::numeric_limits<Lat>::epsilon())
-                    return (lhs.point.lon_>rhs.point.lon_);
-                else return lhs.point.lat_>rhs.point.lat_;
-            });
-        std::vector<std::vector<uint64_t>> pgs_turns;
-        std::vector<std::vector<uint64_t>> pgs_turns_in_process;
-        pgs_turns_in_process.reserve(5);
-        int8_t inc = increment<CLOCKWISE>(polyline[first],polyline[second],left_forward);
-        int8_t point_id = 0;
-        if(left_forward){
-            point_id = 1;
-        }
-        else{
-            point_id = 0;
-        }
-        for(uint64_t first = 0, second=first+1;second<=turns.size();
-            first+=2,second+=2)
+    std::vector<turn_info> turns = get_turns(segment,pg);
+    //print(turns);
+    std::vector<turn_info> by_coord_turns(turns);
+    bool in_self_intersection = false;
+    std::sort(by_coord_turns.begin(),by_coord_turns.end(),
+        [&left_forward](const turn_info& lhs,const turn_info& rhs)
         {
-            uint64_t turn_id_1 = define_turn_id(turns,by_coord_turns[first]);
-            uint64_t turn_id_2 = define_turn_id(turns,by_coord_turns[second]);
-            const turn_info& turn_1 = turns[turn_id_1];
-            const turn_info& turn_2 = turns[turn_id_2];
-            if((turn_id_2+inc+turns.size())%turns.size()==turn_id_1){
-                //std::cout<<"new polygon detected"<<std::endl;
-                pgs_turns.emplace_back().push_back(turn_id_1);
-                pgs_turns.back().push_back(turn_id_2);
-                //print(turn_1.point,"inserted openning point");
-                //print(turn_2.point,"inserted closing point");
-                //std::cout<<"polygon completed"<<std::endl;
-            }
-            else if(!pgs_turns_in_process.empty() && !pgs_turns_in_process.back().empty()){
-                if((turn_id_2+inc+turns.size())%turns.size()==pgs_turns_in_process.back().front())
-                {
-                    pgs_turns.emplace_back(pgs_turns_in_process.back());
-                    pgs_turns.back().push_back(turn_id_1);
-                    pgs_turns.back().push_back(turn_id_2);
-                    //print(turn_1.point,"inserted openning point");
-                    //print(turn_2.point,"inserted closing point");
-                    pgs_turns_in_process.pop_back();
-                    //std::cout<<"polygon completed"<<std::endl;
-                }
-                else if( pgs_turns_in_process.back().back()==(turn_id_1+1+turns.size())%turns.size()){
-                    pgs_turns_in_process.back().push_back(turn_id_1);
-                    pgs_turns_in_process.back().push_back(turn_id_2);
-                    //print(turn_1.point,"inserted openning point");
-                    //print(turn_2.point,"inserted closing point");
+            if constexpr (!CLOCKWISE){
+                if(!left_forward){
+                    if(std::abs(lhs.point.lat_-rhs.point.lat_)< \
+                        std::numeric_limits<Lat>::epsilon())
+                        return (lhs.point.lon_>rhs.point.lon_);
+                    else return lhs.point.lat_>rhs.point.lat_;
                 }
                 else{
-                    //std::cout<<"new polygon detected"<<std::endl;
-                    pgs_turns_in_process.emplace_back().push_back(turn_id_1);
-                    pgs_turns_in_process.back().push_back(turn_id_2);
-                    //print(turn_1.point,"inserted openning point");
-                    //print(turn_2.point,"inserted closing point");
+                    if(std::abs(lhs.point.lat_-rhs.point.lat_)< \
+                        std::numeric_limits<Lat>::epsilon())
+                        return (lhs.point.lon_<rhs.point.lon_);
+                    else return lhs.point.lat_<rhs.point.lat_;
                 }
             }
             else{
-                //std::cout<<"new polygon detected"<<std::endl;
-                pgs_turns_in_process.emplace_back().push_back(turn_id_1);
-                pgs_turns_in_process.back().push_back(turn_id_2);
-                //print(turn_1.point,"inserted openning point");
-                //print(turn_2.point,"inserted closing point");
-            }
-            //искать пары и записывать для каждого полигона
-            //затем линейно пройтись first до second по вершинам сегментов и составить последовательно полигоны
-        }
-        
-        for(const auto& pg_turns:pgs_turns){
-            std::cout<<"new polygon"<<std::endl;
-            bg::model::polygon<Coord,CLOCKWISE>& new_pg = result.emplace_back();
-            for(uint64_t i=0;i<pg_turns.size();++i){
-                //открывающий
-                if(i%2==0){
-                    print(turns[pg_turns[i]].point,"inserted vertice");
-                    new_pg.outer().push_back(turns[pg_turns[i]].point);
+                if(!left_forward){
+                    if(std::abs(lhs.point.lat_-rhs.point.lat_)< \
+                        std::numeric_limits<Lat>::epsilon())
+                        return (lhs.point.lon_<rhs.point.lon_);
+                    else return lhs.point.lat_<rhs.point.lat_;
                 }
                 else{
-                    print(turns[pg_turns[i]].point,"inserted vertice");
-                    new_pg.outer().push_back(turns[pg_turns[i]].point);
-                    uint64_t this_seg = (turns[pg_turns[i]].operations[1].\
-                            seg_id.segment_index+point_id)%pg.outer().size();
-                    uint64_t next_i = (i+1+pg_turns.size())%pg_turns.size();
-                    uint64_t next_seg = (turns[pg_turns[next_i]].\
-                            operations[1].seg_id.segment_index+point_id)%pg.outer().size();
-                    for(uint64_t j = this_seg;
-                        j!=next_seg;
-                        j=(j+inc+pg.outer().size())%pg.outer().size())
-                    {
-                        print(pg.outer().at(j),"inserted vertice");
-                        new_pg.outer().push_back(pg.outer().at(j));
-                    }
-                    if(new_pg.outer().front()==turns[pg_turns[next_i]].point){
-                        print(new_pg.outer().front(),"inserted vertice");
-                        new_pg.outer().push_back(new_pg.outer().front());
-                    }
+                    if(std::abs(lhs.point.lat_-rhs.point.lat_)< \
+                        std::numeric_limits<Lat>::epsilon())
+                        return (lhs.point.lon_>rhs.point.lon_);
+                    else return lhs.point.lat_>rhs.point.lat_;
                 }
             }
-            //bg::correct(new_pg);
+        });
+    std::vector<std::vector<uint64_t>> pgs_turns;
+    std::vector<std::vector<uint64_t>> pgs_turns_in_process;
+    pgs_turns_in_process.reserve(5);
+    int8_t inc = 1;//increment<CLOCKWISE>(polyline[first],polyline[second],left_forward);
+    int8_t point_id = 1;
+    // if(!left_forward)
+    //     point_id = 1;
+    // else
+    //     point_id = 0;
+    for(uint64_t first = 0, second=first+1;second<=turns.size();
+        first+=2,second+=2)
+    {
+        uint64_t turn_id_1 = define_turn_id(turns,by_coord_turns[first]);
+        uint64_t turn_id_2 = define_turn_id(turns,by_coord_turns[second]);
+        const turn_info& turn_1 = turns[turn_id_1];
+        const turn_info& turn_2 = turns[turn_id_2];
+        if((turn_id_2+inc+turns.size())%turns.size()==turn_id_1){
+            std::cout<<"new polygon detected"<<std::endl;
+            pgs_turns.emplace_back().push_back(turn_id_1);
+            pgs_turns.back().push_back(turn_id_2);
+            print(turn_1.point,"inserted openning point");
+            print(turn_2.point,"inserted closing point");
+            std::cout<<"polygon completed"<<std::endl;
+        }
+        else if(!pgs_turns_in_process.empty() && !pgs_turns_in_process.back().empty()){
+            if((turn_id_2+inc+turns.size())%turns.size()==pgs_turns_in_process.back().front())
+            {
+                pgs_turns.emplace_back(pgs_turns_in_process.back());
+                pgs_turns.back().push_back(turn_id_1);
+                pgs_turns.back().push_back(turn_id_2);
+                print(turn_1.point,"inserted openning point");
+                print(turn_2.point,"inserted closing point");
+                pgs_turns_in_process.pop_back();
+                std::cout<<"polygon completed"<<std::endl;
+            }
+            else if( pgs_turns_in_process.back().back()==(turn_id_1-1+turns.size())%turns.size()){
+                pgs_turns_in_process.back().push_back(turn_id_1);
+                pgs_turns_in_process.back().push_back(turn_id_2);
+                print(turn_1.point,"inserted openning point");
+                print(turn_2.point,"inserted closing point");
+            }
+            else{
+                std::cout<<"new polygon detected"<<std::endl;
+                pgs_turns_in_process.emplace_back().push_back(turn_id_1);
+                pgs_turns_in_process.back().push_back(turn_id_2);
+                print(turn_1.point,"inserted openning point");
+                print(turn_2.point,"inserted closing point");
+            }
+        }
+        else{
+            std::cout<<"new polygon detected"<<std::endl;
+            pgs_turns_in_process.emplace_back().push_back(turn_id_1);
+            pgs_turns_in_process.back().push_back(turn_id_2);
+            print(turn_1.point,"inserted openning point");
+            print(turn_2.point,"inserted closing point");
+        }
+        //искать пары и записывать для каждого полигона
+        //затем линейно пройтись first до second по вершинам сегментов и составить последовательно полигоны
+    }
+    
+    for(const auto& pg_turns:pgs_turns){
+        std::cout<<"new polygon"<<std::endl;
+        bg::model::polygon<Coord,CLOCKWISE>& new_pg = result.emplace_back();
+        for(uint64_t i=0;i<pg_turns.size();++i){
+            //открывающий
+            if(i%2==0){
+                print(turns[pg_turns[i]].point,"inserted vertice");
+                new_pg.outer().push_back(turns[pg_turns[i]].point);
+            }
+            else{
+                print(turns[pg_turns[i]].point,"inserted vertice");
+                new_pg.outer().push_back(turns[pg_turns[i]].point);
+                uint64_t this_seg = (turns[pg_turns[i]].operations[1].\
+                        seg_id.segment_index+point_id)%pg.outer().size();
+                uint64_t next_i = (i+1+pg_turns.size())%pg_turns.size();
+                uint64_t next_seg = (turns[pg_turns[next_i]].\
+                        operations[1].seg_id.segment_index+point_id)%pg.outer().size();
+                for(uint64_t j = this_seg;
+                    j!=next_seg;
+                    j=(j+inc+pg.outer().size())%pg.outer().size())
+                {
+                    print(pg.outer().at(j),"inserted vertice");
+                    new_pg.outer().push_back(pg.outer().at(j));
+                }
+                if(new_pg.outer().front()==turns[pg_turns[next_i]].point){
+                    print(new_pg.outer().front(),"inserted vertice");
+                    new_pg.outer().push_back(new_pg.outer().front());
+                }
+            }
+        }
+    }
+    return result;
+}
+
+template<bool CLOCKWISE>
+bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> cut(const bg::model::linestring<Coord>& polyline,
+    const bg::model::polygon<Coord,CLOCKWISE>& pg,
+    bool left_forward
+    )
+{
+    bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> result;
+    for(uint64_t first = 0,second=(first+1)%polyline.size();
+         second<polyline.size(); ++first, second=first+1){
+        auto& first_point = polyline[first];
+        auto& second_point = polyline[second];
+        bool dy_positive = first_point.lat_<second_point.lat_;
+        bool dy_zero = first_point.lat_==second_point.lat_;
+        bool dx_positive = first_point.lon_<second_point.lon_;
+        bool dx_zero = first_point.lon_==second_point.lon_;
+        if(dy_positive){
+            segment_t seg(polyline[first],polyline[second]);
+            result = cut_impl(seg,pg,left_forward);
+        }
+        else{
+            if(dy_zero && dx_positive){
+                segment_t seg(polyline[first],polyline[second]);
+                result = cut_impl(seg,pg,left_forward);
+            }
+            else{
+                segment_t seg(polyline[second],polyline[first]);
+                result = cut_impl(seg,pg,!left_forward);
+            }   
         }
     }
     return result;
@@ -523,524 +607,550 @@ TEST(polygon,cut_test_counter){
         external.push_back({.lat_=0,.lon_=0});
         bg::correct(pg);
     }
-    {   
-        // 14______|_13
-        //  |      | /
-        //  |      |/
-        //  |      /
-        //  |     /|
-        //  |    / |
-        //  | 12/  |
-        //  |  | 7_|____6
-        //  |  | |_|_9  |
-        //  |  |_8_|_|  |
-        //  | 11 __|_10_|5
-        //  |  4|  | _ 
-        //  |   |  |/ |2
-        //  |   |  |  |
-        // 0|___|_/|__|1
-        //      |/ |
-        //      3
-        //
-        using line_t = bg::model::linestring<Coord>;
-        {
-            bg::model::linestring<Coord> polyline = {
-                line_t{{.lat_=-1, .lon_=7},
-                {.lat_=21, .lon_=7}}
-            };
-            bg::model::polygon<Coord,false> pg;
-            auto& external = pg.outer();
-            external.push_back({.lat_=0,.lon_=0});
-            external.push_back({.lat_=0,.lon_=10});
-            external.push_back({.lat_=3,.lon_=10});
-            external.push_back({.lat_=3,.lon_=5});
-            external.push_back({.lat_=5.5,.lon_=5});
-            external.push_back({.lat_=5.5,.lon_=10});
-            external.push_back({.lat_=5,.lon_=10});
-            external.push_back({.lat_=5,.lon_=6});
-            external.push_back({.lat_=4,.lon_=6});
-            external.push_back({.lat_=4,.lon_=11});
-            external.push_back({.lat_=7,.lon_=11});
-            external.push_back({.lat_=9,.lon_=10});
-            external.push_back({.lat_=9,.lon_=6.5});
-            external.push_back({.lat_=10,.lon_=6.5});
-            external.push_back({.lat_=10,.lon_=8});
-            external.push_back({.lat_=10.5,.lon_=8});
-            external.push_back({.lat_=10.5,.lon_=6});
-            external.push_back({.lat_=8,.lon_=6});
-            external.push_back({.lat_=8,.lon_=9});
-            external.push_back({.lat_=5.75,.lon_=9});
-            external.push_back({.lat_=5.75,.lon_=8});
-            external.push_back({.lat_=6.75,.lon_=8});
-            external.push_back({.lat_=6.75,.lon_=6.75});
-            external.push_back({.lat_=6.5,.lon_=6.75});
-            external.push_back({.lat_=6.5,.lon_=7.5});
-            external.push_back({.lat_=6,.lon_=7.5});
-            external.push_back({.lat_=6,.lon_=6.25});
-            external.push_back({.lat_=6.25,.lon_=6.25});
-            external.push_back({.lat_=6.25,.lon_=7.25});
-            external.push_back({.lat_=6.375,.lon_=7.25});
-            external.push_back({.lat_=6.375,.lon_=6.5});
-            external.push_back({.lat_=7,.lon_=6.5});
-            external.push_back({.lat_=7,.lon_=3});
-            external.push_back({.lat_=8,.lon_=3});
-            external.push_back({.lat_=12,.lon_=7});
-            external.push_back({.lat_=12,.lon_=10});
-            external.push_back({.lat_=16,.lon_=10});
-            external.push_back({.lat_=16,.lon_=5});
-            external.push_back({.lat_=18,.lon_=5});
-            external.push_back({.lat_=18,.lon_=10});
-            external.push_back({.lat_=20,.lon_=10});
-            external.push_back({.lat_=20,.lon_=3});
-            external.push_back({.lat_=14,.lon_=3});
-            external.push_back({.lat_=14,.lon_=8});
-            external.push_back({.lat_=13,.lon_=8});
-            external.push_back({.lat_=13,.lon_=0});
-            external.push_back({.lat_=0,.lon_=0});
-            bg::correct(pg);
-            ASSERT_TRUE(bg::is_valid(pg));
-            //print(pg);
-            std::cout<<std::endl;
+    using line_t = bg::model::linestring<Coord>;
+    {
+        bg::model::linestring<Coord> polyline = {
+            line_t{
+            {.lat_=21, .lon_=7},
+            {.lat_=-1, .lon_=7}}
+        };
+        {           
             {
-                auto res = cut(polyline,pg, false);
-                std::vector<bg::model::polygon<Coord,false>> etalon = {
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=10});
-                        result.outer().push_back({.lat_=7,.lon_=11});
-                        result.outer().push_back({.lat_=4,.lon_=11});
-                        result.outer().push_back({.lat_=4,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=10});
-                        result.outer().push_back({.lat_=5.5,.lon_=10});
-                        result.outer().push_back({.lat_=5.5,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7.5});
-                        result.outer().push_back({.lat_=6.5,.lon_=7.5});
-                        result.outer().push_back({.lat_=6.5,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=8});
-                        result.outer().push_back({.lat_=5.75,.lon_=8});
-                        result.outer().push_back({.lat_=5.75,.lon_=9});
-                        result.outer().push_back({.lat_=8,.lon_=9});
-                        result.outer().push_back({.lat_=8,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=8});
-                        result.outer().push_back({.lat_=10,.lon_=8});
-                        result.outer().push_back({.lat_=10,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=10});
-                        result.outer().push_back({.lat_=12,.lon_=10});
-                        result.outer().push_back({.lat_=12,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=8});
-                        result.outer().push_back({.lat_=14,.lon_=8});
-                        result.outer().push_back({.lat_=14,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=10});
-                        result.outer().push_back({.lat_=18,.lon_=10});
-                        result.outer().push_back({.lat_=18,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=10});
-                        result.outer().push_back({.lat_=0,.lon_=10});
-                        result.outer().push_back({.lat_=0,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }()
-                };
-                int counter = 0;
-                for(auto& new_pg:res){
-                    if(auto found = std::find_if(etalon.begin(),etalon.end(),
-                        [&new_pg](const bg::model::polygon<Coord,false>& pg){
-                        return bg::equals(pg,new_pg);
-                    });found==etalon.end()){
-                        std::cout<<"polygon №: "<<counter<<std::endl;
-                        print(new_pg);
-                        //assert(bg::is_valid(new_pg));
-                        bg::correct(new_pg);
-                        print(new_pg);
-                        EXPECT_TRUE(false);
+                bg::model::polygon<Coord,false> pg;
+                auto& external = pg.outer();
+                external.push_back({.lat_=0,.lon_=0});
+                external.push_back({.lat_=0,.lon_=10});
+                external.push_back({.lat_=3,.lon_=10});
+                external.push_back({.lat_=3,.lon_=5});
+                external.push_back({.lat_=5.5,.lon_=5});
+                external.push_back({.lat_=5.5,.lon_=10});
+                external.push_back({.lat_=5,.lon_=10});
+                external.push_back({.lat_=5,.lon_=6});
+                external.push_back({.lat_=4,.lon_=6});
+                external.push_back({.lat_=4,.lon_=11});
+                external.push_back({.lat_=7,.lon_=11});
+                external.push_back({.lat_=9,.lon_=10});
+                external.push_back({.lat_=9,.lon_=6.5});
+                external.push_back({.lat_=10,.lon_=6.5});
+                external.push_back({.lat_=10,.lon_=8});
+                external.push_back({.lat_=10.5,.lon_=8});
+                external.push_back({.lat_=10.5,.lon_=6});
+                external.push_back({.lat_=8,.lon_=6});
+                external.push_back({.lat_=8,.lon_=9});
+                external.push_back({.lat_=5.75,.lon_=9});
+                external.push_back({.lat_=5.75,.lon_=8});
+                external.push_back({.lat_=6.75,.lon_=8});
+                external.push_back({.lat_=6.75,.lon_=6.75});
+                external.push_back({.lat_=6.5,.lon_=6.75});
+                external.push_back({.lat_=6.5,.lon_=7.5});
+                external.push_back({.lat_=6,.lon_=7.5});
+                external.push_back({.lat_=6,.lon_=6.25});
+                external.push_back({.lat_=6.25,.lon_=6.25});
+                external.push_back({.lat_=6.25,.lon_=7.25});
+                external.push_back({.lat_=6.375,.lon_=7.25});
+                external.push_back({.lat_=6.375,.lon_=6.5});
+                external.push_back({.lat_=7,.lon_=6.5});
+                external.push_back({.lat_=7,.lon_=3});
+                external.push_back({.lat_=8,.lon_=3});
+                external.push_back({.lat_=12,.lon_=7});
+                external.push_back({.lat_=12,.lon_=10});
+                external.push_back({.lat_=16,.lon_=10});
+                external.push_back({.lat_=16,.lon_=5});
+                external.push_back({.lat_=18,.lon_=5});
+                external.push_back({.lat_=18,.lon_=10});
+                external.push_back({.lat_=20,.lon_=10});
+                external.push_back({.lat_=20,.lon_=3});
+                external.push_back({.lat_=14,.lon_=3});
+                external.push_back({.lat_=14,.lon_=8});
+                external.push_back({.lat_=13,.lon_=8});
+                external.push_back({.lat_=13,.lon_=0});
+                external.push_back({.lat_=0,.lon_=0});
+                bg::correct(pg);
+                ASSERT_TRUE(bg::is_valid(pg));
+                //print(pg);
+                std::cout<<std::endl;
+                {
+                    std::cout<<"test #1"<<std::endl;
+                    auto res = cut(polyline,pg, true);
+                    std::vector<bg::model::polygon<Coord,false>> etalon = {
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=10});
+                            result.outer().push_back({.lat_=7,.lon_=11});
+                            result.outer().push_back({.lat_=4,.lon_=11});
+                            result.outer().push_back({.lat_=4,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=10});
+                            result.outer().push_back({.lat_=5.5,.lon_=10});
+                            result.outer().push_back({.lat_=5.5,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7.5});
+                            result.outer().push_back({.lat_=6.5,.lon_=7.5});
+                            result.outer().push_back({.lat_=6.5,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=8});
+                            result.outer().push_back({.lat_=5.75,.lon_=8});
+                            result.outer().push_back({.lat_=5.75,.lon_=9});
+                            result.outer().push_back({.lat_=8,.lon_=9});
+                            result.outer().push_back({.lat_=8,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=8});
+                            result.outer().push_back({.lat_=10,.lon_=8});
+                            result.outer().push_back({.lat_=10,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=10});
+                            result.outer().push_back({.lat_=12,.lon_=10});
+                            result.outer().push_back({.lat_=12,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=8});
+                            result.outer().push_back({.lat_=14,.lon_=8});
+                            result.outer().push_back({.lat_=14,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=10});
+                            result.outer().push_back({.lat_=18,.lon_=10});
+                            result.outer().push_back({.lat_=18,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=10});
+                            result.outer().push_back({.lat_=0,.lon_=10});
+                            result.outer().push_back({.lat_=0,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }()
+                    };
+                    int counter = 0;
+                    for(auto& new_pg:res){
+                        if(auto found = std::find_if(etalon.begin(),etalon.end(),
+                            [&new_pg](const bg::model::polygon<Coord,false>& pg){
+                            return bg::equals(pg,new_pg);
+                        });found==etalon.end()){
+                            std::cout<<"polygon №: "<<counter<<std::endl;
+                            print(new_pg);
+                            //assert(bg::is_valid(new_pg));
+                            bg::correct(new_pg);
+                            print(new_pg);
+                            EXPECT_TRUE(false);
+                        }
+                        else EXPECT_TRUE(true);
+                        ++counter;
                     }
-                    else EXPECT_TRUE(true);
-                    ++counter;
+                }
+                {
+                    std::cout<<"test #2"<<std::endl;
+                    auto res = cut(polyline,pg, false);
+                    std::vector<bg::model::polygon<Coord,false>> etalon = {
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=3});
+                            result.outer().push_back({.lat_=14,.lon_=3});
+                            result.outer().push_back({.lat_=14,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=5});
+                            result.outer().push_back({.lat_=18,.lon_=5});
+                            result.outer().push_back({.lat_=18,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=6});
+                            result.outer().push_back({.lat_=8,.lon_=6});
+                            result.outer().push_back({.lat_=8,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=6.5});
+                            result.outer().push_back({.lat_=10,.lon_=6.5});
+                            result.outer().push_back({.lat_=10,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=6.75,.lon_=6.75});
+                            result.outer().push_back({.lat_=6.5,.lon_=6.75});
+                            result.outer().push_back({.lat_=6.5,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=6.75});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=5,.lon_=6});
+                            result.outer().push_back({.lat_=4,.lon_=6});
+                            result.outer().push_back({.lat_=4,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=6});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,false> result;
+                            result.outer().push_back({.lat_=0,.lon_=0});
+                            result.outer().push_back({.lat_=0,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=5});
+                            result.outer().push_back({.lat_=5.5,.lon_=5});
+                            result.outer().push_back({.lat_=5.5,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=6.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=6.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=6.5});
+                            result.outer().push_back({.lat_=7,.lon_=6.5});
+                            result.outer().push_back({.lat_=7,.lon_=3});
+                            result.outer().push_back({.lat_=8,.lon_=3});
+                            result.outer().push_back({.lat_=12,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=0});
+                            result.outer().push_back({.lat_=0,.lon_=0});
+                            bg::correct(result);
+                            return result;
+                        }()
+                    };
+                    int counter = 0;
+                    for(auto& new_pg:res){
+                        if(auto found = std::find_if(etalon.begin(),etalon.end(),
+                            [&new_pg](const bg::model::polygon<Coord,false>& pg){
+                            return bg::equals(pg,new_pg);
+                        });found==etalon.end()){
+                            std::cout<<"polygon №: "<<counter<<std::endl;
+                            print(new_pg);
+                            EXPECT_TRUE(false);
+                        }
+                        else EXPECT_TRUE(true);
+                        ++counter;
+                    }
                 }
             }
+            //////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////
+            /////////////CLOCKWISE////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////
             {
-                auto res = cut(polyline,pg, true);
-                std::vector<bg::model::polygon<Coord,false>> etalon = {
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=3});
-                        result.outer().push_back({.lat_=14,.lon_=3});
-                        result.outer().push_back({.lat_=14,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=5});
-                        result.outer().push_back({.lat_=18,.lon_=5});
-                        result.outer().push_back({.lat_=18,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=6});
-                        result.outer().push_back({.lat_=8,.lon_=6});
-                        result.outer().push_back({.lat_=8,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=6.5});
-                        result.outer().push_back({.lat_=10,.lon_=6.5});
-                        result.outer().push_back({.lat_=10,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=6.75,.lon_=6.75});
-                        result.outer().push_back({.lat_=6.5,.lon_=6.75});
-                        result.outer().push_back({.lat_=6.5,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=6.75});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=5,.lon_=6});
-                        result.outer().push_back({.lat_=4,.lon_=6});
-                        result.outer().push_back({.lat_=4,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=6});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,false> result;
-                        result.outer().push_back({.lat_=0,.lon_=0});
-                        result.outer().push_back({.lat_=0,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=5});
-                        result.outer().push_back({.lat_=5.5,.lon_=5});
-                        result.outer().push_back({.lat_=5.5,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=6.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=6.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=6.5});
-                        result.outer().push_back({.lat_=7,.lon_=6.5});
-                        result.outer().push_back({.lat_=7,.lon_=3});
-                        result.outer().push_back({.lat_=8,.lon_=3});
-                        result.outer().push_back({.lat_=12,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=0});
-                        result.outer().push_back({.lat_=0,.lon_=0});
-                        bg::correct(result);
-                        return result;
-                    }()
-                };
-                int counter = 0;
-                for(auto& new_pg:res){
-                    if(auto found = std::find_if(etalon.begin(),etalon.end(),
-                        [&new_pg](const bg::model::polygon<Coord,false>& pg){
-                        return bg::equals(pg,new_pg);
-                    });found==etalon.end()){
-                        std::cout<<"polygon №: "<<counter<<std::endl;
-                        print(new_pg);
-                        EXPECT_TRUE(false);
+                bg::model::polygon<Coord,true> pg;
+                auto& external = pg.outer();
+                external.push_back({.lat_=0,.lon_=0});
+                external.push_back({.lat_=0,.lon_=10});
+                external.push_back({.lat_=3,.lon_=10});
+                external.push_back({.lat_=3,.lon_=5});
+                external.push_back({.lat_=5.5,.lon_=5});
+                external.push_back({.lat_=5.5,.lon_=10});
+                external.push_back({.lat_=5,.lon_=10});
+                external.push_back({.lat_=5,.lon_=6});
+                external.push_back({.lat_=4,.lon_=6});
+                external.push_back({.lat_=4,.lon_=11});
+                external.push_back({.lat_=7,.lon_=11});
+                external.push_back({.lat_=9,.lon_=10});
+                external.push_back({.lat_=9,.lon_=6.5});
+                external.push_back({.lat_=10,.lon_=6.5});
+                external.push_back({.lat_=10,.lon_=8});
+                external.push_back({.lat_=10.5,.lon_=8});
+                external.push_back({.lat_=10.5,.lon_=6});
+                external.push_back({.lat_=8,.lon_=6});
+                external.push_back({.lat_=8,.lon_=9});
+                external.push_back({.lat_=5.75,.lon_=9});
+                external.push_back({.lat_=5.75,.lon_=8});
+                external.push_back({.lat_=6.75,.lon_=8});
+                external.push_back({.lat_=6.75,.lon_=6.75});
+                external.push_back({.lat_=6.5,.lon_=6.75});
+                external.push_back({.lat_=6.5,.lon_=7.5});
+                external.push_back({.lat_=6,.lon_=7.5});
+                external.push_back({.lat_=6,.lon_=6.25});
+                external.push_back({.lat_=6.25,.lon_=6.25});
+                external.push_back({.lat_=6.25,.lon_=7.25});
+                external.push_back({.lat_=6.375,.lon_=7.25});
+                external.push_back({.lat_=6.375,.lon_=6.5});
+                external.push_back({.lat_=7,.lon_=6.5});
+                external.push_back({.lat_=7,.lon_=3});
+                external.push_back({.lat_=8,.lon_=3});
+                external.push_back({.lat_=12,.lon_=7});
+                external.push_back({.lat_=12,.lon_=10});
+                external.push_back({.lat_=16,.lon_=10});
+                external.push_back({.lat_=16,.lon_=5});
+                external.push_back({.lat_=18,.lon_=5});
+                external.push_back({.lat_=18,.lon_=10});
+                external.push_back({.lat_=20,.lon_=10});
+                external.push_back({.lat_=20,.lon_=3});
+                external.push_back({.lat_=14,.lon_=3});
+                external.push_back({.lat_=14,.lon_=8});
+                external.push_back({.lat_=13,.lon_=8});
+                external.push_back({.lat_=13,.lon_=0});
+                external.push_back({.lat_=0,.lon_=0});
+                bg::correct(pg);
+                ASSERT_TRUE(bg::is_valid(pg));
+                //print(pg);
+                {
+                    std::cout<<"test #3"<<std::endl;
+                    auto res = cut(polyline,pg, true);
+                
+                    std::vector<bg::model::polygon<Coord,true>> etalon = {
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=10});
+                            result.outer().push_back({.lat_=7,.lon_=11});
+                            result.outer().push_back({.lat_=4,.lon_=11});
+                            result.outer().push_back({.lat_=4,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=10});
+                            result.outer().push_back({.lat_=5.5,.lon_=10});
+                            result.outer().push_back({.lat_=5.5,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7.5});
+                            result.outer().push_back({.lat_=6.5,.lon_=7.5});
+                            result.outer().push_back({.lat_=6.5,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=8});
+                            result.outer().push_back({.lat_=5.75,.lon_=8});
+                            result.outer().push_back({.lat_=5.75,.lon_=9});
+                            result.outer().push_back({.lat_=8,.lon_=9});
+                            result.outer().push_back({.lat_=8,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=8});
+                            result.outer().push_back({.lat_=10,.lon_=8});
+                            result.outer().push_back({.lat_=10,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=10});
+                            result.outer().push_back({.lat_=12,.lon_=10});
+                            result.outer().push_back({.lat_=12,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=8});
+                            result.outer().push_back({.lat_=14,.lon_=8});
+                            result.outer().push_back({.lat_=14,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=10});
+                            result.outer().push_back({.lat_=18,.lon_=10});
+                            result.outer().push_back({.lat_=18,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=10});
+                            result.outer().push_back({.lat_=0,.lon_=10});
+                            result.outer().push_back({.lat_=0,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }()
+                    };
+                    int counter = 0;
+                    for(auto& new_pg:res){
+                        if(auto found = std::find_if(etalon.begin(),etalon.end(),
+                            [&new_pg](const bg::model::polygon<Coord,true>& pg){
+                            return bg::equals(pg,new_pg);
+                        });found==etalon.end()){
+                            std::cout<<"polygon №: "<<counter<<std::endl;
+                            print(new_pg);
+                            EXPECT_TRUE(false);
+                        }
+                        else EXPECT_TRUE(true);
+                        ++counter;
                     }
-                    else EXPECT_TRUE(true);
-                    ++counter;
+                }
+                {
+                    std::cout<<"test #4"<<std::endl;
+                    auto res = cut(polyline,pg, false);
+                    std::vector<bg::model::polygon<Coord,true>> etalon = {
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=3});
+                            result.outer().push_back({.lat_=14,.lon_=3});
+                            result.outer().push_back({.lat_=14,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=7});
+                            result.outer().push_back({.lat_=16,.lon_=5});
+                            result.outer().push_back({.lat_=18,.lon_=5});
+                            result.outer().push_back({.lat_=18,.lon_=7});
+                            result.outer().push_back({.lat_=20,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=6});
+                            result.outer().push_back({.lat_=8,.lon_=6});
+                            result.outer().push_back({.lat_=8,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=7});
+                            result.outer().push_back({.lat_=9,.lon_=6.5});
+                            result.outer().push_back({.lat_=10,.lon_=6.5});
+                            result.outer().push_back({.lat_=10,.lon_=7});
+                            result.outer().push_back({.lat_=10.5,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=6.75,.lon_=6.75});
+                            result.outer().push_back({.lat_=6.5,.lon_=6.75});
+                            result.outer().push_back({.lat_=6.5,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=7});
+                            result.outer().push_back({.lat_=6.75,.lon_=6.75});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=5,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=6});
+                            result.outer().push_back({.lat_=4,.lon_=6});
+                            result.outer().push_back({.lat_=4,.lon_=7});
+                            result.outer().push_back({.lat_=5,.lon_=7});
+                            bg::correct(result);
+                            return result;
+                        }(),
+                        [](){
+                            bg::model::polygon<Coord,true> result;
+                            result.outer().push_back({.lat_=0,.lon_=0});
+                            result.outer().push_back({.lat_=0,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=7});
+                            result.outer().push_back({.lat_=3,.lon_=5});
+                            result.outer().push_back({.lat_=5.5,.lon_=5});
+                            result.outer().push_back({.lat_=5.5,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=7});
+                            result.outer().push_back({.lat_=6,.lon_=6.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=6.25});
+                            result.outer().push_back({.lat_=6.25,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=7});
+                            result.outer().push_back({.lat_=6.375,.lon_=6.5});
+                            result.outer().push_back({.lat_=7,.lon_=6.5});
+                            result.outer().push_back({.lat_=7,.lon_=3});
+                            result.outer().push_back({.lat_=8,.lon_=3});
+                            result.outer().push_back({.lat_=12,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=7});
+                            result.outer().push_back({.lat_=13,.lon_=0});
+                            result.outer().push_back({.lat_=0,.lon_=0});
+                            bg::correct(result);
+                            return result;
+                        }()
+                    };
+                    int counter = 0;
+                    for(auto& new_pg:res){
+                        if(auto found = std::find_if(etalon.begin(),etalon.end(),
+                            [&new_pg](const bg::model::polygon<Coord,true>& pg){
+                            return bg::equals(pg,new_pg);
+                        });found==etalon.end()){
+                            std::cout<<"polygon №: "<<counter<<std::endl;
+                            print(new_pg);
+                            EXPECT_TRUE(false);
+                        }
+                        else EXPECT_TRUE(true);
+                        ++counter;
+                    }
                 }
             }
         }
-        //////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////
-        /////////////CLOCKWISE////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////
+    }
+    {
         {
             bg::model::linestring<Coord> polyline = {
-                line_t{{.lat_=-1, .lon_=7},
-                {.lat_=21, .lon_=7}}
+                line_t{
+                {.lat_=0, .lon_=0},
+                {.lat_=55, .lon_=55}}
             };
             bg::model::polygon<Coord,true> pg;
-            auto& external = pg.outer();
-            external.push_back({.lat_=0,.lon_=0});
-            external.push_back({.lat_=0,.lon_=10});
-            external.push_back({.lat_=3,.lon_=10});
-            external.push_back({.lat_=3,.lon_=5});
-            external.push_back({.lat_=5.5,.lon_=5});
-            external.push_back({.lat_=5.5,.lon_=10});
-            external.push_back({.lat_=5,.lon_=10});
-            external.push_back({.lat_=5,.lon_=6});
-            external.push_back({.lat_=4,.lon_=6});
-            external.push_back({.lat_=4,.lon_=11});
-            external.push_back({.lat_=7,.lon_=11});
-            external.push_back({.lat_=9,.lon_=10});
-            external.push_back({.lat_=9,.lon_=6.5});
-            external.push_back({.lat_=10,.lon_=6.5});
-            external.push_back({.lat_=10,.lon_=8});
-            external.push_back({.lat_=10.5,.lon_=8});
-            external.push_back({.lat_=10.5,.lon_=6});
-            external.push_back({.lat_=8,.lon_=6});
-            external.push_back({.lat_=8,.lon_=9});
-            external.push_back({.lat_=5.75,.lon_=9});
-            external.push_back({.lat_=5.75,.lon_=8});
-            external.push_back({.lat_=6.75,.lon_=8});
-            external.push_back({.lat_=6.75,.lon_=6.75});
-            external.push_back({.lat_=6.5,.lon_=6.75});
-            external.push_back({.lat_=6.5,.lon_=7.5});
-            external.push_back({.lat_=6,.lon_=7.5});
-            external.push_back({.lat_=6,.lon_=6.25});
-            external.push_back({.lat_=6.25,.lon_=6.25});
-            external.push_back({.lat_=6.25,.lon_=7.25});
-            external.push_back({.lat_=6.375,.lon_=7.25});
-            external.push_back({.lat_=6.375,.lon_=6.5});
-            external.push_back({.lat_=7,.lon_=6.5});
-            external.push_back({.lat_=7,.lon_=3});
-            external.push_back({.lat_=8,.lon_=3});
-            external.push_back({.lat_=12,.lon_=7});
-            external.push_back({.lat_=12,.lon_=10});
-            external.push_back({.lat_=16,.lon_=10});
-            external.push_back({.lat_=16,.lon_=5});
-            external.push_back({.lat_=18,.lon_=5});
-            external.push_back({.lat_=18,.lon_=10});
-            external.push_back({.lat_=20,.lon_=10});
-            external.push_back({.lat_=20,.lon_=3});
-            external.push_back({.lat_=14,.lon_=3});
-            external.push_back({.lat_=14,.lon_=8});
-            external.push_back({.lat_=13,.lon_=8});
-            external.push_back({.lat_=13,.lon_=0});
-            external.push_back({.lat_=0,.lon_=0});
-            bg::correct(pg);
-            ASSERT_TRUE(bg::is_valid(pg));
-            //print(pg);
-            {
-                auto res = cut(polyline,pg, false);
-            
-                std::vector<bg::model::polygon<Coord,true>> etalon = {
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=10});
-                        result.outer().push_back({.lat_=7,.lon_=11});
-                        result.outer().push_back({.lat_=4,.lon_=11});
-                        result.outer().push_back({.lat_=4,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=10});
-                        result.outer().push_back({.lat_=5.5,.lon_=10});
-                        result.outer().push_back({.lat_=5.5,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7.5});
-                        result.outer().push_back({.lat_=6.5,.lon_=7.5});
-                        result.outer().push_back({.lat_=6.5,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=8});
-                        result.outer().push_back({.lat_=5.75,.lon_=8});
-                        result.outer().push_back({.lat_=5.75,.lon_=9});
-                        result.outer().push_back({.lat_=8,.lon_=9});
-                        result.outer().push_back({.lat_=8,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=8});
-                        result.outer().push_back({.lat_=10,.lon_=8});
-                        result.outer().push_back({.lat_=10,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=10});
-                        result.outer().push_back({.lat_=12,.lon_=10});
-                        result.outer().push_back({.lat_=12,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=8});
-                        result.outer().push_back({.lat_=14,.lon_=8});
-                        result.outer().push_back({.lat_=14,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=10});
-                        result.outer().push_back({.lat_=18,.lon_=10});
-                        result.outer().push_back({.lat_=18,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=10});
-                        result.outer().push_back({.lat_=0,.lon_=10});
-                        result.outer().push_back({.lat_=0,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }()
-                };
-                int counter = 0;
-                for(auto& new_pg:res){
-                    if(auto found = std::find_if(etalon.begin(),etalon.end(),
-                        [&new_pg](const bg::model::polygon<Coord,true>& pg){
-                        return bg::equals(pg,new_pg);
-                    });found==etalon.end()){
-                        std::cout<<"polygon №: "<<counter<<std::endl;
-                        print(new_pg);
-                        EXPECT_TRUE(false);
-                    }
-                    else EXPECT_TRUE(true);
-                    ++counter;
+            pg.outer().push_back({.lat_=0,.lon_=0});
+            pg.outer().push_back({.lat_=0,.lon_=2});
+            pg.outer().push_back({.lat_=2,.lon_=2});
+            pg.outer().push_back({.lat_=2,.lon_=0});
+            pg.outer().push_back({.lat_=0,.lon_=0});
+            std::cout<<"test #5"<<std::endl;
+            auto res = cut(polyline,pg, false);
+            std::vector<bg::model::polygon<Coord,true>> etalon = {
+                [](){
+                    bg::model::polygon<Coord,true> result;
+                    result.outer().push_back({.lat_=2,.lon_=2});
+                    result.outer().push_back({.lat_=0,.lon_=2});
+                    result.outer().push_back({.lat_=0,.lon_=0});
+                    result.outer().push_back({.lat_=2,.lon_=2});
+                    bg::correct(result);
+                    return result;
+                }()
+            };
+            int counter = 0;
+            for(auto& new_pg:res){
+                if(auto found = std::find_if(etalon.begin(),etalon.end(),
+                    [&new_pg](const bg::model::polygon<Coord,true>& pg){
+                    return bg::equals(pg,new_pg);
+                });found==etalon.end()){
+                    std::cout<<"polygon №: "<<counter<<std::endl;
+                    print(new_pg);
+                    EXPECT_TRUE(false);
                 }
-            }
-            {
-                auto res = cut(polyline,pg, true);
-                std::vector<bg::model::polygon<Coord,true>> etalon = {
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=3});
-                        result.outer().push_back({.lat_=14,.lon_=3});
-                        result.outer().push_back({.lat_=14,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=7});
-                        result.outer().push_back({.lat_=16,.lon_=5});
-                        result.outer().push_back({.lat_=18,.lon_=5});
-                        result.outer().push_back({.lat_=18,.lon_=7});
-                        result.outer().push_back({.lat_=20,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=6});
-                        result.outer().push_back({.lat_=8,.lon_=6});
-                        result.outer().push_back({.lat_=8,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=7});
-                        result.outer().push_back({.lat_=9,.lon_=6.5});
-                        result.outer().push_back({.lat_=10,.lon_=6.5});
-                        result.outer().push_back({.lat_=10,.lon_=7});
-                        result.outer().push_back({.lat_=10.5,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=6.75,.lon_=6.75});
-                        result.outer().push_back({.lat_=6.5,.lon_=6.75});
-                        result.outer().push_back({.lat_=6.5,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=7});
-                        result.outer().push_back({.lat_=6.75,.lon_=6.75});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=5,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=6});
-                        result.outer().push_back({.lat_=4,.lon_=6});
-                        result.outer().push_back({.lat_=4,.lon_=7});
-                        result.outer().push_back({.lat_=5,.lon_=7});
-                        bg::correct(result);
-                        return result;
-                    }(),
-                    [](){
-                        bg::model::polygon<Coord,true> result;
-                        result.outer().push_back({.lat_=0,.lon_=0});
-                        result.outer().push_back({.lat_=0,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=7});
-                        result.outer().push_back({.lat_=3,.lon_=5});
-                        result.outer().push_back({.lat_=5.5,.lon_=5});
-                        result.outer().push_back({.lat_=5.5,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=7});
-                        result.outer().push_back({.lat_=6,.lon_=6.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=6.25});
-                        result.outer().push_back({.lat_=6.25,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=7});
-                        result.outer().push_back({.lat_=6.375,.lon_=6.5});
-                        result.outer().push_back({.lat_=7,.lon_=6.5});
-                        result.outer().push_back({.lat_=7,.lon_=3});
-                        result.outer().push_back({.lat_=8,.lon_=3});
-                        result.outer().push_back({.lat_=12,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=7});
-                        result.outer().push_back({.lat_=13,.lon_=0});
-                        result.outer().push_back({.lat_=0,.lon_=0});
-                        bg::correct(result);
-                        return result;
-                    }()
-                };
-                int counter = 0;
-                for(auto& new_pg:res){
-                    if(auto found = std::find_if(etalon.begin(),etalon.end(),
-                        [&new_pg](const bg::model::polygon<Coord,true>& pg){
-                        return bg::equals(pg,new_pg);
-                    });found==etalon.end()){
-                        std::cout<<"polygon №: "<<counter<<std::endl;
-                        print(new_pg);
-                        EXPECT_TRUE(false);
-                    }
-                    else EXPECT_TRUE(true);
-                    ++counter;
-                }
+                else EXPECT_TRUE(true);
+                ++counter;
             }
         }
     }
