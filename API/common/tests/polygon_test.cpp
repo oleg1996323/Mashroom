@@ -271,48 +271,24 @@ int8_t increment(const Coord& first,const Coord& second,bool left_forward){
     bool dx_positive = first.lon_<second.lon_;
     bool dx_zero = first.lon_==second.lon_;
     int8_t inc;
-    if constexpr (CLOCKWISE==true){
-        if(left_forward){
-            if(dy_positive)
-                inc = 1;
-            else{
-                if(dy_zero && !dx_positive)
-                    inc = 1;
-                else
-                    inc = -1;
-            }
-        }
+    if(left_forward){
+        if(dy_positive)
+            inc = 1;
         else{
-            if(!dy_positive)
+            if(dy_zero && !dx_positive)
                 inc = 1;
-            else{
-                if(dy_zero && dx_positive)
-                    inc = 1;
-                else
-                    inc = -1;
-            }
+            else
+                inc = -1;
         }
     }
     else{
-        if(left_forward){
-            if(dy_positive)
-                inc = -1;
-            else{
-                if(dy_zero && !dx_positive)
-                    inc = -1;
-                else
-                    inc = 1;
-            }
-        }
+        if(!dy_positive)
+            inc = 1;
         else{
-            if(!dy_positive)
+            if(dy_zero && dx_positive)
+                inc = 1;
+            else
                 inc = -1;
-            else{
-                if(dy_zero && dx_positive)
-                    inc = -1;
-                else
-                    inc = 1;
-            }
         }
     }
     return inc;
@@ -424,14 +400,10 @@ bg::model::multi_polygon<bg::model::polygon<Coord,CLOCKWISE>> cut(const bg::mode
         int8_t inc = increment<CLOCKWISE>(polyline[first],polyline[second],left_forward);
         int8_t point_id = 0;
         if(left_forward){
-            if(CLOCKWISE)
-                point_id = 1;
-            else point_id = 0;
+            point_id = 1;
         }
         else{
-            if(CLOCKWISE)
-                point_id = 0;
-            else point_id = 1;
+            point_id = 0;
         }
         for(uint64_t first = 0, second=first+1;second<=turns.size();
             first+=2,second+=2)
@@ -719,6 +691,9 @@ TEST(polygon,cut_test_counter){
                         return bg::equals(pg,new_pg);
                     });found==etalon.end()){
                         std::cout<<"polygon №: "<<counter<<std::endl;
+                        print(new_pg);
+                        //assert(bg::is_valid(new_pg));
+                        bg::correct(new_pg);
                         print(new_pg);
                         EXPECT_TRUE(false);
                     }
