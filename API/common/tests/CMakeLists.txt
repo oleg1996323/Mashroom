@@ -12,7 +12,8 @@ get_target_property(dirs GEOS::geos_c INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS ${dirs})
 get_target_property(COMMON_DIRS common INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS ${COMMON_DIRS})
-add_executable(polygon_test polygon_test.cpp)
+add_executable(polygon_test polygon_test.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/geometry/Polygon.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/geometry/algorithms.cpp)
 target_link_libraries(polygon_test PRIVATE OsterLib::types OsterLib::boost_functional GTest::gtest GEOS::geos_c)
 
 target_include_directories(polygon_test PUBLIC ${COMMON_DIRS})
