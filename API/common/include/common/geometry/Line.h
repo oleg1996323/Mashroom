@@ -35,12 +35,6 @@ class Line{
         }
         else return true;
     }
-    bool operator<(const Line& other) const {
-        if (X1_ != other.X1_) return X1_ < other.X1_;
-        if (Y1_ != other.Y1_) return Y1_ < other.Y1_;
-        if (X2_ != other.X2_) return X2_ < other.X2_;
-        return Y2_ < other.Y2_;
-    }
     Coord first() const noexcept{
         return Coord{.lat_=Y1_,.lon_=X1_};
     }
@@ -101,7 +95,7 @@ class Line{
             long double X2,
             long double Y2) noexcept
     {
-        return atan(k(X1,Y1,X2,Y2));
+        return atan2l(Y2-Y1,X2-X1);
     }
     bool is_vertical() const noexcept{
         double k_ = k();
@@ -147,27 +141,25 @@ class Line{
         return std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
     }
     static bool straight_not_under_the_point(
-            long double X1,
-            long double Y1,
-            long double k,
+            const Line& line,
             long double X,
             long double Y) noexcept
     {
+        long double k = line.k();
         if(std::isinf(k))
             return false;
-        long double X0 = Y1 - k*X1;
+        long double X0 = line.Y1() - k*line.X1();
         return Y<k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
     }
     static bool straight_not_above_the_point(
-            long double X1,
-            long double Y1,
-            long double k,
+            const Line& line,
             long double X,
             long double Y) noexcept
     {
+        long double k = line.k();
         if(std::isinf(k))
             return false;
-        long double X0 = Y1 - k*X1;
+        long double X0 = line.Y1() - k*line.X1();
         return Y>k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
     }
     bool intersects(const Line& other) const noexcept{

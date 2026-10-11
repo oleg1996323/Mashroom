@@ -1703,6 +1703,15 @@ TEST(polygon,is_valid_test){
         pg.append({.lat_=0, .lon_=0});  // A — close сработал ещё раз, получили [A,B,C,D,A,A]
         ASSERT_TRUE(pg.is_valid());     // ← упадёт
     }
+    {
+        Polygon pg;
+        pg.append({.lat_=0, .lon_=0});  // A
+        pg.append({.lat_=0, .lon_=2});  // B
+        pg.append({.lat_=2, .lon_=0});  // C
+        pg.append({.lat_=2, .lon_=2});  // C
+        pg.append({.lat_=0, .lon_=0});  // A
+        ASSERT_TRUE(!pg.is_valid());
+    }
 }
 
 int main(int argc,char* argv[]){

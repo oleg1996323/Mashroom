@@ -30,7 +30,7 @@ void print(const Polygon& pg){
 }
 bool Polygon::point_inside(const Coord& point,
         uint32_t max_threads) const noexcept{
-    if(vertices_.size()<=1)
+    if(vertices_.size()<3)
         return false;
     else if(vertices_.size()==2 &&
         std::abs(std::abs(vertices_[0].lat_)-90.)<
@@ -44,28 +44,24 @@ bool Polygon::point_inside(const Coord& point,
         {
             uint64_t count = 0;
             for(uint64_t i=0;i<subsequence.size();++i){
-                if(double k = Line::k(
+                if(Line line = Line(
                     subsequence[(i+1)%subsequence.size()].lon_,
                     subsequence[(i+1)%subsequence.size()].lat_,
                     subsequence[i].lon_,
-                    subsequence[i].lat_);std::isfinite(k))
+                    subsequence[i].lat_);std::isfinite(line.k()))
                 {
-                    if(std::abs(k)<std::numeric_limits<double>::epsilon())
+                    if(std::abs(line.k())<std::numeric_limits<double>::epsilon())
                         continue;
-                    else if(k>0)
+                    else if(line.k()>0)
                         if(Line::straight_not_above_the_point(
-                            subsequence[i].lon_,
-                            subsequence[i].lat_,
-                            k,
+                            line,
                             point.lon_,
                             point.lat_
                         ))
                             ++count;
                     else{
                         if(Line::straight_not_under_the_point(
-                            subsequence[i].lon_,
-                            subsequence[i].lat_,
-                            k,
+                            line,
                             point.lon_,
                             point.lat_
                         ))
@@ -81,6 +77,7 @@ bool Polygon::point_inside(const Coord& point,
         uint64_t vertices_processed = vertices_per_thread_;
         threads = std::min(threads,max_threads);
         vertices_processed = std::max(vertices_.size()/threads,vertices_processed);
+        std::vector<Coord> last{vertices_.back(),vertices_.front()};
         if(threads>1){
             std::vector<std::future<uint64_t>> processes;
             processes.reserve(threads);
@@ -92,13 +89,14 @@ bool Polygon::point_inside(const Coord& point,
                                             vertices_.begin()+i,
                                             chunk_end)));
             }
-            return (std::accumulate(processes.begin(),processes.end(),0,
+            return ((std::accumulate(processes.begin(),processes.end(),0,
             [](uint64_t sum,std::future<uint64_t>& process_result)->uint64_t
             {
                 return sum+process_result.get();
-            })%2)==1;
+            })+process(std::span<const Coord>(last)))%2)==1;
         }
-        else return (process(std::span(vertices_))%2)==1;
+        else return ((process(std::span(vertices_))+
+                process(std::span<const Coord>(last)))%2)==1;
     }
 }
 Polygon Polygon::intersection(const Polygon& other) const noexcept{
@@ -314,10 +312,6 @@ std::vector<Polygon> Polygon::cut_impl(
                         print(pg.vertices().at(j),"inserted vertice");
                         new_pg.append(pg.vertices().at(j));
                     }
-                }
-                if(new_pg.vertices().front()==turns[pg_turns[next_i]].first){
-                    print(new_pg.vertices().front(),"inserted vertice");
-                    new_pg.vertices_.push_back(new_pg.vertices().front());
                 }
             }
         }
