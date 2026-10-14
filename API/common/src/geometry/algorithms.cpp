@@ -30,3 +30,11 @@ bool intersects(const Coord& first_1, const Coord& second_1, const Coord& first_
     if (d4 == 0 && on_segment(first_2, second_2, second_1)) return true;
     return false;
 }
+long double pythagoras2(const Coord& first,const Coord& second) noexcept{
+    long double dY = first.lat_-second.lat_;
+    long double dX = first.lon_-second.lon_;
+    return dY*dY+dX*dX;
+}
+long double pythagoras(const Coord& first,const Coord& second) noexcept{
+    return std::sqrtl(pythagoras2(first,second));
+}

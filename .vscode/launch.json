@@ -4,7 +4,7 @@
         "name": "(gdb) Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/home/oster/Mashroom/build/Debug/bin/polygon_test",
+        "program": "/home/oster/Mashroom/build/Debug/bin/line_test",
         "args": ["launch"],
         "stopAtEntry": false,
         "cwd": "${cwd}",

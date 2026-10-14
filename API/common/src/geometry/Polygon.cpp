@@ -99,69 +99,39 @@ bool Polygon::point_inside(const Coord& point,
                 process(std::span<const Coord>(last)))%2)==1;
     }
 }
-Polygon Polygon::intersection(const Polygon& other) const noexcept{
-    auto init_set = [](const std::vector<Coord>& vertices){
-        std::vector<Line> result;
-        result.reserve(vertices.size());
-        for(uint64_t i = 0;i<vertices.size();++i){
-            const Coord& c1 = vertices[i];
-            const Coord& c2 = vertices[(i+1)%vertices.size()];
-            result.push_back(
-                Line(c1.lon_,c1.lat_,c2.lon_,c2.lat_));
-        }
-        std::sort(result.begin(),result.end(),[](const Line& lhs,const Line& rhs){
-            return std::min(lhs.X1(),lhs.X2())<std::min(rhs.X1(),rhs.X2());
-        });
-        return result;
-    };
-    std::vector<Line> X_other(init_set(other.vertices_));
-    std::unordered_set<Line,std::hash<Line>,std::equal_to<Line>> checked_inside_;
-    Polygon result;
-    for(uint64_t i = 0;i<vertices_.size();++i){
-        Line this_line(vertices_[i].lon_,
-                vertices_[i].lat_,
-                vertices_[(i+1)%vertices_.size()].lon_,
-                vertices_[(i+1)%vertices_.size()].lat_);
-        auto lower = std::lower_bound(X_other.begin(),X_other.end(),std::min(this_line.X1(),this_line.X2()),
-            [](const Line& e, double value) { return std::min(e.X1(),e.X2())<value; });
-        auto upper = std::upper_bound(X_other.begin(),X_other.end(),std::max(this_line.X1(),this_line.X2()),
-            [](double value,const Line& e) { return value<std::min(e.X1(),e.X2()); });
-        auto ordered_lines = std::ranges::subrange(lower,upper);
-        for(auto& other_line:ordered_lines){
-            if(auto intersection = 
-                this_line.intersection(other_line);
-                intersection.has_value()){
-                result.append(Coord{.lat_=intersection->second,.lon_=intersection->first});
+std::vector<Polygon> Polygon::intersection(const Polygon& other) const noexcept{
+    if(!is_valid() || !other.is_valid())
+        return std::vector<Polygon>();
+    else{
+        double X1 = std::max(vertices_[minX_.front()].lon_,vertices_[other.minX_.front()].lon_);
+        double Y1 = std::max(vertices_[minY_.front()].lat_,vertices_[other.minY_.front()].lat_);
+        double X2 = std::min(vertices_[maxX_.front()].lon_,vertices_[other.maxX_.front()].lon_);
+        double Y2 = std::min(vertices_[maxY_.front()].lat_,vertices_[other.maxY_.front()].lat_);
+        std::array<Line,4> lines{
+            Line(X1,Y1,X1,Y2),
+            Line(X1,Y2,X2,Y2),
+            Line(X2,Y2,X2,Y1),
+            Line(X2,Y1,X1,Y1)};
+        std::vector<Polygon> pgs = this->cut(lines[0],false);
+        for(uint8_t i = 1;i<lines.size();++i){
+            std::vector<Polygon> pgs_tmp;
+            for(uint64_t j = 0;j<pgs.size();++j){
+                const Polygon& subpg = pgs[j];
+                std::vector<Polygon> current_pgs_tmp = subpg.cut(lines[i],false);
+                pgs_tmp.reserve(pgs_tmp.size()+current_pgs_tmp.size());
+                for(const Polygon& pg_tmp:current_pgs_tmp)
+                    pgs_tmp.push_back(pg_tmp);
             }
-            else{
-                if(!checked_inside_.contains(other_line)){
-                    if(Coord point = Coord{.lat_=other_line.Y1(),.lon_=other_line.X1()};
-                                                    point_inside(point)){
-                        result.append(point);
-                        checked_inside_.insert(other_line);
-                        continue;
-                    }
-                }
-                else continue;
-                if(!checked_inside_.contains(this_line)){
-                    if(Coord point = Coord{.lat_=this_line.Y1(),.lon_=this_line.X1()};
-                                                    other.point_inside(point)){
-                        result.append(point);
-                        checked_inside_.insert(this_line);
-                        continue;
-                    }
-                }
-                else continue;
-            }
+            pgs.swap(pgs_tmp);
         }
-    }        
-    return result;
+        return pgs;
+    }
 }
 std::vector<Polygon> Polygon::cut(
         const Line& line,
         const Polygon& pg,
         bool left_forward
-        )
+        ) noexcept
 {
     std::vector<Polygon> result;
     auto first = line.first();
@@ -181,15 +151,21 @@ std::vector<Polygon> Polygon::cut(
             left_forward = !left_forward;
         }   
     }
-    return cut_impl(seg,pg,left_forward,is_clockwise());
+    return pg.cut_impl(seg,left_forward,pg.is_clockwise());
+}
+std::vector<Polygon> Polygon::cut(
+        const Line& line,
+        bool left_forward
+        ) const noexcept
+{
+    return cut(line,*this,left_forward);
 }
 
 std::vector<Polygon> Polygon::cut_impl(
     const Line& segment,
-    const Polygon& pg,
     bool left_forward,
     bool clockwise
-    ){
+    ) const noexcept{
     std::vector<Polygon> result;
     std::vector<std::pair<Coord,Line::id>> turns = line_intersections(segment);
     //print(turns);
@@ -300,17 +276,17 @@ std::vector<Polygon> Polygon::cut_impl(
             else{
                 print(turns[pg_turns[i]].first,"inserted vertice");
                 new_pg.append(turns[pg_turns[i]].first);
-                uint64_t this_seg = (turns[pg_turns[i]].second+point_id)%pg.number_vertices();
+                uint64_t this_seg = (turns[pg_turns[i]].second+point_id)%number_vertices();
                 uint64_t next_i = (i+1+pg_turns.size())%pg_turns.size();
                 uint64_t next_seg = (turns[pg_turns[next_i]].\
-                        second+point_id)%pg.number_vertices();
+                        second+point_id)%number_vertices();
                 for(uint64_t j = this_seg;
                     j!=next_seg;
-                    j=(j+inc+pg.number_vertices())%pg.number_vertices())
+                    j=(j+inc+this->number_vertices())%this->number_vertices())
                 {
-                    if(pg.vertices().at(j)!=new_pg.vertices_.back()){
-                        print(pg.vertices().at(j),"inserted vertice");
-                        new_pg.append(pg.vertices().at(j));
+                    if(this->vertices().at(j)!=new_pg.vertices_.back()){
+                        print(this->vertices().at(j),"inserted vertice");
+                        new_pg.append(this->vertices().at(j));
                     }
                 }
             }

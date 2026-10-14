@@ -9,8 +9,16 @@
 #include <unordered_set>
 #include <iostream>
 #include "algorithms.h"
-
-
+#include <cstdint>
+#include <limits>
+#include <span>
+#include <ranges>
+#include <future>
+#include <algorithm>
+#include <numeric>
+#include <functional>
+#include <thread>
+#include "Polyline.h"
 
 class Polygon{
     std::vector<Coord> vertices_;
@@ -28,22 +36,6 @@ class Polygon{
     mutable bool is_valid_ = false;
 
     static uint64_t vertices_per_thread_;
-
-    bool would_be_valid_after_erase(uint64_t i) const noexcept {
-        const uint64_t n = vertices_.size();
-        if (n <= 3) return false;
-        const Coord& prev = vertices_[(i - 1 + n) % n];
-        const Coord& next = vertices_[(i + 1) % n];
-        for (uint64_t j = 0; j < n; ++j) {
-            if (j == (i - 1 + n) % n) continue;
-            if (j == i) continue;
-            if (j == (i + 1) % n) continue;
-            if (::intersects(prev, next, vertices_[j], vertices_[(j + 1) % n]))
-                return false;
-        }
-        return true;
-    }
-
     void update_minX(double X,uint64_t new_pos) noexcept{
         if(!minX_.empty()){
             auto X_loc = vertices_[minX_.front()].lon_;
@@ -153,7 +145,38 @@ class Polygon{
         });
         return result;
     }
-    uint64_t define_turn_id(const std::vector<std::pair<Coord,Line::id>>& turns,const std::pair<Coord,Line::id>& ti){
+    std::vector<std::pair<Coord,Line::id>> line_intersections(const Polyline& cut_line) const noexcept{
+        std::vector<std::pair<Coord,Line::id>> result;
+        for(Line::id i = 0;i<vertices_.size();++i){
+            auto& first = vertices_[i];
+            auto& second = vertices_[(i+1)%vertices_.size()];
+            if(::intersects(first,second,
+                cut_line.first(),cut_line.second())){
+                if(auto found = cut_line.intersection(Line(first.lon_,first.lat_,second.lon_,second.lat_));
+                    found.has_value()){
+                    Coord coord{  .lat_ = found.value().second,
+                            .lon_ = found.value().first};
+                    if(!result.empty()){
+                        if(result.back().first!=coord && result.front().first!=coord)
+                            result.push_back(std::make_pair(coord,i));
+                        else continue;
+                    }
+                    else result.push_back(std::make_pair(coord,i));
+                }
+                else continue;
+            }
+            else continue;
+        }
+        std::sort(result.begin(),result.end(),
+            [](const std::pair<Coord,Line::id>& lhs,const std::pair<Coord,Line::id>& rhs)
+        {
+            return lhs.second<rhs.second;
+        });
+        return result;
+    }
+    uint64_t define_turn_id(
+        const std::vector<std::pair<Coord,Line::id>>& turns,
+        const std::pair<Coord,Line::id>& ti) const noexcept{
         uint64_t result = std::lower_bound(turns.begin(),turns.end(),ti,
             [](const std::pair<Coord,Line::id>& t,const std::pair<Coord,Line::id>& turn)
         {
@@ -165,10 +188,9 @@ class Polygon{
     //@todo проверить касается ли секущая вершины
     std::vector<Polygon> cut_impl(
     const Line& segment,
-    const Polygon& pg,
     bool left_forward,
     bool clockwise
-    );
+    ) const noexcept;
     public:
     Polygon()=default;
     Polygon(const Polygon& other):
@@ -239,13 +261,13 @@ class Polygon{
             maxX_ == other.maxX_ &&
             maxY_ == other.maxY_);
     }
-    double area(/*mode (cartesian/geographic)*/) const noexcept{
+    std::optional<double> area(/*mode (cartesian/geographic)*/) const noexcept{
         if(area_defined_)
             return area_;
         else{
             if(is_valid()){
                 area_defined_ = false;
-                return 0.;
+                return std::nullopt;
             }
             long double result = 0;
             for(uint64_t i = 0,j=i+1;i<vertices_.size();++i,j=(j+1)%vertices_.size())
@@ -255,13 +277,13 @@ class Polygon{
             return area_;
         }
     }
-    double perimeter(/*mode (cartesian/geographic)*/) const noexcept{
+    std::optional<double> perimeter(/*mode (cartesian/geographic)*/) const noexcept{
         if(perimeter_defined_)
             return perimeter_;
         else{
             if(is_valid()){
                 perimeter_defined_ = false;
-                return 0.;
+                return std::nullopt;
             }
             long double result = 0;
             for(uint64_t i = 0,j=i+1;i<vertices_.size();++i,j=(j+1)%vertices_.size()){
@@ -448,12 +470,16 @@ class Polygon{
     }
     bool point_inside(const Coord& point,
             uint32_t max_threads = std::thread::hardware_concurrency()) const noexcept;
-    Polygon intersection(const Polygon& other) const noexcept;
-    std::vector<Polygon> cut(
+    std::vector<Polygon> intersection(const Polygon& other) const noexcept;
+    static std::vector<Polygon> cut(
         const Line& line,
         const Polygon& pg,
         bool left_forward
-        );
+        ) noexcept;
+    std::vector<Polygon> cut(
+        const Line& line,
+        bool left_forward
+        ) const noexcept;
     bool equivalent(const Polygon& other,bool multithread) const noexcept{
         uint64_t number_threads = vertices_.size()/vertices_per_thread_;
         int8_t other_inc = is_clockwise()==other.is_clockwise()?1:-1;

@@ -105,39 +105,36 @@ class Line{
         return std::abs(static_cast<long double>(Y2_) - Y1_) < std::numeric_limits<double>::epsilon();
     }
     static bool straight_above_the_point(
-            long double X1,
-            long double Y1,
-            long double k,
+            const Line& line,
             long double X,
             long double Y) noexcept
     {
+        long double k = line.k();
         if(std::isinf(k))
             return false;
-        double X0 = Y1 - k*X1;
-        return Y>k*X+X0;
-    }
-    static bool straight_under_the_point(
-            long double X1,
-            long double Y1,
-            long double k,
-            long double X,
-            long double Y) noexcept
-    {
-        if(std::isinf(k))
-            return false;
-        long double X0 = Y1 - k*X1;
+        double X0 = line.Y1() - k*line.X1();
         return Y<k*X+X0;
     }
-    static bool point_on_straight(
-            long double X1,
-            long double Y1,
-            long double k,
+    static bool straight_under_the_point(
+            const Line& line,
             long double X,
             long double Y) noexcept
     {
+        long double k = line.k();
         if(std::isinf(k))
             return false;
-        long double X0 = Y1 - k*X1;
+        long double X0 = line.Y1() - k*line.X1();
+        return Y>k*X+X0;
+    }
+    static bool point_on_straight(
+            const Line& line,
+            long double X,
+            long double Y) noexcept
+    {
+        long double k = line.k();
+        if(std::isinf(k))
+            return false;
+        long double X0 = line.Y1() - k*line.X1();
         return std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
     }
     static bool straight_not_under_the_point(
@@ -164,6 +161,32 @@ class Line{
     }
     bool intersects(const Line& other) const noexcept{
         return ::intersects(first(),second(),other.first(),other.second());
+    }
+    static Line cut(
+            const Line& line,
+            const Line& other,
+            bool left_forward
+            ) noexcept
+    {
+        auto point = line.intersection(other);
+        if(!point.has_value())
+            return line;
+        Coord intersection_point{.lat_ = point.value().second,.lon_=point.value().first};
+        if(!::on_segment(line.first(),line.second(),intersection_point))
+            return line;
+        long double side = cross(other.first(), other.second(), line.first());
+        if(left_forward){
+            if(side>0)
+                return Line(intersection_point,line.first());
+            else
+                return Line(line.second(),intersection_point);
+        }
+        else{
+            if(side>0)
+                return Line(line.second(),intersection_point);
+            else
+                return Line(intersection_point,line.first());
+        }
     }
     static std::optional<std::pair<double,double>> intersection(
             long double X11,long double Y11, long double X12, long double Y12,
