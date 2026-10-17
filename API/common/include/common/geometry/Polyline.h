@@ -52,7 +52,7 @@ class Intersection{
         return *this;
     }
     const Coord& point() const noexcept{
-
+        return point_;
     }
     uint64_t first_elem_id() const noexcept{
         return id_1_;
@@ -73,7 +73,7 @@ class Polyline{
         std::vector<Intersection> result;
         if(cut_line.first()==cut_line.second() || vertices_.empty())
             return {};
-        for(Line::id i = 0;i<vertices_.size();++i){
+        for(uint64_t i = 0;i<vertices_.size();++i){
             auto& first = vertices_[i];
             auto& second = vertices_[(i+1)%vertices_.size()];
             if(::intersects(first,second,
@@ -83,7 +83,7 @@ class Polyline{
                     Coord coord{  .lat_ = found.value().second,
                             .lon_ = found.value().first};
                     if(!result.empty()){
-                        if(result.back().point()!=coord && result.front().point()!=coord)
+                        if(result.back().point()!=coord)
                             result.push_back(Intersection(coord,i,0));
                         else continue;
                     }
@@ -94,9 +94,9 @@ class Polyline{
             else continue;
         }
         std::sort(result.begin(),result.end(),
-            [](const std::pair<Coord,Line::id>& lhs,const std::pair<Coord,Line::id>& rhs)
+            [](const Intersection& lhs,const Intersection& rhs)
         {
-            return lhs.second<rhs.second;
+            return lhs.first_elem_id()<rhs.first_elem_id();
         });
         return result;
     }
@@ -232,7 +232,7 @@ class Polyline{
         return vertices_.size();
     }
     size_t number_segments() const noexcept{
-        return vertices_.size()+1;
+        return vertices_.size()-1;
     }
     const std::vector<Coord>& vertices() const noexcept{
         return vertices_;
@@ -247,6 +247,21 @@ class Polyline{
         const Line& line,
         bool left_forward
         ) const noexcept;
+    static std::vector<Polyline> cut(
+        const Polyline& cutted_polyline,
+        const Polyline& cutting_polyline,
+        bool left_forward
+        ) noexcept
+    {
+        return cutted_polyline.cut(cutting_polyline,left_forward);
+    }
+    std::vector<Polyline> cut(
+        const Polyline& other,
+        bool left_forward
+        ) const noexcept
+    {
+        return cut_impl(other,left_forward);
+    }
     bool equivalent(const Polyline& other,bool multithread) const noexcept{
         std::vector<Coord>::const_iterator iter = 
             std::find(other.vertices_.begin(),other.vertices_.end(),
@@ -276,7 +291,7 @@ class Polyline{
         }
     }
 };
-
-void print(const std::vector<std::pair<Coord,Line::id>>& turns);
-void print(const Coord& point,std::string_view desc="");
 void print(const Polyline& pg);
+void print(const std::vector<Polyline>& pg);
+void print(const Intersection& is);
+void print(const std::vector<Intersection>& iss);
