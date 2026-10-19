@@ -2,12 +2,12 @@
 
 uint64_t Polygon::vertices_per_thread_ = std::max(1u,std::thread::hardware_concurrency());
 
-void print(const std::vector<std::pair<Coord,Line::id>>& turns){
+void print(const std::vector<Intersection>& turns){
     uint64_t i = 0;       
     for(auto& turn:turns){
-        std::cout<<i<<" point: ("<<turn.first.lon_<<","<<turn.first.lat_<<")"<<std::endl;
-        std::cout<<"polyline segment: "<<turn.second<<std::endl;
-        std::cout<<"polygon segment: "<<turn.second<<std::endl;
+        std::cout<<i<<" point: ("<<turn.point().lon_<<","<<turn.point().lat_<<")"<<std::endl;
+        std::cout<<"polyline segment: "<<turn.first_elem_id()<<std::endl;
+        std::cout<<"polygon segment: "<<turn.first_elem_id()<<std::endl;
         ++i;
     }
     std::cout<<std::endl;
@@ -167,38 +167,38 @@ std::vector<Polygon> Polygon::cut_impl(
     bool clockwise
     ) const noexcept{
     std::vector<Polygon> result;
-    std::vector<std::pair<Coord,Line::id>> turns = line_intersections(segment);
+    std::vector<Intersection> turns = line_intersections(segment);
     //print(turns);
-    std::vector<std::pair<Coord,Line::id>> by_coord_turns(turns);
-    std::function<bool(const std::pair<Coord,Line::id>&,const std::pair<Coord,Line::id>&)> comp;
+    std::vector<Intersection> by_coord_turns(turns);
+    std::function<bool(const Intersection&,const Intersection&)> comp;
     if(clockwise)
-        comp = [&left_forward](const std::pair<Coord,Line::id>& lhs,const std::pair<Coord,Line::id>& rhs){
+        comp = [&left_forward](const Intersection& lhs,const Intersection& rhs){
             if(!left_forward){
-                if(std::abs(lhs.first.lat_-rhs.first.lat_)< \
+                if(std::abs(lhs.point().lat_-rhs.point().lat_)< \
                     std::numeric_limits<Lat>::epsilon())
-                    return (lhs.first.lon_<rhs.first.lon_);
-                else return lhs.first.lat_<rhs.first.lat_;
+                    return (lhs.point().lon_<rhs.point().lon_);
+                else return lhs.point().lat_<rhs.point().lat_;
             }
             else{
-                if(std::abs(lhs.first.lat_-rhs.first.lat_)< \
+                if(std::abs(lhs.point().lat_-rhs.point().lat_)< \
                     std::numeric_limits<Lat>::epsilon())
-                    return (lhs.first.lon_>rhs.first.lon_);
-                else return lhs.first.lat_>rhs.first.lat_;
+                    return (lhs.point().lon_>rhs.point().lon_);
+                else return lhs.point().lat_>rhs.point().lat_;
             }
         };
     else{
-        comp = [&left_forward](const std::pair<Coord,Line::id>& lhs,const std::pair<Coord,Line::id>& rhs){
+        comp = [&left_forward](const Intersection& lhs,const Intersection& rhs){
             if(!left_forward){
-                if(std::abs(lhs.first.lat_-rhs.first.lat_)< \
+                if(std::abs(lhs.point().lat_-rhs.point().lat_)< \
                     std::numeric_limits<Lat>::epsilon())
-                    return (lhs.first.lon_>rhs.first.lon_);
-                else return lhs.first.lat_>rhs.first.lat_;
+                    return (lhs.point().lon_>rhs.point().lon_);
+                else return lhs.point().lat_>rhs.point().lat_;
             }
             else{
-                if(std::abs(lhs.first.lat_-rhs.first.lat_)< \
+                if(std::abs(lhs.point().lat_-rhs.point().lat_)< \
                     std::numeric_limits<Lat>::epsilon())
-                    return (lhs.first.lon_<rhs.first.lon_);
-                else return lhs.first.lat_<rhs.first.lat_;
+                    return (lhs.point().lon_<rhs.point().lon_);
+                else return lhs.point().lat_<rhs.point().lat_;
             }
         };
     }
@@ -218,14 +218,14 @@ std::vector<Polygon> Polygon::cut_impl(
     {
         uint64_t turn_id_1 = define_turn_id(turns,by_coord_turns[first]);
         uint64_t turn_id_2 = define_turn_id(turns,by_coord_turns[second]);
-        const std::pair<Coord,Line::id>& turn_1 = turns[turn_id_1];
-        const std::pair<Coord,Line::id>& turn_2 = turns[turn_id_2];
+        const Intersection& turn_1 = turns[turn_id_1];
+        const Intersection& turn_2 = turns[turn_id_2];
         if((turn_id_2+inc+turns.size())%turns.size()==turn_id_1){
             std::cout<<"new polygon detected"<<std::endl;
             pgs_turns.emplace_back().push_back(turn_id_1);
             pgs_turns.back().push_back(turn_id_2);
-            print(turn_1.first,"inserted openning point");
-            print(turn_2.first,"inserted closing point");
+            print(turn_1.point(),"inserted openning point");
+            print(turn_2.point(),"inserted closing point");
             std::cout<<"polygon completed"<<std::endl;
         }
         else if(!pgs_turns_in_process.empty() && !pgs_turns_in_process.back().empty()){
@@ -234,31 +234,31 @@ std::vector<Polygon> Polygon::cut_impl(
                 pgs_turns.emplace_back(pgs_turns_in_process.back());
                 pgs_turns.back().push_back(turn_id_1);
                 pgs_turns.back().push_back(turn_id_2);
-                print(turn_1.first,"inserted openning point");
-                print(turn_2.first,"inserted closing point");
+                print(turn_1.point(),"inserted openning point");
+                print(turn_2.point(),"inserted closing point");
                 pgs_turns_in_process.pop_back();
                 std::cout<<"polygon completed"<<std::endl;
             }
             else if( pgs_turns_in_process.back().back()==(turn_id_1-1+turns.size())%turns.size()){
                 pgs_turns_in_process.back().push_back(turn_id_1);
                 pgs_turns_in_process.back().push_back(turn_id_2);
-                print(turn_1.first,"inserted openning point");
-                print(turn_2.first,"inserted closing point");
+                print(turn_1.point(),"inserted openning point");
+                print(turn_2.point(),"inserted closing point");
             }
             else{
                 std::cout<<"new polygon detected"<<std::endl;
                 pgs_turns_in_process.emplace_back().push_back(turn_id_1);
                 pgs_turns_in_process.back().push_back(turn_id_2);
-                print(turn_1.first,"inserted openning point");
-                print(turn_2.first,"inserted closing point");
+                print(turn_1.point(),"inserted openning point");
+                print(turn_2.point(),"inserted closing point");
             }
         }
         else{
             std::cout<<"new polygon detected"<<std::endl;
             pgs_turns_in_process.emplace_back().push_back(turn_id_1);
             pgs_turns_in_process.back().push_back(turn_id_2);
-            print(turn_1.first,"inserted openning point");
-            print(turn_2.first,"inserted closing point");
+            print(turn_1.point(),"inserted openning point");
+            print(turn_2.point(),"inserted closing point");
         }
         //искать пары и записывать для каждого полигона
         //затем линейно пройтись first до second по вершинам сегментов и составить последовательно полигоны
@@ -270,16 +270,16 @@ std::vector<Polygon> Polygon::cut_impl(
         for(uint64_t i=0;i<pg_turns.size();++i){
             //открывающий
             if(i%2==0){
-                print(turns[pg_turns[i]].first,"inserted vertice");
-                new_pg.append(turns[pg_turns[i]].first);
+                print(turns[pg_turns[i]].point(),"inserted vertice");
+                new_pg.append(turns[pg_turns[i]].point());
             }
             else{
-                print(turns[pg_turns[i]].first,"inserted vertice");
-                new_pg.append(turns[pg_turns[i]].first);
-                uint64_t this_seg = (turns[pg_turns[i]].second+point_id)%number_vertices();
+                print(turns[pg_turns[i]].point(),"inserted vertice");
+                new_pg.append(turns[pg_turns[i]].point());
+                uint64_t this_seg = (turns[pg_turns[i]].first_elem_id()+point_id)%number_vertices();
                 uint64_t next_i = (i+1+pg_turns.size())%pg_turns.size();
                 uint64_t next_seg = (turns[pg_turns[next_i]].\
-                        second+point_id)%number_vertices();
+                        first_elem_id()+point_id)%number_vertices();
                 for(uint64_t j = this_seg;
                     j!=next_seg;
                     j=(j+inc+this->number_vertices())%this->number_vertices())

@@ -1,103 +1,177 @@
 #pragma once
 #include <type_traits>
-#include "OsterLib/types/coord.h"
+#include <string_view>
+#include "BasicGeometry.h"
 
-// namespace boost
-// {
-//     namespace geometry
-//     {
-//         namespace traits
-//         {
-//             template<> struct tag<Coord>
-//             { typedef point_tag type; };
 
-//             template<> struct coordinate_type<Coord>
-//             { typedef double type; };
+template<typename POINT_T>
+void print(const POINT_T& point,std::string_view desc="",bool newline = false);
 
-//             template<> struct coordinate_system<Coord>
-//             { typedef cs::cartesian type; };
+template<typename POINT_T>
+void print(const POINT_T& point, std::string_view desc = "", bool newline = false)
+{
+    if (!desc.empty())
+        std::cout << desc.data() << ": ";
+    std::cout << "(";
 
-//             template<> struct dimension<Coord> : boost::mpl::int_<2> {};
+    [&]<std::uint64_t... Is>(std::index_sequence<Is...>) {
+        ((
+            std::cout
+                << (Is == 0 ? "" : ",")
+                << geometry::Get<Is, POINT_T>{}(point)
+        ), ...);
+    }(std::make_index_sequence<geometry::dimensions<POINT_T>()>());
 
-//             template<>
-//             struct access<Coord, 0>
-//             {
-//                 static Lon get(Coord const& p)
-//                 {
-//                     return p.lon_;
-//                 }
+    std::cout << ")";
+    if (newline)
+        std::cout << std::endl;
+}
 
-//                 static void set(Coord& p, Lon value)
-//                 {
-//                     p.lon_ = value;
-//                 }
-//             };
+template<uint64_t DIMENSIONS>
+class BasicPoint;
 
-//             template<>
-//             struct access<Coord, 1>
-//             {
-//                 static Lat get(Coord const& p)
-//                 {
-//                     return p.lat_;
-//                 }
+template<uint64_t DIMENSIONS>
+class BasicPointRef;
 
-//                 static void set(Coord& p, Lat value)
-//                 {
-//                     p.lat_ = value;
-//                 }
-//             };
-//         }
-//     }
-// }
+template<uint64_t DIMENSIONS>
+class BasicPoint:public BasicGeometry<false,DIMENSIONS>{
+    std::array<long double,DIMENSIONS> data_;
+    public:
+    BasicPoint(const BasicPoint& other)
+    {
+        [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
+            (data_[Is]=other.data_[Is],...);
+        }(std::make_index_sequence<DIMENSIONS>());
+    }
+    BasicPoint(BasicPoint&& other) noexcept
+    {
+        if(this!=&other)
+            data_.swap(other.data_);
+    }
+    BasicPoint(const BasicPointRef<DIMENSIONS>& point);
+    BasicPoint(BasicPointRef<DIMENSIONS>&& point);
+    BasicPoint& operator=(const BasicPoint& other){
+        if(this!=&other)
+            [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
+                (data_[Is]=other.data_[Is],...);
+            }(std::make_index_sequence<DIMENSIONS>());
+        return *this;
+    }
+    BasicPoint& operator=(const BasicPointRef<DIMENSIONS>& other);
+    template<typename POINT_T>
+    BasicPoint(POINT_T point)-> BasicPoint<dimensions<POINT_T>()>()
+    {
+        static_assert(dimensions<POINT_T>()>0,"Not all Get::operator() are defined");
+        [this]<uint64_t... Is>(std::index_sequence<Is...> is){
+            (data_[Is]=Get<Is,POINT_T>{}(),...);
+        }(std::make_index_sequence<dimensions<POINT_T>()>());
+    }
+    template<uint64_t DIMENSION>
+    long double get() const noexcept{
+        static_assert(DIMENSION<DIMENSIONS);
+        return geometry::Get<DIMENSION,BasicPoint>()(*this);
+    }
+};
 
-// struct Point{
-//     double X_,Y_= 0;
-// };
+template<uint64_t DIMENSIONS>
+class BasicPointRef:public BasicGeometry<true,DIMENSIONS>{
+    const std::array<long double,DIMENSIONS>& data_;
+    public:
+    BasicPointRef(const BasicPointRef& other):
+        data_(other.data_)
+    {}
+    BasicPointRef(BasicPointRef&& other) = delete;
+    BasicPointRef& operator=(const BasicPointRef& other){
+        if(this!=&other){
+            data_ = other.data_;
+        }
+        return *this;
+    }
+    BasicPointRef& operator=(BasicPointRef&& other) = delete;
+    template<uint64_t DIMENSION>
+    long double get() const noexcept{
+        static_assert(DIMENSION<DIMENSIONS);
+        return geometry::Get<DIMENSION,BasicPointRef>()(*this);
+    }
+};
 
-// namespace boost
-// {
-//     namespace geometry
-//     {
-//         namespace traits
-//         {
-//             template<> struct tag<Point>
-//             { typedef point_tag type; };
+template<uint64_t DIMENSIONS>
+BasicPoint<DIMENSIONS>::BasicPoint(const BasicPointRef<DIMENSIONS>& other)
+{
+    [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
+        (data_[Is]=other[Is],...);
+    }(std::make_index_sequence<DIMENSIONS>());
+}
 
-//             template<> struct coordinate_type<Point>
-//             { typedef double type; };
+template<uint64_t DIMENSIONS>
+BasicPoint<DIMENSIONS>::BasicPoint(BasicPointRef<DIMENSIONS>&& other)
+{
+    data_.swap(other.data_);
+}
 
-//             template<> struct coordinate_system<Point>
-//             { typedef cs::cartesian type; };
+template<uint64_t DIMENSIONS>
+BasicPoint<DIMENSIONS>& BasicPoint<DIMENSIONS>::operator=(const BasicPointRef<DIMENSIONS>& other){
+    if(this!=&other)
+        [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
+            (data_[Is]=other.data_[Is],...);
+        }(std::make_index_sequence<DIMENSIONS>());
+    return *this;
+}
 
-//             template<> struct dimension<Point> : boost::mpl::int_<2> {};
+template<>
+struct geometry::Get<0ul,Coord>{
+    long double operator()(const Coord& coordinate) const noexcept{
+        return coordinate.lon_;
+    }
+};
 
-//             template<>
-//             struct access<Point, 0>
-//             {
-//                 static double get(Point const& p)
-//                 {
-//                     return p.X_;
-//                 }
+template<>
+struct geometry::Get<1ul,Coord>{
+    long double operator()(const Coord& coordinate) const noexcept{
+        return coordinate.lat_;
+    }
+};
 
-//                 static void set(Point& p, double value)
-//                 {
-//                     p.X_ = value;
-//                 }
-//             };
+struct UserPoint{
+    double X_;
+    double Y_;
+    UserPoint() = default;
+    UserPoint(const UserPoint&) = default;
+    UserPoint(UserPoint&&) = default;
+    UserPoint& operator=(const UserPoint&) = default;
+    UserPoint& operator=(UserPoint&&) = default;
+    UserPoint(const Coord& coord):
+        X_(coord.lon_),Y_(coord.lat_){}
+    UserPoint(Coord&& coord):
+        X_(coord.lon_),Y_(coord.lat_){}
+    UserPoint& operator=(const Coord& coord)
+    {
+        X_=coord.lon_;
+        Y_=coord.lat_;
+        return *this;
+    }
+    UserPoint& operator=(Coord&& coord)
+    {
+        X_=coord.lon_;
+        Y_=coord.lat_;
+        return *this;
+    }
+};
 
-//             template<>
-//             struct access<Point, 1>
-//             {
-//                 static double get(Point const& p)
-//                 {
-//                     return p.Y_;
-//                 }
+template<>
+struct geometry::Get<0ul,UserPoint>{
+    long double operator()(const UserPoint& coordinate) const noexcept{
+        return coordinate.X_;
+    }
+};
 
-//                 static void set(Point& p, double value)
-//                 {
-//                     p.Y_ = value;
-//                 }
-//             };
-//         }
-//     }
-// }
+template<>
+struct geometry::Get<1ul,UserPoint>{
+    long double operator()(const UserPoint& coordinate) const noexcept{
+        return coordinate.Y_;
+    }
+};
+
+inline void foo(){
+    geometry::BasicPoint<2>(Coord()).get<uint64_t(0)>();
+}

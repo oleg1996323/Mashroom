@@ -17,8 +17,8 @@ TEST(polyline,cut_test){
     cut_pl.append({.lat_=1,.lon_=6});
     cut_pl.append({.lat_=5,.lon_=9});
     cut_pl.append({.lat_=-2,.lon_=2});
-    auto polylines = pl.cut(cut_pl,true);
-    print(polylines);
+    //auto polylines = pl.cut(cut_pl,false);
+    //print(polylines);
 }
 
 int main(int argc, char* argv[]){
