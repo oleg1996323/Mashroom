@@ -21,10 +21,11 @@
 #include "intersection.h"
 #include "Polyline_view.h"
 #include "BasicGeometry.h"
+#include "Point.h"
 
-template<typename POINT_T>
-class Polyline:public BasicPolyline<POINT_T>{
-    std::vector<POINT_T> vertices_;
+template<uint64_t DIMENSIONS, typename VALUE_T = long double>
+class BasicPolyline{
+    std::vector<geometry::BasicPoint<DIMENSIONS>> vertices_;
     mutable double length_ = 0.;
     mutable bool length_defined_=false;
 
@@ -253,6 +254,12 @@ class Polyline:public BasicPolyline<POINT_T>{
         }
     }
 };
+
+
+template<uint64_t DIMENSIONS, typename POINT_T = std::array<VALUE_T,DIMENSIONS>,typename VALUE_T = long double>
+using BasicPolyline = BasicPolyline<DIMENSIONS,VALUE_T,POINT_T>
+
+
 template<typename POINT_T>
 void print(const Polyline<POINT_T>& pg);
 template<typename POINT_T>

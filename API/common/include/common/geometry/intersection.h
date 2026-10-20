@@ -1,10 +1,11 @@
 #pragma once
 #include "OsterLib/types/coord.h"
 #include <cstdint>
+#include <array>
 
-template<typename POINT_T>
+template<uint64_t DIMENSIONS=2>
 class Intersection{
-    POINT_T point_;
+    std::array<DIMENSIONS> point_;
     uint64_t id_1_;
     uint64_t id_2_;
     public:

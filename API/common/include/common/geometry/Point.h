@@ -3,7 +3,7 @@
 #include <string_view>
 #include "BasicGeometry.h"
 
-
+namespace geometry{
 template<typename POINT_T>
 void print(const POINT_T& point,std::string_view desc="",bool newline = false);
 
@@ -27,55 +27,60 @@ void print(const POINT_T& point, std::string_view desc = "", bool newline = fals
         std::cout << std::endl;
 }
 
-template<uint64_t DIMENSIONS>
+//specified point
+template<typename POINT_T>
 class BasicPoint;
 
-template<uint64_t DIMENSIONS>
+template<typename POINT_T>
 class BasicPointRef;
 
-template<uint64_t DIMENSIONS>
-class BasicPoint:public BasicGeometry<false,DIMENSIONS>{
-    std::array<long double,DIMENSIONS> data_;
+//specified point
+template<typename POINT_T>
+class BasicPoint:public BasicGeometry<false,dimensions<POINT_T>()>{
+    POINT_T data_;
     public:
     BasicPoint(const BasicPoint& other)
     {
         [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
             (data_[Is]=other.data_[Is],...);
-        }(std::make_index_sequence<DIMENSIONS>());
+        }(std::make_index_sequence<BasicGeometry::dimensions()>());
     }
     BasicPoint(BasicPoint&& other) noexcept
     {
         if(this!=&other)
             data_.swap(other.data_);
     }
-    BasicPoint(const BasicPointRef<DIMENSIONS>& point);
-    BasicPoint(BasicPointRef<DIMENSIONS>&& point);
+    BasicPoint(const BasicPointRef<POINT_T>& point);
+    BasicPoint(BasicPointRef<POINT_T>&& point);
     BasicPoint& operator=(const BasicPoint& other){
         if(this!=&other)
             [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
                 (data_[Is]=other.data_[Is],...);
-            }(std::make_index_sequence<DIMENSIONS>());
+            }(std::make_index_sequence<BasicGeometry::dimensions()>());
         return *this;
     }
-    BasicPoint& operator=(const BasicPointRef<DIMENSIONS>& other);
-    template<typename POINT_T>
-    BasicPoint(POINT_T point)-> BasicPoint<dimensions<POINT_T>()>()
+    BasicPoint& operator=(const BasicPointRef<POINT_T>& other);
+    BasicPoint(POINT_T point)
     {
-        static_assert(dimensions<POINT_T>()>0,"Not all Get::operator() are defined");
+        static_assert(BasicGeometry::dimensions()>0,"Not all Get::operator() are defined");
         [this]<uint64_t... Is>(std::index_sequence<Is...> is){
             (data_[Is]=Get<Is,POINT_T>{}(),...);
-        }(std::make_index_sequence<dimensions<POINT_T>()>());
+        }(std::make_index_sequence<BasicGeometry::dimensions()>());
     }
     template<uint64_t DIMENSION>
-    long double get() const noexcept{
-        static_assert(DIMENSION<DIMENSIONS);
+    VALUE_T get() const noexcept{
+        static_assert(DIMENSION<BasicGeometry::dimensions());
         return geometry::Get<DIMENSION,BasicPoint>()(*this);
     }
 };
 
-template<uint64_t DIMENSIONS>
+//default array point
+template<uint64_t DIMENSIONS,typename VALUE_T>
+using BasicArrayPoint = BasicPoint<std::array<VALUE_T,DIMENSIONS>>;
+
+template<typename POINT_T>
 class BasicPointRef:public BasicGeometry<true,DIMENSIONS>{
-    const std::array<long double,DIMENSIONS>& data_;
+    const POINT_T& data_;
     public:
     BasicPointRef(const BasicPointRef& other):
         data_(other.data_)
@@ -89,32 +94,36 @@ class BasicPointRef:public BasicGeometry<true,DIMENSIONS>{
     }
     BasicPointRef& operator=(BasicPointRef&& other) = delete;
     template<uint64_t DIMENSION>
-    long double get() const noexcept{
-        static_assert(DIMENSION<DIMENSIONS);
+    VALUE_T get() const noexcept{
+        static_assert(DIMENSION<BasicGeometry::dimensions());
         return geometry::Get<DIMENSION,BasicPointRef>()(*this);
     }
 };
 
-template<uint64_t DIMENSIONS>
-BasicPoint<DIMENSIONS>::BasicPoint(const BasicPointRef<DIMENSIONS>& other)
+//default array refpoint
+template<uint64_t DIMENSIONS,typename VALUE_T>
+using BasicArrayPointRef = BasicPointRef<std::array<VALUE_T,DIMENSIONS>>;
+
+template<typename POINT_T>
+BasicPoint<POINT_T>::BasicPoint(const BasicPointRef<POINT_T>& other)
 {
     [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
         (data_[Is]=other[Is],...);
-    }(std::make_index_sequence<DIMENSIONS>());
+    }(std::make_index_sequence<BasicGeometry::dimensions()>());
 }
 
-template<uint64_t DIMENSIONS>
-BasicPoint<DIMENSIONS>::BasicPoint(BasicPointRef<DIMENSIONS>&& other)
+template<typename POINT_T>
+BasicPoint<POINT_T>::BasicPoint(BasicPointRef<POINT_T>&& other)
 {
     data_.swap(other.data_);
 }
 
-template<uint64_t DIMENSIONS>
-BasicPoint<DIMENSIONS>& BasicPoint<DIMENSIONS>::operator=(const BasicPointRef<DIMENSIONS>& other){
+template<typename POINT_T>
+BasicPoint<POINT_T>& BasicPoint<POINT_T>::operator=(const BasicPointRef<POINT_T>& other){
     if(this!=&other)
         [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
             (data_[Is]=other.data_[Is],...);
-        }(std::make_index_sequence<DIMENSIONS>());
+        }(std::make_index_sequence<BasicGeometry::dimensions()>());
     return *this;
 }
 
@@ -172,6 +181,4 @@ struct geometry::Get<1ul,UserPoint>{
     }
 };
 
-inline void foo(){
-    geometry::BasicPoint<2>(Coord()).get<uint64_t(0)>();
 }
