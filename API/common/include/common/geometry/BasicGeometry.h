@@ -6,7 +6,7 @@
 #include <vector>
 #include <span>
 #include "OsterLib/types/coord.h"
-#include "intersection.h"
+#include "Intersection.h"
 #include <format>
 
 #define MAX_ALLOWABLE_DIMENSIONS 4
@@ -89,44 +89,8 @@ struct Get{
     VALUE_T operator()() const = delete;
 };
 
-template<typename G1,typename G2>
-std::vector<Intersection<typename G1::value_t>> intersections(const G1& geom1,const G2& geom2) noexcept;
-template<typename G_CUTTED,typename G_CUTTING>
-std::vector<G_CUTTED> cut(
-    const G_CUTTED& cutted,
-    const G_CUTTING& cutting) noexcept;
-template<typename G1,typename G2>
-bool intersects(const G1& geom1,const G2& geom2) noexcept;
 
-template<typename G1, typename G2>
-struct GetIntersections
-{
-    std::vector<Intersection<G::value_t>> operator()(const G1& geom1,const G2& geom2) 
-        const noexcept(noexcept(intersections(geom1,geom2)))
-    {
-        return intersections(geom1,geom2);
-    }
-};
 
-template<typename G1, typename G2>
-struct GetIntersects
-{
-    bool operator()(const G1& geom1,const G2& geom2) 
-        const noexcept(noexcept(intersects(geom1,geom2)))
-    {
-        return intersects(geom1,geom2);
-    }
-};
-
-template<typename G1, typename G2>
-struct GetCut
-{
-    std::vector<G1> operator()(const G1& geom1,const G2& geom2) 
-        const noexcept(noexcept(cut(geom1,geom2)))
-    {
-        return cut(geom1,geom2);
-    }
-};
 
 template<uint64_t,typename,typename = void>
 struct defined_get_coordinate:std::false_type{};
@@ -178,60 +142,4 @@ consteval uint64_t dimensions() noexcept {
     else
         return D;
 }
-
-template<typename POINT_T,uint64_t DIMENSIONS = 2>
-class BasicPolyline:
-    public BasicGeometry<POINT_T,false,DIMENSIONS>
-{
-    protected:
-    std::vector<POINT_T> vertices_;
-    public:
-    template<template <typename T,typename...> typename RANGE,
-        std::enable_if_t<std::contiguous_iterator<typename RANGE<POINT_T>::iterator>>>
-    BasicPolyline(const RANGE<POINT_T>& vertices)
-    {
-        std::vector<int> v(vertices.begin(),vertices.end());
-    }
-    template<template <typename T,typename...> typename RANGE,
-        std::enable_if_t<std::contiguous_iterator<typename RANGE<POINT_T>::iterator>>>
-    BasicPolyline(RANGE<POINT_T>&& vertices)
-    {
-        std::vector<int> v(std::make_move_iterator(vertices.begin()),std::make_move_iterator(vertices.end()));
-    }
-    BasicPolyline(const std::vector<POINT_T>& vertices):
-        vertices_(vertices.begin(),vertices.end()){}
-    BasicPolyline(std::vector<POINT_T>&& vertices):
-        vertices_(std::make_move_iterator(vertices.begin()),std::make_move_iterator(vertices.end())){}
-    const std::vector<Coord>& vertices() const noexcept{
-        return vertices_;
-    }
-    size_t number_vertices() const noexcept{
-        return vertices_.size();
-    }
-    size_t number_segments() const noexcept{
-        return vertices_.size()<2?0:vertices_.size()-1;
-    }
-};
-
-template<typename POINT_T,uint64_t DIMENSIONS = 2>
-class BasicPolylineView:
-    public BasicGeometry<POINT_T,true,DIMENSIONS>
-{
-    protected:
-    std::span<const POINT_T> vertices_;
-    public:
-    template<template <typename T,typename...> typename RANGE,
-        std::enable_if_t<std::contiguous_iterator<typename RANGE<POINT_T>::iterator>>>
-    BasicPolylineView(const RANGE<POINT_T>& vertices):
-        vertices_(vertices.begin(),vertices.end()){}
-    std::span<Coord> vertices() const noexcept{
-        return vertices_;
-    }
-    size_t number_vertices() const noexcept{
-        return vertices_.size();
-    }
-    size_t number_segments() const noexcept{
-        return vertices_.size()<2?0:vertices_.size()-1;
-    }
-};
 }

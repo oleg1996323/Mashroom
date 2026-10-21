@@ -28,15 +28,15 @@ void print(const POINT_T& point, std::string_view desc = "", bool newline = fals
 }
 
 //specified point
-template<typename POINT_T>
+template<typename POINT_T,uint64_t DIMENSIONS>
 class BasicPoint;
 
-template<typename POINT_T>
+template<typename POINT_T,uint64_t DIMENSIONS>
 class BasicPointRef;
 
 //specified point
-template<typename POINT_T>
-class BasicPoint:public BasicGeometry<false,dimensions<POINT_T>()>{
+template<typename POINT_T,uint64_t DIMENSIONS = dimensions<POINT_T>()>
+class BasicPoint:public BasicGeometry<false,DIMENSIONS>{
     POINT_T data_;
     public:
     BasicPoint(const BasicPoint& other)
@@ -50,8 +50,8 @@ class BasicPoint:public BasicGeometry<false,dimensions<POINT_T>()>{
         if(this!=&other)
             data_.swap(other.data_);
     }
-    BasicPoint(const BasicPointRef<POINT_T>& point);
-    BasicPoint(BasicPointRef<POINT_T>&& point);
+    BasicPoint(const BasicPointRef<POINT_T,DIMENSIONS>& point);
+    BasicPoint(BasicPointRef<POINT_T,DIMENSIONS>&& point);
     BasicPoint& operator=(const BasicPoint& other){
         if(this!=&other)
             [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
@@ -59,7 +59,7 @@ class BasicPoint:public BasicGeometry<false,dimensions<POINT_T>()>{
             }(std::make_index_sequence<BasicGeometry::dimensions()>());
         return *this;
     }
-    BasicPoint& operator=(const BasicPointRef<POINT_T>& other);
+    BasicPoint& operator=(const BasicPointRef<POINT_T,DIMENSIONS>& other);
     BasicPoint(POINT_T point)
     {
         static_assert(BasicGeometry::dimensions()>0,"Not all Get::operator() are defined");
@@ -75,10 +75,10 @@ class BasicPoint:public BasicGeometry<false,dimensions<POINT_T>()>{
 };
 
 //default array point
-template<uint64_t DIMENSIONS,typename VALUE_T>
-using BasicArrayPoint = BasicPoint<std::array<VALUE_T,DIMENSIONS>>;
+template<uint64_t DIMENSIONS,typename VALUE_T = long double>
+using Point = BasicPoint<std::array<VALUE_T,DIMENSIONS>,DIMENSIONS>;
 
-template<typename POINT_T>
+template<typename POINT_T,uint64_t DIMENSIONS>
 class BasicPointRef:public BasicGeometry<true,DIMENSIONS>{
     const POINT_T& data_;
     public:
@@ -102,24 +102,24 @@ class BasicPointRef:public BasicGeometry<true,DIMENSIONS>{
 
 //default array refpoint
 template<uint64_t DIMENSIONS,typename VALUE_T>
-using BasicArrayPointRef = BasicPointRef<std::array<VALUE_T,DIMENSIONS>>;
+using PointRef = BasicPointRef<std::array<VALUE_T,DIMENSIONS>>;
 
-template<typename POINT_T>
-BasicPoint<POINT_T>::BasicPoint(const BasicPointRef<POINT_T>& other)
+template<typename POINT_T,uint64_t DIMENSIONS>
+BasicPoint<POINT_T,DIMENSIONS>::BasicPoint(const BasicPointRef<POINT_T,DIMENSIONS>& other)
 {
     [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
         (data_[Is]=other[Is],...);
     }(std::make_index_sequence<BasicGeometry::dimensions()>());
 }
 
-template<typename POINT_T>
-BasicPoint<POINT_T>::BasicPoint(BasicPointRef<POINT_T>&& other)
+template<typename POINT_T, uint64_t DIMENSIONS>
+BasicPoint<POINT_T,DIMENSIONS>::BasicPoint(BasicPointRef<POINT_T,DIMENSIONS>&& other)
 {
     data_.swap(other.data_);
 }
 
-template<typename POINT_T>
-BasicPoint<POINT_T>& BasicPoint<POINT_T>::operator=(const BasicPointRef<POINT_T>& other){
+template<typename POINT_T,uint64_t DIMENSIONS>
+BasicPoint<POINT_T,DIMENSIONS>& BasicPoint<POINT_T,DIMENSIONS>::operator=(const BasicPointRef<POINT_T,DIMENSIONS>& other){
     if(this!=&other)
         [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
             (data_[Is]=other.data_[Is],...);

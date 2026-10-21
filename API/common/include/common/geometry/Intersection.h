@@ -3,9 +3,15 @@
 #include <cstdint>
 #include <array>
 
+template<typename POINT_T,uint64_t DIMENSIONS = dimensions<POINT_T>()>
+class BasicPoint;
+
+template<uint64_t DIMENSIONS,typename VALUE_T = long double>
+using Point = BasicPoint<std::array<VALUE_T,DIMENSIONS>,DIMENSIONS>;
+
 template<uint64_t DIMENSIONS=2>
 class Intersection{
-    std::array<DIMENSIONS> point_;
+    Point<DIMENSIONS> point_;
     uint64_t id_1_;
     uint64_t id_2_;
     public:
@@ -35,7 +41,7 @@ class Intersection{
         }
         return *this;
     }
-    const POINT_T& point() const noexcept{
+    const std::array<long double,DIMENSIONS>& point() const noexcept{
         return point_;
     }
     uint64_t first_elem_id() const noexcept{
