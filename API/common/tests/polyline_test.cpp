@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 #include "common/geometry/Polyline.h"
 
+using namespace geometry;
+
 TEST(polyline,cut_test){
-    Polyline pl;
+    BasicPolyline<Coord>(std::vector<Coord>());
+    BasicPolyline<Coord> pl;
     pl.append({.lat_=0,.lon_=0});
     pl.append({.lat_=1,.lon_=1});
     pl.append({.lat_=4,.lon_=2});
     pl.append({.lat_=-2,.lon_=4});
     pl.append({.lat_=2,.lon_=6});
     pl.append({.lat_=4,.lon_=9});
-    Polyline cut_pl;
+    Polyline<Coord> cut_pl;
     cut_pl.append({.lat_=-1,.lon_=1});
     cut_pl.append({.lat_=6,.lon_=2});
     cut_pl.append({.lat_=4,.lon_=2.5});

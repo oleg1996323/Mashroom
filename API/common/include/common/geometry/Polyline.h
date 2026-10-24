@@ -19,8 +19,6 @@
 #include <functional>
 #include <thread>
 #include "Intersection.h"
-#include "intersections.h"
-#include "intersects.h"
 #include "BasicGeometry.h"
 #include "Point.h"
 
@@ -33,6 +31,7 @@ class BasicPolyline:public BasicGeometry<false,DIMENSIONS>{
     mutable bool length_defined_=false;
     using id = uint64_t;
 public:
+    BasicPolyline() = default;
     template<template <typename T,typename...> typename RANGE,
         std::enable_if_t<std::contiguous_iterator<typename RANGE<POINT_T>::iterator>>>
     BasicPolyline(const RANGE<POINT_T>& vertices):
@@ -53,8 +52,8 @@ public:
     template <typename T,typename...> typename RANGE,
     std::enable_if_t<std::contiguous_iterator<
         typename RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>::iterator>>>
-    BasicPolyline(const RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>& vertices)
-        ->BasicPolyline<POINT_T,SEQ_DIMENSIONS>(vertices):
+    BasicPolyline(const RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>& vertices):
+        BasicPolyline<POINT_T,SEQ_DIMENSIONS>(vertices),
         vertices_(vertices.begin(),vertices.end()){}
 
 
@@ -63,10 +62,10 @@ public:
     template <typename T,typename...> typename RANGE,
     std::enable_if_t<std::contiguous_iterator<
         typename RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>::iterator>>>
-    BasicPolyline(RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>&& vertices)
-        ->BasicPolyline<POINT_T,SEQ_DIMENSIONS>(std::move(vertices)) noexcept:
-        vertices_(
-        std::make_move_iterator(vertices.begin()),std::make_move_iterator(vertices.end())){}
+    BasicPolyline(RANGE<BasicPoint<POINT_T,SEQ_DIMENSIONS>>&& vertices) noexcept:
+        BasicPolyline<POINT_T,Max<SEQ_DIMENSIONS,DIMENSIONS>::value>(std::move(vertices)),
+        vertices_(std::make_move_iterator(vertices.begin()),
+        std::make_move_iterator(vertices.end())){}
 
     BasicPolyline& operator=(const BasicPolyline& other)
     {
@@ -169,20 +168,7 @@ public:
         }) - turns.begin();
         return result;
     }
-
-    //@todo проверить касается ли секущая вершины
-    std::vector<Polyline> cut_impl(
-    const Polyline& segment,
-    bool left_forward
-    ) const noexcept;
     public:
-    Polyline()=default;
-    Polyline(const Polyline& other):
-        vertices_(other.vertices_),
-        length_(other.length_){}
-    Polyline(Polyline&& other) noexcept:
-        vertices_(std::move(other.vertices_)),
-        length_(other.length_){}
     Polyline& operator=(const Polyline& other){
         if(this!=&other){
             vertices_=other.vertices_;
@@ -255,59 +241,7 @@ public:
     const std::vector<POINT_T>& vertices() const noexcept{
         return vertices_;
     }
-    std::vector<Polyline> intersection(const Polyline& other) const noexcept;
-    static std::vector<Polyline> cut(
-        const Line& line,
-        const Polyline& pg,
-        bool left_forward
-        ) noexcept;
-    std::vector<Polyline> cut(
-        const Line& line,
-        bool left_forward
-        ) const noexcept;
-    static std::vector<Polyline> cut(
-        const Polyline& cutted_polyline,
-        const Polyline& cutting_polyline,
-        bool left_forward
-        ) noexcept
-    {
-        return cutted_polyline.cut(cutting_polyline,left_forward);
-    }
-    std::vector<Polyline> cut(
-        const Polyline& other,
-        bool left_forward
-        ) const noexcept
-    {
-        return cut_impl(other,left_forward);
-    }
-    bool equivalent(const Polyline& other,bool multithread) const noexcept{
-        std::vector<POINT_T>::const_iterator iter = 
-            std::find(other.vertices_.begin(),other.vertices_.end(),
-            vertices_.front());
-        if(iter==other.vertices_.end())
-            return false;
-        else{
-            uint64_t last = vertices_.size()-1;
-            for(uint64_t i = 0, j = std::distance(other.vertices_.begin(),iter);
-                i<=last;++i,j=j+1)
-            {
-                uint64_t j_loc = j+1;
-                uint64_t i_loc = i+1;
-                while(other.vertices_[j]==other.vertices_[j_loc]){
-                    j=j+1;
-                    j_loc = j+1;
-                }
-                while(vertices_[i]==vertices_[i_loc] && i<last){
-                    ++i;
-                    ++i_loc;
-                }
-                if(vertices_[i]!=other.vertices_[j])
-                    return false;
-                continue;
-            }
-            return true;
-        }
-    }
+    
 };
 
 template<uint64_t DIMENSIONS,typename VALUE_T = long double>
@@ -352,87 +286,12 @@ void print(const std::vector<Intersection<DIMENSIONS>>& iss){
     for(const Intersection<POINT_T>& is:iss)
         print(is);
 }
-
-// template<typename POINT_T>
-// std::vector<BasicPolyline<POINT_T>> BasicPolyline<POINT_T>::cut_impl(
-//     const Polyline& other,
-//     bool left_forward
-//     ) const noexcept{
-//     std::vector<Polyline<POINT_T>> result;
-//     std::vector<Intersection<POINT_T>> turns = polyline_intersections(other);
-//     bool in = false;
-//     //
-
-//     auto intersection_openning = [this,left_forward,&other](const Intersection<POINT_T>& is){
-//         const POINT_T& first_1 = vertices_[is.first_elem_id()];
-//         const POINT_T& second_1 = vertices_[is.first_elem_id()+1];
-//         const POINT_T& first_2 = other.vertices_[is.second_elem_id()];
-//         const POINT_T& second_2 = other.vertices_[is.second_elem_id()+1];
-//         long double side = ::cross(first_2, second_2, first_1);
-//         if(side>0)
-//             return !left_forward;
-//         else return left_forward; 
-//     };
-//     if(!turns.empty())
-//         in = !intersection_openning(turns.front());
-//     else return result;
-//     std::sort(turns.begin(),turns.end(),
-//     [this](const Intersection<POINT_T>& lhs,const Intersection<POINT_T>& rhs){
-//         if(lhs.first_elem_id()==rhs.first_elem_id()){
-//             const POINT_T& begin_lhs = vertices_[lhs.first_elem_id()];
-//             const POINT_T& begin_rhs = vertices_[rhs.first_elem_id()];
-//             if(pythagoras2(begin_lhs,lhs.point())==pythagoras2(begin_rhs,rhs.point()))
-//                 return lhs.second_elem_id()<rhs.second_elem_id();
-//             else return pythagoras2(begin_lhs,lhs.point())<pythagoras2(begin_rhs,rhs.point());
-//         }
-//         else return lhs.first_elem_id()<rhs.first_elem_id();
-//     });
-//     print(turns);
-//     for(uint64_t i=0;i<turns.size();++i){
-//         Polyline* current;
-//         if(in){
-//             current = result.empty()?&result.emplace_back():&result.back();
-//             while(i+1<turns.size() && intersection_openning(turns[i+1])){
-//                 ++i;
-//             }
-//             if(i>=turns.size())
-//                 break;
-//             uint64_t start_vertice = (i==0)?0:turns[i-1].first_elem_id()+1;
-//             uint64_t last_vertice = 0;
-//             last_vertice = turns[i].first_elem_id()+1;
-                                    
-//             for(uint64_t j=start_vertice;j<last_vertice;++j){
-//                 print(vertices_[j],"added vertice",true);
-//                 current->append(vertices_[j]);
-//             }
-//             print(turns[i].point(),"added vertice",true);
-//             current->append(turns[i].point());
-//             in=false;
-//             std::cout<<"Made polyline"<<std::endl;
-//             print(result.back());
-//         }
-//         else {
-//             while(i+1<turns.size() && intersection_openning(turns[i+1])){
-//                 ++i;
-//             }
-//             if(i>=turns.size())
-//                 break;
-//             if(!result.empty() && result.back().vertices().back()==turns[i].point()){
-//                 current = &result.back();
-//             }
-//             else{
-//                 current = &result.emplace_back();
-//                 print(turns[i].point(),"added vertice",true);
-//                 current->append(turns[i].point());
-//             }
-//             in=true;
-//         }
-
-//     }
-//     return result;
-// }
 }
+#include "equivalent.h"
 #include "cut.h"
+#include "intersections.h"
+#include "intersects.h"
+
 namespace geometry{
 template<typename POINT_T>
     std::vector<BasicPolyline<POINT_T,2>> cut<
@@ -514,5 +373,72 @@ template<typename POINT_T>
 
         }
         return result;
+    }
+
+    template<typename POINT_T,typename OTHER_POINT_T,
+        uint64_t DIMENSIONS>
+    auto intersections(const BasicPolyline<POINT_T,DIMENSIONS>& polyline,
+                        const BasicLine<OTHER_POINT_T,DIMENSIONS>& line){
+        std::vector<Intersection<POINT_T>> result;
+        if(line.first()==line.second() || vertices_.empty())
+            return {};
+        for(uint64_t i = 0;i<vertices_.size();++i){
+            auto& first = polyline.vertices().at(i);
+            auto& second = polyline.vertices().at((i+1)%vertices_.size());
+            if(::intersects(first,second,
+                cut_line.first(),line.second())){
+                if(auto found = line.intersection(first.lon_,first.lat_,second.lon_,second.lat_);
+                    found.has_value()){
+                    POINT_T point{  .lat_ = found.value().second,
+                            .lon_ = found.value().first};
+                    if(!result.empty()){
+                        if(result.back().point()!=point)
+                            result.push_back(Intersection<POINT_T>(point,i,0));
+                        else continue;
+                    }
+                    else result.push_back(Intersection<POINT_T>(point,i,0));
+                }
+                else continue;
+            }
+            else continue;
+        }
+        std::sort(result.begin(),result.end(),
+            [](const Intersection<POINT_T>& lhs,const Intersection<POINT_T>& rhs)
+        {
+            return lhs.first_elem_id()<rhs.first_elem_id();
+        });
+        return result;
+    }
+
+    template<typename POINT_T,typename OTHER_POINT_T,
+        uint64_t DIMENSIONS,uint64_t OTHER_DIMENSIONS>
+    bool equivalent(const BasicPolyline<POINT_T,DIMENSIONS>& first,
+            const BasicPolyline<OTHER_POINT_T,OTHER_DIMENSIONS>& second) noexcept{
+        std::vector<POINT_T>::const_iterator iter = 
+            std::find(second.vertices().begin(),second.vertices().end(),
+            first.vertices().front());
+        if(iter==second.vertices_.end())
+            return false;
+        else{
+            uint64_t last = first.vertices().size()-1;
+            for(uint64_t i = 0, j = std::distance(second.vertices_.begin(),iter);
+                i<=last;++i,j=j+1)
+            {
+                uint64_t j_loc = j+1;
+                uint64_t i_loc = i+1;
+                while(second.vertices_[j]==second.vertices_[j_loc]){
+                    j=j+1;
+                    j_loc = j+1;
+                }
+                while(first.vertices()[i]==first.vertices()[i_loc] && i<last){
+                    ++i;
+                    ++i_loc;
+                }
+                if(first.vertices()[i]!=second.vertices_[j])
+                    return false;
+                continue;
+            }
+            return true;
+        }
     }
 }
