@@ -10,12 +10,15 @@ namespace geometry{
         bool left_forward);
 
     template<typename G1, typename G2>
-    struct GetCut
+    struct Cut
     {
-        std::vector<G1> operator()(const G1& geom1,const G2& geom2) 
-            const noexcept(noexcept(cut(geom1,geom2)))
+        std::vector<G1> operator()(
+            const G1& geom1,
+            const G2& geom2,
+            bool left_forward) 
+            const noexcept(noexcept(cut(geom1,geom2,left_forward)))
         {
-            return cut(geom1,geom2);
+            return cut(geom1,geom2,left_forward);
         }
     };
 }

@@ -6,7 +6,7 @@ namespace geometry{
     bool equivalent(const G1& geom1,const G2& geom2) noexcept;
 
     template<typename G1, typename G2>
-    struct GetEquivalent
+    struct Equivalent
     {
         bool operator()(const G1& geom1,const G2& geom2) 
             const noexcept(noexcept(equivalent<G1,G2>(geom1,geom2)))

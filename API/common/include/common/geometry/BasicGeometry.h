@@ -6,7 +6,6 @@
 #include <vector>
 #include <span>
 #include "OsterLib/types/coord.h"
-#include "Intersection.h"
 #include <format>
 
 #define MAX_ALLOWABLE_DIMENSIONS 4
@@ -83,39 +82,18 @@ struct ValueTypeCheck{
     static_assert(has_operator_division<VALUE_T,std::float_t>::value);
 };
 
-template<uint64_t DIMENSION,typename POINT_T>
-struct Get{
-    template<typename VALUE_T>
-    VALUE_T operator()() const = delete;
-};
-
-
-
-
 template<uint64_t,typename,typename = void>
 struct defined_get_coordinate:std::false_type{};
-
-template<uint64_t DIMENSION,typename POINT_T>
-struct defined_get_coordinate<DIMENSION,POINT_T,
-std::void_t<typename std::invoke_result<Get<DIMENSION,POINT_T>,POINT_T>::type>>:std::true_type{};
 
 template<bool VIEW,uint64_t DIMENSIONS>
 class BasicGeometry{
     static_assert(DIMENSIONS>0,"Not all Get::operator() are defined");
-    static_assert(
-    []<std::size_t... Is>(std::index_sequence<Is...>) {
-        return (defined_get_coordinate<Is, POINT_T>::value && ...);
-    }(std::make_index_sequence<DIMENSIONS>{}),
-    "Point requires Get<i, POINT_T> for i in [0, DIMENSIONS)");
-    static_assert(
-    []<std::size_t... Is>(std::index_sequence<Is...>) {
-        (ValueTypeCheck<typename std::invoke_result<Get<Is,POINT_T>,POINT_T>::type>(), ...);
-        return true;
-    }(std::make_index_sequence<DIMENSIONS>{}),
-    "Point requires Get<i, POINT_T> for i in [0, DIMENSIONS)");
     public:
-    template<uint64_t DIMENSION>
-    using value_t = typename std::invoke_result<Get<DIMENSION,POINT_T>,POINT_T>::type;
+    BasicGeometry() = default;
+    BasicGeometry(const BasicGeometry&) = default;
+    BasicGeometry(BasicGeometry&&) noexcept = default;
+    BasicGeometry& operator=(const BasicGeometry&) = default;
+    BasicGeometry& operator=(BasicGeometry&&) noexcept = default;
 
     static constexpr uint64_t dimensions() noexcept{
         return DIMENSIONS;
@@ -131,15 +109,4 @@ class BasicGeometry{
         return functor(*this, other);
     }
 };
-
-template<typename USER_POINT_T, uint64_t D = 0, uint64_t MAX = MAX_ALLOWABLE_DIMENSIONS>
-consteval uint64_t dimensions() noexcept {
-    static_assert(D<=MAX,MAX_ALLOWABLE_DIMENSIONS_STR(MAX_ALLOWABLE_DIMENSIONS));
-    if constexpr (D >= MAX)
-        return MAX;
-    else if constexpr (defined_get_coordinate<D, USER_POINT_T>::value)
-        return dimensions<USER_POINT_T, D + 1, MAX>();
-    else
-        return D;
-}
 }

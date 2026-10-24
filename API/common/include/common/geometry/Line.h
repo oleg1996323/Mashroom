@@ -6,63 +6,41 @@
 #include "algorithms.h"
 #include "BasicGeometry.h"
 #include "Point.h"
+#include "cut.h"
+#include "intersects.h"
+
 
 namespace geometry{
-    template<typename POINT_T,uint64_t DIMENSIONS = dimensions<POINT_T>()>
-    class BasicLine{
-        BasicPoint<POINT_T> first_;
-        BasicPoint<POINT_T> second_;
+    template<uint64_t DIMENSIONS,typename VALUE_T = long double>
+    class BasicLine:public BasicGeometry<false,DIMENSIONS>{
+        BasicPoint<DIMENSIONS,VALUE_T> first_;
+        BasicPoint<DIMENSIONS,VALUE_T> second_;
         public:
         using id = uint64_t;
         BasicLine() = default;
-        BasicLine(POINT_T first,POINT_T second) noexcept:
+        BasicLine(Point<DIMENSIONS,VALUE_T> first,
+            Point<DIMENSIONS,VALUE_T> second) noexcept:
         first_(std::move(first)),second_(second){}
-        template<typename OTHER_POINT_T>
-        BasicLine(BasicPoint<OTHER_POINT_T> first,BasicPoint<OTHER_POINT_T> second) noexcept:
-        first_(std::move(first)),second_(second){}
+        BasicLine(BasicPoint<DIMENSIONS,VALUE_T>&& first,
+                BasicPoint<DIMENSIONS,VALUE_T>&& second) noexcept:
+        first_(std::move(first)),second_(std::move(second)){}
         BasicLine(const BasicLine& other) = default;
         BasicLine(BasicLine&& other) noexcept = default;
         BasicLine& operator=(const BasicLine& other) = default;
         BasicLine& operator=(BasicLine&& other) noexcept = default;
         bool operator==(const BasicLine&) = delete;
         template<typename OTHER_POINT_T,uint64_t OTHER_DIMENSIONS>
-        Coord first() const noexcept{
-            return Coord{.lat_=Y1_,.lon_=X1_};
+        const Point<DIMENSIONS,VALUE_T>& first() const noexcept{
+            return first_;
         }
-        Coord second() const noexcept{
-            return Coord{.lat_=Y2_,.lon_=X2_};
-        }
-        double X1() const noexcept{
-            return X1_;
-        }
-        double Y1() const noexcept{
-            return Y1_;
-        }
-        double X2() const noexcept{
-            return X2_;
-        }
-        double Y2() const noexcept{
-            return Y2_;
-        }
-        void X1(double X1) noexcept{
-            X1_ = X1;
-        }
-        void X2(double X2) noexcept{
-            X2_ = X2;
-        }
-        void Y1(double Y1) noexcept{
-            Y1_ = Y1;
-        }
-        void Y2(double Y2) noexcept{
-            Y2_ = Y2;
-        }
-        double length() const noexcept{
-            long double dX = static_cast<long double>(X2_)- X1_;
-            long double dY = static_cast<long double>(Y2_)- Y1_;
-            return std::sqrt(dX*dX+dY*dY);
+        const Point<DIMENSIONS,VALUE_T>& second() const noexcept{
+            return second_;
         }
         double k() const noexcept{
-            return k(X1_,Y1_,X2_,Y2_);
+            return k(first_.template get<0>(),
+                first_.template get<1>(),
+                second_.template get<0>(),
+                second_.template get<1>());
         }
         static double k(
                 long double X1,
@@ -78,7 +56,10 @@ namespace geometry{
             return dY/dX;
         }
         double angle() const noexcept{
-            return angle(X1_,Y1_,X2_,Y2_);
+            return angle(first_.template get<0>(),
+                first_.template get<1>(),
+                second_.template get<0>(),
+                second_.template get<1>());
         }
         static double angle(
                 long double X1,
@@ -93,142 +74,183 @@ namespace geometry{
             return std::isinf(k_);
         }
         bool is_horizontal() const noexcept{
-            return std::abs(static_cast<long double>(Y2_) - Y1_) < std::numeric_limits<double>::epsilon();
+            return std::abs(static_cast<long double>(second_.template get<1>()) - 
+                first_.template get<1>()) < 
+                    std::numeric_limits<double>::epsilon();
         }
         static bool straight_above_the_point(
-                const Line& line,
+                const BasicLine& line,
                 long double X,
                 long double Y) noexcept
         {
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            double X0 = line.Y1() - k*line.X1();
+            double X0 = line.first().template get<1>() - k*line.first().template get<0>();
             return Y<k*X+X0;
         }
         static bool straight_under_the_point(
-                const Line& line,
+                const BasicLine& line,
                 long double X,
                 long double Y) noexcept
         {
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.Y1() - k*line.X1();
+            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
             return Y>k*X+X0;
         }
         static bool point_on_straight(
-                const Line& line,
+                const BasicLine& line,
                 long double X,
                 long double Y) noexcept
         {
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.Y1() - k*line.X1();
+            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
             return std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
         static bool straight_not_under_the_point(
-                const Line& line,
+                const BasicLine& line,
                 long double X,
                 long double Y) noexcept
         {
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.Y1() - k*line.X1();
+            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
             return Y<k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
         static bool straight_not_above_the_point(
-                const Line& line,
+                const BasicLine& line,
                 long double X,
                 long double Y) noexcept
         {
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.Y1() - k*line.X1();
+            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
             return Y>k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
-        bool intersects(const Line& other) const noexcept{
-            return ::intersects(first(),second(),other.first(),other.second());
+        bool intersects(const BasicLine& other) const noexcept{
+            return exec<Intersects,2>(*this,other);
         }
-        static Line cut(
-                const Line& line,
-                const Line& other,
+        static BasicLine cut(
+                const BasicLine& line,
+                const BasicLine& other,
                 bool left_forward
                 ) noexcept
         {
-            auto point = line.intersection(other);
-            if(!point.has_value())
-                return line;
-            Coord intersection_point{.lat_ = point.value().second,.lon_=point.value().first};
-            if(!::on_segment(line.first(),line.second(),intersection_point))
-                return line;
-            long double side = cross(other.first(), other.second(), line.first());
-            if(left_forward){
-                if(side>0)
-                    return Line(intersection_point,line.first());
-                else
-                    return Line(line.second(),intersection_point);
-            }
-            else{
-                if(side>0)
-                    return Line(line.second(),intersection_point);
-                else
-                    return Line(intersection_point,line.first());
-            }
-        }
-        static std::optional<std::pair<double,double>> intersection(
-                long double X11,long double Y11, long double X12, long double Y12,
-                long double X21, long double Y21, long double X22, long double Y22) noexcept{
-            long double scale = std::max(std::abs(X12 - X11), std::abs(Y12 - Y11))
-                * std::max(std::abs(X22 - X21), std::abs(Y22 - Y21));
-            long double denominator = (Y22 - Y21) * (X12 - X11) - (X22 - X21) * (Y12 - Y11);
-            if (scale == 0.0 || std::abs(denominator) < 1e-12 * scale)
-                return std::nullopt;
-            long double u_a = ((X22 - X21) * (Y11 - Y21) - (Y22 - Y21) * (X11 - X21)) / denominator;
-            return std::make_pair(X11+u_a*(X12-X11),Y11+u_a*(Y12 - Y11));
-        }
-        std::optional<std::pair<double,double>> intersection(
-                long double X1, long double Y1, long double X2, long double Y2) const noexcept{
-            return intersection(X1_,Y1_,X2_,Y2_,X1,Y1,X2,Y2);
-        }
-        std::optional<std::pair<double,double>> intersection(
-                const Line& other) const noexcept{
-            return intersection(other.X1_,other.Y1_,other.X2_,other.Y2_);
+            return exec<Cut,DIMENSIONS>(line,other,left_forward);
         }
     };
 
-    template<typename POINT_T,typename OTHER_POINT_T,
-        uint64_t DIMENSIONS,uint64_t OTHER_DIMENSIONS>
-    bool equivalent() noexcept{
-        bool is_equal(const BasicLine<OTHER_POINT_T& other) const noexcept{
-            if(this!=&other){
-                return std::abs(static_cast<long double>(X1_)-other.X1_)<
-                        std::numeric_limits<double>::epsilon() &&
-                std::abs(static_cast<long double>(X2_)-other.X2_)<
-                        std::numeric_limits<double>::epsilon() &&
-                std::abs(static_cast<long double>(Y1_)-other.Y1_)<
-                        std::numeric_limits<double>::epsilon() &&
-                std::abs(static_cast<long double>(Y2_)-other.Y2_)<
-                        std::numeric_limits<double>::epsilon();
-            }
-            else return true;
+    template<typename VALUE1_T,typename VALUE2_T>
+    bool equivalent(const BasicLine<2,VALUE1_T>& first,
+                    const BasicLine<2,VALUE1_T>& second){
+        using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
+        using max_prec_t = std::common_type_t<value_result_t,long double>;
+        if(&first!=&second){
+            return std::abs(static_cast<max_prec_t>(
+                    first.first().template get<0>())-
+                    second.first().template get<0>())<
+                    std::numeric_limits<max_prec_t>::epsilon() &&
+            std::abs(static_cast<max_prec_t>(
+                    first.second().template get<0>())-
+                    second.second().template get<0>())<
+                    std::numeric_limits<max_prec_t>::epsilon() &&
+            std::abs(static_cast<max_prec_t>(
+                    first.first().template get<1>())-
+                    second.first().template get<1>())<
+                    std::numeric_limits<max_prec_t>::epsilon() &&
+            std::abs(static_cast<max_prec_t>(
+                    first.second().template get<1>())-
+                    second.second().template get<1>())<
+                    std::numeric_limits<max_prec_t>::epsilon();
+        }
+        else return true;
+    }
+
+    template<typename VALUE1_T,typename VALUE2_T>
+    std::vector<Intersection<2>> intersections(
+        const BasicLine<2,std::common_type_t<VALUE1_T,VALUE2_T>>& first,
+        const BasicLine<2,std::common_type_t<VALUE1_T,VALUE2_T>>& second) noexcept
+    {
+        if(&first==&second)
+            return {};
+        using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
+        using max_prec_t = std::common_type_t<value_result_t,long double>;
+        max_prec_t X11,X12,X21,X22,Y11,Y12,Y21,Y22;
+        X11 = first.first().template get<0>();
+        X12 = first.second().template get<0>();
+        Y11 = first.first().template get<1>();
+        Y12 = first.second().template get<1>();
+        X21 = second.first().template get<0>();
+        X22 = second.second().template get<0>();
+        Y21 = second.first().template get<1>();
+        Y22 = second.second().template get<1>();
+        max_prec_t scale = std::max(std::abs(X12 - X11), std::abs(Y12 - Y11))
+            * std::max(std::abs(X22 - X21), std::abs(Y22 - Y21));
+        max_prec_t denominator = (Y22 - Y21) * (X12 - X11) - (X22 - X21) * (Y12 - Y11);
+        if (scale == 0.0 || std::abs(denominator) < 1e-12 * scale)
+            return {};
+        max_prec_t u_a = ((X22 - X21) * (Y11 - Y21) - (Y22 - Y21) * (X11 - X21)) / denominator;
+        return {Intersection<2>(Point<2>({X11+u_a*(X12-X11),Y11+u_a*(Y12 - Y11)}),0,0)};
+    }
+
+    template<uint64_t DIMENSIONS,typename VALUE_T = long double>
+    VALUE_T length(const BasicLine<DIMENSIONS,VALUE_T>& line){
+        exec<Distance,DIMENSIONS>(line.first(),line.second());
+    }
+
+
+    template<typename VALUE1_T,typename VALUE2_T>
+    std::vector<BasicLine<
+            2,
+            std::common_type_t<VALUE1_T,VALUE2_T>>> cut(
+        const BasicLine<2,VALUE1_T>& cutted,
+        const BasicLine<2,VALUE2_T>& cutting,
+        bool left_forward)
+    {
+        using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
+        using max_prec_t = std::common_type_t<value_result_t,long double>;
+        auto point = exec<Intersections,2>(cutted,cutting);
+        if(point.empty())
+            return {cutted};
+        Point<2,max_prec_t> intersection_point
+            ({point.front().point().template get<0>(),
+                point.front().point().template get<1>()});
+        if(!geometry::on_segment(cutted.first(),cutted.second(),intersection_point))
+            return {cutted};
+        long double side = cross(cutting.first(), cutting.second(), cutted.first());
+        if(left_forward){
+            if(side>0)
+                return {BasicLine(intersection_point,cutted.first())};
+            else
+                return {BasicLine(cutted.second(),intersection_point)};
+        }
+        else{
+            if(side>0)
+                return {BasicLine(cutted.second(),intersection_point)};
+            else
+                return {BasicLine(intersection_point,cutted.first())};
         }
     }
 
-    template<typename POINT_T, typename OTHER_POINT_T>
-    std::vector<Intersection<2>> intersections(
-        const BasicLine<POINT_T,2>& first,
-        const BasicLine<OTHER_POINT_T,2>& second) noexcept
-    {
-        long double scale = std::max(std::abs(X12 - X11), std::abs(Y12 - Y11))
-            * std::max(std::abs(X22 - X21), std::abs(Y22 - Y21));
-        long double denominator = (Y22 - Y21) * (X12 - X11) - (X22 - X21) * (Y12 - Y11);
-        if (scale == 0.0 || std::abs(denominator) < 1e-12 * scale)
-            return std::nullopt;
-        long double u_a = ((X22 - X21) * (Y11 - Y21) - (Y22 - Y21) * (X11 - X21)) / denominator;
-        return std::make_pair(X11+u_a*(X12-X11),Y11+u_a*(Y12 - Y11));
+    template<typename VALUE1_T,typename VALUE2_T>
+    bool intersects(const BasicLine<2,VALUE1_T>& first, const BasicLine<2,VALUE2_T>& second) noexcept{
+        long double d1 = cross(first.first(), first.second(), second.first());
+        long double d2 = cross(first.first(), first.second(), second.second());
+        long double d3 = cross(first.second(), second.second(), first.first());
+        long double d4 = cross(first.second(), second.second(), second.first());
+        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+            ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
+            return true;
+        if (d1 == 0 && on_segment(first.first(), second.first(), first.second())) return true;
+        if (d2 == 0 && on_segment(first.first(), second.first(), second.second())) return true;
+        if (d3 == 0 && on_segment(first.second(), second.second(), first.first())) return true;
+        if (d4 == 0 && on_segment(first.second(), second.second(), second.first())) return true;
+        return false;
     }
 }

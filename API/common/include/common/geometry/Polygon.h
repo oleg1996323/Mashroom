@@ -19,12 +19,13 @@
 #include <functional>
 #include <thread>
 #include "Polyline.h"
-#include "intersection.h"
+#include "Intersection.h"
 #include "Polyline_view.h"
 
-template<typename POINT_T>
-class Polygon:public BasicGeometry<POINT_T,false,2>{
-    std::vector<POINT_T> vertices_;
+namespace geometry{
+
+class Polygon:public BasicGeometry<false,2>{
+    std::vector<Point<2>> vertices_;
     std::vector<uint64_t> minX_;
     std::vector<uint64_t> maxX_;
     std::vector<uint64_t> minY_;
@@ -41,7 +42,7 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
     static uint64_t vertices_per_thread_;
     void update_minX(double X,uint64_t new_pos) noexcept{
         if(!minX_.empty()){
-            auto X_loc = vertices_[minX_.front()].lon_;
+            auto X_loc = vertices_[minX_.front()].get<0>();
             if(X_loc>X){
                 minX_.clear();
                 minX_.push_back(new_pos);
@@ -53,33 +54,33 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
     }
     void update_minY(double Y,uint64_t new_pos) noexcept{
         if(!minY_.empty()){
-            if(vertices_[minY_.front()].lat_>Y){
+            if(vertices_[minY_.front()].get<1>()>Y){
                 minY_.clear();
                 minY_.push_back(new_pos);
             }
-            else if(vertices_[minY_.front()].lat_==Y)
+            else if(vertices_[minY_.front()].get<1>()==Y)
                 minY_.push_back(new_pos);
         }
         else minY_.push_back(new_pos);
     }
     void update_maxX(double X,uint64_t new_pos) noexcept{
         if(!maxX_.empty()){
-            if(vertices_[maxX_.front()].lon_<X){
+            if(vertices_[maxX_.front()].get<0>()<X){
                 maxX_.clear();
                 maxX_.push_back(new_pos);
             }
-            else if(vertices_[maxX_.front()].lon_==X)
+            else if(vertices_[maxX_.front()].get<0>()==X)
                 maxX_.push_back(new_pos);
         }
         else maxX_.push_back(new_pos);
     }
     void update_maxY(double Y,uint64_t new_pos) noexcept{
         if(!maxY_.empty()){
-            if(vertices_[maxY_.front()].lat_<Y){
+            if(vertices_[maxY_.front()].get<1>()<Y){
                 maxY_.clear();
                 maxY_.push_back(new_pos);
             }
-            else if(vertices_[maxY_.front()].lat_==Y)
+            else if(vertices_[maxY_.front()].get<1>()==Y)
                 maxY_.push_back(new_pos);
         }
         else maxY_.push_back(new_pos);
@@ -94,14 +95,14 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             else{
                 double result = 0.;
                 for(uint64_t i = 0,j=1;i<vertices_.size();++i,j=(j+1)%vertices_.size()){
-                    const POINT_T& first = vertices_[i];
-                    const POINT_T& second = vertices_[j];
-                    result+=second.lat_*first.lon_-first.lat_*second.lon_;
+                    const Point<2>& first = vertices_[i];
+                    const Point<2>& second = vertices_[j];
+                    result+=second.get<1>()*first.get<0>()-first.get<1>()*second.get<0>();
                 }
-                double scale =  std::max(std::abs(vertices_[maxY_.front()].lat_),
-                                std::abs(vertices_[minY_.front()].lat_))*
-                                std::max(std::abs(vertices_[maxX_.front()].lon_),
-                                std::abs(vertices_[minX_.front()].lon_));
+                double scale =  std::max(std::abs(vertices_[maxY_.front()].get<1>()),
+                                std::abs(vertices_[minY_.front()].get<1>()))*
+                                std::max(std::abs(vertices_[maxX_.front()].get<0>()),
+                                std::abs(vertices_[minX_.front()].get<0>()));
                 if(std::abs(result) < 
                     std::numeric_limits<double>::epsilon()*scale*vertices_.size())
                     return false;
@@ -119,17 +120,16 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
         }
     }
 
-    std::vector<Intersection<POINT_T>> line_intersections(const Line& cut_line) const noexcept{
-        std::vector<Intersection<POINT_T>> result;
-        for(Line::id i = 0;i<vertices_.size();++i){
+    std::vector<Intersection<2>> line_intersections(const Line& cut_line) const noexcept{
+        std::vector<Intersection<2>> result;
+        for(uint64_t i = 0;i<vertices_.size();++i){
             auto& first = vertices_[i];
             auto& second = vertices_[(i+1)%vertices_.size()];
             if(::intersects(first,second,
                 cut_line.first(),cut_line.second())){
                 if(auto found = cut_line.intersection(Line(first.lon_,first.lat_,second.lon_,second.lat_));
                     found.has_value()){
-                    POINT_T coord{  .lat_ = found.value().second,
-                            .lon_ = found.value().first};
+                    Point<2> coord{found.value().first,found.value().second};
                     if(!result.empty()){
                         if(result.back().point()!=coord && result.front().point()!=coord)
                             result.push_back(Intersection(coord,i,0));
@@ -142,14 +142,14 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             else continue;
         }
         std::sort(result.begin(),result.end(),
-            [](const Intersection<POINT_T>& lhs,const Intersection<POINT_T>& rhs)
+            [](const Intersection<2>& lhs,const Intersection<2>& rhs)
         {
             return lhs.first_elem_id()<rhs.first_elem_id();
         });
         return result;
     }
-    std::vector<Intersection<POINT_T>> polyline_intersections(const Polyline& cut_line) const noexcept{
-        std::vector<Intersection<POINT_T>> result;
+    std::vector<Intersection<2>> polyline_intersections(const Polyline<2>& cut_line) const noexcept{
+        std::vector<Intersection<2>> result;
         for(Line::id i = 0;i<vertices_.size();++i){
             auto& first = vertices_[i];
             auto& second = vertices_[(i+1)%vertices_.size()];
@@ -157,7 +157,7 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
                 cut_line.first(),cut_line.second())){
                 if(auto found = cut_line.intersection(Line(first.lon_,first.lat_,second.lon_,second.lat_));
                     found.has_value()){
-                    POINT_T coord{  .lat_ = found.value().second,
+                    Point<2> coord{  .lat_ = found.value().second,
                             .lon_ = found.value().first};
                     if(!result.empty()){
                         if(result.back().point()!=coord && result.front().point()!=coord)
@@ -171,17 +171,17 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             else continue;
         }
         std::sort(result.begin(),result.end(),
-            [](const Intersection<POINT_T>& lhs,const Intersection<POINT_T>& rhs)
+            [](const Intersection<2>& lhs,const Intersection<2>& rhs)
         {
             return lhs.first_elem_id()<rhs.first_elem_id();
         });
         return result;
     }
     uint64_t define_turn_id(
-        const std::vector<Intersection<POINT_T>>& turns,
-        const Intersection<POINT_T>& ti) const noexcept{
+        const std::vector<Intersection<2>>& turns,
+        const Intersection<2>& ti) const noexcept{
         uint64_t result = std::lower_bound(turns.begin(),turns.end(),ti,
-            [](const Intersection<POINT_T>& t,const Intersection<POINT_T>& turn)
+            [](const Intersection<2>& t,const Intersection<2>& turn)
         {
             return t.first_elem_id()<turn.first_elem_id();
         }) - turns.begin();
@@ -274,7 +274,7 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             }
             long double result = 0;
             for(uint64_t i = 0,j=i+1;i<vertices_.size();++i,j=(j+1)%vertices_.size())
-                result+=vertices_[j].lat_*vertices_[i].lon_-vertices_[j].lon_*vertices_[i].lat_;
+                result+=vertices_[j].get<1>()*vertices_[i].get<0>()-vertices_[j].get<0>()*vertices_[i].get<1>();
             area_ = result/2.;
             area_defined_ = true;
             return area_;
@@ -290,10 +290,10 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             }
             long double result = 0;
             for(uint64_t i = 0,j=i+1;i<vertices_.size();++i,j=(j+1)%vertices_.size()){
-                long double dX = vertices_[j].lon_-
-                        vertices_[i].lon_;
-                long double dY = vertices_[j].lat_-
-                        vertices_[i].lat_;
+                long double dX = vertices_[j].get<0>()-
+                        vertices_[i].get<0>();
+                long double dY = vertices_[j].get<1>()-
+                        vertices_[i].get<1>();
                 result+=std::sqrtl(dX*dX+dY*dY);
             }
             perimeter_ = result;
@@ -365,7 +365,7 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             }
         }
     }
-    void append(POINT_T coord) noexcept{
+    void append(Point<2> coord) noexcept{
         if(!vertices_.empty()){
             if(vertices_.back()!=coord &&
                 vertices_.front()!=coord)
@@ -386,7 +386,7 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
         update_maxY(coord.lat_,vertices_.size());
         vertices_.push_back(std::move(coord));
     }
-    void insert(uint64_t coord_id,POINT_T coord) noexcept{
+    void insert(uint64_t coord_id,Point<2> coord) noexcept{
         if(coord_id>=vertices_.size())
             append(coord);
         else{
@@ -425,11 +425,11 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
         if(vertices_.empty())
             return;
         uint64_t erased_id = coord_id>=vertices_.size()?vertices_.size()-1:coord_id;
-        POINT_T coord = vertices_[erased_id];
-        bool erase_maxX = (coord.lon_ == vertices_[maxX_.front()].lon_);
-        bool erase_maxY = (coord.lat_ == vertices_[maxY_.front()].lat_);
-        bool erase_minX = (coord.lon_ == vertices_[minX_.front()].lon_);
-        bool erase_minY = (coord.lat_ == vertices_[minY_.front()].lat_);
+        Point<2> coord = vertices_[erased_id];
+        bool erase_maxX = (coord.lon_ == vertices_[maxX_.front()].get<0>());
+        bool erase_maxY = (coord.lat_ == vertices_[maxY_.front()].get<1>());
+        bool erase_minX = (coord.lon_ == vertices_[minX_.front()].get<0>());
+        bool erase_minY = (coord.lat_ == vertices_[minY_.front()].get<1>());
         wise_defined_ = false;
         valid_defined_ = false;
         vertices_.erase(vertices_.begin()+erased_id);
@@ -440,10 +440,10 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
             maxY_.clear();
             minY_.clear();
             for(uint64_t i = 0;i<vertices_.size();++i){
-                update_minX(vertices_[i].lon_,i);
-                update_maxX(vertices_[i].lon_,i);
-                update_minY(vertices_[i].lat_,i);
-                update_maxY(vertices_[i].lat_,i);
+                update_minX(vertices_[i].get<0>(),i);
+                update_maxX(vertices_[i].get<0>(),i);
+                update_minY(vertices_[i].get<1>(),i);
+                update_maxY(vertices_[i].get<1>(),i);
             }
         }
         else{
@@ -468,10 +468,10 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
     size_t number_vertices() const noexcept{
         return vertices_.size();
     }
-    const std::vector<POINT_T>& vertices() const noexcept{
+    const std::vector<Point<2>>& vertices() const noexcept{
         return vertices_;
     }
-    bool point_inside(const POINT_T& point,
+    bool point_inside(const Point<2>& point,
             uint32_t max_threads = std::thread::hardware_concurrency()) const noexcept;
     std::vector<Polygon> intersection(const Polygon& other) const noexcept;
     static std::vector<Polygon> cut(
@@ -486,13 +486,13 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
     bool equivalent(const Polygon& other,bool multithread) const noexcept{
         uint64_t number_threads = vertices_.size()/vertices_per_thread_;
         int8_t other_inc = is_clockwise()==other.is_clockwise()?1:-1;
-        if((!maxX_.empty() && vertices_[maxX_.front()].lon_!=other.vertices_[other.maxX_.front()].lon_) ||
-            (!maxY_.empty() && vertices_[maxY_.front()].lat_!=other.vertices_[other.maxY_.front()].lat_) ||
-            (!minX_.empty() && vertices_[minX_.front()].lon_!=other.vertices_[other.minX_.front()].lon_) ||
-            (!minY_.empty() && vertices_[minY_.front()].lat_!=other.vertices_[other.minY_.front()].lat_))
+        if((!maxX_.empty() && vertices_[maxX_.front()].get<0>()!=other.vertices_[other.maxX_.front()].get<0>()) ||
+            (!maxY_.empty() && vertices_[maxY_.front()].get<1>()!=other.vertices_[other.maxY_.front()].get<1>()) ||
+            (!minX_.empty() && vertices_[minX_.front()].get<0>()!=other.vertices_[other.minX_.front()].get<0>()) ||
+            (!minY_.empty() && vertices_[minY_.front()].get<1>()!=other.vertices_[other.minY_.front()].get<1>()))
             return false;
         else{
-            std::vector<POINT_T>::const_iterator iter = 
+            std::vector<Point<2>>::const_iterator iter = 
                 std::find(other.vertices_.begin(),other.vertices_.end(),
                 vertices_.front());
             if(iter==other.vertices_.end())
@@ -522,10 +522,11 @@ class Polygon:public BasicGeometry<POINT_T,false,2>{
     }
 };
 
-template<typename POINT_T>
-void print(const std::vector<Intersection<POINT_T>>& turns);
-template<typename POINT_T>
-void print(const POINT_T& point,std::string_view desc="");
-template<typename POINT_T>
-void print(const Polygon<POINT_T>& pg);
+template<typename Point<2>>
+void print(const std::vector<Intersection<2>>& turns);
+template<typename Point<2>>
+void print(const Point<2>& point,std::string_view desc="");
+template<typename Point<2>>
+void print(const Polygon<Point<2>>& pg);
 
+}
