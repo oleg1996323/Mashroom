@@ -82,9 +82,6 @@ struct ValueTypeCheck{
     static_assert(has_operator_division<VALUE_T,std::float_t>::value);
 };
 
-template<uint64_t,typename,typename = void>
-struct defined_get_coordinate:std::false_type{};
-
 template<bool VIEW,uint64_t DIMENSIONS>
 class BasicGeometry{
     static_assert(DIMENSIONS>0,"Not all Get::operator() are defined");

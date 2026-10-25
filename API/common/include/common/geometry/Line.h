@@ -18,18 +18,17 @@ namespace geometry{
         public:
         using id = uint64_t;
         BasicLine() = default;
-        BasicLine(Point<DIMENSIONS,VALUE_T> first,
-            Point<DIMENSIONS,VALUE_T> second) noexcept:
-        first_(std::move(first)),second_(second){}
-        BasicLine(BasicPoint<DIMENSIONS,VALUE_T>&& first,
-                BasicPoint<DIMENSIONS,VALUE_T>&& second) noexcept:
+        BasicLine(const Point<DIMENSIONS,VALUE_T>& first,
+            const Point<DIMENSIONS,VALUE_T>& second) noexcept:
+        first_(first),second_(second){}
+        BasicLine(Point<DIMENSIONS,VALUE_T>&& first,
+                Point<DIMENSIONS,VALUE_T>&& second) noexcept:
         first_(std::move(first)),second_(std::move(second)){}
         BasicLine(const BasicLine& other) = default;
         BasicLine(BasicLine&& other) noexcept = default;
         BasicLine& operator=(const BasicLine& other) = default;
         BasicLine& operator=(BasicLine&& other) noexcept = default;
         bool operator==(const BasicLine&) = delete;
-        template<typename OTHER_POINT_T,uint64_t OTHER_DIMENSIONS>
         const Point<DIMENSIONS,VALUE_T>& first() const noexcept{
             return first_;
         }
@@ -86,7 +85,7 @@ namespace geometry{
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            double X0 = line.first().template get<1>() - k*line.first().template get<0>();
+            double X0 = line.first().template get<1>() - k*exec<Get,0>(line.first());
             return Y<k*X+X0;
         }
         static bool straight_under_the_point(
@@ -97,7 +96,7 @@ namespace geometry{
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
+            long double X0 = line.first().template get<1>() - k*exec<Get,0>(line.first());
             return Y>k*X+X0;
         }
         static bool point_on_straight(
@@ -108,7 +107,7 @@ namespace geometry{
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
+            long double X0 = line.first().template get<1>() - k*exec<Get,0>(line.first());
             return std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
         static bool straight_not_under_the_point(
@@ -119,7 +118,7 @@ namespace geometry{
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
+            long double X0 = line.first().template get<1>() - k*exec<Get,0>(line.first());
             return Y<k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
         static bool straight_not_above_the_point(
@@ -130,19 +129,18 @@ namespace geometry{
             long double k = line.k();
             if(std::isinf(k))
                 return false;
-            long double X0 = line.first().template get<1>() - k*line.first().template get<0>();
+            long double X0 = line.first().template get<1>() - k*exec<Get,0>(line.first());
             return Y>k*X+X0 || std::abs(Y-k*X+X0)<std::numeric_limits<double>::epsilon();
         }
         bool intersects(const BasicLine& other) const noexcept{
             return exec<Intersects,2>(*this,other);
         }
-        static BasicLine cut(
-                const BasicLine& line,
+        std::vector<BasicLine> cut(
                 const BasicLine& other,
                 bool left_forward
                 ) noexcept
         {
-            return exec<Cut,DIMENSIONS>(line,other,left_forward);
+            return exec<Cut,DIMENSIONS>(*this,other,left_forward);
         }
     };
 
@@ -153,20 +151,20 @@ namespace geometry{
         using max_prec_t = std::common_type_t<value_result_t,long double>;
         if(&first!=&second){
             return std::abs(static_cast<max_prec_t>(
-                    first.first().template get<0>())-
-                    second.first().template get<0>())<
+                    exec<Get,0>(first.first()))-
+                    exec<Get,0>(second.first()))<
                     std::numeric_limits<max_prec_t>::epsilon() &&
             std::abs(static_cast<max_prec_t>(
-                    first.second().template get<0>())-
-                    second.second().template get<0>())<
+                    exec<Get,0>(first.second()))-
+                    exec<Get,0>(second.second()))<
                     std::numeric_limits<max_prec_t>::epsilon() &&
             std::abs(static_cast<max_prec_t>(
-                    first.first().template get<1>())-
-                    second.first().template get<1>())<
+                    exec<Get,1>(first.first()))-
+                    exec<Get,1>(second.first()))<
                     std::numeric_limits<max_prec_t>::epsilon() &&
             std::abs(static_cast<max_prec_t>(
-                    first.second().template get<1>())-
-                    second.second().template get<1>())<
+                    exec<Get,1>(first.second()))-
+                    exec<Get,1>(second.second()))<
                     std::numeric_limits<max_prec_t>::epsilon();
         }
         else return true;
@@ -174,22 +172,22 @@ namespace geometry{
 
     template<typename VALUE1_T,typename VALUE2_T>
     std::vector<Intersection<2>> intersections(
-        const BasicLine<2,std::common_type_t<VALUE1_T,VALUE2_T>>& first,
-        const BasicLine<2,std::common_type_t<VALUE1_T,VALUE2_T>>& second) noexcept
+        const BasicLine<2,VALUE1_T>& first,
+        const BasicLine<2,VALUE2_T>& second) noexcept
     {
         if(&first==&second)
             return {};
         using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
         using max_prec_t = std::common_type_t<value_result_t,long double>;
         max_prec_t X11,X12,X21,X22,Y11,Y12,Y21,Y22;
-        X11 = first.first().template get<0>();
-        X12 = first.second().template get<0>();
-        Y11 = first.first().template get<1>();
-        Y12 = first.second().template get<1>();
-        X21 = second.first().template get<0>();
-        X22 = second.second().template get<0>();
-        Y21 = second.first().template get<1>();
-        Y22 = second.second().template get<1>();
+        X11 = exec<Get,0>(first.first());
+        X12 = exec<Get,0>(first.second());
+        Y11 = exec<Get,1>(first.first());
+        Y12 = exec<Get,1>(first.second());
+        X21 = exec<Get,0>(second.first());
+        X22 = exec<Get,0>(second.second());
+        Y21 = exec<Get,1>(second.first());
+        Y22 = exec<Get,1>(second.second());
         max_prec_t scale = std::max(std::abs(X12 - X11), std::abs(Y12 - Y11))
             * std::max(std::abs(X22 - X21), std::abs(Y22 - Y21));
         max_prec_t denominator = (Y22 - Y21) * (X12 - X11) - (X22 - X21) * (Y12 - Y11);

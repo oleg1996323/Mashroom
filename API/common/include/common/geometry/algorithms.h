@@ -18,10 +18,11 @@ namespace geometry{
     template<typename VALUE1_T,
         typename VALUE2_T,
         typename VALUE3_T>
-    long double cross(BasicPoint<2,VALUE1_T>& a,
-            const BasicPoint<2,VALUE2_T>& b, 
-            const BasicPoint<2,VALUE3_T>& c) {
-        using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
+    long double cross(const Point<2,VALUE1_T>& a,
+            const Point<2,VALUE2_T>& b, 
+            const Point<2,VALUE3_T>& c) {
+        using value_result_t = std::common_type_t<
+            std::common_type_t<VALUE1_T,VALUE2_T>,VALUE3_T>;
         using max_prec_t = std::common_type_t<value_result_t,long double>;
         return (static_cast<max_prec_t>(exec<Get,0>(b)) - 
                 static_cast<max_prec_t>(exec<Get,0>(a))) * 

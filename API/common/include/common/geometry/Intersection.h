@@ -47,4 +47,16 @@ namespace geometry{
             return id_2_;
         }
     };
+
+    template<uint64_t DIMENSIONS>
+    void print(const Intersection<DIMENSIONS>& is){
+        std::cout<<"intersection: point";print(is.point());
+        std::cout<<"first ID: "<<is.first_elem_id()<<"; "<<"second ID: "<<is.second_elem_id()<<std::endl;
+    }
+
+    template<uint64_t DIMENSIONS>
+    void print(const std::vector<Intersection<DIMENSIONS>>& iss){
+        for(const Intersection<DIMENSIONS>& is:iss)
+            print(is);
+    }
 }

@@ -12,25 +12,25 @@ namespace geometry{
     template<uint64_t DIMENSION,typename POINT_T>
     auto& get(POINT_T& point);
 
-    template<template<uint64_t D,typename... ARGS> 
-            typename F,uint64_t D,typename... ARGS>
-    std::invoke_result_t<F<D>,ARGS...> exec(ARGS&&... args) 
-        noexcept(noexcept(F<D>()(std::forward<ARGS>(args)...)))
+    template<template<uint64_t, 
+    typename...> typename F, uint64_t D, typename... ARGS>
+    auto exec(ARGS&&... args)
+        noexcept(noexcept(F<D>{}(std::forward<ARGS>(args)...)))
+        -> decltype(F<D>{}(std::forward<ARGS>(args)...))
     {
-        return F<D>()(std::forward<ARGS>(args)...);
+        return F<D>{}(std::forward<ARGS>(args)...);
     }
 
     template<uint64_t DIMENSION>
     struct Get{
         template<typename POINT_T>
         auto& operator()(POINT_T& point)
-            noexcept(noexcept(get<DIMENSION>(point)))
         {
             return get<DIMENSION>(point);
         };
         template<typename POINT_T>
-        const auto& operator()(const POINT_T& point) const 
-            noexcept(noexcept(get<DIMENSION>(point)))
+        const auto&
+            operator()(const POINT_T& point) const
         {
             return get<DIMENSION>(point);
         };
@@ -44,9 +44,12 @@ namespace geometry{
         }
     };
 
-    template<uint64_t DIMENSION,typename POINT_T>
-    struct defined_get_coordinate<DIMENSION,POINT_T,
-    std::void_t<typename std::invoke_result<Get<DIMENSION>,POINT_T>::type>>:std::true_type{};
+    template<uint64_t D,typename P,typename = std::void_t<>>
+    struct defined_get_coordinate:std::false_type{};
+
+    template<uint64_t D,typename P>
+    struct defined_get_coordinate<D,P,
+    std::void_t<decltype(get<D>(std::declval<const P&>()))>>:std::true_type{};
 
     template<typename POINT_T, uint64_t D = 0, uint64_t MAX = MAX_ALLOWABLE_DIMENSIONS>
     consteval uint64_t dimensions() noexcept {
@@ -92,12 +95,18 @@ namespace geometry{
         std::array<VALUE_T,DIMENSIONS> data_;
         public:
         BasicPoint() = default;
-        BasicPoint(std::initializer_list<VALUE_T> values):
-            data_(values.begin(),values.end()){}
+        BasicPoint(std::array<VALUE_T,DIMENSIONS> values):
+            data_{values}{}
         BasicPoint(const BasicPoint& other)
         {
             [this,&other]<uint64_t... Is>(std::index_sequence<Is...> is){
                 ((data_[Is]=other.data_[Is]),...);
+            }(std::make_index_sequence<BasicGeometry<false,DIMENSIONS>::dimensions()>());
+        }
+        template<typename P>
+        BasicPoint(const P& point){
+            [this,&point]<uint64_t... Is>(std::index_sequence<Is...> is){
+                ((data_[Is]=exec<Get,Is>(point)),...);
             }(std::make_index_sequence<BasicGeometry<false,DIMENSIONS>::dimensions()>());
         }
         BasicPoint(BasicPoint&& other) noexcept
@@ -132,35 +141,34 @@ namespace geometry{
             return cmp(std::make_index_sequence<DIMENSIONS>());
         }
         template<uint64_t DIMENSION>
-        const auto& get() const noexcept{
-            static_assert(DIMENSION<
-                BasicGeometry<false, DIMENSIONS>::dimensions(),
+        std::enable_if_t<DIMENSION<DIMENSIONS,const VALUE_T&> get() const noexcept{
+            static_assert(DIMENSION<DIMENSIONS,
             "Not existing dimension");
             return data_[DIMENSION];
         }
         template<uint64_t DIMENSION>
-        auto& get() noexcept{
-            static_assert(DIMENSION<
-                BasicGeometry<false, DIMENSIONS>::dimensions(),
+        std::enable_if_t<DIMENSION<DIMENSIONS,VALUE_T&> get() noexcept{
+            static_assert(DIMENSION<DIMENSIONS,
             "Not existing dimension");
             return data_[DIMENSION];
         }
         template<uint64_t DIMENSION,typename ARG>
         void set(ARG value) noexcept{
-            static_assert(DIMENSION<
-                BasicGeometry<false, DIMENSIONS>::dimensions(),
+            static_assert(DIMENSION<DIMENSIONS,
             "Not existing dimension");
             data_[DIMENSION] = value;
         }
     };
 
     template<uint64_t DIMENSION,uint64_t DIMENSIONS,typename VALUE_T>
-    const auto& get(const BasicPoint<DIMENSIONS,VALUE_T>& point){
+    std::enable_if_t<DIMENSION<DIMENSIONS,
+        const VALUE_T&> get(const BasicPoint<DIMENSIONS,VALUE_T>& point){
         return point.template get<DIMENSION>();
     }
 
     template<uint64_t DIMENSION,uint64_t DIMENSIONS,typename VALUE_T>
-    auto& get(BasicPoint<DIMENSIONS,VALUE_T>& point){
+    std::enable_if_t<DIMENSION<DIMENSIONS,
+        VALUE_T&> get(BasicPoint<DIMENSIONS,VALUE_T>& point){
         return point.template get<DIMENSION>();
     }
 
@@ -181,8 +189,7 @@ namespace geometry{
         BasicPointRef& operator=(BasicPointRef&& other) = delete;
         template<uint64_t DIMENSION>
         const VALUE_T& get() const noexcept{
-            static_assert(DIMENSION<
-                BasicGeometry<false, DIMENSIONS>::dimensions(),
+            static_assert(DIMENSION<DIMENSIONS,
             "Not existing dimension");
             return data_[DIMENSION];
         }
@@ -220,12 +227,22 @@ namespace geometry{
     }
 
     template<>
-    const auto& get<0>(const Coord& point){
+    inline const auto& get<0>(const Coord& point){
         return point.lon_;
     }
 
     template<>
-    const auto& get<1>(const Coord& point){
+    inline const auto& get<1>(const Coord& point){
+        return point.lat_;
+    }
+
+    template<>
+    inline auto& get<0>(Coord& point){
+        return point.lon_;
+    }
+
+    template<>
+    inline auto& get<1>(Coord& point){
         return point.lat_;
     }
 
@@ -256,12 +273,12 @@ namespace geometry{
     };
 
     template<>
-    const auto& get<0>(const UserPoint& point){
+    inline const auto& get<0>(const UserPoint& point){
         return point.X_;
     }
 
     template<>
-    const auto& get<1>(const UserPoint& point){
+    inline const auto& get<1>(const UserPoint& point){
         return point.Y_;
     }
     static_assert(std::is_default_constructible_v<BasicPoint<2>>);
@@ -276,6 +293,10 @@ namespace geometry{
     static_assert(!std::is_move_constructible_v<BasicPointRef<2>>);
     static_assert(std::is_copy_assignable_v<BasicPointRef<2>>);
     static_assert(!std::is_move_assignable_v<BasicPointRef<2>>);
+    static_assert(defined_get_coordinate<0,Coord>::value);
+    static_assert(defined_get_coordinate<01,Coord>::value);
+    static_assert(dimensions<Coord>() == 2);
+    static_assert(dimensions<BasicPoint<2>>() == 2);
     template<uint64_t DIMENSIONS,typename VALUE_T = long double>
     using Point = BasicPoint<DIMENSIONS,VALUE_T>;
 }
@@ -284,7 +305,7 @@ namespace geometry{
 
 namespace geometry{
     template<>
-    auto distance<Point<2>,Point<2>>(
+    inline auto distance<Point<2>,Point<2>>(
         const Point<2>& first,
         const Point<2>& second) noexcept
     {
