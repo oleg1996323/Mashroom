@@ -237,18 +237,18 @@ namespace geometry{
     }
 
     template<typename VALUE1_T,typename VALUE2_T>
-    bool intersects(const BasicLine<2,VALUE1_T>& first, const BasicLine<2,VALUE2_T>& second) noexcept{
-        long double d1 = cross(first.first(), first.second(), second.first());
-        long double d2 = cross(first.first(), first.second(), second.second());
-        long double d3 = cross(first.second(), second.second(), first.first());
-        long double d4 = cross(first.second(), second.second(), second.first());
+    bool intersects(const BasicLine<2,VALUE1_T>& l1, const BasicLine<2,VALUE2_T>& l2) noexcept{
+        long double d1 = cross(l1.first(), l1.second(), l2.first());
+        long double d2 = cross(l1.first(), l1.second(), l2.second());
+        long double d3 = cross(l2.first(), l2.second(), l1.first());
+        long double d4 = cross(l2.first(), l2.second(), l1.second());
         if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
             ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
             return true;
-        if (d1 == 0 && on_segment(first.first(), second.first(), first.second())) return true;
-        if (d2 == 0 && on_segment(first.first(), second.first(), second.second())) return true;
-        if (d3 == 0 && on_segment(first.second(), second.second(), first.first())) return true;
-        if (d4 == 0 && on_segment(first.second(), second.second(), second.first())) return true;
+        if (d1 == 0 && on_segment(l1.first(), l1.second(), l2.first())) return true;
+        if (d2 == 0 && on_segment(l1.first(), l1.second(), l2.second())) return true;
+        if (d3 == 0 && on_segment(l2.first(), l2.second(), l1.first())) return true;
+        if (d4 == 0 && on_segment(l2.first(), l2.second(), l1.second())) return true;
         return false;
     }
 }

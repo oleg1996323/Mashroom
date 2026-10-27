@@ -197,10 +197,12 @@ namespace geometry{
         std::vector<BasicPolyline<2,max_prec_t>> result;
         std::vector<Intersection<2>> turns = exec<Intersections,2>(cutted,cutting);
         bool in = false;
-
-        auto intersection_openning = [left_forward,&cutted,&cutting](const Intersection<2>& is){
-            const Point<2,max_prec_t>& first_1 = cutted.vertices().at(is.first_elem_id());
-            const Point<2,max_prec_t>& second_1 = cutted.vertices().at(is.first_elem_id()+1);
+        auto& vertices = cutted.vertices();
+        using vertices_t = std::decay_t<decltype(vertices)>;
+        uint64_t number_segments = cutted.number_segments();
+        auto intersection_openning = [left_forward,&vertices,&cutting](const Intersection<2>& is){
+            const Point<2,max_prec_t>& first_1 = vertices.at(is.first_elem_id());
+            const Point<2,max_prec_t>& second_1 = vertices.at(is.first_elem_id()+1);
             const Point<2,max_prec_t>& first_2 = cutting.first();
             const Point<2,max_prec_t>& second_2 = cutting.second();
             long double side = cross(first_2, second_2, first_1);
@@ -211,58 +213,46 @@ namespace geometry{
         if(!turns.empty())
             in = !intersection_openning(turns.front());
         else return result;
-        std::sort(turns.begin(),turns.end(),
-        [&cutted](const Intersection<2>& lhs,const Intersection<2>& rhs){
-            if(lhs.first_elem_id()==rhs.first_elem_id()){
-                const Point<2>& begin_lhs = cutted.vertices().at(lhs.first_elem_id());
-                const Point<2>& begin_rhs = cutted.vertices().at(rhs.first_elem_id());
-                if(pythagoras2(begin_lhs,lhs.point())==pythagoras2(begin_rhs,rhs.point()))
-                    return lhs.second_elem_id()<rhs.second_elem_id();
-                else return pythagoras2(begin_lhs,lhs.point())<pythagoras2(begin_rhs,rhs.point());
-            }
-            else return lhs.first_elem_id()<rhs.first_elem_id();
-        });
         print(turns);
-        for(uint64_t i=0;i<turns.size();++i){
-            BasicPolyline<2,max_prec_t>* current;
+        for(uint64_t i=0;i<turns.size();i+=2){
             if(in){
-                current = result.empty()?&result.emplace_back():&result.back();
-                while(i+1<turns.size() && intersection_openning(turns[i+1])){
-                    ++i;
-                }
-                if(i>=turns.size())
-                    break;
-                uint64_t start_vertice = (i==0)?0:turns[i-1].first_elem_id()+1;
-                uint64_t last_vertice = 0;
-                last_vertice = turns[i].first_elem_id()+1;
-                                        
-                for(uint64_t j=start_vertice;j<last_vertice;++j){
-                    print(cutted.vertices().at(j),"added vertice",true);
-                    current->append(cutted.vertices().at(j));
-                }
-                print(turns[i].point(),"added vertice",true);
-                current->append(turns[i].point());
-                in=false;
-                std::cout<<"Made polyline"<<std::endl;
-                print(result.back());
+                if(result.empty())
+                    result.emplace_back();
+                typename vertices_t::const_iterator begin = 
+                        (i==0?
+                        vertices.begin():
+                        vertices.begin()+
+                            turns[i].first_elem_id()+1);
+                typename vertices_t::const_iterator end = 
+                        (i==turns.size()-1?
+                        vertices.begin()+
+                            turns[i].first_elem_id()+1:
+                        vertices.begin()+
+                            turns[i+1].first_elem_id());
+                auto& last = result.back();
+                for(const typename vertices_t::value_type& vertice:
+                        std::span(begin,end))
+                    last.append(vertice);
+                if(i<turns.size()-1)
+                    last.append(turns[i+1].point());
+                else last.append(turns[i].point());
+                in = false;
             }
             else {
-                while(i+1<turns.size() && intersection_openning(turns[i+1])){
-                    ++i;
+                in = true;
+                auto& last = result.emplace_back();
+                last.append(turns[i].point());
+                if(i==turns.size()-1){
+                    typename vertices_t::const_iterator begin = 
+                        vertices.begin()+
+                            turns[i].first_elem_id()+1;
+                    typename vertices_t::const_iterator end = 
+                            vertices.end();
+                    for(const typename vertices_t::value_type& vertice:
+                            std::span(begin,end))
+                        last.append(vertice);
                 }
-                if(i>=turns.size())
-                    break;
-                if(!result.empty() && result.back().vertices().back()==turns[i].point()){
-                    current = &result.back();
-                }
-                else{
-                    current = &result.emplace_back();
-                    print(turns[i].point(),"added vertice",true);
-                    current->append(turns[i].point());
-                }
-                in=true;
             }
-
         }
         return result;
     }
@@ -396,12 +386,12 @@ namespace geometry{
         using value_result_t = std::common_type_t<VALUE1_T,VALUE2_T>;
         using max_prec_t = std::common_type_t<value_result_t,long double>;
         std::vector<Intersection<2>> result;
-        if(line.first()==line.second() || pl.vertices().empty())
+        if(line.first()==line.second() || pl.number_segments()==0)
             return {};
-        for(uint64_t i = 0;i<pl.number_vertices();++i){
+        for(uint64_t i = 0;i<pl.number_segments();++i){
             BasicLine<2,max_prec_t> current_line(
                 pl.vertices().at(i),
-                pl.vertices().at((i+1)%pl.number_vertices()));
+                pl.vertices().at(i+1));
             if(exec<Intersects,2>(current_line,line)){
                 if(auto found = exec<Intersections,2>(current_line,line);
                     !found.empty()){

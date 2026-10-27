@@ -23,8 +23,8 @@ TEST(polyline,cut_test){
     cut_pl.append(Coord{.lat_=5,.lon_=9});
     cut_pl.append(Coord{.lat_=-2,.lon_=2});
     print(pl);
-    BasicLine<2> line(Point<2>({0.5,-0.5}),Point<2>({2,6}));
-    auto polylines = pl.cut(line,false);
+    BasicLine<2> line(Point<2>({6,2}),Point<2>({9,4}));
+    auto polylines = pl.cut(line,true);
     print(polylines);
 }
 
