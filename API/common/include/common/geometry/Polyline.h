@@ -250,7 +250,8 @@ namespace geometry{
                             vertices.end();
                     for(const typename vertices_t::value_type& vertice:
                             std::span(begin,end))
-                        last.append(vertice);
+                        if(vertice!=last.vertices().back())
+                            last.append(vertice);
                 }
             }
         }

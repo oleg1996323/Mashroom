@@ -46,6 +46,12 @@ namespace geometry{
         uint64_t second_elem_id() const noexcept{
             return id_2_;
         }
+        void first_elem_id(uint64_t val) noexcept{
+            id_1_ = val;
+        }
+        void second_elem_id(uint64_t val) noexcept{
+            id_2_ = val;
+        }
     };
 
     template<uint64_t DIMENSIONS>
